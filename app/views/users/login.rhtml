@@ -1,0 +1,29 @@
+<div id="darkloginboxtop">
+	<div id="loginimage">
+		<div id="loginboxwrapper">
+			<div id="loginboxtop" />
+			<div id="loginboxmiddle"/>
+			<div id="loginboxbottom" />
+		</div>
+	</div>
+</div>
+<div id="darkloginboxbottom" />
+
+<h1>Login</h1>
+
+<% form_for(:user, :url => users_path) do |f| %>
+  <p>
+    <b>Email</b><br />
+    <%= f.text_field :email %>
+  </p>
+  
+  <p>
+    <b>Password</b><br />
+	<%= f.password_field :password %>
+  </p>
+
+  <p>
+    <%= submit_tag "Login" %>
+  </p>
+<% end %>
+

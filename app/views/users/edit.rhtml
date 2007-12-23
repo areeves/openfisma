@@ -1,0 +1,48 @@
+<h1>Editing user</h1>
+
+<%= error_messages_for :user %>
+
+<% form_for(:user, :url => user_path(@user), :html => { :method => :put }) do |f| %>
+
+  <p>
+    <b>Name first</b><br />
+    <%= f.text_field :name_first %>
+  </p>
+
+  <p>
+    <b>Name last</b><br />
+    <%= f.text_field :name_last %>
+  </p>
+
+  <p>
+    <b>Email</b><br />
+    <%= f.text_field :email %>
+  </p>
+
+  <p>
+    <b>Created at</b><br />
+    <%= f.datetime_select :created_at %>
+  </p>
+
+  <p>
+    <b>Updated at</b><br />
+    <%= f.datetime_select :updated_at %>
+  </p>
+
+  <p>
+    <b>Number mobile</b><br />
+    <%= f.text_field :number_mobile %>
+  </p>
+
+  <p>
+    <b>Number work</b><br />
+    <%= f.text_field :number_work %>
+  </p>
+
+  <p>
+    <%= submit_tag "Update" %>
+  </p>
+<% end %>
+
+<%= link_to 'Show', user_path(@user) %> |
+<%= link_to 'Back', users_path %>

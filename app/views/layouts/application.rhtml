@@ -1,0 +1,25 @@
+
+	<%= render :partial => "layouts/header" %>
+
+<body>
+	
+	<%= render :partial => "layouts/navigation" %>
+
+	<div id="content">
+
+  			<!-- Display page title as heading if page title exists --> 
+			<%= "<h1>#{@page_title}</h1>" if @page_title %>
+
+			<!-- Display notice messages, loops through flash messages and assigns div tags -->
+			<% flash.each do |key, msg| %>
+		      <%= content_tag :div, msg, :id => key %>
+		    <% end %>
+
+   			<!-- Content Start --> 
+    		<%= yield %>
+			<!-- Content End --> 
+
+  			</div>
+		<%= render :partial => "layouts/footer" %>
+	</body>
+</html>
