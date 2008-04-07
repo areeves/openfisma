@@ -1,0 +1,14 @@
+<?php
+
+error_reporting(E_ALL);
+ini_set('display_errors',1);
+ini_set('xdebug.collect_params' , 4);
+ini_set('xdebug.collect_return' , 0);
+ini_set('xdebug.trace_options', 1);
+ini_set('xdebug.trace_output_name', 'sws.%u');
+ini_set('xdebug.auto_trace', 1);
+if(function_exists('xdebug_start_trace') ) {
+    xdebug_start_trace();
+}
+
+?>

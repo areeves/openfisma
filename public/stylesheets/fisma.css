@@ -1,0 +1,91 @@
+a.action {
+    text-decoration : none;
+    line-height : 2em;
+    font-size: 1 em;
+}
+
+ul {
+    margin:0;
+    padding:0;
+    border:0;
+    list-style:none;
+}
+
+ul.loginfo {
+    font: 0.8em arial, helvetica, sans-serif;
+}
+
+#menu a, #menu h2{
+    display: block;
+    margin: 0px;
+    padding: 0px;
+}
+
+#menu a {
+    border-width: 1px;
+    border-style: solid;
+    border-color: #42637B #888 #42637B #bbb;
+}
+#menu a h2 {
+    font: bold 14px arial, helvetica, sans-serif;
+    text-transform: uppercase;
+    text-align:center;
+    line-height:1.8em;
+}
+
+#menu a {
+    font: 12px arial, helvetica, sans-serif;
+    color: white;
+    background: #42637B;
+    text-decoration: none;
+    border-bottom:1px solid gray;
+}
+#menu ul ul a{
+    background: #42637B url(/images/plus.gif) no-repeat 0.6em ;
+    border-bottom:1px solid gray;
+    padding:1px 1em 0px 1.8em;
+}
+#menu ul ul a:hover {
+    color: #42637B;
+    background: #FFFFB5 url(/images/arrow.gif) no-repeat 0.6em ;
+    padding:1px 1em 0em 1.8em;
+}
+ul.stitle li{
+    float:left;
+    background-color:#dfe5ed;
+}
+div.barleft p {
+    background-color:#dfe5ed;
+    height:24px;
+    vertical-align:center;
+}
+
+div.barleft b,
+div.barleft span {
+    margin:0 3em;
+    font-size:12px;
+    line-height:24px;
+    color:#42617B;
+}
+div.barleft b {
+    float:left;
+}
+div.barleft span {
+    float:right;
+}
+div.barleft{
+    background: url(/images/left_circle.gif) no-repeat left;
+    padding-left:12px;
+}
+div.barright {
+    background: url(/images/right_circle.gif) no-repeat right;
+    padding-right:8px;
+}
+
+#bottom table{
+    font-family: 'Verdana','Arial','Helvetica';
+    color: #000000;
+    height: 23px;
+    font-weight: normal;
+    font-size: 12px;
+}
