@@ -8,7 +8,7 @@ ini_set('xdebug.trace_options', 1);
 ini_set('xdebug.trace_output_name', 'sws.%u');
 ini_set('xdebug.auto_trace', 1);
 if(function_exists('xdebug_start_trace') ) {
-    xdebug_start_trace();
+  //  xdebug_start_trace();
 }
 
 ?>

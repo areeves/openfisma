@@ -9,19 +9,30 @@
 
 require_once 'Zend/Controller/Action.php';
 require_once 'Zend/Auth.php';
+require_once 'Zend/Db.php';
+require_once MODELS . DS . 'user.php';
+
 require_once 'Zend/Acl.php';
 require_once 'Zend/Acl/Role.php';
 require_once 'Zend/Acl/Resource.php';
 
 
+
 class SecurityController extends Zend_Controller_Action
 {
-    public function preDispatch() 
+    /**
+       authenticated user instance
+    */
+	protected $me = null;
+
+    public function preDispatch()
     {
         $auth = Zend_Auth::getInstance();
         if($auth->hasIdentity()){
             $this->view->identity = $auth->getIdentity()->user_name;
+            $this->me = new User(Zend_Registry::get('db'));
             $this->initializeAcl($auth->getIdentity()->user_id);
+
         }else{
             $this->_forward('login','user');
         }
@@ -37,7 +48,7 @@ class SecurityController extends Zend_Controller_Action
             foreach($role_array as $result){
                 $acl->addRole(new Zend_Acl_Role($result['role_nickname']));
             }
-          
+
             $resource = $db->fetchAll("SELECT distinct function_screen FROM `FUNCTIONS`");
             foreach($resource as $result){
                 $acl->add(new Zend_Acl_Resource($result['function_screen']));

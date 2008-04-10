@@ -1,16 +1,16 @@
 <?php
 
     Zend_Registry::set('datasource', new Zend_Config(
-        array( 
+        array(
         'default' => array(
-            'adapter' => 'pdo_mysql',
+            'adapter' => 'mysqli',
             'params' => array(
                 'host' => 'localhost',
                 'port' => '',
                 'username' => 'sws_live',
                 'password' => '123456',
                 'dbname' => 'fisma2',
-                'profiler' => true  
+                'profiler' => true
             )
         ))
     ));
