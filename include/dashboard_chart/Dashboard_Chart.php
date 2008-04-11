@@ -10,7 +10,7 @@ class Dashboard_Chart
 		$html.="<PARAM NAME='movie' VALUE='flash/charts.swf?license=I1XFXZQRXRQL.NS5T4Q79KLYCK07EK&xml_source=$xml_file'>";
 		$html.="<PARAM NAME='quality' VALUE='high'> <PARAM NAME='bgcolor' VALUE='#666666'> ";
 		$html.="<PARAM NAME='wmode' VALUE='transparent'> ";
-		$html.="<EMBED src='flash/charts.swf?license=I1XFXZQRXRQL.NS5T4Q79KLYCK07EK&xml_source=$xml_file' ";
+		$html.="<EMBED src='/flash/charts.swf?license=I1XFXZQRXRQL.NS5T4Q79KLYCK07EK&xml_source=$xml_file' ";
 		$html.="quality='high' bgcolor='#FFFFFF' WIDTH='$w' HEIGHT='$h' NAME='charts' ALIGN='' wmode='transparent' ";
 		$html.="TYPE='application/x-shockwave-flash' PLUGINSPAGE='https://www.macromedia.com/go/getflashplayer'></EMBED></OBJECT>";
 		return $html;

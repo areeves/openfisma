@@ -22,6 +22,7 @@
     define('VIEWS', APPS . DS . 'views');
     define('CONTROLLERS', APPS . DS . 'controllers');
     define('VENDORS', ROOT . DS . 'vendor');
+    define('LIBS', ROOT . DS . 'include');
 
 
 ?>

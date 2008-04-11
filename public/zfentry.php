@@ -15,7 +15,7 @@
     require_once( ROOT . DS . 'paths.php');
     require_once( APPS . DS . 'basic.php');
     include_once( CONFIGS . DS . 'debug.php');
-    import(VENDORS, VENDORS.DS.'Pear');
+    import(LIBS, VENDORS, VENDORS.DS.'Pear');
 
     require_once 'Zend/Controller/Front.php';
     require_once 'Zend/Layout.php';
@@ -34,7 +34,7 @@
     );
     Zend_Layout::startMvc($options)->setViewSuffix('tpl');
     $viewRender = Zend_Controller_Action_HelperBroker::getStaticHelper('viewRenderer');
-    $viewRender->setViewSuffix('tpl')->setNeverRender(true); 
+    $viewRender->setViewSuffix('tpl')->setNeverRender(true);
     Zend_Controller_Action_HelperBroker::addHelper($viewRender);
 
 
