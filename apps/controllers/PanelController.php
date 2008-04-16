@@ -1,4 +1,11 @@
 <?php
+/**
+* OpenFISMA
+*
+* MIT LICENSE
+*
+* @version $Id$
+*/
 
 require_once CONTROLLERS . DS . 'SecurityController.php';
 
@@ -12,7 +19,7 @@ class PanelController extends SecurityController
     }
 
     public function headerAction()
-    {
+    {   
         $this->_helper->layout->assign('header',
             $this->view->render($this->_helper->viewRenderer->getViewScript()));
         $this->_helper->layout->setLayout('default');
@@ -25,26 +32,26 @@ class PanelController extends SecurityController
         $this->_helper->actionStack('header');
     }
 
-    public function sampleAction()
+    /** finding menu
+    */
+    public function findingAction()
     {
-        $collection = array(
-            array(
-                "name" =>"CVE",
-                "url" => "/zfentry.php/Search/cve/item/cve/status/assigned/view/1"
-            ),
-            array(
-                "name" => "Exploit",
-                "url" => "/zfentry.php/Search/exploit/item/exploit/status/assigned/view/1"
-            )
-        );
-        $req = $this->getRequest();
-        //$panel = $req->getParam('panel') ? $req->getParam('panel') : 'assignment';
-        //$item = $req->getParam('item') ? $req->getParam('item') : 'cve';
-        $this->_helper->actionStack('leftnav', null, null, 
-                                array('menu' => $collection));
+        $this->_helper->actionStack('searchbox','Finding' );
+        $this->_helper->actionStack('summary','Finding' );
         $this->_helper->actionStack('header');
-        $this->_helper->actionStack( 'cve','Search' ,null, array( 'view' => 1));
     }
+
+    public function searchAction()
+    {
+        $req = $this->getRequest();
+        $action = $req->getParam('obj');
+        if('finding' == $action){
+            $this->_helper->actionStack($action ,'Search' );
+            $this->_helper->actionStack('finding','Summary' );
+            $this->_helper->actionStack('header');
+        }
+    }
+
 }
 
 
