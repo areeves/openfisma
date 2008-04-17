@@ -22,10 +22,12 @@
     require_once 'Zend/Registry.php';
     require_once 'Zend/Config.php';
     require_once 'Zend/Db.php';
+    require_once 'Zend/Db/Table.php';
     require_once 'Zend/Controller/Plugin/ErrorHandler.php';
     require_once ( CONFIGS . DS . 'database.php');
 
     $db = Zend_DB::factory(Zend_Registry::get('datasource')->default);
+    Zend_Db_Table::setDefaultAdapter($db);
     Zend_Registry::set('db', $db);
     $options = array(
         'layout'     => 'default',
