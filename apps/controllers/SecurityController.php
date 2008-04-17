@@ -25,14 +25,17 @@ class SecurityController extends Zend_Controller_Action
     */
 	protected $me = null;
 
+    /** 
+     * Authentication check and ACL initialization
+     * @todo cache the acl
+     */
     public function preDispatch()
     {
         $auth = Zend_Auth::getInstance();
         if($auth->hasIdentity()){
-            $this->view->identity = $auth->getIdentity()->user_name;
-            $this->me = new User(Zend_Registry::get('db'));
-            $this->initializeAcl($auth->getIdentity()->user_id);
-
+            $this->me = $auth->getIdentity();
+            $this->view->identity = $this->me->user_name;
+            $this->initializeAcl($this->me->user_id);
         }else{
             $this->_forward('login','user');
         }
