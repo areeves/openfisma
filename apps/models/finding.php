@@ -90,6 +90,57 @@ class Finding extends Zend_Db_Table
         return array_values($data);
     }
 
+    /**
+    Get finding detail by finding_id
+    @param $fid int
+    @return $finding array
+    */
+    public function getFindingById($fid){
+           $finding_detail = array();
+           $qry = $this->select()->setIntegrityCheck(false)
+                                    ->from(array('f'=>'FINDINGS'), array('id' => 'finding_id',
+                                                 'status'=>'finding_status',
+                                                  'source_id' => 'source_id',
+                                                  'asset_id' =>'asset_id',
+                                                  'discovered' => 'finding_date_discovered',
+                                                  'created' =>'finding_date_created',
+                                                  'closed' =>'finding_date_closed',
+                                                  'finding_data' =>'finding_data',
+                                                  'source_name' =>'fs.source_name'));
+           $qry->join(array('fs' =>'FINDING_SOURCES'),'fs.source_id = f.source_id',array());
+           $qry->join(array('as' =>'ASSETS'),'as.asset_id = f.asset_id',array());
+           $qry->join(array('sa'=>'SYSTEM_ASSETS'),'sa.asset_id = as.asset_id',array());
+           $qry->join(array('s'=>'SYSTEMS'),'s.system_id = sa.system_id',array('system_name'=>'system_name'));
+           $qry->join(array('addr'=>'ASSET_ADDRESSES'),'as.asset_id = addr.asset_id',
+                         array('ip'=>'addr.address_ip','port'=>'addr.address_port'));
+           $qry->join(array('n'=>'NETWORKS'),'addr.network_id = n.network_id',array('network'=>'network_name'));
+           $qry->join(array('fv'=>'FINDING_VULNS'),'fv.finding_id = f.finding_id',array());
+           $qry->join(array('v'=>'VULNERABILITIES'),
+                         'v.vuln_seq = fv.vuln_seq and v.vuln_type = fv.vuln_type',
+                             array('vuln_seq'=>'v.vuln_seq',
+                                   'vuln_type'=>'v.vuln_type',
+                                   'vuln_desc_primary'=>'v.vuln_desc_primary',
+                                   'nuln_desc_secondary'=>'v.vuln_desc_secondary'));
+           $qry->where("f.finding_id = $fid");
+           $data = $this->fetchRow($qry);
+           $qry->reset();
+           if(!empty($data)){
+               $finding_detail = $data->toArray();
+               if(!empty($finding_detail['vuln_seq'])){
+                   $vseq = $finding_detail['vuln_seq'];
+                   $vtype = $finding_detail['vuln_type'];
+                   $qry->from(array('v'=>'VULNERABILITIES'));
+                   $qry->where("vuln_seq = $vseq","vuln_type = $vtype");
+                   $data = $this->fetchAll($qry);
+                   $qry->reset();
+                   if(!empty($data)){
+                       $vuln_arr = $data->toArray();
+                       $finding_detail['vuln_arr'] = $vuln_arr;
+                   }
+               }
+           }
+           return $finding_detail;
+       }
 }
 
 ?>

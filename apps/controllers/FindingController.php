@@ -12,7 +12,7 @@ require_once MODELS . DS . 'finding.php';
 
 class FindingController extends SecurityController
 {
-    private $perPage = 20;
+    private $perPage = 30;
     private $currentPage = 1;
     public function indexAction()
     {
@@ -173,7 +173,52 @@ class FindingController extends SecurityController
         $this->render();     
     }
 
+    /**
+       Get finding detail infomation
+    */
+    public function viewAction(){
+        require_once MODELS . DS . 'asset.php';
+        $this->_helper->actionStack('header','Panel');
+        $req = $this->getRequest();
+        $fid = $req->getParam('fid',0);
+        assert($fid);
+        
+        $this->view->assign('fid',$fid);
+        if(isAllow('finding','read')){
+            $finding = new Finding();
+            $finding_detail = $finding->getFindingById($fid);
+            $this->view->assign('finding',$finding_detail);
+            $this->render();
+        }
+        else {
+            /// @todo Add a new Excption page to indicate Access denial
+            $this->render();
+        }
+    }
 
+    /**
+      Edit finding infomation
+    */
+    public function editAction(){
+        $req = $this->getRequest();
+        $fid = $req->getParam('fid');
+        assert($fid);
+        $finding = new Finding();
+        $do = $req->getParam('do');
+        if($do == 'update'){
+           $status = $req->getParam('status');
+           $db = Zend_Registry::get('db');
+           $result = $db->query("UPDATE FINDINGS SET finding_status = '$status' WHERE finding_id = $fid");     
+           if($result){
+               $this->view->assign('msg',"Finding updated successfully");
+           }
+           else {
+               $this->view->assign('msg',"Finding update failed");
+           }
+        }
+        $this->view->assign('act','edit');
+        $this->_forward('view','Finding');
+    }
 
 }
 ?>

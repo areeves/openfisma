@@ -16,10 +16,10 @@
     }
     if(isAllow('finding','read')) {
         echo'<ul ><li > 
-             <a href="#"><h2>Finding</h2></a>'; 
-        echo'<ul><li><a href="#">Finding Summary</a></li>';
+             <a ><h2>Finding</h2></a>'; 
+        echo'<ul><li><a href="/zfentry.php/panel/finding">Finding Summary</a></li>';
         if(isAllow('finding','create')) {
-            echo'<li><a href="#">New Finding</a></li>';
+            echo'<li><a href="/zfentry.php/finding/create">New Finding</a></li>';
             echo'<li><a href="#">Upload Scan Results</a></li>';
             echo'<li><a href="#">Spreadsheet Upload</a></li>';
         }

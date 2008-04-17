@@ -106,13 +106,13 @@
                     <?php if(isAllow('finding','update')){ ?>
                     <!--edit right-->
                     <td align="center" >
-                      <a href="/zfentry.php/finding/edit/id/<?php echo $row['id'];?>" ><img src="/images/edit.png" border="0" ></a>
+                      <a href="/zfentry.php/finding/edit/fid/<?php echo $row['id'];?>" ><img src="/images/edit.png" border="0" ></a>
                     </td>
                     <?php }
                     if(isAllow('finding','read')) {?>
                     <!--view right-->
                     <td align="center" >
-                      <a href="/zfentry.php/finding/view/id/<?php echo $row['id'];?>" ><img src="/images/view.gif" border="0" ></a>
+                      <a href="/zfentry.php/finding/view/fid/<?php echo $row['id'];?>" ><img src="/images/view.gif" border="0" ></a>
                     </td>
                     <?php }?>
                 </tr>
