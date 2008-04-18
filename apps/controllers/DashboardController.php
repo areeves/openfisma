@@ -1,4 +1,11 @@
 <?PHP
+/**
+* OpenFISMA
+*
+* MIT LICENSE
+*
+* @version $Id$
+*/
 
 require_once 'Zend/Controller/Action.php';
 require_once MODELS . DS . 'user.php';
@@ -33,9 +40,9 @@ class DashboardController extends SecurityController
           $total_items  = 0;
 
           $auth = Zend_Auth::getInstance();
-          $userID = $auth->getIdentity()->user_id;
-          $username = $auth->getIdentity()->user_name;
-          $arrays = $this->me->getMySystems($userID);
+          $userID = $this->me->user_id;
+          $user = new User;
+          $arrays = $user->getMySystems($userID);
           while ($array = array_pop($arrays))
           {
               $system_id   = $array;
