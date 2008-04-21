@@ -219,6 +219,118 @@ class FindingController extends SecurityController
         $this->view->assign('act','edit');
         $this->_forward('view','Finding');
     }
+   
+    /**
+     spreadsheet Upload
+    */
+    public function injectionAction(){
+        $this->_helper->actionStack('header','Panel');
+        if(isAllow('finding','create')){
+            $csvFile = isset($_FILES['csv'])?$_FILES['csv']:array();
+            if(!empty($csvFile)){
+                if($csvFile['size'] < 1 ){
+                    $err_msg = 'Error: Empty file.';
+                }
+                if($csvFile['size'] > 1048576 ){
+                    $err_msg = 'Error: File is too big.';
+                }
+                if(preg_match('/\x00|\xFF/',file_get_contents($csvFile['tmp_name']))){
+                    $err_msg = 'Error: Binary file.';
+                }
+            }
+            if(empty($csvFile) || $csvFile['error']){
+                $this->render();
+                return;
+            }
+            if(!empty($err_msg)){
+                $this->view->assign('error_msg',$err_msg);
+                $this->render();
+                return;
+            }
+            if(!empty($csvFile)){
+                $fileName = $csvFile['name'];
+                $tempFile = $csvFile['tmp_name'];
+                $fileSize = $csvFile['size'];
 
+                $faildArray = $succeedArray = array();
+                $row = -2;
+                $handle = fopen($tempFile,'r');
+                while($data = fgetcsv($handle,1000,",",'"')) {
+                    if(implode('',$data)!=''){
+                        $row++;
+                        if($row>0){
+                            $sql = $this->csvQueryBuild($data);
+                            if(!$sql){
+                                $faildArray[] = $data;
+                            }
+                            else {
+                                foreach($sql as $query){
+                                    $db = Zend_Registry::get('db');
+                                    $db->query($query);
+                                }
+                                $succeedArray[] = $data;
+                            }
+                        }
+                    }
+                }
+                fclose($handle);
+                $summary_msg = "You have uploaded a CSV file which contains $row line(s) of data.<br />";
+                if(count($faildArray) > 0){
+                    $temp_file = 'temp/csv_'.date('YmdHis').'_'.rand(10,99).'.csv';
+                    $fp = fopen($temp_file,'w');
+                    foreach($faildArray as $fail) {
+                        fputcsv($fp,$fail);
+                    }
+                    fclose($fp);
+                    $summary_msg .= count($faildArray)." line(s) cannot be parsed successfully. This is likely due to an unexpected datatype or the use of a datafield which is not currently in the database. Please ensure your csv file matches the data rows contained <a href='/$temp_file'>here</a> in the spreadsheet template. Please update your CSV file and try again.<br />";
+                }
+                if(count($succeedArray)>0){
+                    $summary_msg .= count($succeedArray)." line(s) parsed and injected successfully. <br />";
+                }
+                if(count($succeedArray)==$row){
+                    $summary_msg .= " Congratulations! All of the lines contained in the CSV were parsed and injected successfully.";
+                }
+                $this->view->assign('error_msg',$summary_msg);
+            }
+            $this->render();
+        }
+    }
+
+    public  function csvQueryBuild($row){
+        if (!is_array($row) || (count($row)<7)){
+            return false;
+        }
+        if (strlen($row[3])>63 || (!is_numeric($row[4]) && !empty($row[4]))){
+            return false;
+        }
+        if (in_array('', array($row[0],$row[1],$row[2],$row[5],$row[6]))){
+            return false;
+        }
+        $row[2] = date('Y-m-d',strtotime($row[2]));
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/',$row[2])){
+            return false;
+        }
+        $db = Zend_Registry::get('db');
+        $result = $db->fetchRow("SELECT system_id FROM `SYSTEMS` WHERE system_nickname = '$row[0]'");
+        $row[0] = is_array($result)?array_pop($result):false;
+        $result = $db->fetchRow("SELECT network_id FROM `NETWORKS` WHERE network_nickname = '$row[1]'");
+        $row[1] = is_array($result)?array_pop($result):false;
+        $result = $db->fetchRow("SELECT source_id FROM `FINDING_SOURCES` WHERE source_nickname = '$row[5]'");
+        $row[5] = is_array($result)?array_pop($result):false;
+        if (!$row[0] || !$row[1] || !$row[5]) {
+            return false;
+        }
+        $sql[] = "INSERT INTO `ASSETS`(asset_name, asset_date_created, asset_source)
+                  VALUES(':$row[3]:$row[4]', '$row[2]', 'SCAN')";
+        $sql[] = "INSERT INTO `SYSTEM_ASSETS` (system_id, asset_id, system_is_owner)
+                  VALUES($row[0], LAST_INSERT_ID(), 1)";
+        $sql[] = "INSERT INTO `ASSET_ADDRESSES` (asset_id,network_id,address_date_created,address_ip,address_port)
+                  VALUES(LAST_INSERT_ID(), $row[1], '$row[2]', '$row[3]', '$row[4]')";
+        $sql[] = "INSERT INTO `FINDINGS` (source_id,asset_id,finding_status,finding_date_created,
+                  finding_date_discovered,finding_data)
+                  VALUES($row[5], LAST_INSERT_ID(), 'OPEN', '$current_time_string', '$row[2]', '$row[6]')";
+        return $sql;
+    }
+
+    
 }
-?>
