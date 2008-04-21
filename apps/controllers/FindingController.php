@@ -296,7 +296,62 @@ class FindingController extends SecurityController
         }
     }
 
-    public  function csvQueryBuild($row){
+   /** 
+    Create finding
+   */
+    public function createAction(){
+        require_once MODELS . DS . 'source.php';
+        require_once MODELS . DS . 'network.php';
+        require_once MODELS . DS . 'system.php';
+        require_once MODELS . DS . 'asset.php';
+
+        $req = $this->getRequest();
+        //$do = $req->getParam('do');
+        $system_id = $req->getParam('system_id');
+
+        $db = Zend_Registry::get('db');
+        $user = new User();
+        $src = new Source();
+        $net = new Network();
+        $sys = new System();
+        $asset = new Asset();
+        $uid = $this->me->user_id;
+        $qry = $db->select();
+        $source_list = $db->fetchPairs($qry->from($src->info(Zend_Db_Table::NAME),
+                                       array('id'=>'source_id','name'=>'source_name'))
+                                      ->order(array('id ASC')) );
+        $qry->reset();
+        $network_list = $db->fetchPairs($qry->from($net->info(Zend_Db_Table::NAME),
+                                    array('id'=>'network_id','name'=>'network_name'))
+                                    ->order(array('id ASC')) );
+        $qry->reset();
+        $ids = implode(',', $user->getMySystems($uid));
+        $system_list = $db->fetchPairs($qry->from($sys->info(Zend_Db_Table::NAME),
+                                    array('id'=>'system_id','name'=>'system_name'))
+                                    ->where("system_id IN ( $ids )")
+                                    ->order('id ASC'));
+        $qry->reset();
+        $asset_list = $db->fetchPairs($qry->from($asset->info(Zend_Db_Table::NAME),
+                                  array('id'=>'asset_id','name'=>'asset_name'))
+                                    ->order('name ASC'));
+        /*if(!empty($system_id)){
+            $db->fetchPairs($qry->join(array('sa' => 'SYSTEM_ASSETS'),'sa.asset_id = asset.asset_id',array(),
+                                where("sa.system_id = $system_id")));
+        }
+        $db->fetchPairs($qry->order('name ASC'));*/
+        $discovered_date = strftime("%m/%d/%Y",(mktime(0,0,0,date("m"),date("d"),date("Y"))));
+        $this->view->assign('discovered_date',$discovered_date);
+        $this->view->assign('asset_list',$asset_list);
+        $this->view->assign('system_list',$system_list);
+        $this->view->assign('network_list',$network_list);
+        $this->view->assign('source_list',$source_list);
+        list($asset_id,$sname) = each($asset_list);
+        $this->_helper->actionStack('header','Panel');
+        $this->render();
+    }
+
+
+    public function csvQueryBuild($row){
         if (!is_array($row) || (count($row)<7)){
             return false;
         }

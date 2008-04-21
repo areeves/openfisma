@@ -3,7 +3,10 @@
 <head>
 <title></title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<script LANGUAGE="JavaScript" type="text/javascript" src="/javascripts/jquery.js"></script>
+<script LANGUAGE="JavaScript" type="text/javascript" src="/javascripts/jquery/jquery.js"></script>
+
+
+<script LANGUAGE="JavaScript" type="text/javascript" src="/javascripts/ajax.js"></script>
 
 <link rel="stylesheet" type="text/css" href="/stylesheets/layout.css">
 <link rel="stylesheet" type="text/css" href="/stylesheets/fisma.css">
