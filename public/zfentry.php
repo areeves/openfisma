@@ -41,7 +41,11 @@
 
 
     $front = Zend_Controller_Front::getInstance();
-    $front->throwExceptions(true);
+    $front->registerPlugin(new Zend_Controller_Plugin_ErrorHandler( array(
+                'model'=>null,
+                'controller'=>'Error',
+                'action'=>'error') ) );
+    //$front->throwExceptions(true);
     Zend_Controller_Front::run(APPS . DS . 'controllers' );
 
 ?>
