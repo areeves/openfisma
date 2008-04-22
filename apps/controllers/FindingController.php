@@ -304,12 +304,36 @@ class FindingController extends SecurityController
         require_once MODELS . DS . 'network.php';
         require_once MODELS . DS . 'system.php';
         require_once MODELS . DS . 'asset.php';
-
+        
+        $db = Zend_Registry::get('db');
         $req = $this->getRequest();
-        //$do = $req->getParam('do');
+        $do = $req->getParam('do');
+        if("create" == $do){
+            $source = $req->getParam('source');
+            $asset_id = $req->getParam('asset_list');
+            $status = 'OPEN';
+            $discovereddate = $req->getParam('discovereddate');
+            $finding_data = $req->getParam('finding_data');
+
+            $now = date("Y-m-d H:m:s");
+            $m = substr($discovereddate, 0, 2);
+            $d = substr($discovereddate, 3, 2);
+            $y = substr($discovereddate, 6, 4);
+            $disdate = strftime("%Y-%m-%d", (mktime(0, 0, 0, $m, $d, $y)));
+
+            $sql = "INSERT INTO `FINDINGS`
+                  (source_id, asset_id, finding_status, finding_date_created,finding_date_discovered,finding_data)
+                  VALUES ('$source', '$asset_id', '$status', '$now', '$disdate', '$finding_data')";
+            $res = $db->query($sql);
+            if($res){
+                $this->view->assign('msg',"Finding created successfully");
+            }
+            else {
+                $this->view->assign('msg',"Finding creation failed");
+            }
+        }
         $system_id = $req->getParam('system_id');
 
-        $db = Zend_Registry::get('db');
         $user = new User();
         $src = new Source();
         $net = new Network();
@@ -334,11 +358,6 @@ class FindingController extends SecurityController
         $asset_list = $db->fetchPairs($qry->from($asset->info(Zend_Db_Table::NAME),
                                   array('id'=>'asset_id','name'=>'asset_name'))
                                     ->order('name ASC'));
-        /*if(!empty($system_id)){
-            $db->fetchPairs($qry->join(array('sa' => 'SYSTEM_ASSETS'),'sa.asset_id = asset.asset_id',array(),
-                                where("sa.system_id = $system_id")));
-        }
-        $db->fetchPairs($qry->order('name ASC'));*/
         $discovered_date = strftime("%m/%d/%Y",(mktime(0,0,0,date("m"),date("d"),date("Y"))));
         $this->view->assign('discovered_date',$discovered_date);
         $this->view->assign('asset_list',$asset_list);

@@ -19,7 +19,7 @@
 <p><b><u><?php echo $this->msg;?></u></b></p>
 <?php }?>
 
-<form name="finding" method="post" action="findingdetail.php" onsubmit="return qok();">
+<form name="finding" method="post" action="/zfentry.php/finding/create" onsubmit="return qok();">
 <input type="hidden" name="act"           value="<?php echo $this->act;?>">
 <input type="hidden" name="do"            value="create">
 <input type="hidden" name="vuln_offset"   value="0">
