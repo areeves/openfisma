@@ -1,6 +1,6 @@
 <div class="barleft">
 <div class="barright">
-<p><b>Dashboard</b><span><?PHP echo $this->escape($this->Current_time);?></span></p
+<p><b>Dashboard</b><span><?PHP echo $this->escape($this->Current_time);?></span>
 </div>
 </div>
 
