@@ -40,6 +40,12 @@ class PanelController extends SecurityController
         $this->_helper->actionStack('summary','Finding' );
         $this->_helper->actionStack('header');
     }
+    
+    public function userAction()
+    {
+        $this->_helper->actionStack('searchbox','User');
+        $this->_helper->actionStack('header');
+    }
 
     public function searchAction()
     {
