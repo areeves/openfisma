@@ -14,15 +14,32 @@ class FindingController extends SecurityController
 {
     private $perPage = 30;
     private $currentPage = 1;
+    private $systems = array();
+
     public function indexAction()
     {
         $this->render();
     }
 
+    public function preDispatch()
+    {
+        parent::preDispatch();
+        require_once MODELS . DS . 'system.php';
+        $sys = new System();
+        $user = new User();
+        $uid = $this->me->user_id;
+        $qry = $sys->select();
+        $ids = implode(',', $user->getMySystems($uid));
+        $this->systems = $sys->getAdapter()
+                             ->fetchPairs($qry->from($sys->info(Zend_Db_Table::NAME),
+                                    array('id'=>'system_id','name'=>'system_name'))
+                                    ->where("system_id IN ( $ids )")
+                                    ->order('id ASC'));
+    }
+
     public function searchboxAction(){
         require_once MODELS . DS . 'source.php';
         require_once MODELS . DS . 'network.php';
-        require_once MODELS . DS . 'system.php';
 
         $db = Zend_Registry::get('db');
         $user = new User();
@@ -85,7 +102,8 @@ class FindingController extends SecurityController
         Provide searching capability of findings
         Data is limited in legal systems.
      */
-    public function searchAction() {
+    public function searchAction() 
+    {
         $finding = new Finding();
         $qry = $finding->select()->setIntegrityCheck(false)
                        ->from(array('finding'=>'FINDINGS'), array('id' => 'finding_id',
@@ -97,21 +115,15 @@ class FindingController extends SecurityController
         $criteria = $req->getParam('criteria');
         $systems = $req->getParam('system');
 
-        //$sources  = $req->getParam('source');
-        //$networks = $req->getParam('network');
         assert(is_array($criteria)); //be more assert
         extract($criteria);
-        if(!isset($from)){
-            $startdate = strftime("%Y-%m-%d",(mktime(0,0,0,date("m"),date("d") - 7,date("Y"))));
-        }
-        else {
+        if(!empty($from)){
             $startdate = date("Y-m-d",strtotime($from));
+            $qry->where("finding_date_discovered >= '$startdate'");
         }
-        if(!isset($to)){
-            $enddate = strftime("%Y-%m-%d",(mktime(0,0,0,date("m"),date("d"),date("Y"))));
-        }
-        else {
+        if(!empty($to)){
             $enddate =date("%Y-%m-%d",strtotime($to));
+            $qry->where("finding_date_discovered <= '$enddate'");
         }
 
         $qry->join(array('as' => 'ASSETS'), 'as.asset_id = finding.asset_id',array())
@@ -124,19 +136,16 @@ class FindingController extends SecurityController
         if( !empty($status) && $status != 'any' ) {
             $qry->where("finding_status = '$status'");
         }
-        if( !empty($startdate) && strlen($startdate) == 10){
-            $qry->where("finding_date_discovered >= '$startdate'");
-        }
-        if( !empty($enddate) && strlen($enddate) == 10){
-            $qry->where("finding_date_discovered <= '$enddate'");
-        }
+
         $phrase = " IN ( $systems )";
         if( !empty($system) && $system != 'any' ) {
             $phrase = " = $system";
         }
+
         $qry->join(array('sys_as' => 'SYSTEM_ASSETS'),
                     "as.asset_id = sys_as.asset_id AND sys_as.system_id $phrase",
                     array('sys_id'=>'sys_as.system_id') );
+
         if( !empty($network) && $network != 'any') {
             $qry->where("addr.network_id = $network");
         }
@@ -145,10 +154,6 @@ class FindingController extends SecurityController
         }
         if( !empty($port) ) {
             $qry->where("addr.address_port = $port");
-        }
-        if( !empty($from) ) { 
-        }
-        if( !empty($to) ) {
         }
         $qry->limitPage($this->currentPage,$this->perPage);
         $data = $finding->fetchAll($qry);
@@ -163,13 +168,71 @@ class FindingController extends SecurityController
         Data is limited in legal systems.
      */
     public function summaryAction() {
-        //return;
-        $db = Zend_Registry::get('db');
-        $finding = new finding($db);
-        $auth = Zend_Auth::getInstance();
-        $uid = $auth->getIdentity()->user_id;
-        $summary_data = $finding->getSummaryList($uid);
-        $this->view->assign('summary_data',$summary_data);
+        require_once 'Zend/Date.php';
+
+        $statistic = $this->systems; 
+        foreach($statistic as $k => $row){
+            $statistic[$k] = array(
+                        'NAME'=>$row,
+                        'OPEN'=>array('total'=>0,
+                                      'today'=>0,
+                                      'last30day'=>0,
+                                      'last2nd30day'=>0,
+                                      'before60day'=>0),
+                        'REMEDIATION'=>array('total'=>0),
+                        'CLOSED'=>array('total'=>0));
+        }
+        $finding = new finding();
+        $user = new User();
+        $uid = $this->me->user_id;
+        $systems = $user->getMySystems($uid);
+        $from = new Zend_Date();
+        $to = clone $from;
+        $to->add(1,Zend_Date::DAY);
+
+        $data = $finding->getCount($systems,array(), array('OPEN','REMEDIATION','CLOSED'));
+        foreach($data as $row){
+            $statistic[$row['sysid']][$row['status']]['total'] += $row['count'];
+        }
+
+        //count Today
+        $data = $finding->getCount($systems, 
+            array('from'=>$from->toString("yyyy/MM/dd"),
+                    'to'=>$to->toString("yyyy/MM/dd")),
+            'OPEN');
+        foreach($data as $row){
+            $statistic[$row['sysid']][$row['status']]['today'] += $row['count'];
+        }
+
+        //count 30 days before
+        $from->sub(30,Zend_Date::DAY);
+        $data = $finding->getCount($systems, 
+            array('from'=>$from->toString("yyyy/MM/dd"),
+                    'to'=>$to->toString("yyyy/MM/dd")),
+            'OPEN');
+        foreach($data as $row){
+            $statistic[$row['sysid']][$row['status']]['last30day'] += $row['count'];
+        }
+        //count 2nd 30 days before
+        $from->sub(30,Zend_Date::DAY);
+        $to->sub(30,Zend_Date::DAY);
+        $data = $finding->getCount($systems, 
+            array('from'=>$from->toString("yyyy/MM/dd"),
+                    'to'=>$to->toString("yyyy/MM/dd")),
+            'OPEN');
+        foreach($data as $row){
+            $statistic[$row['sysid']][$row['status']]['last2nd30day'] += $row['count'];
+        }
+        //count later
+        $to->sub(30,Zend_Date::DAY);
+        $data = $finding->getCount($systems, 
+            array('to'=>$to->toString("yyyy/MM/dd")),
+            'OPEN');
+        foreach($data as $row){
+            $statistic[$row['sysid']][$row['status']]['before60day'] += $row['count'];
+        }
+
+        $this->view->assign('statistic',$statistic);
         $this->render();     
     }
 

@@ -1,16 +1,10 @@
 <script LANGUAGE="JavaScript" type="test/javascript" src="/opt/reyo/fismazf/public/javascripts/ajax.js"></script>
-<br>
 
-<!-- Heading Block -->
-<table width="98%" align="center" border="0" cellpadding="0" cellspacing="0">
-    <tr>
-        <td width="13"><img src="/images/left_circle.gif" border="0"></td>
-        <td bgcolor="#DFE5ED"><b>Finding Creation</b></td>
-        <td bgcolor="#DFE5ED" align="right"><?php echo date('Y-M-D h:i:s:A');?></td>
-        <td width="13"><img src="/images/right_circle.gif" border="0"></td>
-    </tr>
-</table>
-<!-- End Heading Block -->
+<div class="barleft">
+<div class="barright">
+<p><b>Finding Creation</b><span><?PHP echo $this->escape($this->Current_time);?></span></p>
+</div>
+</div>
 
 <br>
 <?php

@@ -14,7 +14,45 @@ class Finding extends Zend_Db_Table
     protected $_name = 'FINDINGS';
     protected $_primary = 'finding_id';
     
-   /**
+    /**
+        count the summary of findings according to certain criteria
+
+        @param $date_range discovery time range
+        @param $systems system id those findings belongs to
+        @return array of counts
+    */
+    public function getCount($systems, $date_range=array(), $status=null ) 
+    {
+        assert(!empty($systems) && is_array($systems) );
+        $qry = $this->_db->select()
+                ->from(array('f'=>$this->_name), 
+                       array('count' => "count(*)",'status'=>'f.finding_status'))
+                ->join(array('as'=>'ASSETS'),'f.asset_id=as.asset_id',array())
+                ->join(array('sys'=>'SYSTEM_ASSETS'), 
+                        'as.asset_id = sys.asset_id 
+                         AND sys.system_id IN ('.implode(',',$systems).')',
+                       array('sysid'=>'sys.system_id'))
+                ->group('sysid')->group('status');
+        if( isset($status) ) {
+            if( is_string($status) ) {
+                $status = array($status);
+            }
+            foreach( $status as $s ) {
+                $expr[] = "f.finding_status = '$s'";
+            }
+            $qry->where( implode(" OR ", $expr) ); 
+        }
+        // range follows [from, to)
+        if( !empty($date_range['from']) ){
+            $qry->where("finding_date_created >= '{$date_range['from']}'");
+        }
+        if( !empty($date_range['to']) ){
+            $qry->where("finding_date_created < '{$date_range['to']}'");
+        }
+        return $this->_db->fetchAll($qry);
+    }
+
+    /**
         Get the generate the summary list used on the finding page
         @param $id the user id
         @return array of summary_data

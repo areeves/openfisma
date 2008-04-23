@@ -40,19 +40,19 @@
         <input type="text" name="port" value="<?php echo $this->criteria['port']; ?>" size="6" maxlength="6"></td>
     </tr>
     <tr >
-        <td id="cell 1" align="right">Vulnerability:</td>
-        <td id="cell 2" align="left"><input type="text" name="vuln" value="<?php echo $this->criteria['vuln'];?>" maxlength="20"></td>
-        <td id="cell 3" align="right">Product:</td>
-        <td id="cell 4" align="left"><input type="text" name="product" value="<?php echo $this->criteria['product']; ?>" maxlength="20"></td>
+        <td align="right">Vulnerability:</td>
+        <td align="left"><input type="text" name="vuln" value="<?php echo $this->criteria['vuln'];?>" maxlength="20"></td>
+        <td align="right">Product:</td>
+        <td align="left"><input type="text" name="product" value="<?php echo $this->criteria['product']; ?>" maxlength="20"></td>
     </tr>
     <tr >
-        <td id="cell 1" align="right">Date Discovered From: </td>
-        <td id="cell 2" align="left"><input type="text" name="from" size="12" maxlength="10" value="<?php echo $this->criteria['from']; ?>">             
+        <td align="right">Date Discovered From: </td>
+        <td align="left"><input type="text" name="from" size="12" maxlength="10" value="<?php echo $this->criteria['from']; ?>">             
             <span onclick="javascript:show_calendar('finding.startdate');">
             <img src="/images/picker.gif" width=24 height=22 border=0></span>
         </td>
-        <td id="cell 3" align="right">To: </td>
-        <td id="cell 4" align="left"><input type="text" name="to" size="12" maxlength="10" value="<?php echo $this->criteria['to']; ?>">
+        <td align="right">To: </td>
+        <td align="left"><input type="text" name="to" size="12" maxlength="10" value="<?php echo $this->criteria['to']; ?>">
             <span onclick="javascript:show_calendar('finding.enddate');">
             <img src="/images/picker.gif" valign="middle" width=24 height=22 border=0></span>
         </td>
