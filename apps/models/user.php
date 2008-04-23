@@ -21,18 +21,17 @@ class User extends Zend_Db_Table
         @param $id the user id
         @return array of role nickname
     */
-    public function getRoles($id) {
+    public function getRoles($id, $fields=array('nickname'=>'role_nickname')) {
         $role_array = array();
-        $db = Zend_Registry::get('db');
-        //select user's roles
-        $query = "SELECT r.role_nickname FROM `ROLES` r,`USER_ROLES` ur
-                  WHERE ur.user_id = $id
-                  AND ur.role_id = r.role_id";
-        $res = $db->fetchAll($query);
-        foreach($res as $result){
-            $role_array[] = $result['role_nickname'];
-        }
-        return $role_array;
+        $db = $this->_db;
+
+        $qry = $db->select()
+                  ->from(array('u'=>'USERS'),array())
+                  ->join(array('ur'=>'USER_ROLES'),'u.user_id = ur.user_id',array())
+                  ->join(array('r'=>'ROLES'),'r.role_id = ur.role_id',$fields)
+                  ->where("u.user_id = $id and r.role_name != 'none'");
+
+        return  $db->fetchAll($qry);
     }
 
     /**

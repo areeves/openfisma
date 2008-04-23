@@ -43,7 +43,15 @@ class PanelController extends SecurityController
     
     public function userAction()
     {
-        $this->_helper->actionStack('searchbox','User');
+        $req = $this->getRequest();
+        $sub = $req->getParam('sub');
+        if('view' == $sub){
+            $this->_helper->actionStack('view','User');
+            $this->_helper->actionStack('searchbox','User');
+        }else {
+            $this->_helper->actionStack('list','User');
+            $this->_helper->actionStack('searchbox','User');
+        }
         $this->_helper->actionStack('header');
     }
 

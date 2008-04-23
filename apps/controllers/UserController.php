@@ -12,6 +12,7 @@ require_once 'Zend/Auth.php';
 require_once 'Zend/Auth/Adapter/DbTable.php';
 require_once( CONTROLLERS . DS . 'SecurityController.php');
 require_once( MODELS . DS .'user.php');
+require_once( MODELS . DS .'system.php');
 require_once('Pager.php');
 
 class UserController extends SecurityController
@@ -57,7 +58,11 @@ class UserController extends SecurityController
             } else {
                 $me = $authAdapter->getResultRowObject(null, 'user_password');
                 $user = new User($db);
-                $me->role_array = $user->getRoles($me->user_id);
+                $nickname = $user->getRoles($me->user_id);
+                foreach($nickname as $n ) {
+                    $me->role_array[] = $n;
+                }
+                $me->systems = $user->getMySystems($me->user_id);
                 $auth->getStorage()->write($me);
                 return $this->_forward('index','Panel');
             }
@@ -85,7 +90,7 @@ class UserController extends SecurityController
     */
     public function searchboxAction()
     {
-        $this->_helper->actionStack('header','panel');
+        //$this->_helper->actionStack('header','panel');
         $db = Zend_Registry::get('db');
         $fid_array = array('lastname'=>'Last Name',
                      'firstname'=>'First Name',
@@ -112,7 +117,6 @@ class UserController extends SecurityController
         $this->view->assign('total',$count);
         $this->view->assign('links',$pager->getLinks());
         $this->render();
-        $this->_helper->actionStack('list','user');
     }
 
     /**
@@ -157,6 +161,48 @@ class UserController extends SecurityController
         $user_list = $data->toArray();
         $this->view->assign('user_list',$user_list);
         $this->render();
+    }
+
+    /**
+     User detail
+    */
+    public function viewAction()
+    {
+        $req = $this->getRequest();
+        $id = $req->getParam('id');
+        assert($id);
+        $user = new User();
+        $sys = new System();
+        $db = $user->getAdapter();
+        $qry = $user->select()->setIntegrityCheck(false);
+        /** get user detail */
+        $qry->from(array('u'=>'USERS'),array('lastname'=>'user_name_last',
+                                           'firstname'=>'user_name_first',
+                                           'officephone'=>'user_phone_office',
+                                           'mobilephone'=>'user_phone_mobile',
+                                           'email'=>'user_email',
+                                           'title'=>'user_title',
+                                           'status'=>'user_is_active',
+                                           'username'=>'user_name',
+                                           'password'=>'user_password'))
+            ->where("u.user_id = $id");
+        $user_detail = $user->fetchRow($qry)->toArray();
+        $user_detail['status'] = $user_detail['status'] == 1?"Active":"Suspend";
+
+        $roles = $user->getRoles($id, array('name'=>'role_name'));
+
+        /** get user systems */
+        $ids = implode(',',$user->getMySystems($id));
+        $qry->reset();
+        $systems = $db->fetchPairs($qry->from($sys->info(Zend_Db_Table::NAME),
+                               array('id'=>'system_id','name'=>'system_name'))
+                      ->where("system_id IN ( $ids )")
+                      ->order('id ASC'));
+        $this->view->assign('user',$user_detail);
+        $this->view->assign('roles',$roles);
+        $this->view->assign('systems',$systems);
+        $this->render();
+
     }
 }
 ?>
