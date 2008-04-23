@@ -50,7 +50,7 @@ class User extends Zend_Db_Table
         $user = $db->fetchOne($qry); 
 
         $qry = $db->select()->distinct()->from('USER_SYSTEM_ROLES', 'system_id');
-        if($user['user_name'] != 'root') {
+        if($user != 'root') {
             $qry->where("user_id = $id");
         }
         $db->setFetchMode(Zend_Db::FETCH_OBJ);
