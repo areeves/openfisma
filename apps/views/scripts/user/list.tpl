@@ -34,7 +34,7 @@
     <td class="tdc">&nbsp;<?php echo $user['username'];?></td>
     <?php if(isAllow('admin_users','update')){ ?>
     <td class="thc" align="center">
-        <a href="/zfentry.php/panel/user/sub/edit/id/<?php echo $user['id'];?>" title="edit the Users">
+        <a href="/zfentry.php/panel/user/sub/edit/v/edit/id/<?php echo $user['id'];?>" title="edit the Users">
         <img src="/images/edit.png" border="0"></a>
     </td>
     <?php } if(isAllow('admin_users','read')){ ?>

@@ -37,7 +37,7 @@
     </tr>
     <tr>
         <td align="right" class="thc">Status:</td>
-        <td class="tdc">&nbsp;<?php echo $this->user['status'];?></td>
+        <td class="tdc">&nbsp;<?php echo 1 == $this->user['status']?'Active':'Suspend';?></td>
     </tr>
     <tr>
         <td align="right" class="thc">Username:</td>

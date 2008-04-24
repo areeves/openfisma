@@ -169,7 +169,9 @@ class UserController extends SecurityController
     public function viewAction()
     {
         $req = $this->getRequest();
-        $id = $req->getParam('id');
+        $id  = $req->getParam('id');
+        $v   = $req->getParam('v');
+        $do  = $req->getParam('do');
         assert($id);
         $user = new User();
         $sys = new System();
@@ -187,7 +189,6 @@ class UserController extends SecurityController
                                            'password'=>'user_password'))
             ->where("u.user_id = $id");
         $user_detail = $user->fetchRow($qry)->toArray();
-        $user_detail['status'] = $user_detail['status'] == 1?"Active":"Suspend";
 
         $roles = $user->getRoles($id, array('name'=>'role_name'));
 
@@ -198,11 +199,79 @@ class UserController extends SecurityController
                                array('id'=>'system_id','name'=>'system_name'))
                       ->where("system_id IN ( $ids )")
                       ->order('id ASC'));
+        $this->view->assign('id',$id);
         $this->view->assign('user',$user_detail);
         $this->view->assign('roles',$roles);
         $this->view->assign('systems',$systems);
-        $this->render();
+        if('edit' == $v){
+            $qry = $db->select()->from(array('s'=>'SYSTEMS'),array('sid'=>'system_id',
+                                                                        'sname'=>'system_name'));
+            $sys = $db->fetchAll($qry);
+            foreach($systems as $k=>$v){
+                $sid[] = $k;
+            }
+            $this->view->assign('sid_arr',$sid);
+            $this->view->assign('sys',$sys);
+            $this->render('edit');
+        }
+        else {
+            $this->render();
+        }
+    }
 
+    /**
+      update user 
+    */
+    public function updateAction(){
+        $req = $this->getRequest();
+        $id = $req->getParam('id');
+        $post = $req->getPost();
+        $msg = '';
+        if(!empty($post)){
+            if($post['user_password'] != $post['confirm_password']){
+                $msg = "Password dosen't match confirmation.Please submit password and confirmation";
+            }
+            else {
+                foreach($post as $k=>$v){
+                    if('user_' == substr($k,0,5) ){
+                        if('password' == substr($k,5,8)){
+                            if(!empty($v)){
+                                $field[$k] = md5($v);
+                                $field['user_date_password'] = 0;
+                            }
+                        }
+                        else {
+                            $field[$k] = $v;
+                        }
+                    }
+                    if('user_is_active' == 0){
+                        $field['user_date_deleted'] = date("Y-m-d H:m:s");
+                    }
+                    if('user_is_active' == 1){
+                        $field['user_date_deleted'] = '';
+                    }
+                    if('system' == substr($k,0,6)){
+                        $sys_field[] = $v;
+                    }
+                }
+                $user = new User();
+                $db = $user->getAdapter();
+                $res = $db->update('USERS',$field,'user_id = '.$id.'');
+                $res .=$db->delete('USER_SYSTEM_ROLES','user_id = '.$id.'');
+                foreach($sys_field as $v){
+                    $data = array('user_id'=>$id,'system_id'=>$v);
+                    $res .=$db->insert('USER_SYSTEM_ROLES',$data);
+                }
+                if($res){
+                    $msg = '<p>User <b>modified</b> successful!</p>';
+                }
+                else {
+                    $msg = '<p>User <b>modified</b> faild!</p>';
+                }
+            }
+        }
+        $this->view->assign('msg',$msg);
+        $this->_forward('user','panel',null,array('sub'=>'edit','v'=>'edit'));
     }
 }
 ?>
