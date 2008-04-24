@@ -273,5 +273,28 @@ class UserController extends SecurityController
         $this->view->assign('msg',$msg);
         $this->_forward('user','panel',null,array('sub'=>'edit','v'=>'edit'));
     }
+
+    /**
+     Delete user
+    */
+    public function deleteAction(){
+        $req = $this->getRequest();
+        $id = $req->getParam('id');
+        assert($id);
+        $msg ="";
+        $user = new User();
+        $db = $user->getAdapter();
+        $res = $db->delete('USERS','user_id = '.$id.'');
+        $res .= $db->delete('USER_SYSTEM_ROLES','user_id = '.$id.'');
+        $res .= $db->delete('USER_ROLES','user_id = '.$id.'');
+        if($res){
+            $msg ="<p><b>User Deleted successfully</b></p>";
+        }
+        else {
+            $msg ="<p><b>User Deleted failed</b></p>";
+        }
+        $this->view->assign('msg',$msg);
+        $this->_forward('user','panel');
+    }
 }
 ?>

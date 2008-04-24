@@ -1,3 +1,14 @@
+<script language="javascript">
+function delok(entryname)
+{
+    var str = "Are you sure that you want to delete this " + entryname + "?";
+    if(confirm(str) == true){
+        return true;
+    }
+    return false;
+}
+</script>
+<?php if(!empty($this->msg)){echo $this->msg;};?>
 <div class="barleft">
 <div class="barright">
 <p><b>Administration: Users List</b>
@@ -44,7 +55,7 @@
     </td>
     <?php } if(isAllow('admin_users','delete')){ ?>
     <td class="thc" align="center">
-        <a href="/zfentry.php/panel/user/sub/delete/id/<?php echo $user['id'];?>" title="delete the Users, then no restore after deleted" onclick="return delok('Users');">
+        <a href="/zfentry.php/user/delete/id/<?php echo $user['id'];?>" title="delete the Users, then no restore after deleted" onclick="return delok('Users');">
         <img src="/images/del.png" border="0"></a>
     </td>
     <?php }?>
