@@ -122,8 +122,8 @@ class FindingController extends SecurityController
             $qry->where("finding_date_discovered >= '$startdate'");
         }
         if(!empty($to)){
-            $enddate =date("%Y-%m-%d",strtotime($to));
-            $qry->where("finding_date_discovered <= '$enddate'");
+            $enddate =date("Y-m-d",strtotime($to));
+            $qry->where("finding_date_discovered < '$enddate'");
         }
 
         $qry->join(array('as' => 'ASSETS'), 'as.asset_id = finding.asset_id',array())
@@ -188,50 +188,49 @@ class FindingController extends SecurityController
         $systems = $user->getMySystems($uid);
         $from = new Zend_Date();
         $to = clone $from;
-        $to->add(1,Zend_Date::DAY);
 
         $data = $finding->getCount($systems,array(), array('OPEN','REMEDIATION','CLOSED'));
         foreach($data as $row){
             $statistic[$row['sysid']][$row['status']]['total'] += $row['count'];
         }
+        
+        //count time range
+        $to->add(1,Zend_Date::DAY);
+        $range['today']  = array('from'=>$from->toString("yyyyMMdd"),
+                                          'to'=>$to->toString("yyyyMMdd"));
+        $from->sub(30,Zend_Date::DAY);
+        $to->sub(1,Zend_Date::DAY);
+        $range['last30'] = array('from'=>$from->toString("yyyyMMdd"),
+                                          'to'=>$to->toString("yyyyMMdd"));
+        $from->sub(30,Zend_Date::DAY);
+        $to->sub(30,Zend_Date::DAY);
+        $range['last60'] = array('from'=>$from->toString("yyyyMMdd"),
+                                 'to'=>$to->toString("yyyyMMdd"));
+        $to->sub(30,Zend_Date::DAY);
+        $range['after60'] = array('from'=>null, 'to'=>$to->toString("yyyyMMdd"));
 
-        //count Today
-        $data = $finding->getCount($systems, 
-            array('from'=>$from->toString("yyyy/MM/dd"),
-                    'to'=>$to->toString("yyyy/MM/dd")),
-            'OPEN');
+        $data = $finding->getCount($systems, $range['today'], 'OPEN');
         foreach($data as $row){
             $statistic[$row['sysid']][$row['status']]['today'] += $row['count'];
         }
 
         //count 30 days before
-        $from->sub(30,Zend_Date::DAY);
-        $data = $finding->getCount($systems, 
-            array('from'=>$from->toString("yyyy/MM/dd"),
-                    'to'=>$to->toString("yyyy/MM/dd")),
-            'OPEN');
+        $data = $finding->getCount($systems,$range['last30'], 'OPEN');
         foreach($data as $row){
             $statistic[$row['sysid']][$row['status']]['last30day'] += $row['count'];
         }
         //count 2nd 30 days before
-        $from->sub(30,Zend_Date::DAY);
-        $to->sub(30,Zend_Date::DAY);
-        $data = $finding->getCount($systems, 
-            array('from'=>$from->toString("yyyy/MM/dd"),
-                    'to'=>$to->toString("yyyy/MM/dd")),
-            'OPEN');
+        $data = $finding->getCount($systems,$range['last60'], 'OPEN');
         foreach($data as $row){
             $statistic[$row['sysid']][$row['status']]['last2nd30day'] += $row['count'];
         }
         //count later
-        $to->sub(30,Zend_Date::DAY);
-        $data = $finding->getCount($systems, 
-            array('to'=>$to->toString("yyyy/MM/dd")),
-            'OPEN');
+        $data = $finding->getCount($systems, $range['after60'], 'OPEN');
         foreach($data as $row){
             $statistic[$row['sysid']][$row['status']]['before60day'] += $row['count'];
         }
-
+        
+        $this->view->assign('range',$range);
         $this->view->assign('statistic',$statistic);
         $this->render();     
     }

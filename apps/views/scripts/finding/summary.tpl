@@ -16,6 +16,7 @@
     </tr>
 <?php
 foreach($this->statistic as $sys_id => $row){
+    $search_url_base = "/zfentry.php/panel/finding/sub/searchbox/s/search/system/$sys_id";
     $total = $row['OPEN']['total'];
 ?>
     <tr >
@@ -23,28 +24,32 @@ foreach($this->statistic as $sys_id => $row){
             <?php echo $row['NAME']?>
         </td>
         <td >&nbsp;
-            <?php echo $row['OPEN']['today']; ?>
+            <a href="<?php echo "{$search_url_base}/status/OPEN/from/{$this->range['today']['from']}/to/{$this->range['today']['to']}"; ?>">
+            <?php echo $row['OPEN']['today']; ?></a>
         </td>
         <td >&nbsp;
-            <?php echo $row['OPEN']['last30day']; ?>
+            <a href="<?php echo "{$search_url_base}/status/OPEN/from/{$this->range['last30']['from']}/to/{$this->range['last30']['to']}";?>">
+            <?php echo $row['OPEN']['last30day']; ?></a>
         </td>
         <td >&nbsp;
-            <?php echo $row['OPEN']['last2nd30day']; ?>
+            <a href="<?php echo "{$search_url_base}/status/OPEN/from/{$this->range['last60']['from']}/to/{$this->range['last30']['to']}";?>">
+            <?php echo $row['OPEN']['last2nd30day']; ?></a>
         </td>
         <td >&nbsp;
-            <?php echo $row['OPEN']['before60day']; ?>
+            <a href="<?php echo "{$search_url_base}/status/OPEN/from/{$this->range['after60']['from']}/to/{$this->range['after60']['to']}";?>">
+            <?php echo $row['OPEN']['before60day']; ?></a>
         </td>
         <td >&nbsp;
-            <?php echo $row['REMEDIATION']['total']; ?>
+            <a href="<?php echo "{$search_url_base}/status/REMEDIATION";?>"><?php echo $row['REMEDIATION']['total']; ?></a>
         </td>
         <td >&nbsp;
-            <?php echo $row['CLOSED']['total']; ?>
+            <a href="<?php echo "{$search_url_base}/status/CLOSED";?>"><?php echo $row['CLOSED']['total']; ?></a>
         </td>
         <td >&nbsp;
-            <?php echo $row['CLOSED']['total']+
+            <a href="<?php echo "{$search_url_base}";?>"><?php echo $row['CLOSED']['total']+
                        $row['REMEDIATION']['total']+
                        $row['OPEN']['total'] ; ?>
-        </td>
+        </td></a>
     </tr>
 <?php
 }

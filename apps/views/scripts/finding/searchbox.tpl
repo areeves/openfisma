@@ -5,7 +5,7 @@
 </div>
 <br>
 
-<form name="finding" method="post" action="/zfentry.php/panel/finding/s/search/">
+<form name="finding" method="post" action="/zfentry.php/panel/finding/sub/searchbox/s/search/">
 <table align="center" border="0" cellpadding="5" cellspacing="1" class="tipframe">
     <tr >
         <td id="cell 1" align="right">System:</td>
