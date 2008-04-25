@@ -26,15 +26,6 @@
         }
         echo'</ul></li></ul>';
     }
-    if(isAllow('asset','read')) {
-        echo'<ul><li >
-             <a href="#" ><h2>Assets</h2></a>';
-        echo'<ul><li><a href="#">Asset Dashboard</a></li>';
-        if(isAllow('asset','create')) {
-            echo'<li><a href="#">Create an Asset</a></li>';
-        }
-        echo'</ul></li></ul>';
-    }
     if(isAllow('remediation','read')) {
         echo'<ul><li > 
             <a href="/zfentry.php/panel/remediation"><h2>Remediation</h2></a> 
@@ -80,6 +71,7 @@
         }
         echo'</ul></li></ul>';
     }
+    /*
     if(isAllow('vulnerability','read')) {
         echo'<ul><li><a href="/mainPanel.php?panel=association" ><h2>Vulnerability</h2></a>';
         echo'<ul><li><a href="#">Asset Dashboard</a></li>';
@@ -87,7 +79,7 @@
             echo'<li><a href="#">Create an Asset</a></li>';
         }
         echo'</ul></li></ul>';
-    }
+    }*/
 ?>
 &nbsp;
 </div>
