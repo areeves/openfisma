@@ -369,8 +369,8 @@ class FindingController extends SecurityController
         
         $db = Zend_Registry::get('db');
         $req = $this->getRequest();
-        $do = $req->getParam('do');
-        if("create" == $do){
+        $do = $req->getParam('is','view');
+        if("new" == $do){
             $source = $req->getParam('source');
             $asset_id = $req->getParam('asset_list');
             $status = 'OPEN';
