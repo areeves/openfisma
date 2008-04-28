@@ -27,9 +27,10 @@
         echo'</ul></li></ul>';
     }
     if(isAllow('remediation','read')) {
-        echo'<ul><li > 
-            <a href="/zfentry.php/panel/remediation"><h2>Remediation</h2></a> 
-            </li></ul>';
+        echo'<ul><li >
+            <a><h2>Remediation</h2></a> 
+            <ul><li><a href="/zfentry.php/panel/remediation/sub/summary">Remediation Summary</a></li>
+            <li><a href="/zfentry.php/panel/remediation/sub/searchbox">Remediation Search</a></li></ul></li></ul>';
     }
     if(isAllow('report','read')) { 
         echo'<ul><li><a href="/mainPanel.php?panel=test" ><h2>Reports</h2></a>';

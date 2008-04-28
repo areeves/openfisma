@@ -70,6 +70,14 @@ class PanelController extends SecurityController
         }
     }
 
+    public function remediationAction()
+    {
+        $req = $this->getRequest();
+        $sub = $req->getParam('sub');
+        $this->_helper->actionStack($sub,'Remediation');
+        $this->_helper->actionStack('header');
+    }
+
 }
 
 
