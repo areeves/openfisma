@@ -25,14 +25,16 @@ class UserController extends SecurityController
             'path'        =>'',
             'currentPage' => 1,
             'perPage'=>20);
-    /**
-        Override the parent preDispatch for this is the first time of Authentication
-     */
+
     public function preDispatch()
     {
         $req = $this->getRequest();
         $this->_paging_base_path = $req->getBaseUrl() .'/panel/user';
         $this->_paging['currentPage'] = $req->getParam('p',1);
+        if($req->getActionName() != 'login'){
+            // by pass the authentication when login
+            parent::preDispatch();
+        }
     }
 
     public function loginAction()
