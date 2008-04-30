@@ -1,26 +1,22 @@
 <script LANGUAGE="JavaScript" type="test/javascript" src="/javascripts/ajax.js"></script>
-
 <div class="barleft">
 <div class="barright">
 <p><b>Finding Creation</b><span><?PHP echo $this->escape($this->Current_time);?></span></p>
 </div>
 </div>
-
 <br>
 <?php
     if($this->msg != ''){
 ?>
 <p><b><u><?php echo $this->msg;?></u></b></p>
 <?php }?>
-
 <form name="finding" method="post" action="/zfentry.php/finding/create/is/new" >
-<table border="0" align="center" cellpadding="5">
+<table width="810" border="0" align="center" cellpadding="5">
     <tr><td>
         <input name="button" type="submit" id="button" value="Create Finding" >
         <input name="button" type="reset" id="button" value="Reset Form" >
     </td></tr>
-    <tr> <td>
-        <!-- Begin General Information Table -->
+    <tr><td>
         <table border="0" width="800" cellpadding="5" class="tipframe">
             <tr> <th align="left">General Information</th> </tr>
             <tr> <td>
@@ -28,14 +24,12 @@
                         <tr>
                             <td align="right"><b>Discovered Date:</b></td>
                             <td>
-                                <!-- Begin Date Discovered Table: Date Input and Date Select Image -->
                                 <table border="0" cellpadding="0" cellspacing="0">
                                     <tr>
                                         <td><input type="text" name="discovereddate" size="12" maxlength="10" value="<?php echo $this->discovered_date;?>">&nbsp;</td>
                                         <td><span onclick="javascript:show_calendar('finding.discovereddate');"><img src="/images/picker.gif" width=24 height=22 border=0></span></td>
                                     </tr>
                                 </table>
-                                <!-- End Date Discovered Table: Date Input and Date Select Image -->
                             </td>
                         </tr>
                         <tr>
@@ -59,20 +53,17 @@
                 </td>
             </tr>
         </table>
-        <!-- End General Information Table -->
-                </td>
+            </td>
             </tr>
             <tr>
                 <td>
-                    <!-- Asset Information Table -->
                     <table border="0" width="800" cellpadding="5" class="tipframe">
-                        <th align="left" colspan="2">Asset Information</th>
+                        <tr><th colspan="2" align="left">Asset Information</th>
                         <tr>
                             <td colspan="2">
-                                <!-- System Name and Asset Search Table -->
-                                <table border="0" cellpadding="5">
+                                <table width="100%" border="0" cellpadding="5">
                                     <tr>
-                                        <td><b>System:<b></td>
+                                        <td><b>System:</b></td>
                                         <td>
                                             <select name="system" url="/zfentry.php/asset/search">
                                             <option value="">--Any--</option>
@@ -85,41 +76,40 @@
                                                   }
                                             ?>
                                             </select>&nbsp;                                        </td>
-                                        <td><b>Asset Name:<b></td>
+                                        <td><b>Asset Name:</b></td>
                                         <td><input class='assets' type="text" name="name" value="<?php echo $this->param['port']; ?>" size="10" />                                          &nbsp;                                        </td>
-                                      <td>
-                                            <input id="search_asset" type="button" value="Search Assets" url='/zfentry.php/asset/search' ></td>
-                                    </tr>
+                                      </tr>
                                     <tr>
-                                      <td><b>IP Address:<b></td>
-                                      <td><input class='assets' type="text" name="ip" value="<?php echo $this->param['ip']; ?>" maxlength="23" /></td>
-                                      <td><b>Port:<b></td>
-                                      <td><input class='assets' type="text" name="port" value="<?php echo $this->param['port']; ?>" size="10" /></td>
-                                      <td><input type="button" value="Create Asset" url='/zfentry.php/asset/create' style="cursor:pointer;" /></td>
-                                    </tr>
+                                    				<td><b>IP Address:</b></td>
+                                    				<td><input class='assets' type="text" name="ip" value="<?php echo $this->param['ip']; ?>" maxlength="23" /></td>
+                                    				<td><b>Port:<b></b></b></td>
+                                    				<td><input class='assets' type="text" name="port" value="<?php echo $this->param['port']; ?>" size="10" /></td>
+                                    				</tr>
+                                    <tr>
+                                      <td>&nbsp;</td>
+                                      <td><input id="search_asset" type="button" value="Search Assets" url='/zfentry.php/asset/search' /></td>
+                                      <td><input type="reset" name="button2" id="button2" value="Reset" /></td>
+                                      <td><a href="/zfentry.php/asset/create">Create Asset</a></td>
+                                      </tr>
                                 </table><hr/>
-                              <!-- End System Name and Asset Search Table -->
                             </td>
                         </tr>
                         <tr>
-                            <td width="200" align="center"><b>Asset Name:<b><br/>
+                            <td width="200" align="center"><b>Asset Name:</b><div>
                                 <select id="asset_list" name="asset_list" size="8" style="width: 190px;">
-                                <option value="">--None--</option>
                                 <?php foreach($this->asset_list as $aid=>$aname){
                                           echo'<option value='.$aid.'>'.$aname.'</option>';
                                       }
                                 ?>
-                                </select>
-                            </td>
+                                </select></div>                            </td>
                             <td width="600" align="center" valign="top">
                                 <fieldset style="height:115; border:1px solid #44637A; padding:5">
                                 <legend><b>Asset Information</b></legend>
                                 <div id="asset_info"></div>
                                 </fieldset>
-                            </td>
+						    </td>
                         </tr>
                     </table>
-                    <!-- Asset Information Table -->
                 </td>
             </tr>
         </table>
