@@ -1,12 +1,12 @@
-<ul class="loginfo">
-    <li><b><?php echo $this->identity;  ?></b> is currently logged in  </li>
-    <li> 
-        <a class="action" href="/zfentry.php/user/pwdchange">Change Password</a>
-        <a class="action" href="/zfentry.php/user/logout">Logout</a>
-    </li>
-</ul>
-<img id="logo" src="/images/customer_logo.jpg" />
-
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+	<tr><td><img id="logo" src="/images/customer_logo.jpg" /></td>
+		<td><span id="msgbar"></span></td>
+		<td><ul class="loginfo">
+				<li><b><?php echo $this->identity;  ?></b> is currently logged in </li>
+				<li> <a class="action" href="/zfentry.php/user/pwdchange">Change Password</a> <a class="action" href="/zfentry.php/user/logout">Logout</a> </li>
+			</ul></td>
+	</tr>
+</table>
 <div id="menu">
 <?php 
     if(isAllow('dashboard','read')) {

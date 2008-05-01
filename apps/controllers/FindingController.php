@@ -63,11 +63,11 @@ class FindingController extends SecurityController
         // fetch data for lists
         $uid = $this->me->user_id;
         $qry = $db->select();
-        $source_list  = $db->fetchPairs($qry->from($src->info(Zend_Db_Table::NAME), 
+        $source_list  = $db->fetchPairs($qry->from($src->info(Zend_Db_Table::NAME),
                                     array('id'=>'source_id','name'=>'source_name'))
                                     ->order(array('id ASC')) );
         $qry->reset();
-        $network_list = $db->fetchPairs($qry->from($net->info(Zend_Db_Table::NAME), 
+        $network_list = $db->fetchPairs($qry->from($net->info(Zend_Db_Table::NAME),
                                     array('id'=>'network_id','name'=>'network_name'))
                                     ->order(array('id ASC')) );
         $qry->reset();
@@ -98,11 +98,11 @@ class FindingController extends SecurityController
         $this->render();
     }
 
-    /** 
+    /**
         Provide searching capability of findings
         Data is limited in legal systems.
      */
-    public function searchAction() 
+    public function searchAction()
     {
         $finding = new Finding();
         $qry = $finding->select()->setIntegrityCheck(false)
@@ -132,7 +132,7 @@ class FindingController extends SecurityController
 
         if( !empty($source) && $source != 'any' ) {
             $qry->where("source_id = {$source}");
-        } 
+        }
         if( !empty($status) && $status != 'any' ) {
             $qry->where("finding_status = '$status'");
         }
@@ -163,14 +163,14 @@ class FindingController extends SecurityController
         $this->render();
     }
 
-    /** 
+    /**
         Create finding summary
         Data is limited in legal systems.
      */
     public function summaryAction() {
         require_once 'Zend/Date.php';
 
-        $statistic = $this->systems; 
+        $statistic = $this->systems;
         foreach($statistic as $k => $row){
             $statistic[$k] = array(
                         'NAME'=>$row,
@@ -193,7 +193,7 @@ class FindingController extends SecurityController
         foreach($data as $row){
             $statistic[$row['sysid']][$row['status']]['total'] += $row['count'];
         }
-        
+
         //count time range
         $to->add(1,Zend_Date::DAY);
         $range['today']  = array('from'=>$from->toString("yyyyMMdd"),
@@ -229,10 +229,10 @@ class FindingController extends SecurityController
         foreach($data as $row){
             $statistic[$row['sysid']][$row['status']]['before60day'] += $row['count'];
         }
-        
+
         $this->view->assign('range',$range);
         $this->view->assign('statistic',$statistic);
-        $this->render();     
+        $this->render();
     }
 
     /**
@@ -244,7 +244,7 @@ class FindingController extends SecurityController
         $req = $this->getRequest();
         $fid = $req->getParam('fid',0);
         assert($fid);
-        
+
         $this->view->assign('fid',$fid);
         if(isAllow('finding','read')){
             $finding = new Finding();
@@ -270,7 +270,7 @@ class FindingController extends SecurityController
         if($do == 'update'){
            $status = $req->getParam('status');
            $db = Zend_Registry::get('db');
-           $result = $db->query("UPDATE FINDINGS SET finding_status = '$status' WHERE finding_id = $fid");     
+           $result = $db->query("UPDATE FINDINGS SET finding_status = '$status' WHERE finding_id = $fid");
            if($result){
                $this->view->assign('msg',"Finding updated successfully");
            }
@@ -281,7 +281,7 @@ class FindingController extends SecurityController
         $this->view->assign('act','edit');
         $this->_forward('view','Finding');
     }
-   
+
     /**
      spreadsheet Upload
     */
@@ -358,7 +358,7 @@ class FindingController extends SecurityController
         }
     }
 
-   /** 
+   /**
     Create finding
    */
     public function createAction(){
@@ -366,7 +366,7 @@ class FindingController extends SecurityController
         require_once MODELS . DS . 'network.php';
         require_once MODELS . DS . 'system.php';
         require_once MODELS . DS . 'asset.php';
-        
+
         $db = Zend_Registry::get('db');
         $req = $this->getRequest();
         $do = $req->getParam('is','view');
@@ -388,11 +388,14 @@ class FindingController extends SecurityController
                   VALUES ('$source', '$asset_id', '$status', '$now', '$disdate', '$finding_data')";
             $res = $db->query($sql);
             if($res){
-                $this->view->assign('msg',"Finding created successfully");
+                $message="Finding created successfully";
+                $model=self::M_NOTICE;
             }
             else {
-                $this->view->assign('msg',"Finding creation failed");
+                $message="Finding creation failed";
+                $model=self::M_WARNING;
             }
+            $this->message($message,$model);
         }
         $system_id = $req->getParam('system_id');
 
@@ -467,6 +470,4 @@ class FindingController extends SecurityController
                   VALUES($row[5], LAST_INSERT_ID(), 'OPEN', '$current_time_string', '$row[2]', '$row[6]')";
         return $sql;
     }
-
-    
 }

@@ -24,8 +24,10 @@ class SecurityController extends Zend_Controller_Action
        authenticated user instance
     */
 	protected $me = null;
+    const M_NOTICE = 'notice';
+    const M_WARNING= 'warning';
 
-    /** 
+    /**
      * Authentication check and ACL initialization
      * @todo cache the acl
      */
@@ -71,7 +73,15 @@ class SecurityController extends Zend_Controller_Action
         }
         return $acl;
     }
+
+    /**
+     * Show messages to Users
+     */
+    public function message( $msg , $model ){
+        assert(in_array($model, array(self::M_NOTICE, self::M_WARNING) ));
+        $this->view->msg = $msg;
+        $this->view->model= $model;
+        $this->_helper->viewRenderer->renderScript('message.tpl');
+    }
 }
-
-
 ?>

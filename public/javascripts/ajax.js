@@ -10,6 +10,11 @@ $(document).ready(function(){
         searchAsset();
     });
 
+    $("input#search_product").click(function(){
+        searchProduct();
+    });
+
+    getProdId();
 });
 
 function searchAsset( ){
@@ -33,6 +38,34 @@ function searchAsset( ){
 function asset_detail() {
     $("select[name='asset_list']").change(function(){
         var url = '/zfentry.php/asset/detail/id/'+ $(this).children("option:selected").attr('value');
-        $("div#asset_info").load(url);
+        $("div#asset_info").load(url,null);
     });
+}
+
+function getProdId(){
+    var trigger= $("select[name='prod_list']");
+    trigger.change(function(){
+        var prod_id= trigger.children("option:selected").attr('value');
+        $("input[name='prod_id']").val(prod_id);
+    });
+}
+
+function searchProduct(){
+    var trigger = $("input#search_product");
+    var url = trigger.attr('url');
+    url += '/view/list';
+    $("input.product").each(function(){
+        if($(this).attr('value')){
+            url += '/' + $(this).attr('name') + '/' + $(this).attr('value');
+        }
+    });
+    $("select[name='prod_list']").parent().load(url,null,function(){
+        getProdId();
+    });
+}
+
+function message( msg ,model){
+    $("#msgbar").html(msg).css('font-weight','bold');
+    if( model == 'warning')  $("#msgbar").css('color','red');
+    else $("#msgbar").css('color','green');
 }

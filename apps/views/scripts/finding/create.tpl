@@ -5,11 +5,7 @@
 </div>
 </div>
 <br>
-<?php
-    if($this->msg != ''){
-?>
-<p><b><u><?php echo $this->msg;?></u></b></p>
-<?php }?>
+
 <form name="finding" method="post" action="/zfentry.php/finding/create/is/new" >
 <table width="810" border="0" align="center" cellpadding="5">
     <tr><td>

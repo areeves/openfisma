@@ -94,30 +94,28 @@ class AssetController extends SecurityController
         $create_time=date("Y_m_d H:m:s");
 
         if(!empty($asset_name)){
-        $asset_row =array('prod_id'=>$prod_id,
-                          'asset_name'=>$asset_name,
-                          'asset_date_created'=>$create_time,
-                          'asset_source'=>$asset_source);
-        $asset_rows_affected=$db->insert('ASSETS',$asset_row);
+            $asset_row =array('prod_id'=>$prod_id,
+                              'asset_name'=>$asset_name,
+                              'asset_date_created'=>$create_time,
+                              'asset_source'=>$asset_source);
+            $asset_rows_affected=$db->insert('ASSETS',$asset_row);
 
-        $asset_last_insert_id=$db->lastInsertId();
+            $asset_last_insert_id=$db->lastInsertId();
 
-        $system_asset_row=array('system_id'=>$system_id,
-                                'asset_id'=>$asset_last_insert_id,
-                                'system_is_owner'=>'1');
-        $system_rows_affected=$db->insert('SYSTEM_ASSETS',$system_asset_row);
+            $system_asset_row=array('system_id'=>$system_id,
+                                    'asset_id'=>$asset_last_insert_id,
+                                    'system_is_owner'=>'1');
+            $system_rows_affected=$db->insert('SYSTEM_ASSETS',$system_asset_row);
 
-        $asset_address_row=array('asset_id'=>$asset_last_insert_id,
-                                 'network_id'=>$network_id,
-                                 'address_date_created'=>$create_time,
-                                 'address_ip'=>$asset_ip,
-                                 'address_port'=>$asset_port);
-        $asset_address_rows_affected=$db->insert('ASSET_ADDRESSES',$asset_address_row);
+            $asset_address_row=array('asset_id'=>$asset_last_insert_id,
+                                     'network_id'=>$network_id,
+                                     'address_date_created'=>$create_time,
+                                     'address_ip'=>$asset_ip,
+                                     'address_port'=>$asset_port);
+            $asset_address_rows_affected=$db->insert('ASSET_ADDRESSES',$asset_address_row);
 
-        $result="Create success";
+            $this->message( "Create Asset successfully", self::M_NOTICE);
         }
-        else $result="";
-        $this->view->result=$result;
         $this->view->system_list=$system_list;
         $this->view->network_list=$network_list;
         $this->_helper->actionStack('header','Panel');
