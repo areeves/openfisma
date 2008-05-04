@@ -63,7 +63,7 @@
             <th nowrap>View</th>
             </tr>
             <!-- REMEDIATION ROWS -->
-            <?php foreach($this->list as $row){
+            <?php foreach($this->summary_list as $row){
                 $finding_data = strlen($row['finding_data'])>120?substr($row['finding_data'],0,120)."...":$row['finding_data'];
                 $poam_id = null == $row['legacy_poam_id']?$row['poam_id']:$row['poam_id']."(".$row['legacy_poam_id'].")";
             ?>
