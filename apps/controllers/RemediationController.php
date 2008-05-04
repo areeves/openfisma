@@ -337,5 +337,203 @@ class RemediationController extends SecurityController
         $this->render();
     }
 
-    
+    /**
+    Get remediation detail info
+    */
+    public function viewAction(){
+        $req = $this->getRequest();
+        $id = $req->getParam('id');
+        assert($id);
+        $today = date("Ymd",time());
+        $poam = new remediation();
+        $db = $poam->getAdapter();
+        $query = $poam->select()->setIntegrityCheck(false);
+
+        // Finding Information Query
+
+        $query->from(array('p'=>'POAMS'),array());
+        $query->join(array('f'=>'FINDINGS'),'p.finding_id = f.finding_id',array('f_id'=>'f.finding_id',
+                                                                                'f_status'=>'f.finding_status',
+                                                                                'f_discovered'=>'f.finding_date_discovered',
+                                                                                'f_created'=>'f.finding_date_created',
+                                                                                'f_data'=>'f.finding_data'));
+        $query->join(array('fs'=>'FINDING_SOURCES'),'fs.source_id = f.source_id',array('fs_nickname'=>'fs.source_nickname',
+                                                                                      'fs_name'=>'fs.source_name'));
+        $query->join(array('a'=>'ASSETS'),'a.asset_id = f.asset_id',array('asset_id'=>'a.asset_id',
+                                                                         'asset_name'=>'a.asset_name'));
+        $query->join(array('sa'=>'SYSTEM_ASSETS'),'sa.asset_id = a.asset_id',array());
+        $query->join(array('s'=>'SYSTEMS'),'sa.system_id = s.system_id',array('system_nickname'=>'s.system_nickname',
+                                                                             'system_name'=>'s.system_name'));
+        $query->where("sa.system_is_owner = 1");
+        $query->where("p.poam_id = ".$id."");
+        $finding = $poam->fetchRow($query)->toArray();
+        $this->view->assign('finding',$finding);
+        
+        //Asset Network And Addresses Query
+
+        $query->reset();
+        $query->from(array('n'=>'NETWORKS'),array('network_nickname'=>'n.network_nickname'));
+        $query->join(array('aa'=>'ASSET_ADDRESSES'),'n.network_id = aa.network_id',array('ip'=>'aa.address_ip',
+                                                                                         'port'=>'aa.address_port'));
+        $query->where("aa.asset_id = ".$finding['asset_id']."");
+        $asset_address = $poam->fetchAll($query)->toArray();
+        $this->view->assign('asset_address',$asset_address); 
+        // Finding Vulnerabilities Query
+
+        $query->reset();
+        $query->from(array('p'=>'POAMS'),array());
+        $query->join(array('f'=>'FINDINGS'),'p.finding_id = f.finding_id',array());
+        $query->join(array('fv'=>'FINDING_VULNS'),'fv.finding_id = f.finding_id',array());
+        $query->join(array('v'=>'VULNERABILITIES'),'v.vuln_type = fv.vuln_type AND v.vuln_seq = fv.vuln_seq',
+                          array('type'=>'v.vuln_type',
+                                'seq'=>'v.vuln_seq',
+                                'primary'=>'v.vuln_desc_primary',
+                                'secondary'=>'v.vuln_desc_secondary'));
+        $query->where("p.poam_id = ".$id."");
+        $vulnerabilities = $poam->fetchAll($query)->toArray();
+
+        // Remediation Query
+
+        $query->reset();
+        $query->from(array('p'=>'POAMS'),'*');
+        $query->join(array('s'=>'SYSTEMS'),'s.system_id = p.poam_action_owner',array('system_nickname'=>'s.system_nickname',
+                                                                                     'system_name'=>'s.system_name'));
+        $query->join(array('u1'=>'USERS'),'u1.user_id = p.poam_created_by',array('created_by'=>'u1.user_name'));
+        $query->join(array('u2'=>'USERS'),'u2.user_id = p.poam_modified_by',array('modified_by'=>'u2.user_name'));
+        $query->where("p.poam_id = ".$id."");
+        $data = $poam->fetchRow($query);
+        if(!empty($data)){
+            $remediation = $data->toArray();
+            $this->view->assign('remediation',$remediation);
+
+            $est = implode(split('-',$remediation['poam_action_date_est']));
+            if(($est < $today) && ($remediation['poam_status']=='EN')){
+                $remediation['poam_status'] = 'EO';
+            }
+            $this->view->assign('remediation_status',$remediation['poam_status']);
+            $this->view->assign('remediation_type',$remediation['poam_type']);
+            $this->view->assign('threat_level',$remediation['poam_threat_level']);
+            $this->view->assign('cmeasure_effectiveness',$remediation['poam_cmeasure_effectiveness']);
+      
+           // Product Query
+            $query->reset();
+            $query->from(array('p'=>'PRODUCTS'),array('prod_id'=>'p.prod_id',
+                                               'prod_vendor'=>'p.prod_vendor',
+                                               'prod_name'=>'p.prod_name',
+                                               'prod_version'=>'p.prod_version'));
+            $query->join(array('a'=>'ASSETS'),'a.prod_id = p.prod_id',array());
+            $query->join(array('f'=>'FINDINGS'),'a.asset_id = f.asset_id',array());
+            $query->where("f.finding_id = ".$remediation['finding_id']."");
+            $products = $poam->fetchRow($query);
+            $this->view->assign('products',$products);
+        }
+        
+        //Blscr Query
+        $query->reset();
+        $query->from(array('b'=>'BLSCR'),'*');
+        $query->join(array('p'=>'POAMS'),'p.poam_blscr = b.blscr_number',array());
+        $query->where("p.poam_id = ".$id."");
+        $data = $poam->fetchRow($query);
+        if(!empty($data)){
+            $blscr = $poam->fetchRow($query)->toArray();
+        }
+        else {
+            $blscr = array();
+        }
+
+        // Comments Query
+        $query->reset();
+        $query->from(array('pc'=>'POAM_COMMENTS','*'));
+        $query->join(array('u'=>'USERS'),'u.user_id = pc.user_id',array('user_name'=>'u.user_name'));
+        $query->where("pc.poam_id = ".$id."");
+        $query->order("pc.comment_date DESC");
+        $comments = $poam->fetchAll($query)->toArray();
+        $comments_est = $comments_sso = $comments_ev = array();
+        if(count($comments) >0 ){
+            foreach($comments as &$comment){
+                $comment['comment_topic'] = stripslashes($comment['comment_topic']);
+                $comment['comment_body'] = nl2br($comment['comment_log']);
+                $comment['comment_log'] = nl2br($comment['comment_log']);
+                if($comment['comment_type'] == 'EST'){
+                    $comments_est[] = $comment;
+                }
+                elseif($comment['comment_type'] == 'SSO'){
+                    $comments_sso[] = $comment;
+                }
+                elseif(isset($comment['ev_id']) && ($comment['ev_id']>0)){
+                    $comments_ev[$comment['ev_id']][$comment['comment_type']] = $comment;
+                }
+            }
+        }
+        $this->view->assign('comments_ev',$comments_ev);
+        $this->view->assign('comments_est',$comments_est);
+        $this->view->assign('comments_sso',$comments_sso);
+        $this->view->assign('num_comments_est',count($comments_est));
+        $this->view->assign('num_comments_sso',count($comments_sso));
+
+        // Evidence Query
+        $query->reset();
+        $query->from(array('pe'=>'POAM_EVIDENCE'),'*');
+        $query->join(array('u'=>'USERS'),'u.user_id = pe.ev_submitted_by',array('submitted_by'=>'u.user_name'));
+        $query->where("pe.poam_id = ".$id."");
+        $query->order("pe.ev_date_submitted ASC");
+        $all_evidence = $poam->fetchAll($query)->toArray();
+        $num_evidence = count($all_evidence);
+        if($num_evidence){
+            foreach($all_evidence as &$evidence){
+                if($comments_ev != null){
+                    $evidence['comments'] = $comments_ev[$evidence['ev_id']];
+                }
+                $evidence['fileName'] = basename($evidence['ev_submission']);
+                if(file_exists($evidence['ev_submission'])){
+                    $evidence['fileExists'] = 1;
+                }
+                else {
+                    $evidence['fileExists'] = 0;
+                }
+            }
+        } 
+        $this->view->assign('all_evidence',$all_evidence);
+        $this->view->assign('num_evidence',$num_evidence);
+
+        //Audit Log
+        $query->reset();
+        //$query->from(array('al'=>'AUDIT_LOG'),'*');;
+        $query->from(array('al'=>'AUDIT_LOG'),array('*','time'=>'al.date'));
+        $query->join(array('p'=>'POAMS'),'p.finding_id = al.finding_id',array());
+        $query->join(array('u'=>'USERS'),'al.user_id = u.user_id',array('user_name'=>'u.user_name'));
+        $query->where("p.poam_id = ".$id."");
+        $query->order("al.date DESC");
+        //echo $query->__toString();die();
+        $logs = $poam->fetchAll($query)->toArray();
+        foreach($logs as $k=>$v){
+            //$date_default_timezone_set('America/New_York');
+            $logs[$k]['time'] = date('Y-m-d H:i:s',$logs[$k]['time']);
+        }
+        $this->view->assign('logs',$logs);
+        $this->view->assign('num_logs',count($logs));
+
+        //Root Comment
+        $query->reset();
+        $query->from(array('pc'=>'POAM_COMMENTS'),array('comment_id'=>'pc.comment_id'));
+        $query->where("pc.poam_id = ".$id."");
+        $query->where("pc.comment_parent is null");
+        $root_comment = $poam->fetchRow($query);
+        $this->view->assign('root_comment',$root_comment);
+
+        //All Fields Ok?
+        if(!empty($remediation)){
+            $r = $remediation;
+            $r_fields_null = array($r['poam_threat_source'], $r['poam_threat_justification'],
+            $r['poam_cmeasure'], $r['poam_cmeasure_justification'], $r['poam_action_suggested'],
+            $r['poam_action_planned'], $r['poam_action_resources'], $r['poam_blscr']);
+            $r_fields_zero = array($r['poam_action_date_est']);
+            $r_fields_none = array($r['poam_cmeasure_effectiveness'], $r['poam_threat_level']);
+            $is_completed = (in_array(null, $r_fields_null) || in_array('NONE', $r_fields_none) || in_array('0000-00-00', $r_fields_zero))?'no':'yes';
+            $this->view->assign('is_completed', $is_completed);
+        }
+        $this->view->assign('vulner',$vulnerabilities);
+        $this->view->assign('blscr',$blscr);
+        $this->render();
+    }
 }

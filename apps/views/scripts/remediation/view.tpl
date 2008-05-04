@@ -20,7 +20,7 @@ function go(step) {
                 <input type='hidden' name='validated'      value='no'>
                 <input type='hidden' name='approved'       value='no'>
                 <input type='hidden' name='target'         value='save_poam'>
-                <input type='hidden' name='remediation_id' value='{$remediation_id}'>
+                <input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
                 <input type='hidden' name='form_action' value=''>
                 <input type='submit' title='Save or Submit' value="Save" style="cursor: pointer;">
             </form>
@@ -70,78 +70,66 @@ function go(step) {
 
             <!-- FINDING TABLE -->
             <table border="0" cellpadding="5" cellspacing="1" class="tipframe" width="100%">
-                <!--<th align="left" colspan="2">Finding Information - #{$finding.finding_id}</th> -->
                 <th align="left" colspan="2">Finding Information</th>
-                <tr><td><b>Finding ID:</b> {$finding.finding_id}</td></tr>
-                <tr><td><b>Date Opened:</b> {$finding.finding_date_created}</td></tr>
-                <tr><td><b>Finding Source:</b> ({$finding.source_nickname}) {$finding.source_name}</td></tr>
-                <tr><td><b>Finding Status:</b> {$remediation.poam_status}</td></tr>
-                <!--<tr><td><b>Finding Status:</b> {$finding.finding_status}</td></tr>-->
-                <!--<tr><td><b>Scan Date:</b> {$finding.finding_date_discovered}</td></tr>-->
+                <tr><td><b>Finding ID:</b><?php echo $this->finding['f_id'];?></td></tr>
+                <tr><td><b>Date Opened:</b><?php echo $this->finding['f_created'];?></td></tr>
+                <tr><td><b>Finding Source:</b> (<?php echo $this->finding['fs_nickname'];?>)<?php echo $this->finding['fs_name'];?></td></tr>
+                <tr><td><b>Finding Status:</b><?php echo $this->remediation_status;?></td></tr>
                 <tr>
                     <td>
                         <form action='remediation_modify.php' method='POST'>
-                        <input type='hidden' name='remediation_id' value='{$remediation_id}'>
-                        <input type='hidden' name='root_comment'   value='{$root_comment}'>
+                        <input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
+                        <input type='hidden' name='root_comment'   value='<?php echo $this->root_comment;?>'>
                         <input type='hidden' name='target'         value='remediation_owner'>
                         <input type='hidden' name='action'         value='update'>
                         <input type='hidden' name='validated'      value='no'>
                         <input type='hidden' name='approved'       value='no'>
 
                         <b>Responsible System:</b>
-
-                        {* RESTRICT UPDATE BASED ON STATUS AND ROLE *}
-                        {if $modify_action_owner eq '1'}
-                        {if $remediation_status eq 'OPEN'}
-
+                        <?php
+                        if(isAllow('remediation','update_finding_assignment')){
+                            if('OPEN' == $this->finding['f_status']){ ?> 
                         <input type='hidden' name='form_action' value='Update'>
                         <input type='image' src='/images/button_modify.png' name='form_action' value='Update'> 
-
-                        {/if}
-                        {/if}
-                        <span>({$remediation.system_nickname}) {$remediation.system_name}</span>
+                        <?php } } ?>
+                        <span>(<?php echo $this->finding['system_nickname'];?>) <?php echo $this->finding['system_name'];?></span>
                         </form>
 
                     </td>
                 </tr>
-                
-                
-                
             </table> 
             <!-- FINDING TABLE -->
-
         </td>
-
         <!-- asset information -->
         <td width="50%" valign="top">
-
-            <!-- ASSET TABLE -->
+           <!-- ASSET TABLE -->
             <table border="0" cellpadding="5" cellspacing="1" class="tipframe" width="100%">
                 <th align="left" colspan="2">Asset Information</th>
                 <tr>
-                    <td><b>Asset Owner:</b> ({$finding.system_nickname}) {$finding.system_name}</td>
+                    <td><b>Asset Owner:</b><?php echo '('.$this->finding['system_nickname'].')'.$this->finding['system_name'];?></td>
                 </tr>
                 <tr>
-                    <td><b>Asset Name:</b> 
-                        {if $finding.asset_name eq "NULL"}<i>(none given)</i>
-                        {else}{$finding.asset_name}{/if}
+                    <td><b>Asset Name:</b>
+                        <?php echo 'NULL'==$this->finding['asset_name']?'(none given)':$this->finding['asset_name'];?>
                     </td>
                 </tr>
                 <tr>
                     <td><b>Known Address(es):</b>
-                        {section name=row loop=$asset_addresses}
-                        ({$asset_addresses[row].network_nickname}) 
-                        {if $asset_addresses[row].address_ip eq ""}<i>(none given)</i> :
-                        {else}{$asset_addresses[row].address_ip} :{/if}
-                        {if $asset_addresses[row].address_port eq ""}<i>(none given)</i>{else}{$asset_addresses[row].address_port}{/if}
-                        {/section}
+                        <?php foreach($this->asset_address as $asset){
+                            echo '('.$asset['network_nickname'].')';
+                            echo ''==$asset['ip']?'<i>(none_given)</i>':$asset['ip']; 
+                            echo ''==$asset['port']?'<i>(none given)</i>':$asset['port'];
+                        }
+                        ?>
                     </td>
                 </tr>
                 <tr>
                     <td><b>Product Information:</b>
-                        {if $product.prod_id eq ""}<i>(none given)</i>
-                        {else}{$product.prod_vendor} {$product.prod_name} {$product.prod_version}
-                        {/if}
+                        <?php if($this->product['prod_id'] == ""){ ?>
+                            <i>(none given)</i>
+                        <?php } else { 
+                            echo $this->product['prod_vendor'].$this->product['prod_name'].$this->product['prod_version'];
+                        }?>
                     </td>
                 </tr>
             </table> 
@@ -154,7 +142,7 @@ function go(step) {
             <!-- INSTANCE DATA TABLE -->
             <table border="0" cellpadding="5" cellspacing="1" class="tipframe" width="100%">
                 <th align="left">Finding Description</th>
-                <tr><td>{if $finding.finding_data eq ""}<i>(none given)</i>{else}{$finding.finding_data}{/if}</td></tr>
+                <tr><td><?php echo ''==$this->finding['f_data']?'<i>(none given)</i>':$this->finding['f_data'];?></td></tr>
             </table> 
             <!-- END INSTANCE DATA TABLE -->
 
@@ -166,27 +154,23 @@ function go(step) {
             <table border="0" cellpadding="5" cellspacing="1" width="100%" align="center" class="tipframe">
                 <th align='left'>Additional Vulnerability Detail</th>
                 <!-- VULNERABILITY ROW(S) -->
-        
-                {section name=row loop=$vulnerabilities step='-1'}
+                <?php foreach($this->vulner as $row){ ?>
                 <tr>
                     <td colspan="2">
-
                         <!-- VULERABILITIES TABLE -->
                         <table border="0" cellpadding="5" cellspacing="1" width="100%">
-                            <tr><td><b>Vulnerability ID:</b> {$vulnerabilities[row].vuln_type}-{$vulnerabilities[row].vuln_seq}</td></tr>
-                            <tr><td><b>Primary Description:</b> {$vulnerabilities[row].vuln_desc_primary}</td></tr>
+                            <tr><td><b>Vulnerability ID:</b><?php echo $row['type'].'-'.$row['seq'];?></td></tr>
+                            <tr><td><b>Primary Description:</b><?php echo $row['primary'];?></td></tr>
                             <tr>
                                 <td><b>Secondary Description:</b> 
-                                    {if $vulnerabilities[row].vuln_desc_secondary eq "0"}<i>(none given)</i>
-                                    {else}{$vulnerabilities[row].vuln_desc_secondary}
-                                    {/if}
+                                    <?php echo '0'==$row['secondary']?'<li>(none given)</li>':$row['secondary'];?>
                                 </td>
                             </tr>
                         </table> 
                         <!-- END VULERABILITIES TABLE -->
                     </td>
                 </tr>
-                {/section}
+                <?php }?>
             </table> 
 
         </td>
@@ -199,22 +183,18 @@ function go(step) {
                 <tr>
                     <td colspan='2'>
                         <form action='remediation_modify.php' method='POST'>
-                        <input type='hidden' name='remediation_id' value='{$remediation_id}'>
-                        <input type='hidden' name='root_comment'   value='{$root_comment}'>
+                        <input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
+                        <input type='hidden' name='root_comment'   value='<?php echo $this->root_comment;?>'>
                         <input type='hidden' name='target'         value='action_suggested'>
                         <input type='hidden' name='action'         value='update'>
                         <input type='hidden' name='validated'      value='no'>
                         <input type='hidden' name='approved'       value='no'>
 
-                        {* RESTRICT UPDATE BASED ON STATUS AND ROLE *}
-                        {if $modify_mitigation_recommendation eq '1'}
-
+                        <?php if(isAllow('remediation','update_finding_recommendation')){?>
                         <input type='hidden' name='form_action' value='Update'>
                         <input type='image' src='/images/button_modify.png' name='form_action' value='Update'>
-
-                        {/if}
-
-                        <span>{$remediation.poam_action_suggested}</span>
+                        <?php }?>
+                        <span><?php echo $this->remediation['poam_action_suggested'];?></span>
                         </form>
                     </td>
                 </tr>
@@ -251,8 +231,8 @@ function go(step) {
                     <td align="left">
     
                         <form action='remediation_modify.php' method='POST'>
-                        <input type='hidden' name='remediation_id' value='{$remediation_id}'>
-                        <input type='hidden' name='root_comment'   value='{$root_comment}'>
+                        <input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
+                        <input type='hidden' name='root_comment'   value='<?php echo $this->root_comment;?>'>
                         <input type='hidden' name='target'         value='remediation_type'>
                         <input type='hidden' name='action'         value='update'>
                         <input type='hidden' name='validated'      value='no'>
@@ -260,22 +240,21 @@ function go(step) {
                 
                         <b>Type:</b> 
 
-                        {* RESTRICT UPDATE BASED ON STATUS AND ROLE *}
-                        {if $modify_type eq '1'}
-                        {if $remediation_status eq 'OPEN'}
+                        <?php if(isAllow('remediation','update')){
+                            if('OPEN' == $this->remediation['poam_status']){
+                        ?>
                         <input type='hidden' name='form_action' value='Update'>
                         <input type='image' src='/images/button_modify.png' name='form_action' value='Update'>
-                        {/if}
-                        {/if}
-                        <span>{$remediation.poam_type}</span>
+                        <? } } ?>
+                        <span><?php echo $this->remediation['poam_type'];?></span>
                         </form>
                     </td>
                 </tr>
                 <tr>
                     <td>
                         <form action='remediation_modify.php' method='POST'>
-                        <input type='hidden' name='remediation_id' value='{$remediation_id}'>
-                        <input type='hidden' name='root_comment'   value='{$root_comment}'>
+                        <input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
+                        <input type='hidden' name='root_comment'   value='<?php echo $this->root_comment;?>'>
                         <input type='hidden' name='target'         value='action_planned'>
                         <input type='hidden' name='action'         value='update'>
                         <input type='hidden' name='validated'      value='no'>
@@ -283,17 +262,13 @@ function go(step) {
 
                         <b>Description:</b> 
                         
-                        {* RESTRICT UPDATE BASED ON STATUS AND ROLE *}
-                        {if $modify_mitigation_course_of_action eq '1'}
-                        {if $remediation_status eq 'OPEN'}
-
+                        <?php if(isAllow('remediation','update_finding_course_of_action')){
+                            if('OPEN' == $this->remediation['poam_status']){
+                        ?>
                         <input type='hidden' name='form_action' value='Update'>
                         <input type='image' src='/images/button_modify.png' name='form_action' value='Update'>
-
-                        {/if}
-                        {/if}
-
-                        <span>{$remediation.poam_action_planned}</span>
+                        <? } }?>
+                        <span><?php echo $this->remediation['poam_action_planned'];?></span>
                         </form>
                     
                     </td>
@@ -313,24 +288,19 @@ function go(step) {
                     <td>
 
                         <form action='remediation_modify.php' method='POST'>
-                        <input type='hidden' name='remediation_id' value='{$remediation_id}'>
-                        <input type='hidden' name='root_comment'   value='{$root_comment}'>
+                        <input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
+                        <input type='hidden' name='root_comment'   value='<?php echo $this->root_comment;?>'>
                         <input type='hidden' name='target'         value='action_resources'>
                         <input type='hidden' name='action'         value='update'>
                         <input type='hidden' name='validated'      value='no'>
                         <input type='hidden' name='approved'       value='no'>
 
-                        {* RESTRICT UPDATE BASED ON STATUS AND ROLE *}
-                        {if $modify_mitigation_resources eq '1'}
-
+                        <?php if(isAllow('remediation','update_finding_resources')){?>
                         <input type='hidden' name='form_action' value='Update'>
                         <input type='image' src='/images/button_modify.png' name='form_action' value='Update'>
-
-                        {/if}
-
-                        <span>{$remediation.poam_action_resources}</span>
+                        <? } ?>
+                        <span><?php echo $this->remediation['poam_action_resources'];?></span>
                         </form>
-
                         </td>
                 </tr>
             </table>
@@ -342,8 +312,8 @@ function go(step) {
     <tr>
         <td width='50%'>
             <form action='remediation_modify.php' method='POST'>
-            <input type='hidden' name='remediation_id' value='{$remediation_id}'>
-            <input type='hidden' name='root_comment'   value='{$root_comment}'>
+            <input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
+            <input type='hidden' name='root_comment'   value='<?php echo $this->root_comment;?>'>
             <input type='hidden' name='target'         value='action_date_est'>
             <input type='hidden' name='action'         value='update'>
             <input type='hidden' name='validated'      value='no'>
@@ -351,217 +321,194 @@ function go(step) {
 
             <b>Estimated Completion Date:</b> 
 
-            {* RESTRICT UPDATE BASED ON STATUS AND ROLE *}
-            {if $modify_mitigation_completion_date eq '1'}
-            {if $remediation_status eq 'OPEN'}
-
+            <?php if(isAllow('remediation','update_est_completion_date')){
+                if('OPEN' == $this->remediation['poam_status']){
+            ?>
             <input type='hidden' name='form_action' value='Update'>
             <input type='image' src='/images/button_modify.png' name='form_action' value='Update'>
-
-            {/if}
-            {/if}
-
-            <span>{$remediation.poam_action_date_est}</span>
+            <?php } }?>
+            <span><?php echo $this->remediation['poam_action_date_est'];?></span>
             </form>
         </td>
         <td width='50%'>
-            <b>Actual Completion Date:</b> 
-            {if $remediation.poam_action_date_actual neq ""}{$remediation.poam_action_date_actual}
-            {else}<i>(action not yet completed)</i>
-            {/if}
+            <b>Actual Completion Date:</b>
+            <?php echo '' != $this->remediation['poam_action_date_actual']?$this->remediation['poam_action_date_actual']:'<i>(action not yet completed)</i>';?> 
         </td>
     </tr>
-            { if $num_comments_est gt 0 }
-    <tr>
-        <td colspan='2'>
-                    
-            <!-- Comments for ECD Modification Table -->
-            <table width="100%" border="0" cellpadding="5" class="tipframe">
-                <th align="left">Comments For Date Modification <i>({$num_comments_est} total)</i></th>
-                <tr>
-                    <td>
-                
-                        <!-- COMMENT TABLE -->
-                        <table border="1" align="left" cellpadding="5" cellspacing="1" width="100%" class="tbframe">
-                            <tr>
-                                <th nowrap>Changed On</td>
-                                <th nowrap>Changed By</td>
-<!--                                <th nowrap>Event</td>-->
-                                <th nowrap>Reason for Change</td>
-                            </tr>
-
-                            {section name=row loop=$comments_est}
-                
-                            <tr>
-                                <td class="tdc" nowrap>{$comments_est[row].comment_date}</td>
-                                <td class="tdc" nowrap>{$comments_est[row].user_name}</td>
-<!--                                <td class="tdc">{$comments_est[row].comment_topic}</td>-->
-                                <td class="tdc">{$comments_est[row].comment_body}</td>
-                            </tr>
-                
-                            {/section}
-                
-                        </table>
-                        <!-- COMMENT TABLE -->
-
-                    </td>
-                </tr>
-            </table>
-            <!-- End Comments for ECD Modification Table -->
-                    
-        </td>
-    </tr>
-                    {/if}
+    <?php if($this->num_comments_est > 0){ ?>
+	<tr>
+		<td colspan='2'>
+			<!-- Comments for ECD Modification Table -->
+			<table width="100%" border="0" cellpadding="5" class="tipframe">
+				<th align="left">Comments For Date Modification <i>(<?php echo $this->num_comments_est;?> total)</i></th>
+				<tr>
+					<td>
+						<!-- COMMENT TABLE -->
+						<table border="1" align="left" cellpadding="5" cellspacing="1" width="100%" class="tbframe">
+							<tr>
+								<th nowrap>Changed On</td>
+								<th nowrap>Changed By</td>
+								<th nowrap>Reason for Change</td>
+							</tr>
+                            <?php foreach($this->comments_est as $row){ ?>
+							<tr>
+								<td class="tdc" nowrap><?php echo $row['comment_date'];?></td>
+								<td class="tdc" nowrap><?php echo $row['user_name'];?></td>
+								<td class="tdc"><?php echo $row['comment_body'];?></td>
+							</tr>
+							<?php } ?>
+						</table>
+						<!-- COMMENT TABLE -->
+					</td>
+				</tr>
+			</table>
+			<!-- End Comments for ECD Modification Table -->
+		</td>
+	</tr>
+    <?php } ?>
 </table>
 <!-- END MITIGATION STRATEGY TABLE -->
-
 <br>
 <!-- Heading Block -->
 <table width="98%" align="center" border="0" cellpadding="0" cellspacing="0">
-    <tr>
-        <td width="13"><img src="/images/left_circle.gif" border="0"></td>
-        <td bgcolor="#DFE5ED"><b>NIST 800-53 Control Mapping</b></td>
-        <td bgcolor="#DFE5ED" align="right"></td>
-        <td width="13"><img src="/images/right_circle.gif" border="0"></td>
-    </tr>
+	<tr>
+		<td width="13"><img src="/images/left_circle.gif" border="0"></td>
+		<td bgcolor="#DFE5ED"><b>NIST 800-53 Control Mapping</b></td>
+		<td bgcolor="#DFE5ED" align="right"></td>
+		<td width="13"><img src="/images/right_circle.gif" border="0"></td>
+	</tr>
 </table>
 <!-- End Heading Block -->
 <br>
-
-    {if $blscr.blscr_number eq ""}
-
-        <!-- BLSCR TABLE -->
-        <table border="1" width="95%" align="center" cellpadding="5" cellspacing="1" class="tipframe">
-            <th align="left" >Security Control</th>
-            <tr><td><i>(none given)</i></td></tr>
-            <tr>
-                <td>
-                    <form action='remediation_modify.php' method='POST'>
-                        <input type='hidden' name='remediation_id' value='{$remediation_id}'>
-                        <input type='hidden' name='root_comment'   value='{$root_comment}'>
-                        <input type='hidden' name='target'         value='blscr_number'>
-                        <input type='hidden' name='action'         value='update'>
-                        <input type='hidden' name='validated'      value='no'>
-                        <input type='hidden' name='approved'       value='no'>
-                    
-                    <b>Number:</b>
-                    
-                        {if $modify_blscr eq '1'}
-                            <input type='hidden' name='form_action' value='Update'>
-                            <input type='image' src='/images/button_modify.png' name='form_action' value='Update'>
-                        {/if}
-                            <span>{$blscr.blscr_number}</span>
-                    </form>
-                </td>
-            </tr>
-        </table>
-
-    {/if}
-                
-    {if $blscr.blscr_number neq ""}         
-
-        <table border="0" width="95%" align="center" cellpadding="5" class="tipframe">
-            <tr>
-                <td>
-
-            <table align="left" border="0" cellpadding="5" class="tbframe">
-                <tr>
-                    <th class="tdc">Control Number</th>
-                    <th class="tdc">Class</th>
-                    <th class="tdc">Family</th>
-                    <th class="tdc">Subclass</th>
-                    <th class="tdc">Low</th>
-                    <th class="tdc">Moderate</th>
-                    <th class="tdc">High</th>
-                </tr>
-                <tr>
-                    <td class="tdc" align="center">
-                        <form action='remediation_modify.php' method='POST'>
-                            <input type='hidden' name='remediation_id' value='{$remediation_id}'>
-                            <input type='hidden' name='root_comment'   value='{$root_comment}'>
-                            <input type='hidden' name='target'         value='blscr_number'>
-                            <input type='hidden' name='action'         value='update'>
-                            <input type='hidden' name='validated'      value='no'>
-                            <input type='hidden' name='approved'       value='no'>
-                            {if $modify_blscr eq '1'}
-                                <input type='hidden' name='form_action' value='Update'>
-                                <input type='image' src='/images/button_modify.png' name='form_action' value='Update'>
-                            {/if}
-                            <span>{$blscr.blscr_number}</span>
-                        </form>
+    <?php if((!empty($this->blscr) && $this->blscr['blscr_number'] == '')|| empty($this->blscr)){ ?>
+		<!-- BLSCR TABLE -->
+   		<table border="1" width="95%" align="center" cellpadding="5" cellspacing="1" class="tipframe">
+	       	<th align="left" >Security Control</th>
+			<tr><td><i>(none given)</i></td></tr>
+			<tr>
+				<td>
+					<form action='remediation_modify.php' method='POST'>
+						<input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
+						<input type='hidden' name='root_comment'   value='<?php echo $this->root_comment;?>'>
+						<input type='hidden' name='target' 		   value='blscr_number'>
+						<input type='hidden' name='action'         value='update'>
+						<input type='hidden' name='validated'      value='no'>
+						<input type='hidden' name='approved'       value='no'>
+					
+					<b>Number:</b>
+					
+						<?php if(isAllow('remediation','update_control_assignment')){ ?>
+							<input type='hidden' name='form_action' value='Update'>
+							<input type='image' src='/images/button_modify.png' name='form_action' value='Update'>
+						<?php } ?>
+					</form>
+				</td>
+			</tr>
+		</table>
+	<?php } 
+        if(!empty($this->blscr) && ($this->blscr['blscr_number'] != "")){ ?>
+   		<table border="0" width="95%" align="center" cellpadding="5" class="tipframe">
+			<tr>
+				<td>
+			<table align="left" border="0" cellpadding="5" class="tbframe">
+				<tr>
+					<th class="tdc">Control Number</th>
+					<th class="tdc">Class</th>
+					<th class="tdc">Family</th>
+					<th class="tdc">Subclass</th>
+					<th class="tdc">Low</th>
+					<th class="tdc">Moderate</th>
+					<th class="tdc">High</th>
+				</tr>
+				<tr>
+					<td class="tdc" align="center">
+						<form action='remediation_modify.php' method='POST'>
+							<input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
+							<input type='hidden' name='root_comment'   value='<?php echo $this->root_comment;?>'>
+							<input type='hidden' name='target' 		   value='blscr_number'>
+							<input type='hidden' name='action'         value='update'>
+							<input type='hidden' name='validated'      value='no'>
+							<input type='hidden' name='approved'       value='no'>
+                            <?php if(isAllow('remediation','update_control_assignment')){ ?>
+								<input type='hidden' name='form_action' value='Update'>
+								<input type='image' src='/images/button_modify.png' name='form_action' value='Update'>
+							<?php } ?>
+							<span><?php echo $this->blscr['blscr_number'];?></span>
+						</form>
+					</td>
+					<td class="tdc"><?php echo $this->blscr['blscr_class'];?></td>
+					<td class="tdc"><?php echo $this->blscr['blscr_family'];?></td>
+					<td class="tdc"><?php echo $this->blscr['blscr_subclass'];?></td>	
+					<td class="tdc" align="center">
+                        <?php echo 1 == $this->blscr['blscr_low']?'Control Required':'Control Not Required';?>
                     </td>
-                    <td class="tdc">{$blscr.blscr_class}</td>
-                    <td class="tdc">{$blscr.blscr_family}</td>
-                    <td class="tdc">{$blscr.blscr_subclass}</td>    
-                    <td class="tdc" align="center">{if $blscr.blscr_low eq '1'}Control Required{else}Control Not Required{/if}</td>
-                    <td class="tdc" align="center">{if $blscr.blscr_moderate eq '1'}Control Required{else}Control Not Required{/if}</td>
-                    <td class="tdc" align="center">{if $blscr.blscr_high eq '1'}Control Required{else}Control Not Required{/if}</td>
-                </tr>
-            </table>
-
-                </td>
-            </tr>   
-            <tr><td><b>Control: </b> {$blscr.blscr_control}</td></tr>
-            <tr><td><b>Guidance: </b> {$blscr.blscr_guidance}</td></tr>
-            <tr><td><b>Enhancements: </b>{if $blscr.blscr_enhancements eq '.'}<i>(none given)</i>{else}{$blscr.blscr_enhancements}{/if}</td></tr>
-            <tr><td><b>Supplement: </b>{if $blscr.blscr_supplement eq '.'}<i>(none given)</i>{else}{$blscr.blscr_supplement}{/if}</td></tr>
-        </table>
-
-    {/if}
-
+					<td class="tdc" align="center">
+                        <?php echo 1 == $this->blscr['blscr_moderate']?'Control Required':'Control Not Required';?>
+                    </td>
+					<td class="tdc" align="center">
+                        <?php echo 1 == $this->blscr['blscr_high']?'Control Required':'Control Not Required';?>
+                    </td>
+				</tr>
+			</table>
+				</td>
+			</tr>	
+			<tr><td><b>Control: </b> <?php echo $this->blscr['blscr_control'];?></td></tr>
+		    <tr><td><b>Guidance: </b> <?php echo $this->blscr['blscr_guidance'];?></td></tr>
+		    <tr><td><b>Enhancements: </b>
+                <?php '.' == $this->blscr['blscr_enhancements']?'<i>(none given)</i>':$this->blscr['blscr_enhancements'];?>
+            </td></tr>
+	    	<tr><td><b>Supplement: </b>
+                <?php '.' == $this->blscr['blscr_supplement']?'<i>(none given)</i>':$this->blscr['blscr_supplement'];?>
+            </td></tr>
+		</table>
+	<?php } ?>
 <br>
 <!-- Heading Block -->
 <table width="98%" align="center" border="0" cellpadding="0" cellspacing="0">
-    <tr>
-        <td width="13"><img src="/images/left_circle.gif" border="0"></td>
-        <td bgcolor="#DFE5ED"><b>Risk Analysis</b></td>
-        <td bgcolor="#DFE5ED" align="right"></td>
-        <td width="13"><img src="/images/right_circle.gif" border="0"></td>
-    </tr>
+	<tr>
+		<td width="13"><img src="/images/left_circle.gif" border="0"></td>
+		<td bgcolor="#DFE5ED"><b>Risk Analysis</b></td>
+		<td bgcolor="#DFE5ED" align="right"></td>
+		<td width="13"><img src="/images/right_circle.gif" border="0"></td>
+	</tr>
 </table>
 <!-- End Heading Block -->
-
 <br>
-
 <!-- REMEDIATION TABLE -->
 <table border="0" cellpadding="5" cellspacing="1" width="95%" align="center">
-    <tr> <!-- REMEDIATION INFORMATION ROW -->
-        <td width='50%' valign='top'>
-
-            <table border="0" cellpadding="5" cellspacing="1" width="100%" class="tipframe">
-                <th align="left" colspan='2'>Risk Analysis Form</th>
-                <tr>
-                    <td>
-                        Based on the guidance provided by NIST Special Publication 800-37, to derive an overall likelihood rating that indicates the probability that a potential vulnerability may be exercised, we must first define the threat-source motivation and capability while considering the nature of the vulnerability and the existence and effectiveness of current controls or countermeasures. The following two sections on Threat Information and Countermeasure Information will help us define the iformation required to generate a threat likelihood risk level which will be used to generate the overall risk level of this vulnerability as it pertains to your information system.
-                    </td>
-                </tr>
-                <tr>
-                        {* RESTRICT BY ROLE *}
-                        {if $generate_raf eq '1'}
-                        {* CHECK THAT CMEASURE AND THREAT LEVEL ARE SET *}
-                        {if $threat_level neq 'NONE' && $cmeasure_effectiveness neq 'NONE'}
-                        <form action='raf.php' method='POST' target='_blank'>
-                        <input type='hidden' name='poam_id'     value='{$remediation_id}'>
-                    <td colspan='2'>
-                        <input type='hidden' name='form_action' value='Generate RAF'>
-                        <input type='submit' name='form_action' value='Generate RAF'>
-                    </td>
-                        </form>
-                        {else}
-                    <td colspan='2'><i>(Threat and Countermeasure information must be completed to generate a RAF)</i></td>
-                        {/if}
-                        {else}
-                    <td colspan='2'>&nbsp;</td>
-                        {/if}
-                </tr>
-            </table>
-
-        </td>
-        
+	<tr> <!-- REMEDIATION INFORMATION ROW -->
+		<td width='50%' valign='top'>
+			<table border="0" cellpadding="5" cellspacing="1" width="100%" class="tipframe">
+				<th align="left" colspan='2'>Risk Analysis Form</th>
+				<tr>
+					<td>
+						Based on the guidance provided by NIST Special Publication 800-37, to derive an overall likelihood rating that indicates the probability that a potential vulnerability may be exercised, we must first define the threat-source motivation and capability while considering the nature of the vulnerability and the existence and effectiveness of current controls or countermeasures. The following two sections on Threat Information and Countermeasure Information will help us define the iformation required to generate a threat likelihood risk level which will be used to generate the overall risk level of this vulnerability as it pertains to your information system.
+					</td>
+				</tr>
+				<tr>
+						<!--RESTRICT BY ROLE -->
+                        <?php if(isAllow('remediation','generate_raf')){ ?>
+						<!-- CHECK THAT CMEASURE AND THREAT LEVEL ARE SET-->
+                        <?php if(($this->threat_level != 'NONE') && ($this->cmeasure_effectiveness != 'NONE')){ ?> 
+						<form action='raf.php' method='POST' target='_blank'>
+						<input type='hidden' name='poam_id'     value='<?php echo $this->remediation_id;?>'>
+					<td colspan='2'>
+						<input type='hidden' name='form_action' value='Generate RAF'>
+						<input type='submit' name='form_action' value='Generate RAF'>
+					</td>
+						</form>
+						<?php } else { ?>
+					<td colspan='2'><i>(Threat and Countermeasure information must be completed to generate a RAF)</i></td>
+						<?php } ?>
+						<?php } else { ?>
+					<td colspan='2'>&nbsp;</td>
+						<?php } ?>
+				</tr>
+			</table>
+		</td>
     </tr>
     <tr> <!-- THREATS ROW -->
         <td colspan="2">
-
             <!-- THREATS TABLE -->
             <table border="0" cellpadding="5" cellspacing="1" class="tipframe" width="100%">
                 <th align='left'>Threat Information</th>
@@ -573,52 +520,46 @@ function go(step) {
                     <tr>
                         <td>
                             <form action='remediation_modify.php' method='POST'>
-                            <input type='hidden' name='remediation_id' value='{$remediation_id}'>
-                            <input type='hidden' name='root_comment'   value='{$root_comment}'>
+                            <input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
+                            <input type='hidden' name='root_comment'   value='<?php echo $this->root_comment;?>'>
                             <input type='hidden' name='target'         value='threat_level'>
                             <input type='hidden' name='action'         value='update'>
                             <input type='hidden' name='validated'      value='no'>
                             <input type='hidden' name='approved'       value='no'>
                             <b>Level:</b> 
         
-                            {* RESTRICT UPDATE BASED ON STATUS AND ROLE *}
-                            {if $modify_threat_level eq '1'}
+                            <?php if(isAllow('remediation','update_threat')){ ?>
                             <input type='hidden' name='form_action' value='Update'>
                             <input type='image' src='/images/button_modify.png' name='form_action' value='Update'>
-                            {/if}
-
-                            <span>{$remediation.poam_threat_level}</span>
+                            <?php } ?>
+                            <span><?php echo $this->threat_level;?></span>
                             </form>
                         </td>
                     </tr>
                     <tr>
                         <td>
                             <form action='remediation_modify.php' method='POST'>
-                            <input type='hidden' name='remediation_id' value='{$remediation_id}'>
-                            <input type='hidden' name='root_comment'   value='{$root_comment}'>
+                            <input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
+                            <input type='hidden' name='root_comment'   value='<?php echo $this->root_comment;?>'>
                             <input type='hidden' name='target'         value='threat_source'>
                             <input type='hidden' name='action'         value='update'>
                             <input type='hidden' name='validated'      value='no'>
                             <input type='hidden' name='approved'       value='no'>
                             <b>Source:</b> 
-
-                            {* RESTRICT UPDATE BASED ON STATUS AND ROLE *}
-                            {if $modify_threat_source eq '1'}
-
+                            
+                            <?php if(isAllow('remediation','update_threat')){ ?>
                             <input type='hidden' name='form_action' value='Update'>
                             <input type='image' src='/images/button_modify.png' name='form_action' value='Update'>
-
-                            {/if}
-
-                            <span>{$remediation.poam_threat_source}</span>
+                            <?php } ?>
+                            <span><?php echo $this->remediation['poam_threat_source'];?></span>
                             </form>
                         </td>
                     </tr>
                     <tr>
                         <td>
                             <form action='remediation_modify.php' method='POST'>
-                            <input type='hidden' name='remediation_id' value='{$remediation_id}'>
-                            <input type='hidden' name='root_comment'   value='{$root_comment}'>
+                            <input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
+                            <input type='hidden' name='root_comment'   value='<?php echo $this->root_comment;?>'>
                             <input type='hidden' name='target'         value='threat_justification'>
                             <input type='hidden' name='action'         value='update'>
                             <input type='hidden' name='validated'      value='no'>
@@ -626,15 +567,12 @@ function go(step) {
 
                             <b>Justification:</b> 
 
-                            {* RESTRICT UPDATE BASED ON STATUS AND ROLE *}
-                            {if $modify_threat_justification eq '1'}
-
+                            <?php if(isAllow('remediation','update_threat')){ ?>
                             <input type='hidden' name='form_action' value='Update'>
                             <input type='image' src='/images/button_modify.png' name='form_action' value='Update'>
+                            <?php } ?>
 
-                            {/if}
-
-                            <span>{$remediation.poam_threat_justification}</span>
+                            <span><?php echo $this->remediation['poam_threat_justification'];?></span>
                             </form>
                         </td>
                     </tr>
@@ -655,8 +593,8 @@ function go(step) {
                     <tr>
                         <td>
                             <form action='remediation_modify.php' method='POST'>
-                            <input type='hidden' name='remediation_id' value='{$remediation_id}'>
-                            <input type='hidden' name='root_comment'   value='{$root_comment}'>
+                            <input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
+                            <input type='hidden' name='root_comment'   value='<?php echo $this->root_comment;?>'>
                             <input type='hidden' name='target'         value='cmeasure_effectiveness'>
                             <input type='hidden' name='action'         value='update'>
                             <input type='hidden' name='validated'      value='no'>
@@ -664,23 +602,20 @@ function go(step) {
 
                             <b>Effectiveness:</b> 
 
-                            {* RESTRICT UPDATE BASED ON STATUS AND ROLE *}
-                            {if $modify_cmeasure_effectiveness eq '1'}
-
+                            <!-- RESTRICT UPDATE BASED ON STATUS AND ROLE-->
+                            <?php if(isAllow('remediation','update_cmeasures')){ ?>
                             <input type='hidden' name='form_action' value='Update'>
                             <input type='image' src='/images/button_modify.png' name='form_action' value='Update'>
-
-                            {/if}
-
-                            <span>{$remediation.poam_cmeasure_effectiveness}</span>
+                            <?php } ?>
+                            <span><?php echo $this->cmeasure_effectiveness;?></span>
                             </form>
                         </td>
                     </tr>
                     <tr>
                         <td>
                             <form action='remediation_modify.php' method='POST'>
-                            <input type='hidden' name='remediation_id' value='{$remediation_id}'>
-                            <input type='hidden' name='root_comment'   value='{$root_comment}'>
+                            <input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
+                            <input type='hidden' name='root_comment'   value='<?php echo $this->root_comment;?>'>
                             <input type='hidden' name='target'         value='cmeasure'>
                             <input type='hidden' name='action'         value='update'>
                             <input type='hidden' name='validated'      value='no'>
@@ -688,23 +623,20 @@ function go(step) {
 
                             <b>Countermeasure:</b> 
 
-                            {* RESTRICT UPDATE BASED ON STATUS AND ROLE *}
-                            {if $modify_cmeasure eq '1'}
-
+                            <!--RESTRICT UPDATE BASED ON STATUS AND ROLE-->
+                            <?php if(isAllow('remediation','update_cmeasure')){ ?>
                             <input type='hidden' name='form_action' value='Update'>
                             <input type='image' src='/images/button_modify.png' name='form_action' value='Update'>
-
-                            {/if}
-
-                            <span>{$remediation.poam_cmeasure}</span>
+                            <?php } ?>
+                            <span><?php echo $this->remediation['poam_cmeasure'];?></span>
                             </form>
                         </td>
                     </tr>
                     <tr>
                         <td>
                             <form action='remediation_modify.php' method='POST'>
-                            <input type='hidden' name='remediation_id' value='{$remediation_id}'>
-                            <input type='hidden' name='root_comment'   value='{$root_comment}'>
+                            <input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
+                            <input type='hidden' name='root_comment'   value='<?php echo $this->root_comment;?>'>
                             <input type='hidden' name='target'         value='cmeasure_justification'>
                             <input type='hidden' name='action'         value='update'>
                             <input type='hidden' name='validated'      value='no'>
@@ -712,15 +644,12 @@ function go(step) {
     
                             <b>Justification:</b> 
     
-                            {* RESTRICT UPDATE BASED ON STATUS AND ROLE *}
-                            {if $modify_cmeasure_justification eq '1'}
-
+                            <!--RESTRICT UPDATE BASED ON STATUS AND ROLE-->
+                            <?php if(isAllow('remediation','udpate_cmeasure')){ ?>
                             <input type='hidden' name='form_action' value='Update'>
                             <input type='image' src='/images/button_modify.png' name='form_action' value='Update'>
-
-                            {/if}
-
-                            <span>{$remediation.poam_cmeasure_justification}</span>
+                            <?php } ?>
+                            <span><?php echo $this->remediation['poam_cmeasure_justification'];?></span>
                             </form>
                     </td>
                 </tr>
@@ -744,8 +673,8 @@ function go(step) {
 
                 <td colspan='2'>
             <form action='remediation_modify.php' method='POST'>
-            <input type='hidden' name='remediation_id' value='{$remediation_id}'>
-            <input type='hidden' name='root_comment'   value='{$root_comment}'>
+            <input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
+            <input type='hidden' name='root_comment'   value='<?php echo $this->root_comment;?>'>
             <input type='hidden' name='target'         value='action_approval'>
             <input type='hidden' name='action'         value='update'>
             <input type='hidden' name='validated'      value='no'>
@@ -753,27 +682,22 @@ function go(step) {
 
                     <b>SSO Approval:</b>
 
-                    {* RESTRICT UPDATE BASED ON STATUS AND ROLE *}
-                    {if $modify_mitigation_sso_approval eq '1'}
-                    {if $remediation_type  neq 'NONE' && $is_completed eq 'yes'}
-                    {if $remediation_status eq 'OPEN' || $remediation_status eq 'EN' || $remediation_status eq 'EO'}
+                    <!--RESTRICT UPDATE BASED ON STATUS AND ROLE-->
+                    <?php if(isAllow('remediation','update_mitigation_strategy_approval')){
+                        if(($this->remediation_type != 'NONE') && ($this->is_completed == 'yes')){
+                            if(($this->remediation_status == 'OPEN') || ($this->remediation_status == 'EN') || ($this->remediation_status == 'EO')){ ?>
 
                         <input type='hidden' name='form_action' value='Update'>
                         <input type='image' src='/images/button_modify.png' name='form_action' value='Update'>
 
-                    {/if}
-                    {/if}
-                    {/if}
-
-                    <span>{$remediation.poam_action_status}</span>
+                    <?php }  }  } ?>
+                   <span><?php echo $this->remediation['poam_action_status'];?></span>
             </form>
                 </td>
 
             </tr>
-            {if $num_comments_sso > 0}
-            
-            <tr><th align="left" colspan="2">Comments From SSO <i>({$num_comments_sso} total)</i></th></tr>
-
+            <?php if($this->num_comments_sso > 0){ ?>
+            <tr><th align="left" colspan="2">Comments From SSO <i>(<?php echo $this->num_comments_sso;?>total)</i></th></tr>
             <tr>
                 <td colspan="2" width="90%">
                     <table border="1" cellpadding="5" cellspacing="0" width="100%" class="tbframe">
@@ -782,31 +706,22 @@ function go(step) {
                         <th nowrap>Event</th>
                         <th nowrap>Description</th>
                         
-                        {section name=row loop=$comments_sso}
-
+                        <?php foreach($this->comments_sso as $row){ ?>
                         <tr>
-                            <td nowrap>{$comments_sso[row].comment_date}</td>
-                            <td nowrap>{$comments_sso[row].user_name}</td>
-                            <td>{$comments_sso[row].comment_topic}</td>
-                            <td>{$comments_sso[row].comment_body}</td>
+                            <td nowrap><?php echo $row['comment_date'];?></td>
+                            <td nowrap><?php echo $row['user_name'];?></td>
+                            <td><?php echo $row['comment_topic'];?></td>
+                            <td><?php echo $row['comment_body'];?></td>
                         </tr>
-                        
-                        {/section}
-                        
+                        <?php } ?>
                     </table>
-
                 </td>
             </tr>
-            
-            {/if}
+            <?php } ?>
         </table>
         </td>
-
     </tr>
-
-
 </table> <!-- REMEDIATION TABLE -->
-
 <br>
 
 <!-- ------------------------------------------------------------------------ -->
@@ -822,7 +737,7 @@ function go(step) {
                 <input type='hidden' name='validated'      value='no'>
                 <input type='hidden' name='approved'       value='no'>
                 <input type='hidden' name='target'         value='save_poam'>
-                <input type='hidden' name='remediation_id' value='{$remediation_id}'>
+                <input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
                 <input type='hidden' name='form_action' value=''>
                 <input type='submit' title='Save or Submit' value="Save" style="cursor: pointer;">
             </form>
@@ -851,10 +766,12 @@ function go(step) {
 </tr>
 </table>
 
-{* NO REAL NEED TO SHOW UNTIL EN, EO, EP, ES or CLOSED *}
-{if $view_evidence eq '1'} <!-- Statement 1 -->
-{if $remediation_status neq 'OPEN'} <!-- Statement 2 -->
-
+<!-- NO REAL NEED TO SHOW UNTIL EN, EO, EP, ES or CLOSED-->
+<?php if(isAllow('remediation','read_evidence')){
+    //-- Statement 1 --
+    if($this->remediation_status != 'OPEN'){
+    // -- Statement 2 --
+?>
 <!-- Heading Block -->
 <table width="98%" align="center" border="0" cellpadding="0" cellspacing="0">
     <tr>
@@ -871,40 +788,39 @@ function go(step) {
 <!-- EVIDENCE TABLE -->
 <table border="0" cellpadding="5" cellspacing="1" width="95%" align="center" class="tipframe">
 
-    <th align='left' colspan="2">Evidence Submissions <i>({$num_evidence} total)</i></th>
+    <th align='left' colspan="2">Evidence Submissions <i>(<?php echo $this->num_evidence;?> total)</i></th>
     
-        {* loop through the evidence *}
-        {if $num_evidence gt 0} <!-- Statement 3 -->
-
-        {section name=row loop=$all_evidence}
-
-        {* DO NOT SHOW BAD EVIDENCE AT STATUS ES *}
-        {if $remediation_status eq 'ES' && $all_evidence[row].ev_sso_evaluation neq 'APPROVED' || $remediation_status eq 'ES' && $all_evidence[row].ev_fsa_evaluation neq 'APPROVED'}
-        {else}
-
+        <!--loop through the evidence-->
+        <?php if($this->num_evidence > 0 ){ 
+            //-- Statement 3 -->
+            foreach($this->all_evidence as $row){
+                //DO NOT SHOW BAD EVIDENCE AT STATUS ES
+                if(($this->remediation_status == 'ES')&& ($row['ev_sso_evaluation'] != 'APPROVED') ||($this->remediation_status == 'ES') && ($row['ev_fsa_evaluation'] != 'APPROVED')){
+                }
+                else {
+        ?>
     <tr>
-
-        {* EVIDENCE TABLE *}
+        <!-- EVIDENCE TABLE-->
         <td colspan='2' width='100%'>
-
             <table border='0' cellpadding='3' cellspacing='1' class='tipframe' width='100%'>
-
-                <tr><th align='left' colspan="2">Evidence Submitted by {$all_evidence[row].submitted_by} on {$all_evidence[row].ev_date_submitted}</th></tr>
+                <tr><th align='left' colspan="2">Evidence Submitted by <?php echo $row['submitted_by'];?> on <?php echo $row['ev_date_submitted'];?></th></tr>
                 <tr colspan="2">
-                    <td><b>Evidence:</b>{if $all_evidence[row].fileExists eq 1}<a href="javascript:void(0)" onClick="window.open('{$all_evidence[row].ev_submission}', 'evidence_window', config='resizable=yes,menubar=no,scrollbars=yes')">{$all_evidence[row].fileName}</a>{else}{$all_evidence[row].fileName}{/if}</td>
+                    <td><b>Evidence:</b>
+                    <?php if($row['fileExists'] == 1){ ?>
+                    <a href="javascript:void(0)" onClick="window.open('<?php echo $row['ev_submission'];?>', 'evidence_window', config='resizable=yes,menubar=no,scrollbars=yes')"><?php echo $row['fileName'];?></a>
+                    <?php } else { echo $row['fileName'];} ?></td>
                 </tr>
-
-                {* SSO EVALUATION *}
+                <!-- SSO EVALUATION -->
                 <tr>
 
-                {* RESTRICT UPDATE BASED ON STATUS AND ROLE *}
-                {if $modify_evidence_sso_approval eq '1' && $remediation_status eq 'EP' && $all_evidence[row].ev_sso_evaluation eq 'NONE'}
-
+                <!-- RESTRICT UPDATE BASED ON STATUS AND ROLE-->
+                <?php if((isAllow('remediation','update_evidence_approval_first')) && ($this->remediation_status == 'EP') && ($row['ev_sso_evaluation'] == 'NONE')){
+                ?>
                     <td>
                         <form action='remediation_modify.php' method='POST'>
-                            <input type='hidden' name='remediation_id' value='{$remediation_id}'>
+                            <input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
                             <input type='hidden' name='ev_id'          value='{$all_evidence[row].ev_id}'>
-                            <input type='hidden' name='root_comment'   value='{$root_comment}'>
+                            <input type='hidden' name='root_comment'   value='<?php echo $this->root_comment;?>'>
                             <input type='hidden' name='target'         value='evidence'>
                             <input type='hidden' name='action'         value='sso_evaluate'>
                             <input type='hidden' name='validated'      value='no'>
@@ -913,44 +829,31 @@ function go(step) {
                         <b>ISSO Evaluation:</b> 
                             <input type='hidden' name='form_action' value='Evaluate'>
                             <input type='image' src='/images/button_modify.png' name='form_action' value='Evaluate'> 
-                            <span>{$all_evidence[row].ev_sso_evaluation} </span>
-
+                            <span><?php echo $row['ev_sso_evaluation'];?></span>
                             </form>
                     </td>
-                    
-                {else}
-
-                    <td><b>ISSO Evaluation:</b> {$all_evidence[row].ev_sso_evaluation}</td>
-
-                    {if $all_evidence[row].comments.EV_SSO neq ''}
-
+                <?php } else { ?>
+                    <td><b>ISSO Evaluation:</b><?php echo $row['ev_sso_evaluation'];?></td>
+                    <?php if(isset($row['comments']['EV_SSO']) && $row['comments']['EV_SSO'] != ''){ ?>
                     <td width="85%">
-
                         <table border="0" cellpadding="3" cellspacing="1" class="tipframe" width="100%">
-                            <tr><th align='left'>{$all_evidence[row].comments.EV_SSO.comment_topic}</th></tr>
-                            <tr><td >{$all_evidence[row].comments.EV_SSO.comment_body}</td></tr>
-                            <tr><td align='right'><i>{$all_evidence[row].comments.EV_SSO.comment_date} by {$all_evidence[row].comments.EV_SSO.user_name}</i></td></tr>
+                            <tr><th align='left'><?php echo $row['comments.EV_SSO.comment_topic'];?></th></tr>
+                            <tr><td ><?php echo $row['comments.EV_SSO.comment_body'];?></td></tr>
+                            <tr><td align='right'><i><?php echo $row['comments.EV_SSO.comment_date'];?>by<?php echo $row['comments.EV_SSO.user_name'];?></i></td></tr>
                         </table>
-                        
                     </td>
-
-                    {/if}
-
-                {/if}
-
+                    <?php } } ?>
                 </tr>
-
-                {* FSA EVALUATION *}
+                <!--FSA EVALUATION-->
                 <tr>
-
-                {* RESTRICT UPDATE BASED ON STATUS AND ROLE *}
-                {if $modify_evidence_fsa_approval eq '1' && $remediation_status eq 'EP' && $all_evidence[row].ev_sso_evaluation eq 'APPROVED' && $all_evidence[row].ev_fsa_evaluation eq 'NONE'}
-
+                <!--RESTRICT UPDATE BASED ON STATUS AND ROLE-->
+                <?php if((isAllow('remediation','update_evidence_approval_second'))&& ($this->remediation_status == 'EP') && ($row['ev_sso_evaluation'] == 'APPROVED') && ($row['ev_fsa_evaluation'] == 'NONE')){
+                ?>
                     <td>
                         <form action='remediation_modify.php' method='POST'>
-                            <input type='hidden' name='remediation_id' value='{$remediation_id}'>
-                            <input type='hidden' name='ev_id'          value='{$all_evidence[row].ev_id}'>
-                            <input type='hidden' name='root_comment'   value='{$root_comment}'>
+                            <input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
+                            <input type='hidden' name='ev_id'          value='<?php echo $row['ev_id'];?>'>
+                            <input type='hidden' name='root_comment'   value='<?php echo $this->root_comment;?>'>
                             <input type='hidden' name='target'         value='evidence'>
                             <input type='hidden' name='action'         value='fsa_evaluate'>
                             <input type='hidden' name='validated'      value='no'>
@@ -960,98 +863,65 @@ function go(step) {
                     
                             <input type='hidden' name='form_action' value='Evaluate'>
                             <input type='image' src='/images/button_modify.png' name='form_action' value='Evaluate'> 
-                            <span>{$all_evidence[row].ev_fsa_evaluation}</span>
-
+                            <span><?php echo $row['ev_fsa_evaluation'];?></span>
                         </form>
                     </td>
-
-                {else}
-
-                    <td><b>IV&V Evaluation:</b> {$all_evidence[row].ev_fsa_evaluation}</td>
-
-                        {if $all_evidence[row].comments.EV_FSA neq ''}
-
+                <?php } else { ?>
+                    <td><b>IV&V Evaluation:</b> <?php echo $row['ev_fsa_evaluation'];?></td>
+                         <?php if(isset($row['comments']['EV_FSA']) && $row['comments']['EV_FSA'] != ''){ ?>
                     <td width="85%">
-
                         <table border="0" cellpadding="3" cellspacing="1" class="tipframe" width="100%">
-                            <tr><th align='left'>{$all_evidence[row].comments.EV_FSA.comment_topic}</th></tr>
-                            <tr><td >{$all_evidence[row].comments.EV_FSA.comment_body}</td></tr>
-                            <tr><td align='right'><i>{$all_evidence[row].comments.EV_FSA.comment_date} by {$all_evidence[row].comments.EV_FSA.user_name}</i></td></tr>
+                            <tr><th align='left'><?php echo '##'.$row['comments.EV_FSA.comment_topic'];?></th></tr>
+                            <tr><td ><?php echo $row['comments.EV_FSA.comment_body'];?></td></tr>
+                            <tr><td align='right'><i><?php echo $row['comments.EV_FSA.comment_date'];?> by <?php echo $row['comments.EV_FSA.user_name'];?></i></td></tr>
                         </table>
-                    
                     </td>
-
-                        {/if}
-                {/if}
-                    
+                        <?php } } ?>
                 </tr>
-
-
-                {* IVV EVALUATION *}
+                <!-- IVV EVALUATION -->
                 <tr>
-
-                    {* RESTRICT UPDATE BASED ON STATUS AND ROLE *}
-                    {if $modify_evidence_ivv_approval eq '1' && $remediation_status eq 'ES' && $all_evidence[row].ev_sso_evaluation eq 'APPROVED' && $all_evidence[row].ev_fsa_evaluation eq 'APPROVED'}
-
+                    <!-- RESTRICT UPDATE BASED ON STATUS AND ROLE -->
+                    <?php if((isAllow('remediation','update_evidence_approval_second'))&& ($this->remediation_status == 'ES') && ($row['ev_sso_evaluation'] == 'APPROVED') && ($row['ev_fsa_evaluation'] == 'APPROVED')){
+                    ?>
                         <td>
                             <form action='remediation_modify.php' method='POST'>
-                                <input type='hidden' name='remediation_id' value='{$remediation_id}'>
-                                <input type='hidden' name='ev_id'          value='{$all_evidence[row].ev_id}'>
-                                <input type='hidden' name='root_comment'   value='{$root_comment}'>
+                                <input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
+                                <input type='hidden' name='ev_id'          value='<?php echo $row['ev_id'];?>'>
+                                <input type='hidden' name='root_comment'   value='<?php echo $this->root_comment;?>'>
                                 <input type='hidden' name='target'         value='evidence'>
                                 <input type='hidden' name='action'         value='ivv_evaluate'>
                                 <input type='hidden' name='validated'      value='no'>
                                 <input type='hidden' name='approved'       value='no'>
-
                             <b>Final Evaluation:</b> 
-                        
                                 <input type='hidden' name='form_action' value='Evaluate'>
                                 <input type='image' src='/images/button_modify.png' name='form_action' value='Evaluate'> 
-                                <span>{$all_evidence[row].ev_ivv_evaluation}</span>
-
+                                <span><?php echo $row['ev_ivv_evaluation'];?></span>
                             </form>
                         </td>
-                        
-                    {else}
-                    
-                        <td><b>Final Evaluation:</b> {$all_evidence[row].ev_ivv_evaluation}</td>
-
-                        {if $all_evidence[row].comments.EV_IVV neq ''}
-                            
+                    <?php } else { ?>
+                        <td><b>Final Evaluation:</b><?php echo $row['ev_ivv_evaluation'];?></td>
+                        <?php if(isset($row['comments']['EV_IVV']) && $row['comments']['EV_IVV'] != ''){ ?>
                         <td width="85%">
                             <table border="0" cellpadding="3" cellspacing="1" class="tipframe" width="100%">
-                                <tr><th align='left'>{$all_evidence[row].comments.EV_IVV.comment_topic}</th><tr>
-                                <tr><td >{$all_evidence[row].comments.EV_IVV.comment_body}</td></tr>
-                                <tr><td align='right'><i>{$all_evidence[row].comments.EV_IVV.comment_date} by {$all_evidence[row].comments.EV_IVV.user_name}</i></td></tr>
+                                <tr><th align='left'><?php echo $row['comments.EV_IVV.comment_topic'];?></th><tr>
+                                <tr><td ><?php echo $row['comments.EV_IVV.comment_body'];?></td></tr>
+                                <tr><td align='right'><i><?php echo $row['comments.EV_IVV.comment_date'];?> by <?php echo $row['comments.EV_IVV.user_name'];?></i></td></tr>
                             </table>
                         </td>
-                        
-                        {/if}
-
-                    {/if}
-                
+                    <?php } } ?>
                 </tr>
             </table>
-            
         </td>
-
     </tr>
-
-        {/if}
-
-            {/section}
-
-        {/if}
-
-
-        {* RESTRICT UPDATE BASED ON STATUS AND ROLE *}
-        {if $modify_evidence_upload eq '1'}
+        <?php }  } } ?>
+        <!-- RESTRICT UPDATE BASED ON STATUS AND ROLE-->
+        <?php if(isAllow('remediation','update_evidence')){ ?>
             <tr align='left'>
-            {if $remediation_status eq 'EN' || $remediation_status eq 'EO'}
+            <?php if(($this->remediation_status == 'EN') || ($this->remediation_status == 'EO')){ ?>
                 <td colspan="2">
                     <form action='remediation_modify.php' method='POST'>
-                        <input type='hidden' name='remediation_id' value='{$remediation_id}'>
-                        <input type='hidden' name='root_comment'   value='{$root_comment}'>
+                        <input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
+                        <input type='hidden' name='root_comment'   value='<?php echo $this->root_comment;?>'>
                         <input type='hidden' name='target'         value='evidence'>
                         <input type='hidden' name='action'         value='add'>
                         <input type='hidden' name='validated'      value='no'>
@@ -1061,7 +931,7 @@ function go(step) {
                         <input type='button' name="form_action" title='Submit Evidence' value="Upload Evidence">
                     </form>
                 </td>
-            {else}
+            <?php } else { ?>
                 <td colspan="2">
                     <!-- SAVE MODIFICATIONS TO EVIDENCE -->
                     <form action='remediation_modify.php' method='POST'>
@@ -1069,25 +939,17 @@ function go(step) {
                         <input type='hidden' name='validated'      value='no'>
                         <input type='hidden' name='approved'       value='no'>
                         <input type='hidden' name='target'         value='save_poam'>
-                        <input type='hidden' name='remediation_id' value='{$remediation_id}'>
+                        <input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
                         <input type='hidden' name='form_action' value=''>
                         <input type='submit' title='Save or Submit' value="Save" style="cursor: pointer;">
                     </form>
                 </td>
             </tr>
-          {/if}
-        {/if}
-    
+          <?php } } ?>
     </table>
-
     <br>
-
-{/if}
-{/if}
-
+<?php } } ?>
 <!-- ------------------------------------------------------------------------ -->
-
-
 <!-- Heading Block -->
 <table width="98%" align="center" border="0" cellpadding="0" cellspacing="0">
     <tr>
@@ -1104,9 +966,8 @@ function go(step) {
 <!-- COMMENT TABLE -->
 <!-- <th align="left">Logs <i>({$num_logs} total)</i></th> -->
 
-    {* loop through the logs *}
-    {if $num_logs gt "0"}
-
+    <!-- loop through the logs -->
+    <?php if($this->num_logs > 0){ ?>
 <table border="0" align="center" cellpadding="5" cellspacing="1" width="95%" class="tbframe">
     <tr>
         <th>Timestamp</td>
@@ -1114,18 +975,14 @@ function go(step) {
         <th>Event</td>
         <th>Description</td>
     </tr>
-
-    {section name=row loop=$logs}
-                
+    <?php foreach($this->logs as $row){ ?>
     <tr>
-        <td class="tdc">{$logs[row].time}</td>
-        <td class="tdc">{$logs[row].user_name}</td>
-        <td class="tdc">{$logs[row].event}</td>
-        <td class="tdc">{$logs[row].description}</td>
+        <td class="tdc"><?php echo $row['time'];?></td>
+        <td class="tdc"><?php echo $row['user_name'];?></td>
+        <td class="tdc"><?php echo $row['event'];?></td>
+        <td class="tdc"><?php echo $row['description'];?></td>
     </tr>
-                
-    {/section}
-                
+    <?php } ?>
 </table>
-{/if}
+<?php }?>
 <!-- COMMENT TABLE -->
