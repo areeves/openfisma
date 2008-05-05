@@ -33,10 +33,10 @@
             <li><a href="/zfentry.php/panel/remediation/sub/searchbox">Remediation Search</a></li></ul></li></ul>';
     }
     if(isAllow('report','read')) { 
-        echo'<ul><li><a href="/mainPanel.php?panel=test" ><h2>Reports</h2></a>';
+        echo'<ul><li><a><h2>Reports</h2></a>';
         echo'<ul>';
         if(isAllow('report', 'generate_poam_report' )) {
-            echo'<li><a href="#">POA&M Report</a></li>';
+            echo'<li><a href="/zfentry.php/panel/report/sub/searchbox/flag/poam">POA&M Report</a></li>';
         }            
         if(isAllow('report','generate_fisma_report')) {
             echo'<li><a href="#">FISMA POA&M Report</a></li>';
