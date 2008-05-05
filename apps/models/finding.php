@@ -152,21 +152,29 @@ class Finding extends Zend_Db_Table
            $qry->join(array('addr'=>'ASSET_ADDRESSES'),'as.asset_id = addr.asset_id',
                          array('ip'=>'addr.address_ip','port'=>'addr.address_port'));
            $qry->join(array('n'=>'NETWORKS'),'addr.network_id = n.network_id',array('network'=>'network_name'));
-           $qry->join(array('fv'=>'FINDING_VULNS'),'fv.finding_id = f.finding_id',array());
+           $qry->where("f.finding_id = $fid");
+           $data = $this->fetchRow($qry);
+           $finding_detail = $data->toArray();
+           $qry->reset();
+           $qry->from(array('fv'=>'FINDING_VULNS'),array());
            $qry->join(array('v'=>'VULNERABILITIES'),
                          'v.vuln_seq = fv.vuln_seq and v.vuln_type = fv.vuln_type',
                              array('vuln_seq'=>'v.vuln_seq',
                                    'vuln_type'=>'v.vuln_type',
                                    'vuln_desc_primary'=>'v.vuln_desc_primary',
-                                   'nuln_desc_secondary'=>'v.vuln_desc_secondary'));
-           $qry->where("f.finding_id = $fid");
-           $data = $this->fetchRow($qry);
-           $qry->reset();
+                                   'vuln_desc_secondary'=>'v.vuln_desc_secondary'));
+           $qry->where("fv.finding_id = $fid");
+           $result = $this->fetchRow($qry);
            if(!empty($data)){
-               $finding_detail = $data->toArray();
+               $data = $result->toArray();
+               $finding_detail['vuln_seq'] = $data['vuln_seq'];
+               $finding_detail['vuln_type'] = $data['vuln_type'];
+               $finding_detail['vuln_desc_primary'] = $data['vuln_desc_primary'];
+               $finding_detail['vuln_desc_secondary'] = $data['vuln_desc_secondary'];
                if(!empty($finding_detail['vuln_seq'])){
                    $vseq = $finding_detail['vuln_seq'];
                    $vtype = $finding_detail['vuln_type'];
+                   $qry->reset();
                    $qry->from(array('v'=>'VULNERABILITIES'));
                    $qry->where("vuln_seq = $vseq","vuln_type = $vtype");
                    $data = $this->fetchAll($qry);

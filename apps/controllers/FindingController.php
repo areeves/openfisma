@@ -75,7 +75,7 @@ class FindingController extends SecurityController
         $system_list = $db->fetchPairs($qry->from($sys->info(Zend_Db_Table::NAME),
                                     array('id'=>'system_id','name'=>'system_name'))
                                     ->where("system_id IN ( $ids )")
-                                    ->order('id ASC'));
+                                    ->order(array('id ASC')) );
         if( 'search' == $req->getParam('s') ) {
             $this->_helper->actionStack('search','Finding',null,
                     array('criteria'=>$criteria,
@@ -150,11 +150,12 @@ class FindingController extends SecurityController
             $qry->where("addr.network_id = $network");
         }
         if( !empty($ip) ) {
-            $qry->where("addr.address_id = $ip");
+            $qry->where("addr.address_ip = '$ip'");
         }
         if( !empty($port) ) {
-            $qry->where("addr.address_port = $port");
+            $qry->where("addr.address_port = '$port'");
         }
+        
         $qry->limitPage($this->currentPage,$this->perPage);
         $data = $finding->fetchAll($qry);
         $findings = $data->toArray();
@@ -408,11 +409,11 @@ class FindingController extends SecurityController
         $qry = $db->select();
         $source_list = $db->fetchPairs($qry->from($src->info(Zend_Db_Table::NAME),
                                        array('id'=>'source_id','name'=>'source_name'))
-                                      ->order(array('id ASC')) );
+                                      ->order('id ASC'));
         $qry->reset();
         $network_list = $db->fetchPairs($qry->from($net->info(Zend_Db_Table::NAME),
                                     array('id'=>'network_id','name'=>'network_name'))
-                                    ->order(array('id ASC')) );
+                                    ->order('id ASC'));
         $qry->reset();
         $ids = implode(',', $user->getMySystems($uid));
         $system_list = $db->fetchPairs($qry->from($sys->info(Zend_Db_Table::NAME),
