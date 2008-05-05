@@ -4,7 +4,7 @@
 </div>
 </div>
 <br>
-<form name="filter" method="post" action="/zfentry.php/panel/report/sub/searchbox/flag/poam/s/search">
+<form name="filter" method="post" action="/zfentry.php/panel/report/sub/searchbox/flag/<?php echo $this->flag;?>/s/search">
 <input type="hidden" name="action" value="filter">
 <table width="95%" align="center" border="0" cellpadding="5" cellspacing="1" class="tipframe">
     <tr>
@@ -32,12 +32,20 @@
         <?php echo $this->formSelect('status',$this->criteria['status'],null,$this->status_list);?>
         </td>
     </tr>
-    <?php }?>
+    <?php }
+    if('overdue' == $this->flag){ ?>
+    <tr>
+        <td height="26"><b>Status</b></td>
+        <td><?php echo $this->formSelect('status',$this->criteria['status'],null,$this->status_list);?>
+        </td>
+        <td><b>Overdue</b></td>
+        <td colspan="3">
+        <?php echo $this->formSelect('overdue',$this->criteria['overdue'],null,$this->overdue_list);?>
+        </td>
+    </tr>
+    <?php } ?>
     <tr>
         <td height="39" colspan="6"><input type="submit" name="search" value="Generate">
-        <input type="hidden" name="t" value="{$t}" />
-        <input type="hidden" name="sub" value="1" /></td>
     </tr>
 </table>
-
 </form>

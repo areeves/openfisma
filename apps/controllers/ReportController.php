@@ -36,56 +36,74 @@ class ReportController extends SecurityController
         $req = $this->getRequest();
         $flag = $req->getParam('flag');
         $db = Zend_Registry::get('db');
+        $user = new User();
+        $src = new Source();
+        $sys = new System();
+        $uid = $this->me->user_id;
+        //parse the params of search
+        $criteria['system'] = $req->getParam('system','any');
+        $criteria['source'] = $req->getParam('source','any');
+        $criteria['type']   = $req->getParam('type','');
+        $criteria['fy']     = $req->getParam('fy','');
+        $criteria['status'] = $req->getParam('status','');
+        $qry = $db->select();
+        $source_list = $db->fetchPairs($qry->from($src->info(Zend_Db_Table::NAME),
+                                       array('key'=>'source_nickname','value'=>'Source_name'))
+                                       ->order(array('key ASC')) );
+        $qry->reset();
+        $ids = implode(',',$user->getMySystems($uid));
+        $system_list = $db->fetchPairs($qry->from($sys->info(Zend_Db_Table::NAME),
+                                       array('key'=>'system_nickname','value'=>'system_nickname'))
+                                       ->where("system_id IN ($ids)")
+                                       ->order(array('key ASC')) );
+        $source_list['any'] = 'All source';
+        $system_list['any'] = 'All system';
+        $year_list = array(''     =>'All Fiscal Year',
+                           '2005' =>'2005',
+                           '2006' =>'2006',
+                           '2007' =>'2007',
+                           '2008' =>'2008',
+                           '2009' =>'2009');
+        $this->view->assign('source_list',$source_list);
+        $this->view->assign('system_list',$system_list);
+        $this->view->assign('year_list',$year_list);
+
         if('poam' == $flag){
-            $user = new User();
-            $src = new Source();
-            $sys = new System();
-            $uid = $this->me->user_id;
-            //parse the params of search
-            $criteria['system'] = $req->getParam('system','any');
-            $criteria['source'] = $req->getParam('source','any');
-            $criteria['type']   = $req->getParam('type','');
-            $criteria['fy']     = $req->getParam('fy','');
-            $criteria['status'] = $req->getParam('status','');
-            $qry = $db->select();
-            $source_list = $db->fetchPairs($qry->from($src->info(Zend_Db_Table::NAME),
-                                           array('key'=>'source_nickname','value'=>'Source_name'))
-                                           ->order(array('key ASC')) );
-            $qry->reset();
-            $ids = implode(',',$user->getMySystems($uid));
-            $system_list = $db->fetchPairs($qry->from($sys->info(Zend_Db_Table::NAME),
-                                           array('key'=>'system_nickname','value'=>'system_nickname'))
-                                           ->where("system_id IN ($ids)")
-                                           ->order(array('key ASC')) );
-            $source_list['any'] = 'All source';
-            $system_list['any'] = 'All system';
-            $status_list = array(''       =>'All Status',
-                                 'closed' =>'Closed',
-                                 'open'   =>'Open');
+            $status_list = array(''   =>'All Status',
+                             'closed' =>'Closed',
+                             'open'   =>'Open');
             $type_list = array(''     =>'All Type',
                                'cap'  =>'Cap',
                                'fp'   =>'FP',
                                'ar'   =>'AR');
-            $year_list = array(''     =>'All Fiscal Year',
-                               '2005' =>'2005',
-                               '2006' =>'2006',
-                               '2007' =>'2007',
-                               '2008' =>'2008',
-                               '2009' =>'2009');
-            $this->view->assign('system_list',$system_list);
-            $this->view->assign('source_list',$source_list);
             $this->view->assign('status_list',$status_list);
             $this->view->assign('type_list',$type_list);
-            $this->view->assign('year_list',$year_list);
             $this->view->assign('flag','poam');
         }
+        if('overdue' == $flag){
+            $criteria['status'] = $req->getParam('status','');
+            $criteria['overdue'] = $req->getParam('overdue','');
+            $status_list = array(''=>'All Status',
+                                 'openOverdue'=>'SSO Approved Overdue',
+                                 'enOverdue'=>'Cource Of Action Overdue');
+            $overdue_list = array(''=>'Select Date Picker',
+                                  '30'=>'0-29 days',
+                                  '60'=>'30-59 days',
+                                  '90'=>'60-89 days',
+                                  '120'=>'90-119 days',
+                                  'greater'=>'120 and greater days');
+            $this->view->assign('status_list',$status_list);
+            $this->view->assign('overdue_list',$overdue_list);
+            $this->view->assign('flag','overdue');
+            //$this->render('poam');
+        }
         if('search' == $req->getParam('s')){
-            $this->_helper->actionStack('search','Report',null,
-                                        array('flag' =>'poam',
-                                              'criteria' =>$criteria));
+                $this->_helper->actionStack('search','Report',null,
+                                            array('flag' =>$flag,
+                                                  'criteria' =>$criteria));
         }
         $this->view->assign('criteria',$criteria);
-        $this->render($flag);
+        $this->render('poam');
     }
 
     public function searchAction(){
@@ -97,12 +115,13 @@ class ReportController extends SecurityController
         $flag = $req->getParam('flag');
         $criteria = $req->getParam('criteria');
         $db = $poam->getAdapter();
-        if('poam' == $flag){
+        if('poam' == $flag || 'overdue' == $flag){
             $system = $req->get('system');
             $source = $req->get('source');
             $fy = $req->get('fy');
             $type = $req->get('type');
             $status = $req->get('status');
+            $overdue = $req->get('overdue');
             $query = $poam->select()->setIntegrityCheck(false);
             $query->from(array('p'=>'POAMS'),array('findingnum'=>'p.poam_id',
                                                    'ptype'=>'p.poam_type',
@@ -163,6 +182,32 @@ class ReportController extends SecurityController
                     case 'enOverdue':
                         $query->where("p.poam_status = 'en'");
                         break;
+                }
+                if(!empty($overdue)){
+                    switch($overdue){
+                        case '':
+                            break;
+                        case '30':
+                            $query->where("p.poam_action_date_est >SUBDATE(NOW(),30) AND 
+                                           p.poam_date_created <NOW()");
+                            break;
+                        case '60':
+                            $query->where("p.poam_action_date_est <SUBDATE(NOW(),30) AND 
+                                           p.poam_action_date_est >SUBDATE(NOW(),60)");
+                            break;
+                        case '90':
+                            $query->where("p.poam_action_date_est <SUBDATE(NOW(),60) AND 
+                                           p.poam_action_date_est >SUBDATE(NOW(),90)");
+                            break;
+                        case '120':
+                            $query->where("p.poam_action_date_est <SUBDATE(NOW(),90) AND
+                                           p.poam_action_date_est >SUBDATE(NOW(),120)");
+                            break;
+                        case 'greater':
+                            $query->where("p.poam_action_date_est < SUBDATE(NOW(),120)");
+                            break;
+                    }
+                                          
                 }
             }
             $poams = $poam->fetchAll($query)->toArray();

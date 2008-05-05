@@ -48,7 +48,7 @@
             echo'<li><a href="#">Generate System RAFs</a></li>';
         }
         if(isAllow('report','generate_overdue_report')) {
-            echo'<li><a href="#">Overdue Report</a></li>';
+            echo'<li><a href="/zfentry.php/panel/report/sub/searchbox/flag/overdue">Overdue Report</a></li>';
         }            
         echo'</ul></li></ul>';
     }

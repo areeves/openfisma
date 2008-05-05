@@ -165,7 +165,7 @@ class Finding extends Zend_Db_Table
                                    'vuln_desc_secondary'=>'v.vuln_desc_secondary'));
            $qry->where("fv.finding_id = $fid");
            $result = $this->fetchRow($qry);
-           if(!empty($data)){
+           if(!empty($result)){
                $data = $result->toArray();
                $finding_detail['vuln_seq'] = $data['vuln_seq'];
                $finding_detail['vuln_type'] = $data['vuln_type'];
