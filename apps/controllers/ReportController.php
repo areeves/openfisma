@@ -244,6 +244,156 @@ class ReportController extends SecurityController
         }
     }
 
+    public function generalAction(){
+        $req = $this->getRequest();
+        $type_list = array('' =>'Please Select Report',
+                           '1'=>'NIST Baseline Security Controls Report',
+                           '2'=>'FIPS 199 Categorization Breakdown',
+                           '3'=>'Products with Open Vulnerabilities',
+                           '4'=>'Software Discovered Through Vulnerability Assessments',
+                           '5'=>'Total # of Systems /w Open Vulnerabilities');
+        $criteria['type'] = $req->getParam('type','');
+        if('search' == $req->getParam('s')){
+            $type = $req->getParam('type');
+            $this->view->assign('type',$type);
+            $this->_helper->actionStack('generalsearch','Report',null,array('criteria' =>$criteria));
+        }
+        $this->view->assign('criteria',$criteria); 
+        $this->view->assign('type_list',$type_list);
+        $this->render();
+    }
+
+    public function generalsearchAction(){
+        require_once 'RiskAssessment.class.php';
+        $req = $this->getRequest();
+        $type = $req->getParam('type');
+        $db = Zend_Registry::get('db');
+        switch($type){
+            case 1:
+                $rpdata = array();
+                $query = $db->select()->from(array('p'=>'POAMS'),array('n'=>'count(p.poam_id)'))
+                                      ->join(array('b'=>'BLSCR'),'b.blscr_number = p.poam_blscr',
+                                             array('t'=>'b.blscr_number'))
+                                      ->where("b.blscr_class = 'MANAGEMENT'")
+                                      ->group("b.blscr_number");
+                $result = $db->fetchAll($query);
+                array_push($rpdata,$result);
+                $query->reset();
+                $query = $db->select()->from(array('p'=>'POAMS'),array('n'=>'count(p.poam_id)'))
+                                      ->join(array('b'=>'BLSCR'),'b.blscr_number = p.poam_blscr',
+                                             array('t'=>'b.blscr_number'))
+                                      ->where("b.blscr_class = 'OPERATIONAL'")
+                                      ->group("b.blscr_number");
+                $result = $db->fetchAll($query);
+                array_push($rpdata,$result);
+                $query->reset();
+                $query = $db->select()->from(array('p'=>'POAMS'),array('n'=>'count(p.poam_id)'))
+                                      ->join(array('b'=>'BLSCR'),'b.blscr_number = p.poam_blscr',
+                                             array('t'=>'b.blscr_number'))
+                                      ->where("b.blscr_class = 'TECHNICAL'")
+                                      ->group("b.blscr_number");
+                $result = $db->fetchAll($query);
+                array_push($rpdata,$result);
+                break;
+            case 2:
+                //$query->reset();
+                $query = $db->select()->from(array('s'=>'SYSTEMS'),array('name'=>'s.system_name',
+                                                                         'type'=>'s.system_type',
+                                                                         'conf'=>'s.system_confidentiality',
+                                                                         'integ'=>'s.system_availability',
+                                                                         'avail'=>'s.system_availability'));
+                                                                         //'last_upd'=>'n/a'
+                $systems = $db->fetchAll($query);
+                $fips_totals = array();
+                $fips_totals['LOW'] = 0;
+                $fips_totals['MODERATE'] = 0;
+                $fips_totals['HIGH']     = 0;
+                $fips_totals['n/a'] = 0;
+                foreach($systems as &$system){
+                    if(strtolower($system['conf']) != 'none'){
+                        $risk_obj = new RiskAssessment($system['conf'],$system['avail'],$system['integ'],null,null,null);
+                        $fips199 = $risk_obj->get_data_sensitivity();
+                    }
+                    else {
+                        $fips199 = 'n/a';
+                    }
+                    $system['fips'] = $fips199;
+                    $fips_totals[$fips199] += 1;
+                    $system['crit'] = $system['avail'];
+                }
+                $rpdata = array();
+                $rpdata[] = $systems;
+                $rpdata[] = $fips_totals;
+                break;
+            case 3:
+                $query = $db->select()->from(array('prod'=>'PRODUCTS'),array('Vendor'=>'prod.prod_vendor',
+                                                                       'Product'=>'prod.prod_name',
+                                                                       'Version'=>'prod.prod_version',
+                                                                       'NumoOV'=>'count(prod.prod_id)'))
+                  ->join(array('p'=>'POAMS'),'p.poam_status IN ("OPEN","EN","UP","ES")',array())
+                  ->join(array('f'=>'FINDINGS'),'p.finding_id = f.finding_id',array())
+                  ->join(array('a'=>'ASSETS'),'a.asset_id = f.asset_id AND a.prod_id = prod.prod_id',array())
+                  ->group("prod.prod_vendor")
+                  ->group("prod.prod_name")
+                  ->group("prod.prod_version");
+                $rpdata = $db->fetchAll($query);
+                break;
+            case 4:
+                 $query = $db->select()->from(array('p'=>'PRODUCTS'),array('Vendor'=>'p.prod_vendor',
+                                                                           'Product'=>'p.prod_name',
+                                                                           'Version'=>'p.prod_version'))
+                     ->join(array('a'=>'ASSETS'),'a.asset_source = "SCAN" AND a.prod_id = p.prod_id',array());                  $rpdata = $db->fetchAll($query);
+                 break;
+            case 5:
+                 $rpdata = array();
+                 $query = $db->select()->from(array('sys'=>'SYSTEMS'),array('sysnick'=>'sys.system_nickname',
+                                                                       'vulncount'=>'count(sys.system_id)'))
+                                       ->join(array('p'=>'POAMS'),'p.poam_type IN ("CAP","AR","ES") AND 
+                                                    p.poam_status IN ("OPEN","EN","EP","ES")',array())
+                                       ->join(array('f'=>'FINDINGS'),'f.finding_id = p.finding_id',array())
+                                       ->join(array('a'=>'ASSETS'),'a.asset_id = f.asset_id',array())
+                                       ->join(array('sa'=>'SYSTEM_ASSETS'),'sa.asset_id = a.asset_id AND 
+                                                    sa.system_id = sys.system_id',array())
+                                       ->group("sa.system_id");
+                  $sys_vulncounts = $db->fetchAll($query);
+
+                  $query->reset();
+                  $query = $db->select()->from(array('s'=>'SYSTEMS'),
+                                               array('system_nickname'=>'DISTINCT(s.system_nickname)'));
+                  $systems = $db->fetchAll($query);
+                  $system_totals = array();
+                  foreach($systems as $system_row){
+                      $system_nick = $system_row['system_nickname'];
+                      $system_totals[$system_nick] = 0;
+                  }
+
+                  $total_open = 0;
+                  foreach((array)$sys_vulncounts as $sv_row){
+                      $system_nick = $sv_row['sysnick'];
+                      $system_totals[$system_nick] = $sv_row['vulncount'];
+                      $total_open++;
+                  }
+
+                  $system_total_array = array();
+                  foreach(array_keys($system_totals) as $key){
+                      $val = $system_totals[$key];
+                      $this_row = array();
+                      $this_row['nick'] = $key;
+                      $this_row['num'] = $val;
+                      array_push($system_total_array,$this_row);
+                  }
+                  array_push($rpdata,$total_open);
+                  array_push($rpdata,$system_total_array);
+                  break;
+        }
+        $colnum = 10;
+        $this->view->assign('colnum',$colnum);
+        $this->view->assign('colwidth',floor(100/($colnum+1)));
+        $this->view->assign('rpdata',$rpdata);
+        $_SESSION['rpdata'] = $rpdata;
+        $this->render('generalsearch_.'.$type.'');
+    }
+
 }
 
 
