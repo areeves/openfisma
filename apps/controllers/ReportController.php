@@ -394,6 +394,35 @@ class ReportController extends SecurityController
         $this->render('generalsearch_.'.$type.'');
     }
 
+    public function systemrafsAction(){
+        $req = $this->getRequest();
+        $db = Zend_Registry::get('db');
+        $query = $db->select()->from(array('s'=>'SYSTEMS'),array('sid'=>'system_id','sname'=>'system_name'));
+        $data = $db->fetchAll($query);
+        foreach($data as $result){
+            $system_list[$result['sid']] = $result['sname'];
+        }
+        $this->view->assign('system_list',$system_list);
+        $criteria['system_id'] = $req->getParam('system_id','');
+        $system_id = $req->getParam('system_id');
+        $this->view->assign('criteria',$criteria);
+        if(!empty($system_id)){
+            $query->reset();
+            $query = $db->select()->from(array('p'=>'POAMS'),array('poam_id'=>'p.poam_id'))
+                                  ->join(array('f'=>'FINDINGS'),'p.finding_id = f.finding_id',array())
+                                  ->join(array('sa'=>'SYSTEM_ASSETS'),'f.asset_id = sa.asset_id',array())
+                                  ->where("p.poam_threat_level != 'NONE'")
+                                  ->where("p.poam_cmeasure_effectiveness != 'NONE'")
+                                  ->where("sa.system_id = ".$system_id."");
+            $poam_ids = $db->fetchAll($query);
+            $num_poam_ids = count($poam_ids);
+            $this->view->assign('poam_ids',$poam_ids);
+            $this->view->assign('num_poam_ids',$num_poam_ids);
+            $this->view->assign('system_id',$system_id);
+        }
+        $this->render();
+    }
+
 }
 
 

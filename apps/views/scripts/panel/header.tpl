@@ -45,7 +45,7 @@
             echo'<li><a href="/zfentry.php/panel/report/sub/general">General Report</a></li>';
         }
         if(isAllow('report','generate_system_rafs')) {
-            echo'<li><a href="#">Generate System RAFs</a></li>';
+            echo'<li><a href="/zfentry.php/panel/report/sub/systemrafs">Generate System RAFs</a></li>';
         }
         if(isAllow('report','generate_overdue_report')) {
             echo'<li><a href="/zfentry.php/panel/report/sub/searchbox/flag/overdue">Overdue Report</a></li>';
