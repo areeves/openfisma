@@ -42,7 +42,7 @@
             echo'<li><a href="#">FISMA POA&M Report</a></li>';
         }
         if(isAllow('report','generate_general_report')) {
-            echo'<li><a href="#">General Report</a></li>';
+            echo'<li><a href="/zfentry.php/panel/report/sub/general">General Report</a></li>';
         }
         if(isAllow('report','generate_system_rafs')) {
             echo'<li><a href="#">Generate System RAFs</a></li>';
