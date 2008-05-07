@@ -147,8 +147,6 @@ class Finding extends Zend_Db_Table
                                                   'source_name' =>'fs.source_name'));
            $qry->join(array('fs' =>'FINDING_SOURCES'),'fs.source_id = f.source_id',array());
            $qry->join(array('as' =>'ASSETS'),'as.asset_id = f.asset_id',array());
-           $qry->join(array('p'=>'PRODUCTS'),'p.prod_id = as.prod_id',array('prod_name'=>'p.prod_name',
-                                   'prod_vendor'=>'p.prod_vendor','prod_version'=>'p.prod_version'));
            $qry->join(array('sa'=>'SYSTEM_ASSETS'),'sa.asset_id = as.asset_id',array());
            $qry->join(array('s'=>'SYSTEMS'),'s.system_id = sa.system_id',array('system_name'=>'system_name'));
            $qry->join(array('addr'=>'ASSET_ADDRESSES'),'as.asset_id = addr.asset_id',
@@ -157,6 +155,12 @@ class Finding extends Zend_Db_Table
            $qry->where("f.finding_id = $fid");
            $data = $this->fetchRow($qry);
            $finding_detail = $data->toArray();
+           $qry->join(array('p'=>'PRODUCTS'),'p.prod_id = as.prod_id',array('prod_name'=>'p.prod_name',
+                                   'prod_vendor'=>'p.prod_vendor','prod_version'=>'p.prod_version'));
+           $data = $this->fetchRow($qry);
+           if(!empty($data)){
+               $finding_detail = $data->toArray();
+           }
            $qry->reset();
            $qry->from(array('fv'=>'FINDING_VULNS'),array());
            $qry->join(array('v'=>'VULNERABILITIES'),
