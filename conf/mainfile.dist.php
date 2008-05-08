@@ -34,8 +34,11 @@
     //this name_c was used to connect database by new user
     define('OVMS_DB_NAME_C', '');
 
-    if(!defined('OVMS_ROOT_PATH')){
+    if(!defined('DS') ){
         define("DS", DIRECTORY_SEPARATOR);
+    }
+
+    if(!defined('OVMS_ROOT_PATH')){
         define('OVMS_ROOT_PATH', '/where/to/put/openfisma');
         define("OVMS_WEB_PATH", OVMS_ROOT_PATH. DS ."public");
         define("OVMS_WEB_TEMP", OVMS_WEB_PATH. DS ."temp");
