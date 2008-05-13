@@ -9,7 +9,7 @@
 
 require_once CONTROLLERS . DS . 'SecurityController.php';
 require_once MODELS . DS . 'user.php';
-require_once MODELS . DS . 'remediation.php';
+require_once MODELS . DS . 'poam.php';
 require_once 'Pager.php';
 
 class RemediationController extends SecurityController
@@ -27,238 +27,110 @@ class RemediationController extends SecurityController
         $uid = $this->me->user_id;
         $req = $this->getRequest();
         $this->_paging_base_path = $req->getBaseUrl() .'/panel/remediation/sub/searchbox/s/search';
-        $this->_paging['currentPage'] = $req->getParam('P',1);
+        $this->_paging['currentPage'] = $req->getParam('p',1);
     }
 
     public function summaryAction(){
-        $poam = new remediation();
+        require_once MODELS . DS . 'system.php';
+        $req = $this->getRequest();
+        $user = new user();
+        $uid = $this->me->user_id;
+        $system_list = $user->getMySystems($uid);
+        $system_ids = implode(',',$system_list);
+        $poam = new poam();
+        $system = new System();
+        $today = date('Ymd',time());
+        $total = array('NEW'=>0,'OPEN'=>0,'EN'=>0,'EO'=>0,'EP_SNP'=>0,'EP_SSO'=>0,'ES'=>0,'CLOSED'=>0,'TOTAL'=>0);
+        foreach($system_list as $id) {
+            $remediations = $poam->search(array($id));
+            if(!empty($remediations)){
+                $sum = array('NEW'=>0,'OPEN'=>0,'EN'=>0,'EO'=>0,'EP_SNP'=>0,'EP_SSO'=>0,'ES'=>0,'CLOSED'=>0,'TOTAL'=>0);
+                foreach($remediations as $row){
+                    switch($row['status']) {
+                    case 'OPEN':
+                        if( $row['type'] == 'NONE' ) {
+                            $sum['NEW'] ++;//count the NEW items
+                            $total['NEW'] ++;
+                        }else{ 
+                            $sum['OPEN'] ++;//count the OPEN items
+                            $total['OPEN'] ++;
+                        }
+                        break;
+                    case 'EN':
+                        $est = implode(split('-',$row['action_date_est']));
+                        if($est < $today){
+                            $sum['EO'] ++;                    //update the display to show it as EN in the list
+                            $total['EO']++;
+                        } else {//still on time,just count it
+                            $sum['EN'] ++;
+                            $total['EN'] ++;
+                        }
+                        break;
+                    case 'EP':
+                        //if the SSO has approved it,then tag it as S&P
+                        $db = Zend_Registry::get('db');
+                        $query = $db->select()
+                              ->from(array('pe'=>'POAM_EVIDENCE'),array('evaluation'=>'pe.ev_sso_evaluation'))
+                              ->where("poam_id = ".$row['id']."")
+                              ->order("ev_id DESC")
+                              ->limit(1);
+                        $approval = $db->fetchRow($query);
+                        if(isset($approval['evaluation']) && $approval['evaluation'] == 'APPROVED'){
+                            $sum['EP_SNP']++;
+                            $total['EP_SNP'] ++;
+                        } else {//else tag it SSO
+                            $sum['EP_SSO']++;
+                            $total['EP_SSO']++;
+                        }
+                        break;
+                    case 'ES':
+                        $sum['ES']++;
+                        $total['ES']++;
+                        break;
+                    case 'CLOSED':
+                        $sum['CLOSED']++;
+                        $total['CLOSED']++;
+                        break;
+                    }
+                    $sum['TOTAL']++;
+                    $total['TOTAL']++;
+                }
+                $summary[$id] = $sum;
+            }
+        }
+        $systems = $system->find($system_list);
+        foreach( $systems as $s ) {
+            $sys_list[$s->system_id] = $s->toArray();
+        }
+        $this->view->assign('total',$total);
+        $this->view->assign('systems',$sys_list);
+        $this->view->assign('summary',$summary );
+        $this->render('summary');
+    }
+
+    public function searchAction(){
         $req = $this->getRequest();
         $this->_paging_base_path = $req->getBaseUrl().'/panel/remediation/sub/searchbox/s/search';
         $this->_paging['currentPage'] = $req->getParam('p',1);
-        $s = $req->getParam('s');
-        if('search' == $s){
-            $criteria = $req->getParam('criteria');
-            assert(is_array($criteria));
-            extract($criteria);
-        }
+       
         $user = new user();
-        $db = $poam->getAdapter();
         $uid = $this->me->user_id;
-        $today = date('Ymd',time());
-               
-        $system_list = implode(",",$user->getMySystems($uid));
-        $query = $poam->select()->setIntegrityCheck(false);
-        $query->from(array('f'=>'FINDINGS'),array('finding_data'=>'f.finding_data'));
-        $query->join(array('fs'=>'FINDING_SOURCES'),'f.source_id = fs.source_id',
-                                                  array('source_nickname'=>'fs.source_nickname',
-                                                        'source_name'=>'fs.source_name'));
-        $query->join(array('p'=>'POAMS'),'p.finding_id = f.finding_id',
-                                                  array('poam_id'=>'p.poam_id',
-                                                        'legacy_poam_id'=>'p.legacy_poam_id',
-                                                        'poam_type'=>'p.poam_type',
-                                                        'poam_status'=>'p.poam_status',
-                                                        'poam_date_created'=>'p.poam_date_created',
-                                                        'poam_action_date_est'=>'p.poam_action_date_est'));
-        $query->join(array('sa'=>'SYSTEM_ASSETS'),'sa.asset_id = f.asset_id',array());
-        $query->join(array('s1'=>'SYSTEMS'),'s1.system_id = sa.system_id',
-                                                  array('asset_owner_id'=>'s1.system_id',
-                                                         'asset_owner_nickname'=>'s1.system_nickname',
-                                                         'asset_owner_name'=>'s1.system_name'));
-        $query->join(array('s2'=>'SYSTEMS'),'s2.system_id = p.poam_action_owner',
-                                                  array('action_owner_id'=>'s2.system_id',
-                                                        'action_owner_nickname'=>'s2.system_nickname',
-                                                        'action_owner_name'=>'s2.system_name'));
+        $system_list = $user->getMySystems($uid);
+        $criteria = $req->getParam('criteria');
+        $this->_paging_base_path  = $req->getParam('path');
         
-        if(isset($source) && $source != 'any'){
-            $query->where("fs.source_id = ".$source."");
-        }
-        if(isset($system) && $system != 'any'){
-            $query->where("p.poam_action_owner = ".$system."");
-        }
-        if(!empty($startdate) && !empty($enddate)){
-            $startdate = date("Y-m-d",strtotime($startdate));
-            $enddate = date("Y-m-d",strtotime($enddate));
-            $query->where("p.poam_action_date_est >='".$startdate."' AND p.poam_action_date_est <='".$enddate."'");
-        }
-        if(!empty($startcreatedate) && !empty($endcreatedate)){
-            $startcreatedate = date("Y-m-d",strtotime($startcreatedate));
-            $endcreatedate = date("Y-m-d",strtotime($endcreatedate));
-            $query->where("p.poam_date_created >='".$startcreatedate."' AND p.poam_date_created <='".$endcreatedate."'");
-        }
-        if(isset($asset_owner) && $asset_owner != 'any'){
-            $query->where("s1.system_id = ".$asset_owner."");
-        }
-        if(isset($action_owner) && $action_owner != 'any'){
-            $query->where("s2.system_id = ".$action_owner."");
-        }
-        if(isset($ids) && !empty($ids)){
-            $query->where("p.poam_id IN (".$ids.")");
-        }
-        if(isset($type) && $type != 'any'){
-            $query->where("p.poam_type = '".$type."'");
-        }
-        if(isset($status) && $status != 'any'){
-            $current_date = date("Y-m-d",time());  
-            switch($status){
-                case 'NEW':
-                    $query->where("p.poam_status = 'OPEN' AND p.poam_type = 'NONE'");
-                    break;
-                case 'OPEN':
-                    $query->where("p.poam_status = 'OPEN' AND p.poam_type != 'NONE'");
-                    break;
-                case 'EN':
-                    $query->where("p.poam_status = 'EN' AND p.poam_action_date_est >= CURDATE()");
-                    break;
-                case 'EO':
-                    $query->where("p.poam_status = 'EN' AND
-                                 (p.poam_action_date_est < '$current_date' or p.poam_action_date_est is NULL)");
-                    break;
-                case 'EP-SSO':
-                    $query->where("p.poam_status = 'EP' AND p.poam_id IN 
-                    (SELECT DISTINCT pe.poam_id FROM `POAM_EVIDENCE` AS pe WHERE(pe.ev_ivv_evaluation = 'NONE'
-                    AND pe.ev_fsa_evaluation = 'NONE' AND pe.ev_ivv_evaluation = 'NONE'))");
-                    break;
-                case 'EP-SNP':
-                    $query->where("p.poam_status = 'EP' AND p.poam_id IN 
-                    (SELECT DISTINCT pe.poam_id FROM `POAM_EVIDENCE` AS pe WHERE 
-                    (pe.ev_sso_evaluation = 'APPROVED' AND 
-                    pe.ev_fsa_evaluation = 'NONE' AND 
-                    pe.ev_ivv_evaluation = 'NONE') ORDER BY ev_id DESC)");
-                    break;
-                case 'ES':
-                    $query->where("p.poam_status = 'ES'");
-                    break;
-                case 'CLOSED':
-                    $query->where("p.poam_status = 'CLOSED'");
-                    break;
-                case 'NOT-CLOSED':
-                    $query->where("p.poam_status NOT LIKE 'CLOSED'");
-                    break;
-                case 'NOUP-30':
-                    $query->where("p.poam_status NOT LIKE 'CLOSED' AND 
-                                 p.poam_date_modified < SUBDATE('".$current_date."',30)");
-                    break;
-                case 'NOUP-60':
-                    $query->where("p.poam_status NOT LIKE 'CLOSED' AND 
-                                 p.poam_date_modified < SUBDATE('".$current_date."',60)");
-                    break;
-                case 'NOUP-90':
-                    $query->where("p.poam_status NOT LIKE 'CLOSED' AND 
-                                p.poam_date_modified < SUBDATE('".$current_date."',90)");
-                    break;
-                default:
-                    $query->where("p.poam_status = ".$status."");
-                    break;
-            }
-        }
-        $query->where("sa.system_is_owner = 1 ");                                                        
-        $query->where("poam_action_owner IN ($system_list)");
-        $query->order('action_owner_name ASC');
-        //echo $query->__toString();
-        $list = $poam->fetchAll($query)->toArray();
-        $query->limitPage($this->_paging['currentPage'],$this->_paging['perPage']);
-        $data = $poam->fetchAll($query);
-        $summary_list = $data->toArray();
-        
-        /** SUMMARY INFORMATION CREATION **/
-        $summary = Array();
-        $array_template = array('NEW'=>'','OPEN'=>'','EN'=>'','ED'=>'','EO'=>'','EP'=>'','ES'=>'','EP_SNP'=>'',
-                                'EP_SSO'=>'','CLOSED'=>'','TOTAL'=>'');
-        $totals = $array_template;
-        $total_pages = 0;
-        for($row=0;$row < count($list); $row++){
-            $this_system = $list[$row]['action_owner_id'];
-            if(!isset($summary[$this_system])){
-                $summary[$this_system] = $array_template;
-            }
-            $summary[$this_system]['action_owner_nickname'] = $list[$row]['action_owner_nickname'];
-            $summary[$this_system]['action_owner_name']     = $list[$row]['action_owner_name'];
-            
-            //count the NEW items
-            if(($list[$row]['poam_status'] == 'OPEN') && ($list[$row]['poam_type'] == 'NONE')) {
-                $summary[$this_system]['NEW'] += 1;
-                $totals['NEW'] += 1;
-            }
-
-            //count the OPEN items
-            if(($list[$row]['poam_status'] == 'OPEN') && ($list[$row]['poam_type'] != 'NONE')){                
-                $summary[$this_system]['OPEN'] += 1;
-                $totals['OPEN'] += 1;
-            }
-
-            //count the EN and EO items
-            if($list[$row]['poam_status'] == 'EN'){
-                $est = implode(split('-',$list[$row]['poam_action_date_est']));
-                if($est < $today){
-                    //update that the date has passed
-                    $list[$row]['poam_status'] = 'EO';
-                    //count the remediation as overdue
-                    $summary[$this_system]['EO'] += 1;
-                    $totals['EO'] += 1;
-                    //update the display to show it as EN in the list
-                    $list[$row]['poam_status'] = 'EO';
-                }
-                //still on time,just count it
-                else {
-                    $summary[$this_system]['EN'] += 1;
-                    $totals['EN'] += 1;
-                }
-            }
-            //count the EP items
-            if($list[$row]['poam_status'] == 'EP'){
-                $summary[$this_system]['EP'] += 1;
-                $totals['EP'] += 1;
-                //grab the SSO approvals to differentiate the EPs
-                $query->reset();
-                $query->from(array('pe'=>'POAM_EVIDENCE'),array('evaluation'=>'ev_sso_evaluation'));
-                $query->where("poam_id = ".$list[$row]['poam_id']."");
-                $query->order("ev_id DESC");
-                $query->limit(1);
-                $approval = $poam->fetchRow($query)->toArray();
-                //if the SSO has approved it,then tag it as S&P
-                if($approval['evaluation'] == 'APPROVED'){
-                    $summary[$this_system]['EP_SNP'] += 1;
-                    $totals['EP_SNP'] += 1;
-                }
-                //else tag it SSO
-                else {
-                    $summary[$this_system]['EP_SSO'] += 1;
-                    $totals['EP_SSO'] += 1;
-                }
-            }
-            //count the ES items
-            if($list[$row]['poam_status'] == 'ES'){
-                $summary[$this_system]['ES'] += 1;
-                $totals['ES'] += 1;
-            }
-            //count the CLOSED items
-            if($list[$row]['poam_status'] == 'CLOSED'){
-                $summary[$this_system]['CLOSED'] += 1;
-                $totals['CLOSED'] += 1;
-            }
-            //count the total number for the system
-            $summary[$this_system]['TOTAL'] += 1;
-            $totals['TOTAL'] += 1;
-            //total pages
-            $total_pages = ceil($totals['TOTAL'] /$this->_paging['perPage']);
-        }
-        $this->_paging['totalItems'] = $totals['TOTAL'];
+        $poam = new poam();
+        $totals = $poam->search($system_list,array('count'=>array()),$criteria);
+        $list = $poam->search($system_list,'*',$criteria,$this->_paging['currentPage'],$this->_paging['perPage']);
+        $this->_paging['totalItems'] = $totals[0]['count'];
         $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";
         $pager = &Pager::factory($this->_paging);
-        $this->view->assign('list',$list);
-        $this->view->assign('summary',$summary);
-        $this->view->assign('summary_list',$summary_list);
-        $this->view->assign('total_pages',$total_pages);
-        $this->view->assign('totals',$totals);
+        $this->view->assign('summary_list',$list);
+        $this->view->assign('total_pages',3);
         $this->view->assign('links',$pager->getLinks());
-        if('search' == $s){
-            $this->render('search');
-        }
-        else {
-            $this->render();
-        }
+        $this->render('search');
     }
-    
+
     public function searchboxAction()
     {
         require_once MODELS . DS . 'system.php';
@@ -285,6 +157,8 @@ class RemediationController extends SecurityController
         $criteria['enddate'] = $req->getParam('enddate','');
         $criteria['startcreatedate'] = $req->getParam('startcreatedate','');
         $criteria['endcreatedate'] = $req->getParam('endcreatedate');
+
+        $internal_crit = $criteria;
 
         $qry = $db->select();
         $source_list  = $db->fetchPairs($qry->from($src->info(Zend_Db_Table::NAME),
@@ -325,9 +199,69 @@ class RemediationController extends SecurityController
                         'NOUP-60'   =>'(NOUP-60) 60+ Days Since Last Update',
                         'NOUP-90'   =>'(NOUP-90) 90+ Days Since Last Update');
         if('search' == $req->getParam('s')){
-            $this->_helper->actionStack('summary','Remediation',null,
-                                        array('s' =>'search',
-                                              'criteria'=>$criteria));
+            foreach($criteria as $key=>$value){
+                if(!empty($value) && $value!= 'any'){
+                    $this->_paging_base_path .= '/'.$key.'/'.$value.'';
+                }
+            }    
+            if(isset($criteria['status']) && $criteria['status'] != 'any'){
+                $current_date = date('Y-m-d',time());
+                switch($criteria['status']){
+                    case 'NEW':
+                        $internal_crit['status'] = 'OPEN';
+                        $internal_crit['type']   = 'NONE';
+                        break;
+                    case 'OPEN':
+                        $internal_crit['status'] = 'OPEN';
+                        $internal_crit['type']   = array("'NONE'","'CAP'","'FP'","'AR'");
+                        break;
+                    case 'EN':
+                        $internal_crit['status'] = 'EN';
+                        $internal_crit['startdate'] = date('Y-m-d',time());
+                        break;
+                    case 'EO':
+                        $internal_crit['status'] = 'EN';                        
+                        $internal_crit['enddate'] = date('Y-m-d',time());
+                        break;
+                    case 'EP-SSO':
+                        $internal_crit['status'] = 'EP';
+                        $internal_crit['ep']     = array('sso'=>'APPROVED',
+                                                    'fsa'=>'NONE',
+                                                    'ivv'=>'NONE');
+                        break;
+                    case 'EP-SNP':
+                        $internal_crit['status'] = 'EP';
+                        $internal_crit['ep']     = array('sso'=>'APPROVED',
+                                                    'fsa'=>'NONE',
+                                                    'ivv'=>'NONE');
+                        break;
+                    case 'ES':
+                        $internal_crit['status'] = 'ES';
+                        break;
+                    case 'CLOSED':
+                        $internal_crit['status'] = 'CLOSED';
+                        break;
+                    case 'NOT-CLOSED':
+                        $internal_crit['status'] = array("'OPEN'","'EN'","'EP'","'ES'");
+                        break;
+                    case 'NOUP-30':
+                        $internal_crit['status'] = array("'OPEN'","'EN'","'EP'","'ES'");
+                        $internal_crit['poam_date_modified'] = 'SUBDATE("'.$current_date.'",30)';
+                        break;
+                    case 'NOUP-60':
+                        $internal_crit['status'] = array("'OPEN'","'EN'","'EP'","'ES'");
+                        $internal_crit['poam_date_modified'] = 'SUBDATE("'.$current_date.'",60)';
+                        break;
+                    case 'NOUP-90':
+                        $internal_crit['status'] = array("'OPEN'","'EN'","'EP'","'ES'");
+                        $internal_crit['poam_date_modified'] = 'SUBDATE("'.$current_date.'",90)';
+                        break;
+                }
+            }
+
+            $this->_helper->actionStack('search','Remediation',null,
+                                        array('s' =>'search','path'=>$this->_paging_base_path,
+                                              'criteria'=>$internal_crit));
         }
         $this->view->assign('criteria',$criteria);
         $this->view->assign('system_list',$system_list);
@@ -345,7 +279,7 @@ class RemediationController extends SecurityController
         $id = $req->getParam('id');
         assert($id);
         $today = date("Ymd",time());
-        $poam = new remediation();
+        $poam = new poam();
         $db = $poam->getAdapter();
         $query = $poam->select()->setIntegrityCheck(false);
 
@@ -536,4 +470,6 @@ class RemediationController extends SecurityController
         $this->view->assign('blscr',$blscr);
         $this->render();
     }
+
+    
 }

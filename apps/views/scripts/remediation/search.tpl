@@ -20,16 +20,6 @@
         <table width="100%" border="1" cellpadding="5" cellspacing="0" class="tbframe">
             <form  name="order_by_ID" action='remediation.php' method='POST'>
             <th nowrap>
-                <input type='hidden' name='remediation_id'          value='{$list[row].poam_id}'>
-                <input type='hidden' name='remediation_ids'         value='{$remediation_ids}'>
-                <input type='hidden' name='filter_source'           value='{$filter_source}'>
-                <input type='hidden' name='filter_system'           value='{$filter_system}'>
-                <input type='hidden' name='filter_status'           value='{$filter_status}'>
-                <input type='hidden' name='filter_type'             value='{$filter_type}'>
-                <input type='hidden' name='filter_startdate'        value='{$filter_startdate}'>
-                <input type='hidden' name='filter_enddate'          value='{$filter_enddate}'>
-                <input type='hidden' name='filter_startcreatedate'  value='{$filter_startcreatedate}'>
-                <input type='hidden' name='filter_endcreatedate'    value='{$filter_endcreatedate}'>
                 <input type='hidden' name='sort_by'        value='remediation_id'> 
                 <input type='hidden' name='sort_order' >          ID 
                 <input type='image'  src='/images/up_arrow.gif'   onClick="order_page(11)"> 
@@ -64,18 +54,19 @@
             </tr>
             <!-- REMEDIATION ROWS -->
             <?php foreach($this->summary_list as $row){
+                $today = date('Y-m-d',time());
                 $finding_data = strlen($row['finding_data'])>120?substr($row['finding_data'],0,120)."...":$row['finding_data'];
-                $poam_id = null == $row['legacy_poam_id']?$row['poam_id']:$row['poam_id']."(".$row['legacy_poam_id'].")";
+                $poam_id =  $row['legacy_id'] == null?$row['id']:$row['id']."(".$row['legacy_id'].")";
             ?>
             <tr>
                 <td align='center' class='tdc'><?php echo $poam_id;?></td>
                 <td align='center' class='tdc' nowrap><?php echo $row['source_nickname'];?></td>
                 <td align='center' class='tdc'><?php echo $row['action_owner_nickname'];?></td>
-                <td align='center' class='tdc' nowrap><?php echo $row['poam_type'];?></td>
-                <td align='center' class='tdc' nowrap><?php echo $row['poam_status'];?></td>
+                <td align='center' class='tdc' nowrap><?php echo $row['type'];?></td>
+                <td align='center' class='tdc' nowrap><?php echo $row['status']=='EN' && $row['action_date_est']<$today?'EO':$row['status'];?></td>
                 <td align='left'   class='tdc'><?php echo $finding_data;?></td>
-                <td align='center' class='tdc' nowrap><?php echo $row['poam_action_date_est'];?></td> 
-                <td align="center" valign='middle' class='tdc'><a href='/zfentry.php/panel/remediation/sub/view/id/<?php echo $row['poam_id'];?>'><img src='/images/view.gif' border="0"></a></td>
+                <td align='center' class='tdc' nowrap><?php echo $row['action_date_est'];?></td> 
+                <td align="center" valign='middle' class='tdc'><a href='/zfentry.php/panel/remediation/sub/view/id/<?php echo $row['id'];?>'><img src='/images/view.gif' border="0"></a></td>
             </tr>
             <?php } ?>
         </table>

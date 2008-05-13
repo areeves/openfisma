@@ -117,7 +117,7 @@ class DashboardController extends SecurityController
     {
         require_once MODELS . DS . 'poam.php';
         $db = Zend_Registry::get('db');
-        $poamsModel = new Poams($db);
+        $poamsModel = new poam($db);
         $poam =  $poamsModel->select();
         $poam->from($poamsModel,'count(*)');
         $poam->where('poam_action_owner = ? ',$system_id);

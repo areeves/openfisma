@@ -20,33 +20,35 @@
 
     <!-- SUMMARY LOOP -->
     <?php 
-    foreach($this->summary as $sid=>$system){
-        $base_url ="/zfentry.php/panel/remediation/sub/searchbox/s/search/action_owner/".$sid."";
+    define('BASE', "/zfentry.php/panel/remediation/sub/searchbox/s/search/action_owner/");
+    foreach($this->summary as $sid=>$row){
+        $base_url = BASE . $sid;
     ?>
     <tr>
-        <td width='45%' align='left'   class='tdc'>(<?php echo $system['action_owner_nickname'];?>)<?php echo $system['action_owner_name'];?></td>
-        <td align='center' class='tdc'><?php echo $system['NEW'] == ''?'-':'<a href="'.$base_url.'/status/NEW">'.$system['NEW'].'</a>';?></td>
-        <td align='center' class='tdc'><?php echo $system['OPEN']== ''?'-':'<a href="'.$base_url.'/status/OPEN">'.$system['OPEN'].'</a>';?></td>
-        <td align='center' class='tdc'><?php echo $system['EN']== ''?'-':'<a href="'.$base_url.'/status/EN">'.$system['EN'].'</a>';?></td>
-        <td align='center' class='tdc'><?php echo $system['EO']== ''?'-':'<a href="'.$base_url.'/status/EO">'.$system['EO'].'</a>';?></td>
-        <td align='center' class='tdc'><?php echo $system['EP_SSO']==''?'-':'<a href="'.$base_url.'/status/EP-SSO">'.$system['EP_SSO'].'</a>';?></td>
-        <td align='center' class='tdc'><?php echo $system['EP_SNP']==''?'-':'<a href="'.$base_url.'/status/EP-SNP">'.$system['EP_SNP'].'</a>';?></td>
-        <td align='center' class='tdc'><?php echo $system['ES']==''?'-':'<a href="'.$base_url.'/status/ES">'.$system['ES'].'</a>';?></td>
-        <td align='center' class='tdc'><?php echo $system['CLOSED']==''?'-':'<a href="'.$base_url.'/status/CLOSED">'.$system['CLOSED'].'</a>';?></td>       
-        <td align='center' class='tdc'><b><?php echo $system['TOTAL']==''?'0':'<a href="'.$base_url.'">'.$system['TOTAL'].'</a>';?></b></td>
+        <td width='45%' align='left'   class='tdc'>(<?php echo $this->systems[$sid]['system_nickname'];?>)
+                                                    <?php echo $this->systems[$sid]['system_name'];?></td>
+        <td align='center' class='tdc'><?php echo $row['NEW'] == ''?'-':'<a href="'.$base_url.'/status/NEW">'.$row['NEW'].'</a>';?></td>
+        <td align='center' class='tdc'><?php echo $row['OPEN']== ''?'-':'<a href="'.$base_url.'/status/OPEN">'.$row['OPEN'].'</a>';?></td>
+        <td align='center' class='tdc'><?php echo $row['EN']== ''?'-':'<a href="'.$base_url.'/status/EN">'.$row['EN'].'</a>';?></td>
+        <td align='center' class='tdc'><?php echo $row['EO']== ''?'-':'<a href="'.$base_url.'/status/EO">'.$row['EO'].'</a>';?></td>
+        <td align='center' class='tdc'><?php echo $row['EP_SSO']==''?'-':'<a href="'.$base_url.'/status/EP-SSO">'.$row['EP_SSO'].'</a>';?></td>
+        <td align='center' class='tdc'><?php echo $row['EP_SNP']==''?'-':'<a href="'.$base_url.'/status/EP-SNP">'.$row['EP_SNP'].'</a>';?></td>
+        <td align='center' class='tdc'><?php echo $row['ES']==''?'-':'<a href="'.$base_url.'/status/ES">'.$row['ES'].'</a>';?></td>
+        <td align='center' class='tdc'><?php echo $row['CLOSED']==''?'-':'<a href="'.$base_url.'/status/CLOSED">'.$row['CLOSED'].'</a>';?></td>       
+        <td align='center' class='tdc'><b><?php echo $row['TOTAL']==''?'0':'<a href="'.$base_url.'">'.$row['TOTAL'].'</a>';?></b></td>
     </tr>
     <?php }?>
     <tr>
         <td width='45%' align='center' class='tdc'><b>TOTALS</b></td>
-        <td class='tdc'><b><?php echo $this->totals['NEW']==''?'0':'<a href="/zfentry.php/panel/remediation/sub/searchbox/s/search/status/NEW">'.$this->totals['NEW'].'</a>';?></b></td>
-        <td class='tdc'><b><?php echo $this->totals['OPEN']==''?'0':'<a href="/zfentry.php/panel/remediation/sub/searchbox/s/search/status/OPEN">'.$this->totals['OPEN'].'</a>';?></b></td>
-        <td class='tdc'><b><?php echo $this->totals['EN']==''?'0':'<a href="/zfentry.php/panel/remediation/sub/searchbox/s/search/status/EN">'.$this->totals['EN'].'</a>';?></b></td>
-        <td class='tdc'><b><?php echo $this->totals['EO']==''?'0':'<a href="/zfentry.php/panel/remediation/sub/searchbox/s/search/status/EO">'.$this->totals['EO'].'</a>';?></b></td>
-        <td class='tdc'><b><?php echo $this->totals['EP_SSO']==''?'0':'<a href="/zfentry.php/panel/remediation/sub/searchbox/s/search/status/EP-SSO">'.$this->totals['EP_SSO'].'</a>';?></b></td>
-        <td class='tdc'><b><?php echo $this->totals['EP_SNP']==''?'0':'<a href="/zfentry.php/panel/remediation/sub/searchbox/s/search/status/EP-SNP">'.$this->totals['EP_SNP'].'</a>';?></b></td>
-        <td class='tdc'><b><?php echo $this->totals['ES']==''?'0':'<a href="/zfentry.php/panel/remediation/sub/searchbox/s/search/status/ES">'.$this->totals['ES'].'</a>';?></b></td>
-        <td class='tdc'><b><?php echo $this->totals['CLOSED']==''?'0':'<a href="/zfentry.php/panel/remediation/sub/searchbox/s/search/status/CLOSED">'.$this->totals['CLOSED'].'</a>';?></b></td>     
-        <td class='tdc'><b><?php echo $this->totals['TOTAL']==''?'0':'<a href="/zfentry.php/panel/remediation/sub/searchbox/s/search">'.$this->totals['TOTAL'].'</a>';?></b></td>
+        <td class='tdc'><b><?php echo $this->total['NEW']==''?'0':'<a href="/zfentry.php/panel/remediation/sub/searchbox/s/search/status/NEW">'.$this->total['NEW'].'</a>';?></b></td>
+        <td class='tdc'><b><?php echo $this->total['OPEN']==''?'0':'<a href="/zfentry.php/panel/remediation/sub/searchbox/s/search/status/OPEN">'.$this->total['OPEN'].'</a>';?></b></td>
+        <td class='tdc'><b><?php echo $this->total['EN']==''?'0':'<a href="/zfentry.php/panel/remediation/sub/searchbox/s/search/status/EN">'.$this->total['EN'].'</a>';?></b></td>
+        <td class='tdc'><b><?php echo $this->total['EO']==''?'0':'<a href="/zfentry.php/panel/remediation/sub/searchbox/s/search/status/EO">'.$this->total['EO'].'</a>';?></b></td>
+        <td class='tdc'><b><?php echo $this->total['EP_SSO']==''?'0':'<a href="/zfentry.php/panel/remediation/sub/searchbox/s/search/status/EP-SSO">'.$this->total['EP_SSO'].'</a>';?></b></td>
+        <td class='tdc'><b><?php echo $this->total['EP_SNP']==''?'0':'<a href="/zfentry.php/panel/remediation/sub/searchbox/s/search/status/EP-SNP">'.$this->total['EP_SNP'].'</a>';?></b></td>
+        <td class='tdc'><b><?php echo $this->total['ES']==''?'0':'<a href="/zfentry.php/panel/remediation/sub/searchbox/s/search/status/ES">'.$this->total['ES'].'</a>';?></b></td>
+        <td class='tdc'><b><?php echo $this->total['CLOSED']==''?'0':'<a href="/zfentry.php/panel/remediation/sub/searchbox/s/search/status/CLOSED">'.$this->total['CLOSED'].'</a>';?></b></td>     
+        <td class='tdc'><b><?php echo $this->total['TOTAL']==''?'0':'<a href="/zfentry.php/panel/remediation/sub/searchbox/s/search">'.$this->total['TOTAL'].'</a>';?></b></td>
     </tr>
 </table>
 <br>
