@@ -1,0 +1,94 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>remediation_view_search</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">remediation_view_search</td></tr>
+</thead><tbody>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Remediation Summary</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=18</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>source</td>
+	<td>label=Certification & Accreditation</td>
+</tr>
+<tr>
+	<td>storeSelectedLabel</td>
+	<td>//select[@name='source']</td>
+	<td>findingsource</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>type</td>
+	<td>label=(CAP) Corrective Action Plan</td>
+</tr>
+<tr>
+	<td>storeSelectedLabel</td>
+	<td>//select[@name='type']</td>
+	<td>strategy</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>asset_owner</td>
+	<td>label=Automated Reconciliation System</td>
+</tr>
+<tr>
+	<td>storeSelectedLabel</td>
+	<td>//select[@name='asset_owner']</td>
+	<td>asset_owner</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>ids</td>
+	<td>401</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//input[@value='Search']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>storeText</td>
+	<td>//table[@class='tbframe']/tbody/tr[2]/td[4]</td>
+	<td>type</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//select[@name='type']</td>
+	<td>glob:*${type}*</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//a/img</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertTextPresent</td>
+	<td>${findingsource}</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertTextPresent</td>
+	<td>glob:*${type}*</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertTextPresent</td>
+	<td>${asset_owner}</td>
+	<td></td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

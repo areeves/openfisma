@@ -68,19 +68,22 @@ class TestController extends Zend_Controller_Action
         $files=scandir($sqlpath);
         if(!$files) die("files error!");
         $sql_file = preg_grep("/[a-zA-Z0-9]*\.sql$/i",$files);
+        ob_end_clean();
         echo "<b>Now start importing <<< </b><br/>";
         foreach($sql_file as $elem){
         if($elem==SCHEMA_DATABASE) continue;
         $exec="mysql -h $host -u $user -p$passwd $database < $sqlpath/$elem";
-        echo $exec ;
+        echo $exec;
         passthru($exec, $ret);
         if($ret != 0) {
-            echo " : Failed\n<br/>";
+            echo " : <font color=red>Failed</font><br/>";
         }else{
-            echo " : OK \n<br/>";
+            echo " : <font color=green>OK</font><br/>";
         }
+        flush();
         }
         echo "<b>Test database loading finished.</b>";
+
     }
 }
 ?>
