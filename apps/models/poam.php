@@ -4,7 +4,7 @@
 *
 * MIT LICENSE
 *
-* @version $ID$
+* @version $Id$
 */
 
 require_once 'Zend/Db/Table.php';
@@ -13,10 +13,10 @@ class poam extends Zend_Db_Table
 {
     protected $_name = 'POAMS';
     protected $_primary = 'poam_id';
-      
+    
     /** 
     *  search poam records.
-    *  @param $sys_ids array system id that limit the searching range
+    *  @param $sys_ids array system id that limit the searching agency
     *  @param $fields array information contained in the return.
     *         array('key' => 'value'). key is the alias while the value in the set of 
     *          [*, count, id, type, status, created_t, est_t, system_id, system_name, source_id, source_name]
@@ -147,6 +147,104 @@ class poam extends Zend_Db_Table
         //Should be order by ?
         //$query->order('action_owner_name ASC');
         return $db->fetchAll($query);
+    }
+   
+    
+   public function fismasearch($agency){
+        $flag = substr($agency,0,1);
+        $db = $this->_db;
+        $fsa_sysgroup_id = Zend_Registry::get('fsa_sysgroup_id');
+        $fsa_system_id = Zend_Registry::get('fsa_system_id');
+        $startdate = Zend_Registry::get('startdate');
+        $enddate = Zend_Registry::get('enddate');
+                $query = $db->select()->from(array('sgs'=>'SYSTEM_GROUP_SYSTEMS'),array('system_id'=>'system_id'))
+                              ->where("sgs.sysgroup_id = ".$fsa_sysgroup_id." AND sgs.system_id != ".$fsa_system_id."");
+        $result = $db->fetchCol($query);
+        $system_ids = implode(',',$result);
+        $query = $db->select()->distinct()
+                              ->from(array('p'=>'POAMS'),array('num_poams'=>'count(p.poam_id)'))
+                              ->join(array('f'=>'FINDINGS'),'f.finding_id = p.finding_id',array())
+                              ->join(array('a'=>'ASSETS'),'a.asset_id = f.asset_id',array())
+                              ->join(array('sa'=>'SYSTEM_ASSETS'),'sa.asset_id = a.asset_id',array());
+        switch($flag){
+            case 'a':
+                switch($agency){
+                    case 'aaw':
+                        $query->where("sa.system_id = '".$fsa_system_id."'");
+                        break;
+                    case 'as':
+                        $query->where("sa.system_id IN (".$system_ids.")");
+                        break;
+                }
+                $query->where("p.poam_date_created < '".$startdate."'")
+                      ->where("p.poam_date_closed IS NULL OR p.poam_date_closed >= '".$startdate."'");
+                break;
+            case 'b':
+                switch($agency){
+                    case 'baw':
+                        $query->where("sa.system_id = '".$fsa_system_id."'");
+                        break;
+                    case 'bs':
+                        $query->where("sa.system_id IN (".$system_ids.")");
+                        break;
+                }
+                $query->where("p.poam_date_created <= '".$enddate."'")
+                      ->where("p.poam_action_date_est <= '".$enddate."'")
+                      ->where("p.poam_action_date_actual >= '".$startdate."'")
+                      ->where("p.poam_action_date_actual <= '".$enddate."'");
+                break;
+            case 'c':
+                switch($agency){
+                    case 'caw':
+                        $query->where("sa.system_id = '".$fsa_system_id."'");
+                        break;
+                    case 'cs':
+                        $query->where("sa.system_id IN (".$system_ids.")");
+                        break;
+                }
+                $query->where("p.poam_date_created <= '".$enddate."'")
+                      ->where("p.poam_action_date_est > '".$enddate."'")
+                      ->where("p.poam_action_date_actual IS NULL");
+                break;
+            case 'd':
+                switch($agency){
+                    case 'daw':
+                        $query->where("sa.system_id = '".$fsa_system_id."'");
+                        break;
+                    case 'ds':
+                        $query->where("sa.system_id IN (".$system_ids.")");
+                        break;
+                }
+                $query->where("p.poam_action_date_est <= '".$enddate."'")
+                      ->where("p.poam_action_date_actual IS NULL OR p.poam_action_date_actual > '".$enddate."'");
+                break;
+            case 'e':
+                switch($agency){
+                    case 'eaw':
+                        $query->where("sa.system_id = '".$fsa_system_id."'");
+                        break;
+                    case 'es':
+                        $query->where("sa.system_id IN (".$system_ids.")");
+                        break;
+                }
+                $query->where("p.poam_date_created >= '".$startdate."'")
+                      ->where("p.poam_date_created <= '".$enddate."'");
+                break;
+            case 'f':
+                switch($agency){
+                    case 'faw':
+                        $query->where("sa.system_id = '".$fsa_system_id."'");
+                        break;
+                    case 'fs':
+                        $query->where("sa.system_id IN (".$system_ids.")");
+                        break;
+                }
+                $query->where("p.poam_date_created <= '".$enddate."'")
+                      ->where("p.poam_date_closed IS NULL OR p.poam_date_closed > '".$enddate."'");
+                break;
+        }
+        $result = $db->fetchRow($query);
+        return $result['num_poams'];
     }
 
 }

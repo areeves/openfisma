@@ -8,7 +8,7 @@
 */
 
 require_once CONTROLLERS . DS . 'SecurityController.php';
-require_once MODELS . DS . 'remediation.php';
+require_once MODELS . DS . 'poam.php';
 
 class ReportController extends SecurityController
 {
@@ -110,7 +110,7 @@ class ReportController extends SecurityController
         require_once 'Zend/Session.php';
         require_once 'RiskAssessment.class.php';
         Zend_Session::start();
-        $poam = new remediation();
+        $poam = new poam();
         $req = $this->getRequest();
         $flag = $req->getParam('flag');
         $criteria = $req->getParam('criteria');
@@ -420,6 +420,125 @@ class ReportController extends SecurityController
             $this->view->assign('num_poam_ids',$num_poam_ids);
             $this->view->assign('system_id',$system_id);
         }
+        $this->render();
+    }
+
+    public function fismaAction(){
+        $req = $this->getRequest();
+        $user = new User();
+        $uid = $this->me->user_id;
+        $ids = implode(',',$user->getMySystems($uid));
+        $db = $user->getAdapter();
+        $query = $db->select()->distinct()->from(array('s'=>'SYSTEMS'),array('name'=>'s.system_nickname'))
+                                          ->where("system_id in (".$ids.")");
+        $systems = $db->fetchAll($query);
+        foreach($systems as $k=>$v){
+            $systems[$v['name']] = $v['name'];
+            unset($systems[$k]);
+        }
+        array_unshift($systems,"select system");
+        $this->view->assign('system_list',$systems);
+        $criteria['system'] = $req->getParam('system','');
+        $nowy = date('Y',time());
+        $sy_list = array(''              => 'Select Fiscal Year',
+                         ''.($nowy-3).'' => ''.($nowy-3).'',
+                         ''.($nowy-2).'' => ''.($nowy-2).'',
+                         ''.($nowy-1).'' => ''.($nowy-1).'',
+                         ''.$nowy.''     => ''.$nowy.'',
+                         ''.($nowy+1).'' => ''.($nowy+1).'');
+        $this->view->assign('sy_list',$sy_list);
+        $criteria['sy'] = $req->getParam('sy','');
+        $sq_list = array(''=>'Select Fiscal Quarter','1'=>'1Q','2'=>'2Q','3'=>'3Q','4'=>'4Q');
+        $criteria['sq'] = $req->getParam('sq','');
+        $this->view->assign('sq_list',$sq_list);
+        if('search' == $req->getParam('s')){
+             $this->_helper->actionStack('fismasearch','Report',null,
+                                            array('criteria' =>$criteria));
+        }
+        $this->view->assign('criteria',$criteria);
+        $this->render();
+    }
+
+    public function fismasearchAction(){
+        $poam = new poam();
+        $req = $this->getRequest();
+        $db = Zend_Registry::get('db');
+        $dr = $req->getParam('dr');
+        $sy = $req->getParam('sy');
+        $sq = $req->getParam('sq');
+        $startdate = $req->getParam('startdate');
+        $enddate = $req->getParam('enddate');
+        $system = $req->getParam('system');
+        switch($dr){
+            case 'y':
+                $sy = $req->getParam('sy');
+                $startdate = $sy."-01-01";
+                $enddate = $sy."-12-31";
+                break;
+            case 'q':
+                $sq = $req->getParam('sq');
+                $sy = $req->getParam('sy');
+                switch ($sq){
+                    case 1:
+                        $startdate = $sy."-01-01";
+                        $enddate   = $sy."-03-31";
+                        break;
+                    case 2:
+                        $startdate = $sy."-04-01";
+                        $enddate   = $sy."-06-30";
+                        break;
+                    case 3:
+                        $startdate = $sy."-07-01";
+                        $enddate   = $sy."-09-30";
+                        break;
+                    case 4:
+                        $startdate = $sy."10-01";
+                        $enddate   = $sy."12-31";
+                        break;
+                }
+                break;
+            case 'c':
+                $startdate = date('Y-m-d',strtotime($req->getParam('startdate')));
+                $enddate   = date('Y-m-d',strtotime($req->getParam('enddate')));
+                break;
+        }
+
+        $query = $db->select()->from(array('s'=>'SYSTEMS'),array('id'=>'s.system_id'))
+                              ->where("system_nickname = '".$system."'")
+                              ->limit(1);
+        $result = $db->fetchRow($query);
+        if('' == $result){
+            die("getFSASysID -no entry found in SYSTEMS for FSA");
+        }
+        $fsa_system_id = $result['id'];
+
+        $query->reset();
+        $query = $db->select()->from(array('sg'=>'SYSTEM_GROUPS'),array('id'=>'sysgroup_id'))
+                              ->where("sysgroup_nickname = '".$system."'")
+                              ->limit(1);
+        $result = $db->fetchRow($query);
+        if('' == $result){
+            die("getFSASysGroupID -no entry found in SYSTEM_GROUPS for FSA");
+        }
+        $fsa_sysgroup_id = $result['id'];
+        Zend_Registry::set('fsa_sysgroup_id', $fsa_sysgroup_id);
+        Zend_Registry::set('fsa_system_id',   $fsa_system_id);
+        Zend_Registry::set('startdate',       $startdate);
+        Zend_Registry::set('enddate',         $enddate);
+ 
+        $this->view->assign('AAW',$poam->fismasearch('aaw'));
+        $this->view->assign('AS', $poam->fismasearch('as'));
+        $this->view->assign('BAW',$poam->fismasearch('baw'));
+        $this->view->assign('BS', $poam->fismasearch('bs'));
+        $this->view->assign('CAW',$poam->fismasearch('caw'));
+        $this->view->assign('CS', $poam->fismasearch('cs'));
+        $this->view->assign('DAW',$poam->fismasearch('daw'));
+        $this->view->assign('DS', $poam->fismasearch('ds'));
+        $this->view->assign('EAW',$poam->fismasearch('eaw'));
+        $this->view->assign('ES', $poam->fismasearch('es'));
+        $this->view->assign('FAW',$poam->fismasearch('faw'));
+        $this->view->assign('FS', $poam->fismasearch('fs'));
+        $this->view->assign('dr', $dr );
         $this->render();
     }
 

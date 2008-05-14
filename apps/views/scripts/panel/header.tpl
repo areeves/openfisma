@@ -39,7 +39,7 @@
             echo'<li><a href="/zfentry.php/panel/report/sub/searchbox/flag/poam">POA&M Report</a></li>';
         }            
         if(isAllow('report','generate_fisma_report')) {
-            echo'<li><a href="#">FISMA POA&M Report</a></li>';
+            echo'<li><a href="/zfentry.php/panel/report/sub/fisma">FISMA POA&M Report</a></li>';
         }
         if(isAllow('report','generate_general_report')) {
             echo'<li><a href="/zfentry.php/panel/report/sub/general">General Report</a></li>';
