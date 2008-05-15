@@ -1,0 +1,59 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>report_search</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">report_search</td></tr>
+</thead><tbody>
+<tr>
+	<td>clickAndWait</td>
+	<td>link=POA&M Report</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>system</td>
+	<td>label=PSS</td>
+</tr>
+<tr>
+	<td>storeSelectedLabel</td>
+	<td>system</td>
+	<td>system</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>source</td>
+	<td>label=Risk Assessment</td>
+</tr>
+<tr>
+	<td>storeSelectedLabel</td>
+	<td>source</td>
+	<td>source</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>status</td>
+	<td>label=Open</td>
+</tr>
+<tr>
+	<td>storeSelectedLabel</td>
+	<td>status</td>
+	<td>status</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>search</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//table[@class='tbframe']/tbody/tr[2]/td[1]</td>
+	<td>${system}</td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

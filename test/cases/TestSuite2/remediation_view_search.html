@@ -15,13 +15,13 @@
 </tr>
 <tr>
 	<td>clickAndWait</td>
-	<td>link=18</td>
+	<td>link=3</td>
 	<td></td>
 </tr>
 <tr>
 	<td>select</td>
 	<td>source</td>
-	<td>label=Certification & Accreditation</td>
+	<td>label=Risk Assessment</td>
 </tr>
 <tr>
 	<td>storeSelectedLabel</td>
@@ -29,9 +29,24 @@
 	<td>findingsource</td>
 </tr>
 <tr>
+	<td>type</td>
+	<td>ids</td>
+	<td>14,15,16</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>status</td>
+	<td>label=(OPEN) Awaiting Mitigation Approval</td>
+</tr>
+<tr>
+	<td>storeSelectedLabel</td>
+	<td>//select[@name='status']</td>
+	<td>status</td>
+</tr>
+<tr>
 	<td>select</td>
 	<td>type</td>
-	<td>label=(CAP) Corrective Action Plan</td>
+	<td>label=(NONE) Unclassified</td>
 </tr>
 <tr>
 	<td>storeSelectedLabel</td>
@@ -40,18 +55,13 @@
 </tr>
 <tr>
 	<td>select</td>
-	<td>asset_owner</td>
-	<td>label=Automated Reconciliation System</td>
+	<td>action_owner</td>
+	<td>label=Personnel Security System</td>
 </tr>
 <tr>
 	<td>storeSelectedLabel</td>
-	<td>//select[@name='asset_owner']</td>
-	<td>asset_owner</td>
-</tr>
-<tr>
-	<td>type</td>
-	<td>ids</td>
-	<td>401</td>
+	<td>//select[@name='action_owner']</td>
+	<td>action_owner</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
@@ -85,7 +95,7 @@
 </tr>
 <tr>
 	<td>assertTextPresent</td>
-	<td>${asset_owner}</td>
+	<td>${action_owner}</td>
 	<td></td>
 </tr>
 

@@ -16,8 +16,8 @@ This directory is used for run Selenium test cases.
 Q: How can I install test database?
 A: Warning: This process will cover your fisma database by sql files, so backup database if it necessary.
    Step:
-	1.Download database file 20080407_r210.rar from: http://140.239.107.107/publish/testdata/20080407_r210.rar
-	2.Unzip the *.sql files to directory test/20080407_r210
+	1.Download database file yyyymmdd_testfismadb.zip from: http://140.239.107.107/publish/testdata/yyyymmdd_testfismadb.zip
+	2.Unzip the *.sql files to directory test/data/
 	3.open brower url: http://servername:port/zfentry.php/test/dbrecover
 and then waiting for database loading finished. 
 You could follow the notes and check out your config if it shows failure.      

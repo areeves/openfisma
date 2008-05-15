@@ -7,7 +7,8 @@
  * @version $Id$
  */
 
-define('SCHEMA_DATABASE','schema.sql');
+define('SCHEMA_DATABASE','SCHEMA.sql');
+define('DATABASE_PATH', ROOT . DS . 'test' . DS . 'data');
 
 class TestController extends Zend_Controller_Action
 {
@@ -25,7 +26,7 @@ class TestController extends Zend_Controller_Action
         $qry="select system_id from USER_SYSTEM_ROLES where user_id = '$user_id'";
 
         if($user_id=='17'){
-        $qry="select distinct system_id from USER_SYSTEM_ROLES";
+            $qry="select distinct system_id from USER_SYSTEM_ROLES";
         }
         $this->view->system_id_qry=$qry;
 
@@ -60,7 +61,7 @@ class TestController extends Zend_Controller_Action
         $passwd=$ds->default->params->password;
         $host=$ds->default->params->host;
         $database=$ds->default->params->dbname;
-        $sqlpath=dirname(dirname(dirname(__FILE__))).'/test/20080407_r210';
+        $sqlpath=DATABASE_PATH;
         if(!is_dir($sqlpath)) die("'$sqlpath' is not exist.");
         if(!mysql_connect($host,$user,$passwd)) die("Could   not   connect   to   mysql");
         $dbconn = mysql_select_db($database);
@@ -68,22 +69,24 @@ class TestController extends Zend_Controller_Action
         $files=scandir($sqlpath);
         if(!$files) die("files error!");
         $sql_file = preg_grep("/[a-zA-Z0-9]*\.sql$/i",$files);
-        ob_end_clean();
         echo "<b>Now start importing <<< </b><br/>";
+        ob_end_flush();
         foreach($sql_file as $elem){
-        if($elem==SCHEMA_DATABASE) continue;
-        $exec="mysql -h $host -u $user -p$passwd $database < $sqlpath/$elem";
-        echo $exec;
-        passthru($exec, $ret);
-        if($ret != 0) {
-            echo " : <font color=red>Failed</font><br/>";
-        }else{
-            echo " : <font color=green>OK</font><br/>";
-        }
-        flush();
+            if($elem==SCHEMA_DATABASE) continue;
+            list($elemname)=split('.sql',$elem);
+            $exec="truncate $elemname";
+            $result=mysql_query($exec);
+            $exec="mysql -h $host -u $user -p$passwd $database < $sqlpath/$elem";
+            echo $exec;
+            passthru($exec, $ret);
+            if($ret != 0) {
+                echo " : <font color=red>Failed</font><br/>";
+                }else{
+                echo " : <font color=green>OK</font><br/>";
+                }
+            ob_implicit_flush(true);
         }
         echo "<b>Test database loading finished.</b>";
-
     }
 }
 ?>
