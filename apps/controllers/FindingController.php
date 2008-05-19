@@ -9,12 +9,17 @@
 
 require_once CONTROLLERS . DS . 'SecurityController.php';
 require_once MODELS . DS . 'finding.php';
+require_once  'Pager.php';
 
 class FindingController extends SecurityController
 {
-    private $perPage = 30;
-    private $currentPage = 1;
     private $systems = array();
+    private $_paging = array('mode'    =>'Sliding',
+                             'append'  =>false,
+                             'urlVar'  =>'p',
+                             'path'    =>'',
+                             'currentPage'=>1,
+                             'perPage'=>20);                             
 
     public function indexAction()
     {
@@ -35,6 +40,7 @@ class FindingController extends SecurityController
                                     array('id'=>'system_id','name'=>'system_name'))
                                     ->where("system_id IN ( $ids )")
                                     ->order('id ASC'));
+        $req = $this->getRequest();
     }
 
     public function searchboxAction(){
@@ -112,7 +118,16 @@ class FindingController extends SecurityController
                                               'discovered' => 'finding_date_discovered'));
 
         $req = $this->getRequest();
+        
         $criteria = $req->getParam('criteria');
+        foreach($criteria as $key=>$value){
+            if(!empty($value) && $value!='any'){
+                $this->_paging_base_path .='/'.$key.'/'.$value.'';
+            }
+        }
+        $this->_paging_base_path = $req->getBaseUrl().'/panel/finding/sub/searchbox/s/search';
+        $this->_paging['currentPage'] = $req->getParam('p',1);
+        $this->_paging_base_path = $req->getParam('path');
         $systems = $req->getParam('system');
 
         assert(is_array($criteria)); //be more assert
@@ -155,12 +170,15 @@ class FindingController extends SecurityController
         if( !empty($port) ) {
             $qry->where("addr.address_port = '$port'");
         }
-        
-        $qry->limitPage($this->currentPage,$this->perPage);
+        $this->_paging['totalItems'] = $total = count($finding->fetchAll($qry));
+        $qry->limitPage($this->_paging['currentPage'],$this->_paging['perPage']);
         $data = $finding->fetchAll($qry);
         $findings = $data->toArray();
+        $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";
+        $pager = &Pager::factory($this->_paging);
         $this->view->assign('findings',$findings);
-
+        $this->view->assign('total_pages',$total);
+        $this->view->assign('links',$pager->getLinks());
         $this->render();
     }
 
