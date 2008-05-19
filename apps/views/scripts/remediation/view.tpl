@@ -1,12 +1,3 @@
-<script language="javascript">
-<!--
-function go(step) {
-    document.finding.action.value = step;
-    document.finding.submit();
-}
--->
-</script>
-<script LANGUAGE="JavaScript" type="text/javascript" src="javascripts/jquery/remediation_edit.js"></script>
 <br>
 <table width="95%" border="0" align="center">
 <tr>
@@ -17,21 +8,22 @@ function go(step) {
             <!-- SAVE MODIFICATIONS TO REMEDIATION -->
             <form action="/zfentry.php/panel/remediation/sub/view/id/<?php echo $this->remediation_id;?>" method="post">
             <input type="hidden" name="action" value="save">
-            <input type='hidden' name='remediation_owner' value=''>
-            <input type='hidden' name='recommendation' value=''>
+            <input type='hidden' name='poam_action_owner' value=''>
+            <input type='hidden' name='poam_action_suggested' value=''>
             <input type='hidden' name='poam_type' value=''>
-            <input type='hidden' name='description' value=''>
-            <input type='hidden' name='resources' value=''>
-            <input type='hidden' name='action_date_est' value=''>
-            <input type='hidden' name='blscr_number' value=''>
-            <input type='hidden' name='threat_level' value=''>
-            <input type='hidden' name='threat_source' value=''>
-            <input type='hidden' name='threat_justification' value=''>
-            <input type='hidden' name='cmeasure_effectiveness' value=''>
-            <input type='hidden' name='cmeasure' value=''>
-            <input type='hidden' name='cmeasure_justification' value=''>
+            <input type='hidden' name='poam_action_planned' value=''>
+            <input type='hidden' name='poam_action_resources' value=''>
+            <input type='hidden' name='poam_action_date_est' value=''>
+            <input type='hidden' name='poam_blscr' value=''>
+            <input type='hidden' name='poam_threat_level' value=''>
+            <input type='hidden' name='poam_threat_source' value=''>
+            <input type='hidden' name='poam_threat_justification' value=''>
+            <input type='hidden' name='poam_cmeasure_effectiveness' value=''>
+            <input type='hidden' name='poam_cmeasure' value=''>
+            <input type='hidden' name='poam_cmeasure_justification' value=''>
             <input type='hidden' name='poam_action_status' value=''>
-            <input type='submit' title='Save or Submit' value="Save" style="cursor: pointer;">
+            <input type='hidden' name='action_approval' value=''>
+            <input type='submit' title='Save or Submit' value="Save##" style="cursor: pointer;">
             </form>
         </td>
     </tr>

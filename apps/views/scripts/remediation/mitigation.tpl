@@ -39,7 +39,7 @@
                 <tr>
                     <td>
                         <b>Description:</b>
-                        <div id="description" type="textarea" name="description" rows="5" cols="160">
+                        <div id="description" type="textarea" name="poam_action_planned" rows="5" cols="160">
                         <?php if(isAllow('remediation','update_finding_course_of_action')){
                              if('OPEN' == $this->remediation['poam_status']){
                         ?>
@@ -63,7 +63,7 @@
                 <th align="left">Resources Required for Course of Action</th>
                 <tr>
                     <td>
-                        <div id="resources" type="textarea" name="resources" rows="5" cols="160">
+                        <div id="resources" type="textarea" name="poam_action_resources" rows="5" cols="160">
                         <?php if(isAllow('remediation','update_finding_resources')){?>
                         <span class="sponsor">
                         <img src='/images/button_modify.png'>
@@ -81,7 +81,7 @@
     <tr>
         <td width='50%'>
             <b>Estimated Completion Date:</b>
-            <div id="date_est" type="text" name="action_date_est" size="20">
+            <div id="date_est" type="text" name="poam_action_date_est" size="20">
             <?php if(isAllow('remediation','update_est_completion_date')){
                 if('OPEN' == $this->remediation['poam_status']){
             ?>

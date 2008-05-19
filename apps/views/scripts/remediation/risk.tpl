@@ -45,7 +45,7 @@
                     <tr>
                         <td>
                             <b>Level:</b>
-                            <div id ="threat" type="select" name="threat_level" 
+                            <div id ="threat" type="select" name="poam_threat_level" 
                                  option='{"NONE":"NONE","LOW":"LOW","MODERATE":"MODERATE","HIGH":"HIGH"}'>
                             <?php if(isAllow('remediation','update_threat')){ ?>
                             <span class="sponsor">
@@ -59,7 +59,7 @@
                     <tr>
                         <td>
                             <b>Source:</b>
-                            <div id ="source" type="textarea" name="threat_source" rows="5" cols="160">
+                            <div id ="source" type="textarea" name="poam_threat_source" rows="5" cols="160">
                             <?php if(isAllow('remediation','update_threat')){ ?>
                             <span class="sponsor">
                             <img src='/images/button_modify.png'>
@@ -73,7 +73,7 @@
                     <tr>
                         <td>
                             <b>Justification:</b>
-                            <div id ="justification" type="textarea" name="threat_justification"
+                            <div id ="justification" type="textarea" name="poam_threat_justification"
                                  rows="5" cols="160">
                             <?php if(isAllow('remediation','update_threat')){ ?>
                             <span class="sponsor">
@@ -102,7 +102,7 @@
                     <tr>
                         <td>
                             <b>Effectiveness:</b>
-                            <div id="effectivness" type="select" name="cmeasure_effectiveness"
+                            <div id="effectivness" type="select" name="poam_cmeasure_effectiveness"
                                 option='{"NONE":"NONE","LOW":"LOW","MODERATE":"MODERATE","HIGH":"HIGH"}'>
                             <!-- RESTRICT UPDATE BASED ON STATUS AND ROLE-->
                             <?php if(isAllow('remediation','update_cmeasures')){ ?>
@@ -119,7 +119,7 @@
                     <tr>
                         <td>
                             <b>Countermeasure:</b>
-                            <div id="cmeasure" type="textarea" name="cmeasure" rows="5" cols="160">
+                            <div id="cmeasure" type="textarea" name="poam_cmeasure" rows="5" cols="160">
                             <!--RESTRICT UPDATE BASED ON STATUS AND ROLE-->
                             <?php if(isAllow('remediation','update_cmeasure')){ ?>
                             <span class="sponsor">
@@ -132,7 +132,7 @@
                      <tr>
                         <td>
                             <b>Justification:</b>
-                            <div id="cmeasure_justification" type="textarea" name="cmeasure_justification"
+                            <div id="cmeasure_justification" type="textarea" name="poam_cmeasure_justification"
                                 rows="5" cols="160">
                             <!--RESTRICT UPDATE BASED ON STATUS AND ROLE-->
                             <?php if(isAllow('remediation','udpate_cmeasure')){ ?>
@@ -165,7 +165,7 @@
 
                 <td colspan='2'>
                     <b>SSO Approval:</b><!-- Action Approval-->
-                    <div id="sso_approval" type="select" name="action_approval"
+                    <div id="sso_approval" type="select" name="poam_action_status"
                         option='{"APPROVED":"APPROVED","DENIED":"DENIED"}'>                    
                     <!--RESTRICT UPDATE BASED ON STATUS AND ROLE-->
                     <?php if(isAllow('remediation','update_mitigation_strategy_approval')){
@@ -216,20 +216,21 @@
         <td>
             <form action="/zfentry.php/panel/remediation/sub/view/id/<?php echo $this->remediation_id;?>" method="post">
             <input type="hidden" name="action" value="save">
-            <input type='hidden' name='remediation_owner' value=''>
-            <input type='hidden' name='recommendation' value=''>
+            <input type='hidden' name='poam_action_owner' value=''>
+            <input type='hidden' name='poam_action_suggested' value=''>
             <input type='hidden' name='poam_type' value=''>
-            <input type='hidden' name='description' value=''>
-            <input type='hidden' name='resources' value=''>
-            <input type='hidden' name='action_date_est' value=''>
-            <input type='hidden' name='blscr_number' value=''>
-            <input type='hidden' name='threat_level' value=''>
-            <input type='hidden' name='threat_source' value=''>
-            <input type='hidden' name='threat_justification' value=''>
-            <input type='hidden' name='cmeasure_effectiveness' value=''>
-            <input type='hidden' name='cmeasure' value=''>
-            <input type='hidden' name='cmeasure_justification' value=''>
+            <input type='hidden' name='poam_action_planned' value=''>
+            <input type='hidden' name='poam_action_resources' value=''>
+            <input type='hidden' name='poam_action_date_est' value=''>
+            <input type='hidden' name='poam_blscr' value=''>
+            <input type='hidden' name='poam_threat_level' value=''>
+            <input type='hidden' name='poam_threat_source' value=''>
+            <input type='hidden' name='poam_threat_justification' value=''>
+            <input type='hidden' name='poam_cmeasure_effectiveness' value=''>
+            <input type='hidden' name='poam_cmeasure' value=''>
+            <input type='hidden' name='poam_cmeasure_justification' value=''>
             <input type='hidden' name='poam_action_status' value=''>
+            <input type='hidden' name='action_approval' value=''>
             <input type='submit' title='Save or Submit' value="Save##" style="cursor: pointer;">
             </form>
         </td>
@@ -289,20 +290,14 @@
                 <?php if((isAllow('remediation','update_evidence_approval_first')) && ($this->remediation_status == 'EP') && ($row['ev_sso_evaluation'] == 'NONE')){
                 ?>
                     <td>
-                        <form action='zfentry.php/panel/remediation/sub/modify' method='POST'>
-                            <input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
-                            <input type='hidden' name='ev_id'          value='{$all_evidence[row].ev_id}'>
-                            <input type='hidden' name='root_comment'   value='<?php echo $this->root_comment;?>'>
-                            <input type='hidden' name='target'         value='evidence'>
-                            <input type='hidden' name='action'         value='sso_evaluate'>
-                            <input type='hidden' name='validated'      value='no'>
-                            <input type='hidden' name='approved'       value='no'>
-
                         <b>ISSO Evaluation:</b>
-                            <input type='hidden' name='form_action' value='Evaluate'>
-                            <input type='image' src='/images/button_modify.png' name='form_action' value='Evaluate'>
-                            <span><?php echo $row['ev_sso_evaluation'];?></span>
-                            </form>
+                            <div id="sso_evaluate" type="select" name="sso_evaluate" 
+                                option='{"NONE":"NONE","APPROVED":"APPROVED","DENIED":"DENIED"}'>
+                                <span class="sponsor">
+                                <img src='/images/button_modify.png'>
+                                </span>
+                                <span class="contenter"><?php echo $row['ev_sso_evaluation'];?></span>
+                            </div>
                     </td>
                 <?php } else { ?>
                     <td><b>ISSO Evaluation:</b><?php echo $row['ev_sso_evaluation'];?></td>
@@ -322,13 +317,16 @@
                 <?php if((isAllow('remediation','update_evidence_approval_second'))&& ($this->remediation_status == 'EP') && ($row['ev_sso_evaluation'] == 'APPROVED') && ($row['ev_fsa_evaluation'] == 'NONE')){ ?>
                     <td>
                         <b>IV&V Evaluation:</b>
-                            <input type='hidden' name='form_action' value='Evaluate'>
-                            <input type='image' src='/images/button_modify.png' name='form_action' value='Evaluate'>
-                            <span><?php echo $row['ev_fsa_evaluation'];?></span>
+                            <div id="fsa_evaluate" type="select" name="fsa_evaluate" 
+                                option='{"NONE":"NONE","APPROVED":"APPROVED","DENIED":"DENIED"}'>
+                                <span class="sponsor">
+                                <img src='/images/button_modify.png'>
+                                </span>
+                                <span class="contenter"><?php echo $row['ev_fsa_evaluation'];?></span>
+                            </div>
                     </td>
                 <?php } else { ?>
                     <td><b>IV&V Evaluation:</b> <?php echo $row['ev_fsa_evaluation'];?></td>
-                     <td><b>IV&V Evaluation:</b> <?php echo $row['ev_fsa_evaluation'];?></td>
                          <?php if(isset($row['comments']['EV_FSA']) && $row['comments']['EV_FSA'] != ''){ ?>
                     <td width="85%">
                         <table border="0" cellpadding="3" cellspacing="1" class="tipframe" width="100%">
@@ -345,19 +343,14 @@
                     <?php if((isAllow('remediation','update_evidence_approval_second'))&& ($this->remediation_status == 'ES') && ($row['ev_sso_evaluation'] == 'APPROVED') && ($row['ev_fsa_evaluation'] == 'APPROVED')){
                     ?>
                         <td>
-                            <form action='zfentry.php/panel/remediation/sub/modify' method='POST'>
-                                <input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
-                                <input type='hidden' name='ev_id'          value='<?php echo $row['ev_id'];?>'>
-                                <input type='hidden' name='root_comment'   value='<?php echo $this->root_comment;?>'>
-                                <input type='hidden' name='target'         value='evidence'>
-                                <input type='hidden' name='action'         value='ivv_evaluate'>
-                                <input type='hidden' name='validated'      value='no'>
-                                <input type='hidden' name='approved'       value='no'>
                             <b>Final Evaluation:</b>
-                                <input type='hidden' name='form_action' value='Evaluate'>
-                                <input type='image' src='/images/button_modify.png' name='form_action' value='Evaluate'>
-                                <span><?php echo $row['ev_ivv_evaluation'];?></span>
-                            </form>
+                            <div id="ivv_evaluate" type="select" name="ivv_evaluate" 
+                                    option='{"NONE":"NONE","APPROVED":"APPROVED","DENIED":"DENIED"}'>
+                                <span class="sponsor">
+                                <img src='/images/button_modify.png'>
+                                </span>
+                                <span class="contenter"><?php echo $row['ev_ivv_evaluation'];?></span>
+                            </div>
                         </td>
                     <?php } else { ?>
                         <td><b>Final Evaluation:</b><?php echo $row['ev_ivv_evaluation'];?></td>
@@ -395,13 +388,11 @@
             <?php } else { ?>
                 <td colspan="2">
                     <!-- SAVE MODIFICATIONS TO EVIDENCE -->
-                    <form action='zfentry.php/panel/remediation/sub/modify' method='POST'>
-                        <input type='hidden' name='action'         value='add'>
-                        <input type='hidden' name='validated'      value='no'>
-                        <input type='hidden' name='approved'       value='no'>
-                        <input type='hidden' name='target'         value='save_poam'>
-                        <input type='hidden' name='remediation_id' value='<?php echo $this->remediation_id;?>'>
-                        <input type='hidden' name='form_action' value=''>
+                    <form action="/zfentry.php/panel/remediation/sub/view/id/<?php echo $this->remediation_id;?>" method="post">
+                        <input type='hidden' name='action' value='save'>
+                        <input type='hidden' name='sso_evaluate' value=''>
+                        <input type='hidden' name='fsa_evaluate' value=''>
+                        <input type='hidden' name='ivv_evaluate' value=''>
                         <input type='submit' title='Save or Submit' value="Save" style="cursor: pointer;">
                     </form>
                 </td>

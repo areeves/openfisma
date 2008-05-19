@@ -27,7 +27,7 @@
                 <tr>
                     <td>
                         <b>Responsible System:</b>
-                        <div id="system" type="select" name="remediation_owner"
+                        <div id="system" type="select" name="poam_action_owner"
                              option='{<?php foreach($this->system_list as $row){?>
                              "<?php echo $row['id'];?>":"<?php echo "(".$row['nickname'].")".$row['name'];?>",
                              <?php } ?> }'>
@@ -125,7 +125,7 @@
                 <th align='left' colspan='2'>Recommendation</th>
                 <tr>
                     <td colspan='2'>
-                        <div id="recommendation" name="recommendation" type="textarea" rows="5" cols="160">
+                        <div id="recommendation" name="poam_action_suggested" type="textarea" rows="5" cols="160">
                         <?php if(isAllow('remediation','update_finding_recommendation')){?>
                         <span class="sponsor"><img src='/images/button_modify.png'></span> 
                         <?php }?>
