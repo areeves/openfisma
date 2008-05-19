@@ -4,7 +4,7 @@
 ** - both PHP (dblink, finding_upload) and Perl (inject_utils).
 */
 
-    define('DEPLOY_MODE', 'DBG'); //DBG, RLS
+    define('DEPLOY_MODE', 'RLS'); //DBG, RLS
     // Database
     // Choose the database to be used
     define('OVMS_DB_TYPE', 'mysql');
@@ -62,5 +62,7 @@ $LOGIN_WARNING = "This is a United States Government Computer system. We encoura
 
 define("PS", PATH_SEPARATOR);
 ini_set('include_path',ini_get('include_path'). PS .OVMS_INCLUDE_PATH . PS . OVMS_LOCAL_PEAR . PS . OVMS_VENDOR_PATH);
+
+require_once(OVMS_ROOT_PATH . DS . 'conf' . DS . 'config.'.strtolower(DEPLOY_MODE).'.php');
 
 ?>
