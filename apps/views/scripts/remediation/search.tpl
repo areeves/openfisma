@@ -1,27 +1,20 @@
 <div class="barleft">
 <div class="barright">
-<p><b>Remediation Search Results</b><span><?php echo date('Y-M-D h:i:s:A');?></span></p>
+    <p><b>Remediation Search Results</b>
+        <span>
+            <?php echo $this->links['all'];?>
+        </span>
+    </p>
 </div>
 </div>
 </table>
-<!-- End Heading Block -->
 
 <!-- Remediation Summary Table -->
-<table width="95" align="center" border="0" cellpadding="0" cellspacing="0">
-    <tr>
-        <td>
-            <!-- Pagination-->
-            <?php echo $this->links['all'];?>
-            <!--End Pagination -->
-        </td>
-    </tr>
-    <tr>
-        <td>
-        <table width="100%" border="1" cellpadding="5" cellspacing="0" class="tbframe">
+        <table width="100%" class="tbframe">
             <form  name="order_by_ID" action='remediation.php' method='POST'>
             <th nowrap>
-                <input type='hidden' name='sort_by'        value='remediation_id'> 
-                <input type='hidden' name='sort_order' >          ID 
+                <input type='hidden' name='sort_by' value='remediation_id'> 
+                <input type='hidden' name='sort_order' >ID 
                 <input type='image'  src='/images/up_arrow.gif'   onClick="order_page(11)"> 
                 <input type='image'  src='/images/down_arrow.gif' onClick="order_page(12)">          
             </th>
@@ -70,6 +63,3 @@
             </tr>
             <?php } ?>
         </table>
-        </td>
-    </tr>
-</table>

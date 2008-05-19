@@ -1,9 +1,9 @@
 <div class="barleft">
 <div class="barright">
-<p><b>Remediation Summary</b><span><?php echo date('Y-M-D h:i:s:A');?></span></p>
+<p><b>Remediation Summary</b></p>
 </div>
 </div>
-<table align="center" cellpadding="5" class="tbframe">
+<table align="center" class="tbframe">
     <tr align="center">
         <th>Action Owner</th>
         <th>New</th>

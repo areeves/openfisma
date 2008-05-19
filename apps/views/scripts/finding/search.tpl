@@ -1,59 +1,22 @@
 <div class="barleft">
 <div class="barright">
-<p><b>Finding Search Results</b><span><?PHP echo date('Y-M-D h:i:s:A'); ?></span></p
+<p><b>Finding Search Results</b>
+   <span><!-- Pagination -->
+            <?php echo $this->links['all'];?>
+   </span>
+</p>
 </div>
 </div>
-
-<br>
-
-<table width="98%" align="center">
-    <tr>
-        <td align="left">
-            <?php if(isAllow('finding','delete')){ ?>
+<?php if(isAllow('finding','delete')){ ?>
             <!-- Allow Multiple Deletion if the user has the appropriate rights -->
-            <table width="100%" align="left" border="0" cellpadding="0" cellspacing="0">
-                <tr>
-                    <td align="left">
                         <input name="button" type="button" id="button" value="Select All" onclick="selectall('finding', 'fid_', true);" style="cursor:pointer;">
                         <input name="button" type="button" id="button" value="Select None" onclick="selectall('finding', 'fid_', false);" style="cursor:pointer;">
                         <input  name="button" type="button" id="button" value="Delete" 
                                 onClick="document.finding.sbt.value='delete'; return deleteconfirm('finding','fid_','finding');" style="cursor:pointer;">
-                    </td>
-                </tr>
-            </table>
             <!-- End Multiple Deletion -->
-        </td>
-        <td align="right">
-        
-            <!-- Pagination -->
-            <table>
-                <tr>
-                    <td>
-                        <input type="hidden" name="pageno" value="<?php echo $this->pageno; ?>">
-                        <input type="hidden" name="totalpage" value="<?php echo $this->totalpage; ?>">
-                        <?php if(1 < $this->pageno) { ?>
-                        <input name="button" type="button" id="button" value="Previous" onClick="pageskip('finding','prev');" style="cursor:pointer;">
-                        <?php } ?>
-                    </td>
-                    <td>&nbsp;Page:</td>
-                    <td><input type="text" name="pageno" value="<?php echo $this->pageno; ?>" size="5" maxlength="5" readonly="yes">&nbsp;</td>
-                    <td>
-                        <?php if($this->pageno != $this->totalpage) {?>
-                        <input name="button" type="button" id="button" value="Next" onClick="pageskip('finding','next');" style="cursor:pointer;">
-                        <?php }?>
-                    </td>
-                    <td align=right>&nbsp; Total pages: <b><?php echo $this->totalpage; ?></b></td>
-                </tr>
-            </table>
-            <!-- End Pagination -->     
-        
-        </td>
-    </tr>
-    <?php }?>
-    <tr>
-        <td colspan="2">
+<?php }?>
             <!-- Finding Search Results --> 
-            <table width="100%" align="left" border="1" cellpadding="5" cellspacing="0" class="tbframe">
+            <table width="100%" class="tbframe">
                 <tr align="center">
                     <?php if(isAllow('finding','delete')) {?>
                     <th></td>
@@ -119,7 +82,4 @@
                 <?php }
                 }?>
             </table>
-        </td>
-    </tr>
-</table>
 
