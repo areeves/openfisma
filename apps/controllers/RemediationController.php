@@ -98,6 +98,7 @@ class RemediationController extends SecurityController
                 $summary[$id] = $sum;
             }
         }
+ 	//$poam->search($id, 'count', array('ep'=>array('sso'=>'APPROVAL') ) );
         $systems = $system->find($system_list);
         foreach( $systems as $s ) {
             $sys_list[$s->system_id] = $s->toArray();
@@ -122,11 +123,11 @@ class RemediationController extends SecurityController
         $poam = new poam();
         $totals = $poam->search($system_list,array('count'=>array()),$criteria);
         $list = $poam->search($system_list,'*',$criteria,$this->_paging['currentPage'],$this->_paging['perPage']);
-        $this->_paging['totalItems'] = $totals[0]['count'];
+        $this->_paging['totalItems'] = $total = $totals[0]['count'];
         $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";
         $pager = &Pager::factory($this->_paging);
         $this->view->assign('summary_list',$list);
-        $this->view->assign('total_pages',3);
+        $this->view->assign('total_pages',$total);
         $this->view->assign('links',$pager->getLinks());
         $this->render('search');
     }
@@ -277,192 +278,11 @@ class RemediationController extends SecurityController
     public function viewAction(){
         $req = $this->getRequest();
         $id = $req->getParam('id');
-        assert($id);
         $today = date("Ymd",time());
         $poam = new poam();
         $db = $poam->getAdapter();
-        if(isset($_POST['action']) && 'save' == $_POST['action']){
-            $id = $req->getParam('id');
-            $now = date('Y-m-d,h:i:s',time());
-            foreach($_POST as $k=>$v){
-                if('poam_' == substr($k,0,5)){
-                    $fields[$k] = $k;
-                }
-            }
-            $fields['finding_id'] = 'finding_id';
-            $query = $db->select()->from(array('p'=>'POAMS'),$fields)
-                                  ->joinleft(array('pe'=>'POAM_EVIDENCE'),'p.poam_id = pe.poam_id',array())
-                                  ->where("p.poam_id = $id");
-            $poams = $db->fetchRow($query);
-            foreach($_POST as $k=>$v){
-              if(!empty($v)){
-                switch($k){
-                    case 'poam_blscr':
-                        $data = array('poam_blscr'=>''.$v.'');
-                        $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                        break;
-                    case 'poam_type':
-                        $data = array('poam_type'=>''.$v.'',
-                                      'poam_status'=>'OPEN',
-                                      'poam_date_modified'=>''.$now.'',
-                                      'poam_action_planned'=>'null',
-                                      'poam_action_date_est'=>'null',
-                                      'poam_action_date_actual'=>'null',
-                                      'poam_action_resources'=>'null',
-                                      'poam_action_status'=>'NONE');
-                        $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                        /*$data = array('ev_sso_evaluation'=>'EXCLUEDE');
-                        $result = $db->update('POAM_EVIDENCE',$data,array('poam_id = '.$id.'','ev_sso_evalution="NONE"'));
-                        $data = array('ev_fsa_evaluation'=>'EXCLUDED');
-                        $result = $db->update('POAM_EVIDENCE',$data,array('poam_id = '.$id.'','ev_fsa_evalution="NONE"'));
-                        $data = array('ev_ivv_evaluation'=>'EXCLUDED');
-                        $result = $db->update('POAM_EVIDENCE',$data,array('poam_id = '.$id.'','ev_ivv_evalution="NONE"'));*/
-                        break;
-                    case 'poam_action_planned':
-                        $data = array('poam_action_planned'=>''.$v.'',
-                                      'poam_action_status'=>'NONE');
-                        $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                        break;
-                    case 'poam_action_date_est':
-                        $data = array('poam_action_date_est'=>''.$v.'',
-                                      'poam_action_status'  =>'NONE');
-                        $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                        break;
-                    case 'poam_action_status':
-                        $data = array('poam_action_status' =>''.$v.'');
-                        $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                        if('APPROVED' == $v){
-                            $db->update('POAMS',array('poam_status'=>'EN'),'poam_id = '.$id.'');
-                        } else {
-                            $db->update('POAMS',array('poam_status'=>'OPEN'),'poam_id = '.$id.'');
-                        }
-                        break;
-                    case 'poam_action_suggested':
-                        $data = array('poam_action_suggested'=>''.$v.'',
-                                      'poam_action_status'   =>'NONE');
-                        $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                        break;
-                    case 'poam_action_owner':
-                        $data = array('poam_action_owner'=>''.$v.'');
-                        $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                        break;                                                               
-                    case 'poam_action_resources':
-                        $data = array('poam_action_resources'=>''.$v.'');
-                        $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                        break;
-                    case 'poam_cmeasure_effectiveness':
-                        $data = array('poam_cmeasure_effectiveness'=>''.$v.'',
-                                      'poam_action_status'         =>'NONE');
-                        $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                        break;
-                    case 'poam_cmeasure':
-                        $data = array('poam_cmeasure'      =>''.$v.'',
-                                      'poam_action_status' =>'NONE');
-                        $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                        break;
-                    case 'poam_cmeasure_justification':
-                        $data = array('poam_cmeasure_justification'=>''.$v.'',
-                                      'poam_action_status'         =>'NONE');
-                        $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                        break;
-                    case 'poam_threat_level':
-                        $data = array('poam_threat_level' =>''.$v.'',
-                                      'poam_action_status'=>'NONE');
-                        $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                        break;
-                    case 'poam_threat_source':
-                        $data = array('poam_threat_source'=>''.$v.'',
-                                      'poam_action_status'=>'NONE');
-                        $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                        break;
-                    case 'poam_threat_justification':
-                        $data = array('poam_threat_justification'=>''.$v.'',
-                                      'poam_action_status'       =>'NONE');
-                        $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                        break;
-                    case 'sso_evaluate':
-                        $data['ev_sso_evaluation'] = $v;
-                        $data['ev_date_sso_evaluation'] = $now;
-                        if('DENIED' == $v ){
-                            $data['ev_fsa_evaluation'] = 'EXCLUDED';
-                            $data['ev_ivv_evaluation'] = 'EXCLUDED';
-                        }
-                        $result = $db->update('POAM_EVIDENCE',$data,'poam_id = '.$id.'');
-                        break;
-                    case 'fsa_evaluate':
-                        $data['ev_fsa_evaluation'] = $v;
-                        $data['ev_date_fsa_evaluation'] = $now;
-                        if('DENIED' == $v ){
-                            $data['ev_ivv_evaluation'] = 'EXCLUDED';
-                        }
-                        $result = $db->update('POAM_EVIDENCE',$data,'poam_id = '.$id.'');
-                        if('APPROVED' == $v){
-                            $data = array('poam_status'=>'ES');
-                            $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                        }
-                        break;
-                    case 'ivv_evaluate':
-                        $data = array('ev_ivv_evaluation'=>''.$v.'',
-                                      'ev_date_ivv_evaluation'=>''.$now.'');
-                        $result = $db->update('POAM_EVIDENCE',$data,'poam_id = '.$id.'');
-                        if('APPROVED' == $v){
-                            $data = array('poam_status'=>'CLOSED',
-                                          'poam_date_closed'=>''.$now.'');
-                            $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                            $data = array('FINDINGS.finding_status'=>'CLOSED',
-                                          'FINDINGS.finding_date_closed'=>''.$now.'');
-                            $result = $db->update('FINDINGS',$data,'POAMS.finding_id = FINDINGS.finding_id' AND 
-                                                                         'poam_id = '.$id.'');
-                        }
-                        if('DENIED' == $v){
-                            $data = array('poam_status'=>'EN','poam_action_date_actual'=>'NULL');
-                            $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                        }
-                        break;
-                }
-              }
-            }
-            $data = array('poam_date_modified'=>''.$now.'',
-                          'poam_modified_by'  =>''.$this->me->user_id.'');
-            $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-            //$query = $db->select()->from(array('p'=>'POAMS'),array('poam_d'=>'poam_d'));            
-            $user_id = $this->me->user_id;
-            $now = time();
-            $eventArray = array('poam_action_owner'=>'UPDATE: responsible system',
-                  'poam_type'=>'UPDATE: remediation type',
-                  'poam_status'=>'UPDATE: remediation status',
-                  'poam_blscr'=>'UPDATE: BLSCR number',
-                  'poam_action_date_est'=>'UPDATE: course of action estimated completion date',
-                  'poam_action_status'=>'UPDATE: course of action evaluation',
-                  'poam_cmeasure_effectiveness'=>'UPDATE: countermeasure effectiveness',
-                  'poam_action_suggested'=>'UPDATE: recommended course of action',
-                  'poam_action_planned'=>'UPDATE: course of action',
-                  'poam_action_resources'=>'UPDATE: course of action resources',
-                  'poam_cmeasure'=>'UPDATE: countermeasure',
-                  'poam_cmeasure_justification'=>'UPDATE: countermeasure justification',
-                  'poam_threat_source'=>'UPDATE: threat source',
-                  'poam_threat_justification'=>'UPDATE: threat justification',
-                  'poam_previous_audits'=>'UPDATE: previous audits',
-                  'poam_threat_level'=>'UPDATE: threat level',
-                  'ev_sso_evaluation'=>'UPDATE: SSO evidence evaluation',
-                  'ev_fsa_evaluation'=>'UPDATE: FSA evidence evaluation',
-                  'ev_ivv_evaluation'=>'UPDATE: IV&V evidence evaluation'
-                  );
-            foreach($_POST as $k=>$v){
-                if('poam_' == substr($k,0,5) && !empty($v)){
-                    $data = array('finding_id'=>''.$poams['finding_id'].'',        
-                                  'user_id'   =>$user_id,
-                                  'date'      =>$now,
-                                  'event'     =>''.$eventArray[$k].'',
-                                  'description'=>'Original:'.$poams[$k].' New:'.$v.'');
-                    $result = $db->insert('AUDIT_LOG',$data);
-                }
-            }
-        }
         $query = $poam->select()->setIntegrityCheck(false);
-
         // Finding Information Query
-
         $query->from(array('p'=>'POAMS'),array());
         $query->join(array('f'=>'FINDINGS'),'p.finding_id = f.finding_id',array('f_id'=>'f.finding_id',
                                                                                 'f_status'=>'f.finding_status',
@@ -568,7 +388,7 @@ class RemediationController extends SecurityController
         if(count($comments) >0 ){
             foreach($comments as &$comment){
                 $comment['comment_topic'] = stripslashes($comment['comment_topic']);
-                $comment['comment_body'] = nl2br($comment['comment_log']);
+                $comment['comment_body'] = nl2br($comment['comment_body']);
                 $comment['comment_log'] = nl2br($comment['comment_log']);
                 if($comment['comment_type'] == 'EST'){
                     $comments_est[] = $comment;
@@ -597,7 +417,7 @@ class RemediationController extends SecurityController
         $num_evidence = count($all_evidence);
         if($num_evidence){
             foreach($all_evidence as &$evidence){
-                if($comments_ev != null){
+                if($comments_ev != null && !empty($comments_ev[$evidence['ev_id']])){
                     $evidence['comments'] = $comments_ev[$evidence['ev_id']];
                 }
                 $evidence['fileName'] = basename($evidence['ev_submission']);
@@ -663,5 +483,248 @@ class RemediationController extends SecurityController
         $this->view->assign('remediation_id',$id);
         $this->render();
     }
-    
+
+    public function modifyAction(){
+        $req = $this->getRequest();
+        $id = $req->getParam('id');
+        $comment = $req->getParam('comment_body');
+        $ev_id   = $req->getParam('ev_id');
+        assert($id);
+        $today = date("Ymd",time());
+        $user_id = $this->me->user_id;
+        $now = date('Y-m-d,h:i:s',time());
+        $poam = new poam();
+        $db = $poam->getAdapter();
+        foreach($_POST as $k=>$v){
+            if(!in_array($k,array('id','comment_body','ev_id')) && !empty($v)){
+                $fields[$k] = $k;
+            }
+        }
+        $fields['finding_id'] = 'finding_id';
+        $query = $db->select()->from(array(),$fields)
+                              ->from(array('p'=>'POAMS'),array())
+                              ->joinleft(array('pe'=>'POAM_EVIDENCE'),'p.poam_id = pe.poam_id',array())
+                              ->where("p.poam_id = $id");
+        $poams = $db->fetchRow($query);
+        foreach($_POST as $k=>$v){
+          if(!empty($v)){
+            switch($k){
+                case 'poam_blscr':
+                    $data = array('poam_blscr'=>''.$v.'');
+                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
+                    break;
+                case 'poam_type':
+                    $data = array('poam_type'=>''.$v.'',
+                                  'poam_status'=>'OPEN',
+                                  'poam_date_modified'=>''.$now.'',
+                                  'poam_action_planned'=>'null',
+                                  'poam_action_date_est'=>'null',
+                                  'poam_action_date_actual'=>'null',
+                                  'poam_action_resources'=>'null',
+                                  'poam_action_status'=>'NONE');
+                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
+                    $data = array('ev_sso_evaluation'=>'EXCLUEDE');
+                    $result = $db->update('POAM_EVIDENCE',$data,array('poam_id = '.$id.'','ev_sso_evaluation="NONE"'));
+                    $data = array('ev_fsa_evaluation'=>'EXCLUDED');
+                    $result = $db->update('POAM_EVIDENCE',$data,array('poam_id = '.$id.'','ev_fsa_evaluation="NONE"'));
+                    $data = array('ev_ivv_evaluation'=>'EXCLUDED');
+                    $result = $db->update('POAM_EVIDENCE',$data,array('poam_id = '.$id.'','ev_ivv_evaluation="NONE"'));
+                    break;
+                case 'poam_action_planned':
+                    $data = array('poam_action_planned'=>''.$v.'',
+                                  'poam_action_status'=>'NONE');
+                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
+                    break;
+                case 'poam_action_date_est':
+                    $data = array('poam_action_date_est'=>''.$v.'',
+                                  'poam_action_status'  =>'NONE');
+                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
+                    break;
+                case 'poam_action_status':
+                    $data = array('poam_action_status' =>''.$v.'');
+                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
+                    if('APPROVED' == $v){
+                        $db->update('POAMS',array('poam_status'=>'EN'),'poam_id = '.$id.'');
+                    } else {
+                        $db->update('POAMS',array('poam_status'=>'OPEN'),'poam_id = '.$id.'');
+                    }
+                    break;
+                case 'poam_action_suggested':
+                    $data = array('poam_action_suggested'=>''.$v.'',
+                                  'poam_action_status'   =>'NONE');
+                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
+                    break;
+                case 'poam_action_owner':
+                    $data = array('poam_action_owner'=>''.$v.'');
+                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
+                    break;                                                               
+                case 'poam_action_resources':
+                    $data = array('poam_action_resources'=>''.$v.'');
+                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
+                    break;
+                case 'poam_cmeasure_effectiveness':
+                    $data = array('poam_cmeasure_effectiveness'=>''.$v.'',
+                                  'poam_action_status'         =>'NONE');
+                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
+                    break;
+                case 'poam_cmeasure':
+                    $data = array('poam_cmeasure'      =>''.$v.'',
+                                  'poam_action_status' =>'NONE');
+                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
+                    break;
+                case 'poam_cmeasure_justification':
+                    $data = array('poam_cmeasure_justification'=>''.$v.'',
+                                  'poam_action_status'         =>'NONE');
+                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
+                    break;
+                case 'poam_threat_level':
+                    $data = array('poam_threat_level' =>''.$v.'',
+                                  'poam_action_status'=>'NONE');
+                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
+                    break;
+                case 'poam_threat_source':
+                    $data = array('poam_threat_source'=>''.$v.'',
+                                  'poam_action_status'=>'NONE');
+                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
+                    break;
+                case 'poam_threat_justification':
+                    $data = array('poam_threat_justification'=>''.$v.'',
+                                  'poam_action_status'       =>'NONE');
+                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
+                    break;
+                case 'ev_sso_evaluation':
+                    $data['ev_sso_evaluation'] = $v;
+                    $data['ev_date_sso_evaluation'] = $now;
+                    if('DENIED' == $v ){
+                        $data['ev_fsa_evaluation'] = 'EXCLUDED';
+                        $data['ev_ivv_evaluation'] = 'EXCLUDED';
+                        $comment_data = array('poam_id'=>$id,'user_id'=>$user_id,'comment_date'=>$now,
+                                              'ev_id'=>$ev_id,
+                                              'comment_topic'=>'UPDATE:','comment_body'=>$comment,
+                                              'comment_log'=>'SSO_Evaluation:'.$poams[$k].'=>'.$v,
+                                              'comment_type'=>'EV_SSO');
+                        $result = $db->insert('POAM_COMMENTS',$comment_data);
+
+                    }
+                    $result = $db->update('POAM_EVIDENCE',$data,'poam_id = '.$id.'');
+                    break;
+                case 'ev_fsa_evaluation':
+                    $data['ev_fsa_evaluation'] = $v;
+                    $data['ev_date_fsa_evaluation'] = $now;
+                    if('DENIED' == $v ){
+                        $data['ev_ivv_evaluation'] = 'EXCLUDED';
+                        $comment_data = array('poam_id'=>$id,'user_id'=>$user_id,'comment_date'=>$now,
+                                              'ev_id'=>$ev_id,
+                                              'comment_topic'=>'UPDATE:','comment_body'=>$comment,
+                                              'comment_log'=>'FSA_Evaluation:'.$poams[$k].'=>'.$v,
+                                              'comment_type'=>'EV_FSA');
+                        $result = $db->insert('POAM_COMMENTS',$comment_data);
+
+                    }
+                    $result = $db->update('POAM_EVIDENCE',$data,'poam_id = '.$id.'');
+                    if('APPROVED' == $v){
+                        $data = array('poam_status'=>'ES');
+                        $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
+                    }
+                    break;
+                case 'ev_ivv_evaluation':
+                    $data = array('ev_ivv_evaluation'=>''.$v.'',
+                                  'ev_date_ivv_evaluation'=>''.$now.'');
+                    $result = $db->update('POAM_EVIDENCE',$data,'poam_id = '.$id.'');
+                    if('APPROVED' == $v){
+                        $data = array('poam_status'=>'CLOSED',
+                                      'poam_date_closed'=>''.$now.'');
+                        $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
+                        $data = array('FINDINGS.finding_status'=>'CLOSED',
+                                      'FINDINGS.finding_date_closed'=>''.$now.'');
+                        $result = $db->update('FINDINGS',$data,'POAMS.finding_id = FINDINGS.finding_id' AND
+                                              'poam_id = '.$id.'');
+                    }
+                    if('DENIED' == $v){
+                        $data = array('poam_status'=>'EN','poam_action_date_actual'=>'NULL');
+                        $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
+                        $data = array('poam_id'=>$id,'user_id'=>$user_id,'comment_date'=>$now,
+                                      'ev_id'=>$ev_id,
+                                      'comment_topic'=>'UPDATE:','comment_body'=>$comment,
+                                      'comment_log'=>'IVV_Evaluation:'.$poams[$k].'=>'.$v,
+                                      'comment_type'=>'EV_IVV');
+                        $result = $db->insert('POAM_COMMENTS',$data);
+                    }
+                    break;
+            }
+          }
+            }
+            $data = array('poam_date_modified'=>$now,
+                          'poam_modified_by'  =>$user_id);
+            $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
+                        $now = time();
+            $eventArray = array('poam_action_owner'=>'UPDATE: responsible system',
+                  'poam_type'=>'UPDATE: remediation type',
+                  'poam_status'=>'UPDATE: remediation status',
+                  'poam_blscr'=>'UPDATE: BLSCR number',
+                  'poam_action_date_est'=>'UPDATE: course of action estimated completion date',
+                  'poam_action_status'=>'UPDATE: course of action evaluation',
+                  'poam_cmeasure_effectiveness'=>'UPDATE: countermeasure effectiveness',
+                  'poam_action_suggested'=>'UPDATE: recommended course of action',
+                  'poam_action_planned'=>'UPDATE: course of action',
+                  'poam_action_resources'=>'UPDATE: course of action resources',
+                  'poam_cmeasure'=>'UPDATE: countermeasure',
+                  'poam_cmeasure_justification'=>'UPDATE: countermeasure justification',
+                  'poam_threat_source'=>'UPDATE: threat source',
+                  'poam_threat_justification'=>'UPDATE: threat justification',
+                  'poam_previous_audits'=>'UPDATE: previous audits',
+                  'poam_threat_level'=>'UPDATE: threat level',
+                  'ev_sso_evaluation'=>'UPDATE: SSO evidence evaluation',
+                  'ev_fsa_evaluation'=>'UPDATE: FSA evidence evaluation',
+                  'ev_ivv_evaluation'=>'UPDATE: IV&V evidence evaluation'
+                  );
+            foreach($_POST as $k=>$v){
+                if(!in_array($k,array('id','comment_body','ev_id')) && !empty($v)){
+                    $data = array('finding_id'=>''.$poams['finding_id'].'',        
+                                  'user_id'   =>$user_id,
+                                  'date'      =>$now,
+                                  'event'     =>''.$eventArray[$k].'',
+                                  'description'=>'Original:'.$poams[$k].' New:'.$v.'');
+                    $result = $db->insert('AUDIT_LOG',$data);
+                }
+            }
+            $this->_helper->actionStack('view','Remediation',null,array('id'=>$id));
+    }
+
+    public function uploadevidenceAction(){
+        $req = $this->getRequest();
+        $id = $req->getParam('id');
+        $comment = $req->getParam('comment_body');
+        assert($id);
+        $today = date("Ymd",time());
+        $user_id = $this->me->user_id;
+        $now = date('Y-m-d,h:i:s',time());
+        $db = Zend_Registry::get('db');
+        if($_FILES && $id>0){
+            if(!file_exists(ROOT . DS . 'public/evidence')){
+                mkdir(ROOT . DS . 'public/evidence',0755);
+            }
+            if(!file_exists(ROOT . DS . 'public/evidence/'.$id)){
+                mkdir(ROOT . DS . 'public/evidence/'.$id,0755);
+            }
+            $path = ROOT . DS . 'public/evidence/'.$id.'/'.date('Ymd-His-',time()).$_FILES['evidence']['name'];
+            //$path_data = '../../public/evidence/'.$id.'/'.date('Ymd-His-',time()).$_FILES['evidence']['name'];
+            $result_move = move_uploaded_file($_FILES['evidence']['tmp_name'],$path);
+            if($result_move){
+                chmod($path,0755);
+            }
+            else{
+                die('Move upload file fail.'.$path.'');
+            }
+            $insert_data = array('poam_id'          =>$id,
+                                 'ev_submission'    =>$path,
+                                 'ev_submitted_by'  =>$user_id,
+                                 'ev_date_submitted'=>$today);
+            $result = $db->insert('POAM_EVIDENCE',$insert_data);
+            $update_data = array('poam_status'             => 'EP',
+                                 'poam_action_date_actual' => $now);
+            $result = $db->update('POAMS',$update_data,'poam_id = '.$id.'');
+        }
+        $this->_helper->actionStack('view','Remediation',null,array('id'=>$id));
+    }
 }

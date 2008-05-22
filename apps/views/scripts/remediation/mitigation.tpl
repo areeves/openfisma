@@ -31,7 +31,7 @@
                         <?php if(isAllow('remediation','update')){
                             if('OPEN' == $this->remediation['poam_status']){
                         ?>
-                        <img src='/images/button_modify.png'>
+                        <img src='/images/button_modify.png' style="cursor:pointer;">
                         <? } } ?></span>
                         <span class="contenter"><?php echo $this->remediation['poam_type'];?></span>
                     </td>
@@ -44,7 +44,7 @@
                              if('OPEN' == $this->remediation['poam_status']){
                         ?>
                         <span class="sponsor">
-                        <img src='/images/button_modify.png'>
+                        <img src='/images/button_modify.png' style="cursor:pointer;">
                         </span>
                         <? } }?>
                         <span class="contenter"><?php echo $this->remediation['poam_action_planned'];?></span>
@@ -66,7 +66,7 @@
                         <div id="resources" type="textarea" name="poam_action_resources" rows="5" cols="160">
                         <?php if(isAllow('remediation','update_finding_resources')){?>
                         <span class="sponsor">
-                        <img src='/images/button_modify.png'>
+                        <img src='/images/button_modify.png' style="cursor:pointer;">
                         </span>
                         <? } ?>
                        <span class="contenter"><?php echo $this->remediation['poam_action_resources'];?></span>
@@ -86,7 +86,7 @@
                 if('OPEN' == $this->remediation['poam_status']){
             ?>
             <span class="sponsor">
-            <img src='/images/button_modify.png'>
+            <img src='/images/button_modify.png' style="cursor:pointer;">
             </span>
             <?php } }?>
             <span class="contenter"><?php echo $this->remediation['poam_action_date_est'];?></span>

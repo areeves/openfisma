@@ -6,8 +6,7 @@
     <tr>
         <td>
             <!-- SAVE MODIFICATIONS TO REMEDIATION -->
-            <form action="/zfentry.php/panel/remediation/sub/view/id/<?php echo $this->remediation_id;?>" method="post">
-            <input type="hidden" name="action" value="save">
+            <form action="/zfentry.php/panel/remediation/sub/modify/id/<?php echo $this->remediation_id;?>" method="post">
             <input type='hidden' name='poam_action_owner' value=''>
             <input type='hidden' name='poam_action_suggested' value=''>
             <input type='hidden' name='poam_type' value=''>
@@ -23,7 +22,7 @@
             <input type='hidden' name='poam_cmeasure_justification' value=''>
             <input type='hidden' name='poam_action_status' value=''>
             <input type='hidden' name='action_approval' value=''>
-            <input type='submit' title='Save or Submit' value="Save##" style="cursor: pointer;">
+            <input type='submit' title='Save or Submit' value="Save" style="cursor: pointer;">
             </form>
         </td>
     </tr>

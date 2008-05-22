@@ -35,7 +35,7 @@
                              <?php
                                  if(isAllow('remediation','update_finding_assignment')){
                                      if('OPEN' == $this->remediation_status){ ?>
-                                         <img src='/images/button_modify.png'></span>
+                                         <img src='/images/button_modify.png' style="cursor:pointer;"></span>
                              <?php } } ?></span>
                              <span class="contenter"><?php echo "(".$this->remediation['system_nickname'].")".$this->remediation['system_name'];?></span>
                         </div>
@@ -127,7 +127,8 @@
                     <td colspan='2'>
                         <div id="recommendation" name="poam_action_suggested" type="textarea" rows="5" cols="160">
                         <?php if(isAllow('remediation','update_finding_recommendation')){?>
-                        <span class="sponsor"><img src='/images/button_modify.png'></span> 
+                        <span class="sponsor">
+                            <img src='/images/button_modify.png' style="cursor:pointer;"></span> 
                         <?php }?>
                         <span class="contenter">
                             <?php echo $this->remediation['poam_action_suggested'];?>

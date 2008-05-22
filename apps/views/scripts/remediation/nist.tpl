@@ -24,7 +24,7 @@
                         <?php } ?> }'>
                         <?php if(isAllow('remediation','update_control_assignment')){ ?>
                             <span class="sponsor">
-                            <img src='/images/button_modify.png'>
+                            <img src='/images/button_modify.png' style="cursor:pointer;">
                             </span>
                         <?php } ?>
                         <span class="contenter"></span>
@@ -55,7 +55,7 @@
                             <?php } ?> }'>
                             <?php if(isAllow('remediation','update_control_assignment')){ ?>
                                 <span class="sponsor">
-                                <img src='/images/button_modify.png'>
+                                <img src='/images/button_modify.png' style="cursor:pointer;">
                                 </span>
                             <?php } ?>
                             <span class="contenter"><?php echo $this->blscr['blscr_number'];?></span>
