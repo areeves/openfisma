@@ -7,8 +7,6 @@
 * @version $Id$
 */
 
-require_once 'Zend/Db/Table.php';
-
 abstract class Fisma_Model extends Zend_Db_Table
 {
     /**
@@ -22,29 +20,36 @@ abstract class Fisma_Model extends Zend_Db_Table
     public function getList($fields = '*', $primary_key = null){
 
         assert($primary_key == null); //not supported yet.
+        $primary = $this->_primary;
+        $id_name = array_pop($primary);
 
         if($fields != '*'){
-            array_merge(array($this->_primary), $fields);
             assert(is_array($fields));
+            $fields = array_merge(array($id_name), $fields);
+        }else{
+            $fields = $this->_cols;
         }
 
         $list = array();
+
         if(empty($primary_key)){
-            $query = $this->_db->select()->distinct()->from($this->_name,$fields);
+            $query = $this->select()->distinct()->from($this->_name,$fields);
             $result = $this->fetchAll($query);
+            
         } else {
             $result = $this->find($primary_key);
         }
-        if($fields == '*' ){
-            $fields = array_flip($this->cols);
-        }else{
-            $fields = array_flip($fields);
-        }
-        unset($fields[$this->_primary_key]);
-
+        
         foreach($result as $row){
-            $list[$row->{$this->_primary_key}] = 
-                    array_intersect_assoc($row->toArray(), $fields);
+            foreach( $fields as $k=>$v ){
+                if( $v != $id_name ){
+                    if( is_string($k) ){
+                        $list[$row->$id_name][$k] = $row->$k;
+                    }else{
+                        $list[$row->$id_name][$v] = $row->$v;
+                    }
+                }
+            }
         }
         return $list;
     }

@@ -17,27 +17,22 @@ class TestRemediationOfSearch extends UnitTestCase{
         $network = new network();
         $net = $network->getList();
         $system_list = $system->getList();
-        foreach($system_list as $row){
-            $system_ids[] = $row['system_id'];
-            $system_nickname[$row['system_id']] = $row['system_nickname'];
+        foreach($system_list as $id=>$row){
+            $system_ids[] = $id;
         }
         $this->system_ids = $system_ids;
-        $this->system_nickname = $system_nickname;
         
         $source_list = $source->getList();
-        foreach($source_list as $row){
-            $source_ids[] = $row['source_id'];
-            $source_nickname[$row['source_id']] = $row['source_nickname'];
+        foreach($source_list as $id=>$row){
+            $source_ids[] = $id;
         }
 
         $this->source_ids = $source_ids;
-        $this->source_nicknams = $source_nickname;
         
         /**
         * Test system nickname and count
         **/
         foreach($system_ids as $id){
-            $this->__testNickname($id);
             $this->__testCount($id);
         }
         
@@ -71,18 +66,6 @@ class TestRemediationOfSearch extends UnitTestCase{
                                          'startdate'=>'2007/01/01','enddate'=>'2008/06/01',
                                          'startcreatedate'=>'2006/01/01','end_date_cr'=>'2008/06/01'));
         
-    }
-
-    private function __testNickname($id){
-        $db = $this->db;
-        $poam = new poam($db);
-        $remediations = $poam->search(array($id));
-        foreach($remediations as $row){
-            $this->assertTrue($this->system_nickname[$id] === $row['action_owner_nickname']);
-            if($this->system_nickname[$id] != $row['action_owner_nickname']){
-                echo 'faild id is'.$id;
-            }
-        }
     }
 
     private function __testCount($id){
@@ -161,4 +144,3 @@ class TestRemediationOfSearch extends UnitTestCase{
         }
     }
 }
-
