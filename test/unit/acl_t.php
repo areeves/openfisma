@@ -1,14 +1,4 @@
 <?php
-
-define('REVIEVER', 'REVIEVER');
-define('SAISO', 'SAISO');
-define('AO', 'AO');
-define('ISSO', 'ISSO');
-define('ISO', 'ISO');
-define('IVV', 'IV&V');
-define('AUDITOR', 'AUDITOR');
-
-
 class TestOfACL extends UnitTestCase {
     public $acl;
     public $privilege;
@@ -101,11 +91,6 @@ class TestOfACL extends UnitTestCase {
                 $this->assertTrue($ret === in_array($right, $role_privilege[$role][$resouce]) );
             }
         }
-    }
-    
-    function testUserRoles(){
-        $db_initialize;
-        $user = new user($db);
     }
 }
 ?>
