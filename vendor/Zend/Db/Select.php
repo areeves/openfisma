@@ -32,6 +32,7 @@ require_once 'Zend/Db/Adapter/Abstract.php';
  */
 require_once 'Zend/Db/Expr.php';
 
+require_once 'Zend/Db/Select/Exception.php';
 
 /**
  * Class for SQL SELECT generation and results.
