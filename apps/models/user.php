@@ -9,11 +9,31 @@
 
 require_once 'Zend/Db/Table.php';
 
-class User extends Zend_Db_Table
+class User extends Fisma_Model
 {
     protected $_name = 'USERS';
     protected $_primary = 'user_id';
+    protected $_log_name = 'account_log';
+    protected $_logger = null;
+    protected $_log_map = array('priority'=>'priority','timestamp'=>'timestamp',
+                                'user_id' => 'uid', 'event_type' => 'type',
+                                'message'=>'message','priority_name' => 'priorityName');
 
+    const CREATION = 'creation';
+    const MODIFICATION= 'modification';
+    const DISABLING= 'disabling';
+    const TERMINATION = 'termination';
+    const LOGINFAILURE = 'loginfailure';
+    const LOGIN = 'login';
+    const LOGOUT = 'logout';
+
+    public function init()
+    {
+        $writer = new Zend_Log_Writer_Db($this->_db, $this->_log_name, $this->_log_map );
+        if( empty($this->_logger) ){
+            $this->_logger = new Zend_Log($writer);
+        }
+    }
 
     /**
         Get specified user's roles
@@ -59,6 +79,23 @@ class User extends Zend_Db_Table
         return $sys;
     }
 
+    /** 
+        Log any creation, modification, disabling and termination of account.
+
+        @param $type constant {CREATION,MODIFICATION,DISABLING,TERMINATION}
+        @param $extra_msg string extra message to be logged.
+    */
+    public function log($type, $uid, $msg=null)
+    {
+        assert(in_array($type, array(self::CREATION,self::MODIFICATION,
+                                    self::DISABLING,self::TERMINATION,
+                                    self::LOGINFAILURE,self::LOGIN,self::LOGOUT)) );
+        assert(is_string($msg));
+        assert($this->_logger);
+        
+        $this->_logger->setEventItem('uid', $uid);
+        $this->_logger->setEventItem('type', $type);
+        $this->_logger->info($msg);
+    }
 
 }
-?>
