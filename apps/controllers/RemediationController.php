@@ -259,10 +259,7 @@ class RemediationController extends SecurityController
                         break;
                 }
             }
-
-            $this->_helper->actionStack('search','Remediation',null,
-                                        array('s' =>'search','path'=>$this->_paging_base_path,
-                                              'criteria'=>$internal_crit));
+            $this->_helper->actionStack('search','Remediation',null,array('criteria'=>$internal_crit));
         }
         $this->view->assign('criteria',$criteria);
         $this->view->assign('system_list',$system_list);
