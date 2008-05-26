@@ -11,8 +11,8 @@ abstract class Fisma_Model extends Zend_Db_Table
 {
     /**
     * List all entries in the table
-    * If the $fields contains string other than '*', the returned value of a array is string.
-    * It's array otherwise.
+    * If the $fields contains string other than '*', the value of returned array is string.
+    * It's array otherwise. 
     *
     * @param fields array indicating fields interested in.
     * @param primary_key int|string|array primary key(s) 
@@ -23,9 +23,15 @@ abstract class Fisma_Model extends Zend_Db_Table
         $primary = $this->_primary;
         $id_name = array_pop($primary);
 
+        $is_pair = false;
         if($fields != '*'){
-            assert(is_array($fields));
-            $fields = array_merge(array($id_name), $fields);
+            if( is_string($fields) ){
+                $is_pair = true;
+                $fields = array($id_name, $fields);
+            }else{
+                assert(is_array($fields));
+                $fields = array_merge(array($id_name), $fields);
+            }
         }else{
             $fields = $this->_cols;
         }
@@ -35,7 +41,6 @@ abstract class Fisma_Model extends Zend_Db_Table
         if(empty($primary_key)){
             $query = $this->select()->distinct()->from($this->_name,$fields);
             $result = $this->fetchAll($query);
-            
         } else {
             $result = $this->find($primary_key);
         }
@@ -43,10 +48,14 @@ abstract class Fisma_Model extends Zend_Db_Table
         foreach($result as $row){
             foreach( $fields as $k=>$v ){
                 if( $v != $id_name ){
-                    if( is_string($k) ){
-                        $list[$row->$id_name][$k] = $row->$k;
+                    if( $is_pair ) {
+                        $list[$row->$id_name] = $row->$v;
                     }else{
-                        $list[$row->$id_name][$v] = $row->$v;
+                        if( is_string($k) ){
+                            $list[$row->$id_name][$k] = $row->$k;
+                        }else{
+                            $list[$row->$id_name][$v] = $row->$v;
+                        }
                     }
                 }
             }

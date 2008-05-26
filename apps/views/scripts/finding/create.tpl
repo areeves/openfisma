@@ -54,7 +54,10 @@
             <tr>
                 <td>
                     <table border="0" width="800" cellpadding="5" class="tipframe">
-                        <tr><th colspan="2" align="left">Asset Information</th>
+                        <tr><th align="left">Asset Information
+                        </th>
+                        <th align="right"><a href="/zfentry.php/asset/create">Create Asset</a>
+                        </th>
                         <tr>
                             <td colspan="2">
                                 <table width="100%" border="0" cellpadding="5">
@@ -84,8 +87,7 @@
                                     <tr>
                                       <td>&nbsp;</td>
                                       <td><input id="search_asset" type="button" value="Search Assets" url='/zfentry.php/asset/search' /></td>
-                                      <td><input type="reset" name="button2" id="button2" value="Reset" /></td>
-                                      <td><a href="/zfentry.php/asset/create">Create Asset</a></td>
+                                      <td colspan=2 ><input type="reset" name="button2" id="button2" value="Reset" /></td>
                                       </tr>
                                 </table><hr/>
                             </td>

@@ -7,9 +7,12 @@
 * @version $Id$
 */
 
-require_once CONTROLLERS . DS . 'SecurityController.php';
-require_once MODELS . DS . 'finding.php';
-require_once  'Pager.php';
+require_once(CONTROLLERS . DS . 'SecurityController.php');
+require_once(MODELS . DS . 'finding.php');
+require_once(MODELS. DS . 'system.php');
+require_once(MODELS. DS . 'source.php');
+require_once(MODELS. DS . 'network.php');
+require_once('Pager.php');
 
 class FindingController extends SecurityController
 {
@@ -20,6 +23,18 @@ class FindingController extends SecurityController
                              'path'    =>'',
                              'currentPage'=>1,
                              'perPage'=>20);                             
+
+    public function init()
+    {
+        define('TEMPLATE_NAME', "OpenFISMA_Injection_Template.xls"); 
+        $contextSwitch = $this->_helper->getHelper('contextSwitch');
+        $contextSwitch->addContext('xls', array(
+                    'suffix'=>'xls',
+                    'headers'=>array('Content-type'=>'application/vnd.ms-excel',
+                                     'Content-Disposition'=>'filename='.TEMPLATE_NAME)
+                ));
+        $contextSwitch->addActionContext('template', 'xls')->initContext('xls');
+    }
 
     public function indexAction()
     {
@@ -488,5 +503,22 @@ class FindingController extends SecurityController
                   finding_date_discovered,finding_data)
                   VALUES($row[5], LAST_INSERT_ID(), 'OPEN', '$current_time_string', '$row[2]', '$row[6]')";
         return $sql;
+    }
+
+    /** 
+     * Downloading a excel file which is used as a template for uploading findings.
+     * systems, networks and sources are extracted from the database dynamically.
+    */
+    public function templateAction() 
+    {
+        $resp = $this->getResponse();
+
+        $src = new System();
+        $this->view->systems = $src->getList('system_nickname') ;
+        $src = new Network();
+        $this->view->networks = $src->getList('network_nickname');
+        $src = new Source();
+        $this->view->sources = $src->getList('source_nickname');
+        $this->render();
     }
 }

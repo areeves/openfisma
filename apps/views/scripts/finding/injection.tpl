@@ -26,7 +26,8 @@
                 <tr>
                     <td align="center" NOWRAP><strong>Step 1.</strong></td>
                     <td align="left">
-                        Download EXCEL templete file from <a href="download_excel.php">here</a>.
+                        Download EXCEL templete file from  
+                        <a href="/zfentry.php/finding/template">here</a>.
                     </td>
                 </tr>
 
