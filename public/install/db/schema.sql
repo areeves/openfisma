@@ -507,4 +507,15 @@ CREATE TABLE `VULN_SOLUTIONS` (
   `sol_source` text
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE TABLE `account_log` (
+`id` int( 10 ) UNSIGNED NOT NULL AUTO_INCREMENT ,
+`timestamp` DATETIME NOT NULL,
+`priority` tinyint(3) UNSIGNED NOT NULL ,
+`priority_name` varchar(10) NOT NULL ,
+`event_type` varchar( 16 ) NOT NULL ,
+`user_id` int( 10 ) UNSIGNED NOT NULL ,
+`message` text NOT NULL ,
+PRIMARY KEY ( `id` )
+) ENGINE = InnoDB DEFAULT CHARSET=latin1;
+
 
