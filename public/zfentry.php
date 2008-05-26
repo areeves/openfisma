@@ -23,6 +23,7 @@
     require_once 'Zend/Config.php';
     require_once 'Zend/Db.php';
     require_once 'Zend/Db/Table.php';
+    require_once MODELS . DS . 'Abstract.php';
     require_once 'Zend/Controller/Plugin/ErrorHandler.php';
     require_once ( CONFIGS . DS . 'database.php');
 
