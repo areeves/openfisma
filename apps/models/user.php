@@ -8,6 +8,7 @@
 */
 
 require_once 'Zend/Db/Table.php';
+require_once(MODELS . DS . 'Abstract.php';
 
 class User extends Fisma_Model
 {
