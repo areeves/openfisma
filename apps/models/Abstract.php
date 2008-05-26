@@ -15,11 +15,11 @@ abstract class Fisma_Model extends Zend_Db_Table
     * It's array otherwise.
     *
     * @param fields array indicating fields interested in.
+    * @param primary_key int|string|array primary key(s) 
     * @return array indexed by primary key(id)
     */
     public function getList($fields = '*', $primary_key = null){
 
-        assert($primary_key == null); //not supported yet.
         $primary = $this->_primary;
         $id_name = array_pop($primary);
 

@@ -90,8 +90,9 @@ class  TestFismaModel extends UnitTestCase{
                     }
                 }
             }
+            $ids = array_keys($systems);
             $system = new system();
-            $system_list = $system->getList('*','system_id');
+            $system_list = $system->getList('*',$ids);
             $this->assertTrue($systems === $system_list);
         }
 }
