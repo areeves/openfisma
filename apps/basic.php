@@ -58,5 +58,33 @@
         }
         return false;
     }
+
+
+    define('SYSCONFIG','sysconf');
+    /** 
+        Read configurations of any sections.
+        This function manages the storage, the cache, lazy initializing issue.
+        
+        @param $key string key name
+        @param $is_fresh boolean to read from persisten storage or not.
+        @return string configuration value.
+     */
+    function readSysConfig($key, $is_fresh = false)
+    {
+        assert( !empty($key) && is_bool($is_fresh) );
+        if( ! Zend_Registry::isRegistered(SYSCONFIG) || $is_fresh ){
+            require_once( MODELS . DS . 'config.php' );
+            $m = new Config();
+            $pairs = $m->fetchAll();
+            $configs = array();
+            foreach( $pairs as $v ) {
+                $configs[$v->key] = $v->value;
+            }
+            Zend_Registry::set(SYSCONFIG, new Zend_Config($configs) );
+        }
+        if( !isset(Zend_Registry::get(SYSCONFIG)->$key) ){
+            throw new fisma_Exception("$key does not exist in system configuration");
+        }
+        return Zend_Registry::get(SYSCONFIG)->$key;
+    }
  
-?>

@@ -26,6 +26,12 @@ class UserController extends SecurityController
             'path'        =>'',
             'currentPage' => 1,
             'perPage'=>20);
+    private $_user = null;
+
+    public function init()
+    {
+        $this->_user = new User();
+    }
 
     public function preDispatch()
     {
@@ -52,13 +58,10 @@ class UserController extends SecurityController
         if( !empty($username) && !empty($password) ) {
             $authAdapter->setIdentity($username)->setCredential($password);
             $result = $auth->authenticate($authAdapter);
+            $me = $authAdapter->getResultRowObject(null, 'user_password');
             if (!$result->isValid()) {
                 if(Zend_Auth_Result::FAILURE_CREDENTIAL_INVALID == $result->getCode()){
-                    $query = $db->select()->from(array('u'=>'USERS'),array('count'=>'failure_count'))
-                                          ->where("user_name = '$username'");
-                    $rs = $db->fetchRow($query);
-                    $data = array('failure_count'=>$rs['count']+1);
-                    $db->update('USERS',$data,"user_name = '$username'");
+                    $this->_user->log(User::LOGINFAILURE, $me->user_id,'Password Error');
                 }
                 // Authentication failed; print the reasons why
                 $error = "";
@@ -67,35 +70,23 @@ class UserController extends SecurityController
                 }
                 $this->view->assign('error', $error);
             } else {
-                $query = $db->select()->from(array('con'=>'configerations'),array('period'=>'value'))
-                                      ->where('key_name = "period_disable"');
-                $result = $db->fetchRow($query);
-                $period = $result['period'];
+                $period = readSysConfig('max_absent_time');
                 $deactive_time = clone $now;
                 $deactive_time->sub($period,Zend_Date::DAY);
-
-                $me = $authAdapter->getResultRowObject(null, 'user_password');
-
                 $last_login = new Zend_Date($me->user_date_last_login);
-                if( !$last_login->equals(new Zend_Date('0000-00-00 00:00:00')) && $last_login->isEarlier($deactive_time) ){
+
+                if( !$last_login->equals(new Zend_Date('0000-00-00 00:00:00')) 
+                    && $last_login->isEarlier($deactive_time) ){
                     $error = "your account was locked because of your last login date from now is aleady past
                              ".$period." days";
-                    $query = $db->select()->from(array('u'=>'USERS'),array('count'=>'failure_count'))
-                                          ->where("user_name = '$username'");
-                    $rs = $db->fetchRow($query);
-                    $data = array('failure_count'=>$rs['count']+1);
-                    $db->update('USERS',$data,"user_name = '$username'");
                     $this->view->assign('error',$error);
                 } else {
-                    $data = array('user_date_last_login'=>$now->toString(),
-                                  'failure_count'=>0);
-                    $db->update('USERS',$data,'user_id = '.$me->user_id.'');
-                    $user = new User($db);
-                    $nickname = $user->getRoles($me->user_id);
+                    $this->_user->log(User::LOGIN, $me->user_id, "Success");
+                    $nickname = $this->_user->getRoles($me->user_id);
                     foreach($nickname as $n ) {
                         $me->role_array[] = $n;
                     }
-                    $me->systems = $user->getMySystems($me->user_id);
+                    $me->systems = $this->_user->getMySystems($me->user_id);
                     $auth->getStorage()->write($me);
                     return $this->_forward('index','Panel');
                 }

@@ -85,7 +85,8 @@ class User extends Fisma_Model
     /** 
         Log any creation, modification, disabling and termination of account.
 
-        @param $type constant {CREATION,MODIFICATION,DISABLING,TERMINATION}
+        @param $type constant {CREATION,MODIFICATION,DISABLING,TERMINATION,
+                        LOGIN,LOGINFAILURE,LOGOUT}
         @param $uid int action taken user id
         @param $extra_msg string extra message to be logged.
     */
@@ -96,10 +97,25 @@ class User extends Fisma_Model
                                     self::LOGINFAILURE,self::LOGIN,self::LOGOUT)) );
         assert(is_string($msg));
         assert($this->_logger);
-        
+
+        $rows = $this->find($uid);
+
+        if( $type == self::LOGINFAILURE ) {
+            $row = $rows->current();
+            $row->failure_count++;
+            $row->save();
+        }
+        if( $type == self::LOGIN ) {
+            $row = $rows->current();
+            $row->failure_count=0;
+            $row->user_date_last_login = date("YmdHis");
+            $row->save();
+        }
+
         $this->_logger->setEventItem('uid', $uid);
         $this->_logger->setEventItem('type', $type);
         $this->_logger->info($msg);
     }
+
 
 }

@@ -15,7 +15,7 @@ class ConfigController extends SecurityController
     //config the time period for disabling inactive accounts
     public function viewAction(){
         $req = $this->getRequest();
-        $config = new config();
+        $config = new Config();
         $msg = null;
         $result = $config->fetchAll();
         $this->view->assign('msg',$msg);
