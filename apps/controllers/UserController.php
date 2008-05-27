@@ -58,10 +58,10 @@ class UserController extends SecurityController
         if( !empty($username) && !empty($password) ) {
             $authAdapter->setIdentity($username)->setCredential($password);
             $result = $auth->authenticate($authAdapter);
-            $me = $authAdapter->getResultRowObject(null, 'user_password');
             if (!$result->isValid()) {
                 if(Zend_Auth_Result::FAILURE_CREDENTIAL_INVALID == $result->getCode()){
-                    $this->_user->log(User::LOGINFAILURE, $me->user_id,'Password Error');
+                    $whologin = $this->_user->fetchRow("user_name = '$username'");
+                    $this->_user->log(User::LOGINFAILURE, $whologin->user_id,'Password Error');
                 }
                 // Authentication failed; print the reasons why
                 $error = "";
@@ -70,6 +70,7 @@ class UserController extends SecurityController
                 }
                 $this->view->assign('error', $error);
             } else {
+                $me = $authAdapter->getResultRowObject(null, 'user_password');
                 $period = readSysConfig('max_absent_time');
                 $deactive_time = clone $now;
                 $deactive_time->sub($period,Zend_Date::DAY);

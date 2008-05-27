@@ -354,8 +354,7 @@ switch ($op){
                 }
                 $content .= _OKIMG . $stage;
             }
-            $dataFile = array(OVMS_INSTALL_PATH.DS.'db'.DS.'init_data.sql', 
-                              OVMS_INSTALL_PATH.DS.'db'.DS.'fisma_test.sql');
+            $dataFile = array(OVMS_INSTALL_PATH.DS.'db'.DS.'init_data.sql');
             if(!import_data($db,$dataFile)){
                 throw new Exception('Initializing databaase failed');
             }

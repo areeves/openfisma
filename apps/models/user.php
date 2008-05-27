@@ -85,6 +85,10 @@ class User extends Fisma_Model
         $db->setFetchMode(Zend_Db::FETCH_OBJ);
         $sys = $db->fetchCol($qry);
         $db->setFetchMode($origin_mode);
+        if( empty($sys) ){
+            throw new fisma_Exception('ATTENTION: No systems found! Please
+                    make sure the fundamental data is injected');
+        }
         return $sys;
     }
 
