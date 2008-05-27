@@ -99,14 +99,13 @@ class User extends Fisma_Model
         assert($this->_logger);
 
         $rows = $this->find($uid);
+        $row = $rows->current();
 
         if( $type == self::LOGINFAILURE ) {
-            $row = $rows->current();
             $row->failure_count++;
             $row->save();
         }
         if( $type == self::LOGIN ) {
-            $row = $rows->current();
             $row->failure_count=0;
             $row->user_date_last_login = date("YmdHis");
             $row->save();
