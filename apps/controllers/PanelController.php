@@ -86,6 +86,13 @@ class PanelController extends SecurityController
         $this->_helper->actionStack('header');
     }
 
+    public function configAction()
+    {
+        $req = $this->getRequest();
+        $this->_helper->actionStack('view','Config');
+        $this->_helper->actionStack('header');
+    }
+
 }
 
 

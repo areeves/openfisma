@@ -70,6 +70,7 @@
         if(isAllow('admin_functions','read')) {
             echo'<li><a href="#">Finding Sources</a></li>';
         }
+        echo'<li><a href="/zfentry.php/panel/config">Configeration</a></li>';
         echo'</ul></li></ul>';
     }
     /*

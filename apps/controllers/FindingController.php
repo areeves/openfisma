@@ -13,6 +13,7 @@ require_once(MODELS. DS . 'system.php');
 require_once(MODELS. DS . 'source.php');
 require_once(MODELS. DS . 'network.php');
 require_once('Pager.php');
+define('TEMPLATE_NAME', "OpenFISMA_Injection_Template.xls"); 
 
 class FindingController extends SecurityController
 {
@@ -23,18 +24,6 @@ class FindingController extends SecurityController
                              'path'    =>'',
                              'currentPage'=>1,
                              'perPage'=>20);                             
-
-    public function init()
-    {
-        define('TEMPLATE_NAME', "OpenFISMA_Injection_Template.xls"); 
-        $contextSwitch = $this->_helper->getHelper('contextSwitch');
-        $contextSwitch->addContext('xls', array(
-                    'suffix'=>'xls',
-                    'headers'=>array('Content-type'=>'application/vnd.ms-excel',
-                                     'Content-Disposition'=>'filename='.TEMPLATE_NAME)
-                ));
-        $contextSwitch->addActionContext('template', 'xls')->initContext('xls');
-    }
 
     public function indexAction()
     {
@@ -227,7 +216,7 @@ class FindingController extends SecurityController
         foreach($data as $row){
             $statistic[$row['sysid']][$row['status']]['total'] += $row['count'];
         }
-
+        
         //count time range
         $to->add(1,Zend_Date::DAY);
         $range['today']  = array('from'=>$from->toString("yyyyMMdd"),
@@ -348,7 +337,7 @@ class FindingController extends SecurityController
                 $tempFile = $csvFile['tmp_name'];
                 $fileSize = $csvFile['size'];
 
-                $faildArray = $succeedArray = array();
+                $failedArray = $succeedArray = array();
                 $row = -2;
                 $handle = fopen($tempFile,'r');
                 while($data = fgetcsv($handle,1000,",",'"')) {
@@ -357,7 +346,7 @@ class FindingController extends SecurityController
                         if($row>0){
                             $sql = $this->csvQueryBuild($data);
                             if(!$sql){
-                                $faildArray[] = $data;
+                                $failedArray[] = $data;
                             }
                             else {
                                 foreach($sql as $query){
@@ -371,14 +360,14 @@ class FindingController extends SecurityController
                 }
                 fclose($handle);
                 $summary_msg = "You have uploaded a CSV file which contains $row line(s) of data.<br />";
-                if(count($faildArray) > 0){
+                if(count($failedArray) > 0){
                     $temp_file = 'temp/csv_'.date('YmdHis').'_'.rand(10,99).'.csv';
                     $fp = fopen($temp_file,'w');
-                    foreach($faildArray as $fail) {
+                    foreach($failedArray as $fail) {
                         fputcsv($fp,$fail);
                     }
                     fclose($fp);
-                    $summary_msg .= count($faildArray)." line(s) cannot be parsed successfully. This is likely due to an unexpected datatype or the use of a datafield which is not currently in the database. Please ensure your csv file matches the data rows contained <a href='/$temp_file'>here</a> in the spreadsheet template. Please update your CSV file and try again.<br />";
+                    $summary_msg .= count($failedArray)." line(s) cannot be parsed successfully. This is likely due to an unexpected datatype or the use of a datafield which is not currently in the database. Please ensure your csv file matches the data rows contained <a href='/$temp_file'>here</a> in the spreadsheet template. Please update your CSV file and try again.<br />";
                 }
                 if(count($succeedArray)>0){
                     $summary_msg .= count($succeedArray)." line(s) parsed and injected successfully. <br />";
@@ -511,6 +500,14 @@ class FindingController extends SecurityController
     */
     public function templateAction() 
     {
+        $contextSwitch = $this->_helper->getHelper('contextSwitch');
+        $contextSwitch->addContext('xls', array(
+                    'suffix'=>'xls',
+                    'headers'=>array('Content-type'=>'application/vnd.ms-excel',
+                                     'Content-Disposition'=>'filename='.TEMPLATE_NAME)
+                ));
+        $contextSwitch->addActionContext('template', 'xls')->initContext('xls');
+
         $resp = $this->getResponse();
 
         $src = new System();

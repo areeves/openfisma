@@ -373,6 +373,7 @@ CREATE TABLE `USERS` (
   `user_date_last_login` datetime NOT NULL default '0000-00-00 00:00:00',
   `user_date_deleted` datetime default NULL,
   `user_is_active` tinyint(1) NOT NULL default '0',
+  `failure_count` int(2) unsigned default '0',
   `user_phone_office` varchar(12) NOT NULL,
   `user_phone_mobile` varchar(12) default NULL,
   `user_email` varchar(64) NOT NULL default '',
@@ -518,4 +519,10 @@ CREATE TABLE `account_log` (
 PRIMARY KEY ( `id` )
 ) ENGINE = InnoDB DEFAULT CHARSET=latin1;
 
-
+CREATE TABLE `configurations` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `key` varchar(64) NOT NULL UNIQUE,
+  `value` varchar(64) NOT NULL,
+  `description` text,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 ;

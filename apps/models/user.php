@@ -8,7 +8,7 @@
 */
 
 require_once 'Zend/Db/Table.php';
-require_once(MODELS . DS . 'Abstract.php');
+require_once  MODELS . DS . 'Abstract.php';
 require_once('Zend/Log/Writer/Db.php');
 require_once('Zend/Log.php');
 
@@ -86,6 +86,7 @@ class User extends Fisma_Model
         Log any creation, modification, disabling and termination of account.
 
         @param $type constant {CREATION,MODIFICATION,DISABLING,TERMINATION}
+        @param $uid int action taken user id
         @param $extra_msg string extra message to be logged.
     */
     public function log($type, $uid, $msg=null)
