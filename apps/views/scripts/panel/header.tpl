@@ -56,7 +56,7 @@
         echo'<ul><li><a><h2>Administration</h2></a>';
         echo'<ul>';
         if(isAllow('admin_users','read')) {
-            echo'<li><a href="/zfentry.php/panel/user">Users</a></li>';
+            echo'<li><a href="/zfentry.php/panel/user/sub/list">Users</a></li>';
         }
         if(isAllow('admin_systems','read')) {
             echo'<li><a href="#">Systems</a></li>';

@@ -22,6 +22,12 @@ class User extends Fisma_Model
                                 'user_id' => 'uid', 'event_type' => 'type',
                                 'message'=>'message','priority_name' => 'priorityName');
 
+    protected $_map = array(self::SYS=>array('table'=>'USER_SYSTEM_ROLES','field'=>'system_id'),
+                            self::ROLE=>array('table'=>'USER_ROLES','field'=>'role_id') );
+
+    const SYS = 'system';
+    const ROLE = 'role';
+
     const CREATION = 'creation';
     const MODIFICATION= 'modification';
     const DISABLING= 'disabling';
@@ -114,6 +120,28 @@ class User extends Fisma_Model
         $this->_logger->setEventItem('uid', $uid);
         $this->_logger->setEventItem('type', $type);
         $this->_logger->info($msg);
+    }
+
+    /**
+        Associate systems to a user.
+
+        @param uid int the user id
+        @param type type of associated data, one of system, role.
+        @param data array|int system or role id or array of them
+    */
+    public function associate($uid, $type, $data)
+    {
+        assert( !empty($uid) && (is_numeric($data) || is_array( $data )) );
+        assert( in_array($type, array(self::SYS, self::ROLE) ) );
+
+        if(is_numeric($data) ){
+            $data = array($data);
+        }
+        $ins_data['user_id'] = $uid;
+        foreach($data as $id){
+            $ins_data[$this->_map[$type]['field']] = $id;
+            $this->_db->insert($this->_map[$type]['table'],$ins_data);
+        }
     }
 
 

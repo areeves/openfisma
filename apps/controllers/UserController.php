@@ -106,6 +106,7 @@ class UserController extends SecurityController
     
     public function logoutAction()
     {
+        $this->_user->log(User::LOGOUT, $this->me->user_id,$this->me->user_name.' logout');
         Zend_Auth::getInstance()->clearIdentity();
         $this->_forward('login');
     }
@@ -279,7 +280,7 @@ class UserController extends SecurityController
                         $sys_field[] = $v;
                     }
                 }
-                $user = new User();
+                $user = $this->_user;
                 $db = $user->getAdapter();
                 $res = $db->update('USERS',$field,'user_id = '.$id.'');
                 $res .=$db->delete('USER_SYSTEM_ROLES','user_id = '.$id.'');
@@ -289,6 +290,7 @@ class UserController extends SecurityController
                 }
                 if($res){
                     $msg = '<p>User <b>modified</b> successful!</p>';
+                    $this->_user->log(User::MODIFICATION, $this->me->user_id, $field['user_name']);
                 }
                 else {
                     $msg = '<p>User <b>modified</b> failed!</p>';
@@ -296,7 +298,7 @@ class UserController extends SecurityController
             }
         }
         $this->view->assign('msg',$msg);
-        $this->_forward('user','panel',null,array('sub'=>'edit','v'=>'edit'));
+        $this->_forward('view');
     }
 
     /**
@@ -321,5 +323,55 @@ class UserController extends SecurityController
         $this->view->assign('msg',$msg);
         $this->_forward('user','panel');
     }
+    /**
+       Create user
+    **/
+    public function createAction()
+    {
+        require_once(MODELS . DS . 'role.php');
+        $r = new Role();
+        $system = new system();
+
+        $this->view->roles = $r->getList('role_name');
+        $this->view->systems = $system->getList(array('id'=>'system_id','name'=>'system_name'));
+        $this->render();
+    }
+
+    /**
+       Save new user
+    **/
+    public function saveAction()
+    {
+        require_once(MODELS . DS . 'role.php');
+        $req = $this->getRequest();
+        foreach($req->getPost() as $k=>$v){
+            if(substr($k,0,6) != 'system' ){
+                if( !in_array($k,array('role','confirm_password','user_password'))){
+                    $data[$k] = $v;
+                }else{
+                    ///< @todo compare the password
+                    if($k == 'user_password'){
+                        $data[$k] = md5($v);
+                    }
+                }
+            }else{
+                $systems[] = $v;
+            }
+        }
+        $data['user_date_created'] = date('Y-m-d H:i:s');
+        $data['extra_role'] = $req->getParam('user_name').'_r';
+
+        $user_id = $this->_user->insert($data);
+        $role_id = $req->getParam('role_id');
+        $this->_user->associate($user_id, User::ROLE, $role_id);
+
+        $this->_user->associate($user_id, User::SYS, $systems);
+
+        $this->_user->log(User::CREATION ,$this->me->user_id,'create user('.$data['user_name'].')');
+        $this->message("User({$data['user_name']}) added", self::M_NOTICE);
+        $this->_forward('create');
+    }
+
+
 }
 ?>

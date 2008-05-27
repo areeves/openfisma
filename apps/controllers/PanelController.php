@@ -46,15 +46,7 @@ class PanelController extends SecurityController
     {
         $req = $this->getRequest();
         $sub = $req->getParam('sub');
-        if('view' == $sub){
-            $this->_helper->actionStack('view','User');
-        }else if('edit' == $sub){
-            $this->_helper->actionStack('view','User');
-        }else if('update' == $sub){
-            $this->_helper->actionStack('update','User');
-        }else {
-            $this->_helper->actionStack('list','User');
-        }
+        $this->_helper->actionStack($sub,'User');
         $this->_helper->actionStack('searchbox','User');
         $this->_helper->actionStack('header');
     }

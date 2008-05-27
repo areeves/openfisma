@@ -45,7 +45,7 @@ function delok(entryname)
     <td class="tdc">&nbsp;<?php echo $user['username'];?></td>
     <?php if(isAllow('admin_users','update')){ ?>
     <td class="thc" align="center">
-        <a href="/zfentry.php/panel/user/sub/edit/v/edit/id/<?php echo $user['id'];?>" title="edit the Users">
+        <a href="/zfentry.php/panel/user/sub/view/v/edit/id/<?php echo $user['id'];?>" title="edit the Users">
         <img src="/images/edit.png" border="0"></a>
     </td>
     <?php } if(isAllow('admin_users','read')){ ?>
@@ -55,7 +55,7 @@ function delok(entryname)
     </td>
     <?php } if(isAllow('admin_users','delete')){ ?>
     <td class="thc" align="center">
-        <a href="/zfentry.php/user/delete/id/<?php echo $user['id'];?>" title="delete the Users, then no restore after deleted" onclick="return delok('Users');">
+        <a href="/zfentry.php/panel/user/sub/delete/id/<?php echo $user['id'];?>" title="delete the Users, then no restore after deleted" onclick="return delok('Users');">
         <img src="/images/del.png" border="0"></a>
     </td>
     <?php }?>

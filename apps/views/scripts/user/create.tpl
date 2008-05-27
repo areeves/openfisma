@@ -1,7 +1,7 @@
 <?php echo $this->msg;?>
 <div class="barleft">
 <div class="barright">
-<p><b>Administration: Users Edit</b>
+<p><b>Administration: Users Create</b>
 </div>
 </div>
 <table border="0" width="95%" align="center">
@@ -10,40 +10,34 @@
 </tr>
 </table>
 <table width="98%" align="center" border="0" cellpadding="0" cellspacing="0" class="tbframe">
-<form name="edit" method="post" action="/zfentry.php/panel/user/sub/update/id/<?php echo $this->id;?>">
+<form name="edit" method="post" action="/zfentry.php/panel/user/sub/save">
     <tr>
         <td align="right" class="thc" width="200">Last Name:</td>
-        <td class="tdc">&nbsp;<input type="text" name="user_name_last" 
-            value="<?php echo $this->user['lastname'];?>" size="90"><font color="blue"> *</font></td>
+        <td class="tdc">&nbsp;<input type="text" name="user_name_last" size="90"><font color="blue"> *</font></td>
     </tr>
     <tr>
         <td align="right" class="thc">First Name:</td>
-        <td class="tdc">&nbsp;<input type="text" name="user_name_first" 
-            value="<?php echo $this->user['firstname'];?>" size="90"><font color="blue"> *</font></td>
+        <td class="tdc">&nbsp;<input type="text" name="user_name_first" size="90"><font color="blue"> *</font></td>
     </tr>
     <tr>
         <td align="right" class="thc">Office Phone:</td>
-        <td class="tdc">&nbsp;<input type="text" name="user_phone_office"
-            value="<?php echo $this->user['officephone'];?>" size="20"><font color="blue"> *</font> </td>
+        <td class="tdc">&nbsp;<input type="text" name="user_phone_office" size="20"><font color="blue"> *</font> </td>
     </tr>
     <tr>
         <td align="right" class="thc">Mobile Phone:</td>
-        <td class="tdc">&nbsp;<input type="text" name="user_phone_mobile"
-            value="<?php echo $this->user['mobilephone'];?>" size="20"></td>
+        <td class="tdc">&nbsp;<input type="text" name="user_phone_mobile" size="20"></td>
     </tr>
     <tr>
         <td align="right" class="thc">Email:</td>
-        <td class="tdc">&nbsp;<input type="text" name="user_email" 
-            value="<?php echo $this->user['email'];?>" size="64"><font color="blue"> *</font></td>
+        <td class="tdc">&nbsp;<input type="text" name="user_email" size="64"><font color="blue"> *</font></td>
     </tr>
     <tr>
         <td align="right" class="thc">Role:</td>
-        <td class="tdc">&nbsp;click here to edit role and privileges for this user</td>
+        <td class="tdc">&nbsp;<?php echo $this->formSelect('role_id',null,null,$this->roles);?><font color="blue">*</font></td>
     </tr>
     <tr>
         <td align="right" class="thc">Title:</td>
-        <td class="tdc">&nbsp;<input type="text" name="user_title" 
-            value="<?php echo $this->user['title'];?>" size="90"></td>
+        <td class="tdc">&nbsp;<input type="text" name="user_title" size="90"></td>
     </tr>
     <tr>
         <td align="right" class="thc">Status:</td>
@@ -54,8 +48,7 @@
     </tr>
     <tr>
         <td align="right" class="thc">Username:</td>
-        <td class="tdc">&nbsp;<input type="text" name="user_name"
-            value="<?php echo $this->user['username'];?>" size="90"><font color="blue"> *</font></td>
+        <td class="tdc">&nbsp;<input type="text" name="user_name" size="90"><font color="blue"> *</font></td>
     </tr>
     <tr>
         <td align="right" class="thc">Password:</td>
@@ -74,21 +67,16 @@
 <?php
     $row = 4;
     $num = 0;
-    foreach($this->sys as $system ){
+    foreach($this->systems as $id=>$system ){
         $num++;
         if($num % $row == 0){
             $flag = "</tr><tr>";
         } else {
             $flag = "";
         }
-        if(in_array($system['sid'],$this->sid_arr)){
-            $checked = " checked";
-        } else {
-            $checked ="";
-        }
 ?>
     <td>
-       <input type="checkbox" name="system_<?php echo $system['sid'];?>" value="<?php echo $system['sid'];?>" <?php echo $checked;?>>&nbsp;<?php echo $system['sname']; ?>
+       <input type="checkbox" name="system_<?php echo $id;?>" value="<?php echo $id;?>">&nbsp;<?php echo $system['name']; ?>
     </td>
 <?php echo $flag;
     } 
@@ -97,8 +85,8 @@
 </fieldset>
 <table border="0" width="300">
 <tr align="center">
-    <td><input type="submit" value="Update" title="submit your request"></td>
-    <td><span style="cursor: pointer"><input type="reset" value="Reset" onclick="document.edit.reset();"></span></td>
+    <td><input type="submit" value="Create" title="submit your request"></td>
+    <td><span style="cursor: pointer"><input type="reset" value="Reset"></span></td>
 </tr>
 </table>
 </form>
