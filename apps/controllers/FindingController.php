@@ -12,6 +12,7 @@ require_once(MODELS . DS . 'finding.php');
 require_once(MODELS. DS . 'system.php');
 require_once(MODELS. DS . 'source.php');
 require_once(MODELS. DS . 'network.php');
+require_once MODELS . DS . 'poam.php';
 require_once('Pager.php');
 define('TEMPLATE_NAME', "OpenFISMA_Injection_Template.xls"); 
 
@@ -24,12 +25,7 @@ class FindingController extends SecurityController
                              'path'    =>'',
                              'currentPage'=>1,
                              'perPage'=>20);                             
-
-    public function indexAction()
-    {
-        $this->render();
-    }
-
+   
     public function preDispatch()
     {
         parent::preDispatch();
@@ -45,6 +41,8 @@ class FindingController extends SecurityController
                                     ->where("system_id IN ( $ids )")
                                     ->order('id ASC'));
         $req = $this->getRequest();
+        $this->_paging_base_path = $req->getBaseUrl().'/panel/finding/sub/searchbox/s/search';
+        $this->_paging['currentPage'] = $req->getParam('p',1);
     }
 
     public function searchboxAction(){
@@ -122,16 +120,14 @@ class FindingController extends SecurityController
                                               'discovered' => 'finding_date_discovered'));
 
         $req = $this->getRequest();
-        
+
         $criteria = $req->getParam('criteria');
         foreach($criteria as $key=>$value){
             if(!empty($value) && $value!='any'){
                 $this->_paging_base_path .='/'.$key.'/'.$value.'';
             }
         }
-        $this->_paging_base_path = $req->getBaseUrl().'/panel/finding/sub/searchbox/s/search';
-        $this->_paging['currentPage'] = $req->getParam('p',1);
-        $this->_paging_base_path = $req->getParam('path');
+        $this->_paging_base_path .= $req->getParam('path');
         $systems = $req->getParam('system');
 
         assert(is_array($criteria)); //be more assert
@@ -154,6 +150,8 @@ class FindingController extends SecurityController
         }
         if( !empty($status) && $status != 'any' ) {
             $qry->where("finding_status = '$status'");
+        } else {
+            $qry->where("finding_status != 'DELETED'");
         }
 
         $phrase = " IN ( $systems )";
@@ -456,7 +454,54 @@ class FindingController extends SecurityController
         $this->_helper->actionStack('header','Panel');
         $this->render();
     }
+    
+    /**
+       convert finding to poam
+    **/
+    public function convertAction()
+    {
+        $req = $this->getRequest();
+        $finding = new finding();
+        $id  = $req->getParam('id');
+        $data = array('finding_status'=>'REMEDIATION');
+        $finding->update($data,'finding_id = '.$id);
+        $rows = $finding->getFindingById($id);
+        $system_id = $rows['system_id'];
+        $data = array('finding_id'=>$id,
+                      'poam_created_by'=>$this->me->user_id,
+                      'poam_modified_by'=>$this->me->user_id,
+                      'poam_date_created'=>date('Y-m-d H:i:s'),
+                      'poam_date_modified'=>date('Y-m-d H:i:s'),
+                      'poam_action_date_est'=>'0000-00-00',
+                      'poam_action_owner'=>$system_id);
+        $poam = new poam();
+        $insert_id = $poam->insert($data);
+        $data = array('finding_id'=>$id,
+                      'user_id'   =>$this->me->user_id,
+                      'date'      =>time(),
+                      'event'     =>'CREATE:NEW REMEDIATION CREATE',
+                      'description'=>'A new remediation was created from finding '.$id);
+        $poam->getAdapter()->insert('AUDIT_LOG',$data);
+        $this->_forward('remediation','panel',null,array('sub'=>'view','id'=>$insert_id));
+    }
 
+    /**
+    delete findings
+    **/
+    public function deleteAction(){
+        $req = $this->getRequest();
+        $post = $req->getPost();
+        $finding = new finding();
+        $poam = new poam();
+        foreach($post as $key=>$fid){
+            if(substr($key,0,4) == 'fid_'){
+                $finding->update(array('finding_status'=>'deleted'),'finding_id = '.$fid);
+                $poam->delete('finding_id = '.$fid);
+            }
+        }
+        $this->_forward('searchbox','finding',null,array('s'=>'search'));
+
+    }
 
     public function csvQueryBuild($row){
         if (!is_array($row) || (count($row)<7)){

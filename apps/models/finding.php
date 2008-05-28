@@ -147,7 +147,7 @@ class Finding extends Zend_Db_Table
                                                   'source_name' =>'fs.source_name'));
            $qry->join(array('fs' =>'FINDING_SOURCES'),'fs.source_id = f.source_id',array());
            $qry->join(array('as' =>'ASSETS'),'as.asset_id = f.asset_id',array());
-           $qry->join(array('sa'=>'SYSTEM_ASSETS'),'sa.asset_id = as.asset_id',array());
+           $qry->join(array('sa'=>'SYSTEM_ASSETS'),'sa.asset_id = as.asset_id',array('system_id'=>'system_id'));
            $qry->join(array('s'=>'SYSTEMS'),'s.system_id = sa.system_id',array('system_name'=>'system_name'));
            $qry->join(array('addr'=>'ASSET_ADDRESSES'),'as.asset_id = addr.asset_id',
                          array('ip'=>'addr.address_ip','port'=>'addr.address_port'));

@@ -1,50 +1,11 @@
 $(document).ready(function(){
 
-    var dw = $(this).width();
-    var dh = $(this).height();
-    // a cover div could give a full grey backgrougd over full page
-    var cover_div = ({
-        show : function(){
-                $('<div id="full"></div>')
-                .width(dw).height(dh)
-                .css({backgroundColor:"#000000", marginTop:-1*dh, opacity:0, zIndex:10})
-                .appendTo("body").fadeTo(1, 0.4);
-            },
-        hide : function(){
-                $('#full').hide().remove();
-            }
-    });
-
     $("select[name='system']").change(function(){
         searchAsset();
     });
 
     asset_detail();
     
-    /*$("#up_evidence").click(function(){
-//        return true;
-        var data = $(this).parents("form").serializeArray();
-        var url = $(this).parents("form").attr('action');
-        $(this).blur();
-        cover_div.show(); // show the grey cover div
-        $('<div class="flora" title="Upload Evidence">Loading ....</div>')
-        .load(url, data, function(){
-            $(this).dialog({position:'center', width: 540, height: 250, resizable: true,
-                buttons: {
-                    'Continue': function() {  // on button "continue" clicked
-                        $('#upload_ev').submit();
-                    },
-                    'Cancel': function() {    // on button "cancel" clicked
-                        cover_div.hide();
-                        $(this).dialogClose();
-                        $('.ui-dialog').remove();
-                    }
-                }
-            });
-        });
-        return false;
-    });*/
-
     $("input#search_asset").click(function(){
         searchAsset();
     });
@@ -54,6 +15,15 @@ $(document).ready(function(){
     });
 
     getProdId();
+
+    $("input#all_finding").click(function(){
+        $('input[@type=checkbox]').attr('checked','checked');
+    });
+
+    $("input#none_finding").click(function(){
+        $('input[@type=checkbox]').removeAttr('checked');
+    });
+
 });
 
 function searchAsset( ){
