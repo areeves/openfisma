@@ -36,7 +36,7 @@ class UserController extends SecurityController
     public function preDispatch()
     {
         $req = $this->getRequest();
-        $this->_paging_base_path = $req->getBaseUrl() .'/panel/user';
+        $this->_paging_base_path = $req->getBaseUrl() .'/panel/user/sub/list';
         $this->_paging['currentPage'] = $req->getParam('p',1);
         if($req->getActionName() != 'login'){
             // by pass the authentication when login
@@ -117,7 +117,6 @@ class UserController extends SecurityController
     */
     public function searchboxAction()
     {
-        //$this->_helper->actionStack('header','panel');
         $db = Zend_Registry::get('db');
         $fid_array = array('lastname'=>'Last Name',
                      'firstname'=>'First Name',
@@ -130,7 +129,7 @@ class UserController extends SecurityController
                      'username'=>'Username');
         $this->view->assign('fid_array',$fid_array);
         $req = $this->getRequest();
-        $this->_paging_base_path = $req->getBaseUrl().'/panel/user';
+        $this->_paging_base_path = $req->getBaseUrl().'/panel/user/sub/list';
         $this->_paging['currentPage'] = $req->getParam('p',1);
         $fid = $req->getParam('fid');
         $qv = $req->getParam('qv');
@@ -310,11 +309,11 @@ class UserController extends SecurityController
         $id = $req->getParam('id');
         assert($id);
         $msg ="";
-        $user = new User();
+        $user = $this->_user;
         $db = $user->getAdapter();
-        $res = $db->delete('USERS','user_id = '.$id.'');
-        $res .= $db->delete('USER_SYSTEM_ROLES','user_id = '.$id.'');
-        $res .= $db->delete('USER_ROLES','user_id = '.$id.'');
+        $res = $db->delete('USERS','user_id = '.$id);
+        $res = $db->delete('USER_SYSTEM_ROLES','user_id = '.$id);
+        $res = $db->delete('USER_ROLES','user_id = '.$id);
         if($res){
             $msg ="<p><b>User Deleted successfully</b></p>";
         }
@@ -322,7 +321,7 @@ class UserController extends SecurityController
             $msg ="<p><b>User Deleted failed</b></p>";
         }
         $this->view->assign('msg',$msg);
-        $this->_forward('user','panel');
+        $this->_forward('list');
     }
     /**
        Create user

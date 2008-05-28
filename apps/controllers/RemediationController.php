@@ -25,7 +25,6 @@ class RemediationController extends SecurityController
         parent::preDispatch();
         $req = $this->getRequest();
         $uid = $this->me->user_id;
-        $req = $this->getRequest();
         $this->_paging_base_path = $req->getBaseUrl() .'/panel/remediation/sub/searchbox/s/search';
         $this->_paging['currentPage'] = $req->getParam('p',1);
     }
@@ -118,7 +117,13 @@ class RemediationController extends SecurityController
         $uid = $this->me->user_id;
         $system_list = $user->getMySystems($uid);
         $criteria = $req->getParam('criteria');
-        $this->_paging_base_path  = $req->getParam('path');
+        foreach($criteria as $key=>$value){
+            if(!empty($value) && $value!='any'){
+                $this->_paging_base_path .='/'.$key.'/'.$value.'';
+            }
+        }
+
+        $this->_paging_base_path .= $req->getParam('path');
         
         $poam = new poam();
         $totals = $poam->search($system_list,array('count'=>array()),$criteria);
