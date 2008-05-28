@@ -35,27 +35,52 @@
 </tr>
 <tr>
 	<td>open</td>
-	<td>/zfentry.php/test/sql/user/${user}</td>
+	<td>/zfentry.php/test/dosql</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>sql</td>
+	<td>select count(*) from POAMS where poam_status ='OPEN' and poam_action_owner IN (select distinct system_id from USER_SYSTEM_ROLES)</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>submit</td>
 	<td></td>
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>//b[@id="user"]</td>
-	<td>${user}</td>
-</tr>
-<tr>
-	<td>assertText</td>
-	<td>//table[1]/tbody/tr[2]/td[2]</td>
+	<td>//table[1]/tbody/tr[2]/td[1]</td>
 	<td>${count_open}</td>
 </tr>
 <tr>
-	<td>assertText</td>
-	<td>//table[1]/tbody/tr[3]/td[2]</td>
-	<td>${count_en}</td>
+	<td>type</td>
+	<td>sql</td>
+	<td>select count(*) from POAMS where poam_status ='EN' and poam_action_date_est &gt; NOW() and poam_action_owner IN (select distinct system_id from USER_SYSTEM_ROLES)</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>submit</td>
+	<td></td>
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>//table[1]/tbody/tr[4]/td[2]</td>
+	<td>//table[1]/tbody/tr[2]/td[1]</td>
+	<td>${count_en}</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>sql</td>
+	<td>select count(*) from POAMS where poam_status ='EN' and poam_action_date_est &lt;= NOW() and poam_action_owner IN (select distinct system_id from USER_SYSTEM_ROLES)</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>submit</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//table[1]/tbody/tr[2]/td[1]</td>
 	<td>${count_od}</td>
 </tr>
 <tr>

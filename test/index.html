@@ -1,10 +1,45 @@
+<html>
+<head>
 <style type="text/css">
 <!--
 .STYLE1 {color: #FF0000}
+
+li span {
+    font-weight:bold;
+}
 -->
 </style>
-<h1>This directory should be removed in the publish version!!!</h1>
-<h2>Notice: There is a hard code path "/" in each test case, please change it if your OVMS is not under the webroot of your site. Or the test cases cannot runs normally.</h2>
-<p><a href="core/TestRunner.html?test=..%2Fcases/TestSuite1.html&auto=on&resultsUrl=..%2FpostResults.php">Click here to run  test suite1.(Import test database)<br/>
-								 <span class="STYLE1">Warning:This process will cover your fisma database by sql files, so backup database if it necessary.</span></a></p>
-<p><a href="core/TestRunner.html?test=..%2Fcases/TestSuite2.html&amp;auto=on&amp;resultsUrl=..%2FpostResults.php">Click here to run  test suite2.</a></p>
+</head>
+
+<body>
+
+<h2>Refer to <a href="README" >README</a> for more information and setup FAQ</h2>
+<p>
+<ul>
+<li>
+<a href="core/TestRunner.html?test=../cases/TestSuite0.html&amp;auto=on&amp;resultsUrl=../postResults.php">
+    Install(automatically) Openfisma.<br/>								
+</a>
+    <p>Please make sure following settings have no conflict with testing envirement.</p>
+    <ul style="">
+        <li>database admin account: <span> test_dba </span></li>
+        <li>database admin password: <span> test_dbapasswd</span></li>
+        <li>target database name: 
+            <span class="STYLE1">test_fisma</span>, which should not exist before this.
+        </li>
+        <li>dedicated db account for test_fisma:<span> fisma_user</span></li>
+        <li>password for the user: 123456</li>
+    </ul>
+</li><br/>
+
+<li><a href="core/TestRunner.html?test=..%2Fcases/TestSuite1.html&auto=on&resultsUrl=..%2FpostResults.php">Import testing data(TestSuit1)<br/>
+</a>
+<span class="STYLE1">Warning:This process will purge your original database if existed!!</span></li>
+
+
+<li><a href="core/TestRunner.html?test=..%2Fcases/TestSuite2.html&amp;auto=on&amp;resultsUrl=..%2FpostResults.php">TestSuite2.</a></li>
+</ul>
+</p>
+
+</body>
+</html>

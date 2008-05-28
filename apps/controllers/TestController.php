@@ -7,7 +7,7 @@
  * @version $Id$
  */
 
-define('SCHEMA_DATABASE','SCHEMA.sql');
+define('SCHEMA_DATABASE','schema.sql');
 define('DATABASE_PATH', ROOT . DS . 'test' . DS . 'data');
 
 class TestController extends Zend_Controller_Action
@@ -25,7 +25,7 @@ class TestController extends Zend_Controller_Action
         $this->view->user_id=$user_id;
         $qry="select system_id from USER_SYSTEM_ROLES where user_id = '$user_id'";
 
-        if($user_id=='17'){
+        if($user_name=='root'){
             $qry="select distinct system_id from USER_SYSTEM_ROLES";
         }
         $this->view->system_id_qry=$qry;
@@ -87,6 +87,20 @@ class TestController extends Zend_Controller_Action
             ob_implicit_flush(true);
         }
         echo "<b>Test database loading finished.</b>";
+    }
+
+    public function dosqlAction(){
+        $db=Zend_Registry::get('db');
+        $sql=$this->_getParam('sql');
+        if(!empty($sql)){
+            $sql=str_replace("\'","'",$sql);
+        $result=$db->query($sql)->fetchAll();
+        }else{
+        $result='NULL';
+        }
+        $this->view->sql=$sql;
+    	$this->view->result=$result;
+        $this->render();
     }
 }
 ?>
