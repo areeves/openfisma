@@ -259,3 +259,9 @@ CREATE TABLE `users` (
   PRIMARY KEY  (`id`),
   UNIQUE KEY `account` (`account`)
 );
+
+CREATE TABLE `user_systems` (
+  `user_id` int(10) NOT NULL,
+  `system_id` int(10) NOT NULL,
+  PRIMARY KEY  (`user_id`,`system_id`)
+);
