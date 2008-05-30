@@ -35,17 +35,16 @@ CREATE TABLE `audit_logs` (
 ); 
 
 CREATE TABLE `blscrs` (
-  `id` int(10) unsigned NOT NULL auto_increment,
   `code` varchar(5) NOT NULL,
   `class` enum('MANAGEMENT','OPERATIONAL','TECHNICAL') NOT NULL default 'MANAGEMENT',
   `subclass` text NOT NULL,
   `family` text NOT NULL,
   `control` text NOT NULL,
   `guidance` text NOT NULL,
-  `conrtol_level` enum('low','moderate','high') NOT NULL,
+  `control_level` enum('NONE','LOW','MODERATE','HIGH') NOT NULL,
   `enhancements` text NOT NULL,
   `supplement` text NOT NULL,
-  PRIMARY KEY  (`id`)
+  PRIMARY KEY  (`code`)
 ); 
 
 CREATE TABLE `comments` (
@@ -236,4 +235,27 @@ CREATE TABLE `user_roles` (
   `user_id` int(10) NOT NULL,
   `role_id` int(10) NOT NULL,
   PRIMARY KEY  (`user_id`,`role_id`)
+);
+
+CREATE TABLE `users` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `account` varchar(32) default NULL,
+  `password` varchar(32) NOT NULL default '',
+  `title` varchar(64) default NULL,
+  `name_last` varchar(32) NOT NULL default '',
+  `name_middle` char(1) default NULL,
+  `name_first` varchar(32) NOT NULL default '',
+  `created_ts` datetime NOT NULL default '0000-00-00 00:00:00',
+  `password_ts` datetime NOT NULL default '0000-00-00 00:00:00',
+  `history_password` varchar(100) NOT NULL default '',
+  `last_login_ts` datetime NOT NULL default '0000-00-00 00:00:00',
+  `termination_ts` datetime default NULL,
+  `is_active` tinyint(1) NOT NULL default '0',
+  `failure_count` int(2) unsigned default '0',
+  `phone_office` varchar(12) NOT NULL,
+  `phone_mobile` varchar(12) default NULL,
+  `email` varchar(64) NOT NULL default '',
+  `auto_role` varchar(20) NOT NULL,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `account` (`account`)
 );
