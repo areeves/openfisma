@@ -20,14 +20,14 @@ class ReportController extends SecurityController
         require_once MODELS . DS . 'system.php';
         $sys = new System();
         $user = new User();
-        $uid = $this->me->user_id;
+        $uid = $this->me->id;
         $qry = $sys->select();
         $ids = implode(',', $user->getMySystems($uid));
         $this->ids = $ids;
         $this->systems = $sys->getAdapter()
                              ->fetchPairs($qry->from($sys->info(Zend_Db_Table::NAME),
-                                    array('id'=>'system_id','name'=>'system_name'))
-                                    ->where("system_id IN ( $ids )")
+                                    array('id'=>'id','name'=>'name'))
+                                    ->where("id IN ( $ids )")
                                     ->order('id ASC'));
      }
 
@@ -39,7 +39,7 @@ class ReportController extends SecurityController
         $user = new User();
         $src = new Source();
         $sys = new System();
-        $uid = $this->me->user_id;
+        $uid = $this->me->id;
         //parse the params of search
         $criteria['system'] = $req->getParam('system','any');
         $criteria['source'] = $req->getParam('source','any');
@@ -48,13 +48,13 @@ class ReportController extends SecurityController
         $criteria['status'] = $req->getParam('status','');
         $qry = $db->select();
         $source_list = $db->fetchPairs($qry->from($src->info(Zend_Db_Table::NAME),
-                                       array('key'=>'source_nickname','value'=>'Source_name'))
+                                       array('key'=>'nickname','value'=>'name'))
                                        ->order(array('key ASC')) );
         $qry->reset();
         $ids = implode(',',$user->getMySystems($uid));
         $system_list = $db->fetchPairs($qry->from($sys->info(Zend_Db_Table::NAME),
-                                       array('key'=>'system_nickname','value'=>'system_nickname'))
-                                       ->where("system_id IN ($ids)")
+                                       array('key'=>'nickname','value'=>'nickname'))
+                                       ->where("id IN ($ids)")
                                        ->order(array('key ASC')) );
         $source_list['any'] = 'All source';
         $system_list['any'] = 'All system';
@@ -123,64 +123,56 @@ class ReportController extends SecurityController
             $status = $req->get('status');
             $overdue = $req->get('overdue');
             $query = $poam->select()->setIntegrityCheck(false);
-            $query->from(array('p'=>'POAMS'),array('findingnum'=>'p.poam_id',
-                                                   'ptype'=>'p.poam_type',
-                                                   'pstatus'=>'p.poam_status',
-                                                   'recommendation'=>'p.poam_action_suggested',
-                                                   'effectiveness'=>'p.poam_cmeasure_effectiveness',
-                                                   'correctiveaction'=>'p.poam_action_planned',
-                                                   'threatlevel'=>'p.poam_threat_level',
-                                                   'EstimatedCompletionDate'=>'p.poam_action_date_est'));
-            $query->join(array('sys_owner'=>'SYSTEMS'),'p.poam_action_owner = sys_owner.system_id',
-                                             array('system'=>'sys_owner.system_nickname'));
-            $query->join(array('fin'=>'FINDINGS'),'p.finding_id = fin.finding_id',
-                                             array('finding'=>'fin.finding_data'));
-            $query->join(array('fins'=>'FINDING_SOURCES'),'fin.source_id = fins.source_id',
-                                             array('source'=>'fins.source_nickname'));
-            $query->join(array('a'=>'ASSETS'),'a.asset_id = fin.asset_id',array());
-            $query->join(array('sa'=>'SYSTEM_ASSETS'),'sa.asset_id = a.asset_id',array());
-            $query->join(array('sys'=>'SYSTEMS'),'sys.system_id = sa.system_id',
-                                             array('tier'=>'sys.system_tier',
-                                                   'availability'=>'sys.system_availability',
-                                                   'integrity'=>'sys.system_integrity',
-                                                   'confidentiality'=>'sys.system_confidentiality'));
-            $query->join(array('aadd'=>'ASSET_ADDRESSES'),'aadd.asset_id = a.asset_id',
-                                             array('SD'=>'aadd.address_ip'));
-            $query->join(array('net'=>'NETWORKS'),'net.network_id = aadd.network_id',
-                                             array('location'=>'net.network_nickname'));
-            $query->where("sa.system_is_owner = 1");
+            $query->from(array('p'=>'poams'),array('findingnum'=>'p.id',
+                                                   'ptype'=>'p.type',
+                                                   'pstatus'=>'p.status',
+                                                   'recommendation'=>'p.action_suggested',
+                                                   'effectiveness'=>'p.cmeasure_effectiveness',
+                                                   'correctiveaction'=>'p.action_planned',
+                                                   'threatlevel'=>'p.threat_level',
+                                                   'EstimatedCompletionDate'=>'p.action_date_est'));
+            $query->join(array('sys'=>'systems'),'p.system_id = sys.id',
+                                             array('system'=>'sys.nickname',
+                                                   'tier'  =>'sys.tier',
+                                                   'availability'=>'sys.availability',
+                                                   'integrity'=>'sys.integrity',
+                                                   'confidentiality'=>'sys.confidentiality'));
+            $query->join(array('s'=>'sources'),'p.source_id = s.id',array('source'=>'s.nickname'));
+            $query->join(array('a'=>'assets'),'a.id = p.asset_id',array('SD'=>'a.address_ip'));
+            $query->join(array('net'=>'networks'),'net.id = a.network_id',
+                                             array('location'=>'net.nickname'));
             if(!empty($system) && $system != 'any'){
-                $query->where("sys_owner.system_nickname = '$system'");
+                $query->where("sys.nickname = '$system'");
             }
             else {
-                $query->where("sys_owner.system_id in ($this->ids)");
+                $query->where("sys.id in ($this->ids)");
             }
             if(!empty($source) && $source != 'any' ){
-                $query->where("fins.source_nickname = '$source'");
+                $query->where("s.nickname = '$source'");
             }
             if(!empty($fy)){
                 $begin_date = $fy. "-01-01";
                 $end_date = $fy. "-12-31";
-                $query->where("p.poam_date_created >= '$begin_date' and p.poam_date_created <= '$end_date'");
+                $query->where("p.create_ts >= '$begin_date' and p.createe_ts <= '$end_date'");
             }
             if(!empty($type)){
-                $query->where("p.poam_type = '$type'");
+                $query->where("p.type = '$type'");
             }
             if(!empty($status)){
                 switch($status){
                     case '':
                         break;
                     case 'closed':
-                        $query->where("p.poam_status ='closed'");
+                        $query->where("p.status ='closed'");
                         break;
                     case 'open':
-                        $query->where("p.poam_status != 'closed'");
+                        $query->where("p.status != 'closed'");
                         break;
                     case 'openOverdue':
-                        $query->where("p.poam_status = 'open'");
+                        $query->where("p.status = 'open'");
                         break;
                     case 'enOverdue':
-                        $query->where("p.poam_status = 'en'");
+                        $query->where("p.status = 'en'");
                         break;
                 }
                 if(!empty($overdue)){
@@ -188,23 +180,23 @@ class ReportController extends SecurityController
                         case '':
                             break;
                         case '30':
-                            $query->where("p.poam_action_date_est >SUBDATE(NOW(),30) AND 
-                                           p.poam_date_created <NOW()");
+                            $query->where("p.action_date_est >SUBDATE(NOW(),30) AND 
+                                           p.create_ts <NOW()");
                             break;
                         case '60':
-                            $query->where("p.poam_action_date_est <SUBDATE(NOW(),30) AND 
-                                           p.poam_action_date_est >SUBDATE(NOW(),60)");
+                            $query->where("p.action_date_est <SUBDATE(NOW(),30) AND 
+                                           p.action_date_est >SUBDATE(NOW(),60)");
                             break;
                         case '90':
-                            $query->where("p.poam_action_date_est <SUBDATE(NOW(),60) AND 
-                                           p.poam_action_date_est >SUBDATE(NOW(),90)");
+                            $query->where("p.action_date_est <SUBDATE(NOW(),60) AND 
+                                           p.action_date_est >SUBDATE(NOW(),90)");
                             break;
                         case '120':
-                            $query->where("p.poam_action_date_est <SUBDATE(NOW(),90) AND
-                                           p.poam_action_date_est >SUBDATE(NOW(),120)");
+                            $query->where("p.action_date_est <SUBDATE(NOW(),90) AND
+                                           p.action_date_est >SUBDATE(NOW(),120)");
                             break;
                         case 'greater':
-                            $query->where("p.poam_action_date_est < SUBDATE(NOW(),120)");
+                            $query->where("p.action_date_est < SUBDATE(NOW(),120)");
                             break;
                     }
                                           
@@ -271,38 +263,37 @@ class ReportController extends SecurityController
         switch($type){
             case 1:
                 $rpdata = array();
-                $query = $db->select()->from(array('p'=>'POAMS'),array('n'=>'count(p.poam_id)'))
-                                      ->join(array('b'=>'BLSCR'),'b.blscr_number = p.poam_blscr',
-                                             array('t'=>'b.blscr_number'))
-                                      ->where("b.blscr_class = 'MANAGEMENT'")
-                                      ->group("b.blscr_number");
+                $query = $db->select()->from(array('p'=>'poams'),array('n'=>'count(p.id)'))
+                                      ->join(array('b'=>'blscrs'),'b.id = p.blscr_id',
+                                             array('t'=>'b.code'))
+                                      ->where("b.class = 'MANAGEMENT'")
+                                      ->group("b.code");
                 $result = $db->fetchAll($query);
                 array_push($rpdata,$result);
                 $query->reset();
-                $query = $db->select()->from(array('p'=>'POAMS'),array('n'=>'count(p.poam_id)'))
-                                      ->join(array('b'=>'BLSCR'),'b.blscr_number = p.poam_blscr',
-                                             array('t'=>'b.blscr_number'))
-                                      ->where("b.blscr_class = 'OPERATIONAL'")
-                                      ->group("b.blscr_number");
+                $query = $db->select()->from(array('p'=>'poams'),array('n'=>'count(p.id)'))
+                                      ->join(array('b'=>'blscrs'),'b.id = p.blscr_id',
+                                             array('t'=>'b.code'))
+                                      ->where("b.class = 'OPERATIONAL'")
+                                      ->group("b.code");
                 $result = $db->fetchAll($query);
                 array_push($rpdata,$result);
                 $query->reset();
-                $query = $db->select()->from(array('p'=>'POAMS'),array('n'=>'count(p.poam_id)'))
-                                      ->join(array('b'=>'BLSCR'),'b.blscr_number = p.poam_blscr',
-                                             array('t'=>'b.blscr_number'))
-                                      ->where("b.blscr_class = 'TECHNICAL'")
-                                      ->group("b.blscr_number");
+                $query = $db->select()->from(array('p'=>'poams'),array('n'=>'count(p.id)'))
+                                      ->join(array('b'=>'blscrs'),'b.id = p.blscr_id',
+                                             array('t'=>'b.code'))
+                                      ->where("b.class = 'TECHNICAL'")
+                                      ->group("b.code");
                 $result = $db->fetchAll($query);
                 array_push($rpdata,$result);
                 break;
             case 2:
                 //$query->reset();
-                $query = $db->select()->from(array('s'=>'SYSTEMS'),array('name'=>'s.system_name',
-                                                                         'type'=>'s.system_type',
-                                                                         'conf'=>'s.system_confidentiality',
-                                                                         'integ'=>'s.system_availability',
-                                                                         'avail'=>'s.system_availability'));
-                                                                         //'last_upd'=>'n/a'
+                $query = $db->select()->from(array('s'=>'systems'),array('name'=>'s.name',
+                                                                         'type'=>'s.type',
+                                                                         'conf'=>'s.confidentiality',
+                                                                         'integ'=>'s.availability',
+                                                                         'avail'=>'s.availability'));
                 $systems = $db->fetchAll($query);
                 $fips_totals = array();
                 $fips_totals['LOW'] = 0;
@@ -326,40 +317,37 @@ class ReportController extends SecurityController
                 $rpdata[] = $fips_totals;
                 break;
             case 3:
-                $query = $db->select()->from(array('prod'=>'PRODUCTS'),array('Vendor'=>'prod.prod_vendor',
-                                                                       'Product'=>'prod.prod_name',
-                                                                       'Version'=>'prod.prod_version',
-                                                                       'NumoOV'=>'count(prod.prod_id)'))
-                  ->join(array('p'=>'POAMS'),'p.poam_status IN ("OPEN","EN","UP","ES")',array())
-                  ->join(array('f'=>'FINDINGS'),'p.finding_id = f.finding_id',array())
-                  ->join(array('a'=>'ASSETS'),'a.asset_id = f.asset_id AND a.prod_id = prod.prod_id',array())
-                  ->group("prod.prod_vendor")
-                  ->group("prod.prod_name")
-                  ->group("prod.prod_version");
+                $query = $db->select()->from(array('prod'=>'products'),array('Vendor'=>'prod.vendor',
+                                                                       'Product'=>'prod.name',
+                                                                       'Version'=>'prod.version',
+                                                                       'NumoOV'=>'count(prod.id)'))
+                  ->join(array('p'=>'poams'),'p.status IN ("OPEN","EN","UP","ES")',array())
+                  ->join(array('a'=>'assets'),'a.id = p.asset_id AND a.prod_id = prod.id',array())
+                  ->group("prod.vendor")
+                  ->group("prod.name")
+                  ->group("prod.version");
                 $rpdata = $db->fetchAll($query);
                 break;
             case 4:
-                 $query = $db->select()->from(array('p'=>'PRODUCTS'),array('Vendor'=>'p.prod_vendor',
-                                                                           'Product'=>'p.prod_name',
-                                                                           'Version'=>'p.prod_version'))
-                     ->join(array('a'=>'ASSETS'),'a.asset_source = "SCAN" AND a.prod_id = p.prod_id',array());                  $rpdata = $db->fetchAll($query);
+                 $query = $db->select()->from(array('p'=>'products'),array('Vendor'=>'p.vendor',
+                                                                           'Product'=>'p.name',
+                                                                           'Version'=>'p.version'))
+                                       ->join(array('a'=>'assets'),'a.source = "SCAN" AND a.prod_id = p.id',array());
+                 $rpdata = $db->fetchAll($query);
                  break;
             case 5:
                  $rpdata = array();
-                 $query = $db->select()->from(array('sys'=>'SYSTEMS'),array('sysnick'=>'sys.system_nickname',
-                                                                       'vulncount'=>'count(sys.system_id)'))
-                                       ->join(array('p'=>'POAMS'),'p.poam_type IN ("CAP","AR","ES") AND 
-                                                    p.poam_status IN ("OPEN","EN","EP","ES")',array())
-                                       ->join(array('f'=>'FINDINGS'),'f.finding_id = p.finding_id',array())
-                                       ->join(array('a'=>'ASSETS'),'a.asset_id = f.asset_id',array())
-                                       ->join(array('sa'=>'SYSTEM_ASSETS'),'sa.asset_id = a.asset_id AND 
-                                                    sa.system_id = sys.system_id',array())
-                                       ->group("sa.system_id");
-                  $sys_vulncounts = $db->fetchAll($query);
+                 $query = $db->select()->from(array('sys'=>'systems'),array('sysnick'=>'sys.nickname',
+                                                                       'vulncount'=>'count(sys.id)'))
+                                       ->join(array('p'=>'poams'),'p.type IN ("CAP","AR","ES") AND 
+                                                    p.status IN ("OPEN","EN","EP","ES") AND p.system_id = sys.id',array())
+                                       ->join(array('a'=>'assets'),'a.id = p.asset_id',array())
+                                       ->group("p.system_id");
+                 $sys_vulncounts = $db->fetchAll($query);
 
                   $query->reset();
-                  $query = $db->select()->from(array('s'=>'SYSTEMS'),
-                                               array('system_nickname'=>'DISTINCT(s.system_nickname)'));
+                  $query = $db->select()->from(array('s'=>'systems'),
+                                               array('system_nickname'=>'DISTINCT(s.nickname)'));
                   $systems = $db->fetchAll($query);
                   $system_totals = array();
                   foreach($systems as $system_row){
@@ -397,7 +385,7 @@ class ReportController extends SecurityController
     public function systemrafsAction(){
         $req = $this->getRequest();
         $db = Zend_Registry::get('db');
-        $query = $db->select()->from(array('s'=>'SYSTEMS'),array('sid'=>'system_id','sname'=>'system_name'));
+        $query = $db->select()->from(array('s'=>'systems'),array('sid'=>'id','sname'=>'name'));
         $data = $db->fetchAll($query);
         foreach($data as $result){
             $system_list[$result['sid']] = $result['sname'];
@@ -408,12 +396,11 @@ class ReportController extends SecurityController
         $this->view->assign('criteria',$criteria);
         if(!empty($system_id)){
             $query->reset();
-            $query = $db->select()->from(array('p'=>'POAMS'),array('poam_id'=>'p.poam_id'))
-                                  ->join(array('f'=>'FINDINGS'),'p.finding_id = f.finding_id',array())
-                                  ->join(array('sa'=>'SYSTEM_ASSETS'),'f.asset_id = sa.asset_id',array())
-                                  ->where("p.poam_threat_level != 'NONE'")
-                                  ->where("p.poam_cmeasure_effectiveness != 'NONE'")
-                                  ->where("sa.system_id = ".$system_id."");
+            $query = $db->select()->from(array('p'=>'poams'),array('poam_id'=>'p.id'))                                    
+                                  ->join(array('a'=>'assets'),'p.asset_id = a.id',array())
+                                  ->where("p.threat_level != 'NONE'")
+                                  ->where("p.cmeasure_effectiveness != 'NONE'")
+                                  ->where("p.system_id = ".$system_id."");
             $poam_ids = $db->fetchAll($query);
             $num_poam_ids = count($poam_ids);
             $this->view->assign('poam_ids',$poam_ids);
@@ -429,7 +416,7 @@ class ReportController extends SecurityController
         $uid = $this->me->user_id;
         $ids = implode(',',$user->getMySystems($uid));
         $db = $user->getAdapter();
-        $query = $db->select()->distinct()->from(array('s'=>'SYSTEMS'),array('name'=>'s.system_nickname'))
+        $query = $db->select()->distinct()->from(array('s'=>'systems'),array('name'=>'s.nickname'))
                                           ->where("system_id in (".$ids.")");
         $systems = $db->fetchAll($query);
         foreach($systems as $k=>$v){
@@ -503,8 +490,8 @@ class ReportController extends SecurityController
                 break;
         }
 
-        $query = $db->select()->from(array('s'=>'SYSTEMS'),array('id'=>'s.system_id'))
-                              ->where("system_nickname = '".$system."'")
+        $query = $db->select()->from(array('s'=>'systems'),array('id'=>'s.id'))
+                              ->where("nickname = '".$system."'")
                               ->limit(1);
         $result = $db->fetchRow($query);
         if('' == $result){
@@ -513,8 +500,8 @@ class ReportController extends SecurityController
         $fsa_system_id = $result['id'];
 
         $query->reset();
-        $query = $db->select()->from(array('sg'=>'SYSTEM_GROUPS'),array('id'=>'sysgroup_id'))
-                              ->where("sysgroup_nickname = '".$system."'")
+        $query = $db->select()->from(array('sg'=>'system_groups'),array('id'=>'id'))
+                              ->where("nickname = '".$system."'")
                               ->limit(1);
         $result = $db->fetchRow($query);
         if('' == $result){

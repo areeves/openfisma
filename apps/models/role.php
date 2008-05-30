@@ -9,7 +9,7 @@
 require_once 'Abstract.php';
 class Role extends Fisma_Model
 {
-    protected $_name = 'ROLES';
-    protected $_primary = 'role_id';
+    protected $_name = 'roles';
+    protected $_primary = 'id';
 }
 

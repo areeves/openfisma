@@ -36,8 +36,8 @@ class SecurityController extends Zend_Controller_Action
         $auth = Zend_Auth::getInstance();
         if($auth->hasIdentity()){
             $this->me = $auth->getIdentity();
-            $this->view->identity = $this->me->user_name;
-            $this->initializeAcl($this->me->user_id);
+            $this->view->identity = $this->me->account;
+            $this->initializeAcl($this->me->id);
         }else{
             $this->_forward('login','user');
         }
@@ -47,25 +47,32 @@ class SecurityController extends Zend_Controller_Action
         if( !Zend_Registry::isRegistered('acl') )  {
             $acl = new Zend_Acl();
             $db = Zend_Registry::get('db');
-            $role_array = $db->fetchAll("SELECT role_nickname FROM `ROLES` r,`USER_ROLES` ur
-                                       WHERE ur.user_id = $uid
-                                       AND r.role_id = ur.role_id");
-            foreach($role_array as $result){
-                $acl->addRole(new Zend_Acl_Role($result['role_nickname']));
+            $query = $db->select()->from(array('r'=>'roles'),array('nickname'=>'r.nickname'))
+                                  ->from(array('u'=>'users'),array())
+                                  ->join(array('ur'=>'user_roles'),'ur.user_id = u.id',array())                                 
+                                  ->where('u.id = '.$uid);
+            $role_array = $db->fetchAll($query);
+            foreach($role_array as $row){
+                $acl->addRole(new Zend_Acl_Role($row['nickname']));
             }
 
-            $resource = $db->fetchAll("SELECT distinct function_screen FROM `FUNCTIONS`");
-            foreach($resource as $result){
-                $acl->add(new Zend_Acl_Resource($result['function_screen']));
+            $query->reset();
+            $query = $db->select()->distinct()->from(array('f'=>'functions'),array('screen'=>'screen'));
+            $resource = $db->fetchAll($query);
+            foreach($resource as $row){
+                $acl->add(new Zend_Acl_Resource($row['screen']));
             }
-            $res = $db->fetchAll("SELECT  r.role_nickname,f.function_screen,f.function_action
-                                  FROM `ROLES` r,`ROLE_FUNCTIONS` rf,`FUNCTIONS` f,`USER_ROLES` ur
-                                  WHERE ur.user_id = $uid
-                                  AND ur.role_id = r.role_id
-                                  AND r.role_id = rf.role_id
-                                  AND rf.function_id = f.function_id");
-            foreach($res as $result){
-                $acl->allow($result['role_nickname'],$result['function_screen'],$result['function_action']);
+
+            $query->reset();
+            $query = $db->select()->from(array('u'=>'users'),array())
+                                  ->join(array('ur'=>'user_roles'),'u.id = ur.user_id',array())
+                                  ->join(array('r'=>'roles'),'ur.role_id = r.id',array('nickname'=>'r.nickname'))
+                                  ->join(array('rf'=>'role_functions'),'r.id = rf.role_id',array())
+                                  ->join(array('f'=>'functions'),'rf.function_id = f.id',array('screen'=>'f.screen',
+                                                                                              'action'=>'f.action'));
+            $res = $db->fetchAll($query);
+            foreach($res as $row){
+                $acl->allow($row['nickname'],$row['screen'],$row['action']);
             }
             Zend_Registry::set('acl',$acl);
         }else{

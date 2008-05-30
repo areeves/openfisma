@@ -40,7 +40,7 @@ class DashboardController extends SecurityController
           $total_items  = 0;
 
           $auth = Zend_Auth::getInstance();
-          $userID = $this->me->user_id;
+          $userID = $this->me->id;
           $user = new User;
           $arrays = $user->getMySystems($userID);
           while ($array = array_pop($arrays))
@@ -120,22 +120,22 @@ class DashboardController extends SecurityController
         $poamsModel = new poam($db);
         $poam =  $poamsModel->select();
         $poam->from($poamsModel,'count(*)');
-        $poam->where('poam_action_owner = ? ',$system_id);
+        $poam->where('system_id = ? ',$system_id);
         if ($type or $status) {
             if ($type) {
-                $poam->where('poam_type = ? ', $type);
+                $poam->where('type = ? ', $type);
             }
             if ($status) {
                 switch ($status) {
                     case "EN" :
-                    $poam->where('poam_status = ? and poam_action_date_est > NOW()', $status);
+                    $poam->where('status = ? and action_date_est > NOW()', $status);
                     break;
                     case "EO" :
-                    $poam->where('poam_status = ? and poam_action_date_est <= NOW() ','EN');
-                    $poam->orwhere('poam_action_date_est = ? ','NULL');
+                    $poam->where('status = ? and action_date_est <= NOW() ','EN');
+                    $poam->orwhere('action_date_est = ? ','NULL');
                     break;
                     default   :
-                    $poam->where('poam_status = ? ', $status);
+                    $poam->where('status = ? ', $status);
                 }
             }
         }

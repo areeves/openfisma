@@ -27,28 +27,24 @@ class AssetController extends SecurityController
         $port = $req->getParam( 'port' );
 
         $qry = $asset->select()->setIntegrityCheck(false)
-                               ->from(array('a'=>'ASSETS'),array('id'=>'asset_id',
-                                                                 'name'=>'asset_name'))
+                               ->from(array('a'=>'ASSETS'),array('id'=>'id',
+                                                                 'name'=>'name'))
                                ->order('name ASC');
         if(!empty($system_id) && $system_id > 0){
-            $qry->join(array('sa'=>'SYSTEM_ASSETS'),'sa.asset_id = a.asset_id',array());
-            $qry->where("sa.system_id = $system_id");
+            //$qry->join(array('sa'=>'SYSTEM_ASSETS'),'sa.asset_id = a.asset_id',array());
+            $qry->where("a.system_id = $system_id");
         }
 
         if(!empty($asset_name)){
-            $qry->where("asset_name='$asset_name'");
+            $qry->where("a.name='$asset_name'");
         }
 
-        if(!empty($ip) || !empty($port) ){
-            $qry->join(array('aa'=>'ASSET_ADDRESSES'),
-                         'aa.asset_id = a.asset_id',
-                         array() );
-            if($ip) {
-                $qry->where("aa.address_ip='$ip'");
-            }
-            if($port) {
-                $qry->where("aa.address_port='$port'");
-            }
+        if(!empty($ip)){
+            $qry->where("a.address_ip = ".$ip);
+        }
+
+        if(!empty($port)){
+            $qry->where("a.address_port = ".$port);
         }
 
         $this->view->assets = $asset->fetchAll($qry)->toArray();
@@ -69,14 +65,14 @@ class AssetController extends SecurityController
 
         $db=Zend_Registry::get('db');
         $qry=$db->select();
-        $system_list=$db->fetchPairs($qry->from(array('s'=>'SYSTEMS'),
-                                                array('id'=>'system_id','name'=>'system_name'))
-                                         ->where("system_id IN ($sys_id_set)")
+        $system_list=$db->fetchPairs($qry->from(array('s'=>'systems'),
+                                                array('id'=>'id','name'=>'name'))
+                                         ->where("id IN ($sys_id_set)")
                                          ->order('name ASC'));
         $system_list['select']="--select--";
         $qry->reset();
-        $network_list=$db->fetchPairs($qry->from(array('n'=>'NETWORKS'),
-                                                 array('id'=>'network_id','name'=>'network_name'))
+        $network_list=$db->fetchPairs($qry->from(array('n'=>'networks'),
+                                                 array('id'=>'n.id','name'=>'n.name'))
                                           ->order('name ASC'));
         $network_list['select']="--select--";
         $qry->reset();
@@ -95,25 +91,16 @@ class AssetController extends SecurityController
 
         if(!empty($asset_name)){
             $asset_row =array('prod_id'=>$prod_id,
-                              'asset_name'=>$asset_name,
-                              'asset_date_created'=>$create_time,
-                              'asset_source'=>$asset_source);
-            $asset_rows_affected=$db->insert('ASSETS',$asset_row);
+                              'name'=>$asset_name,
+                              'create_ts'=>$create_time,
+                              'source'=>$asset_source,
+                              'system_id'=>$system_id,
+                              'network_id'=>$network_id,
+                              'address_ip'=>$asset_ip,
+                              'address_port'=>$asset_port);
+            $asset_rows_affected=$db->insert('assets',$asset_row);
 
             $asset_last_insert_id=$db->lastInsertId();
-
-            $system_asset_row=array('system_id'=>$system_id,
-                                    'asset_id'=>$asset_last_insert_id,
-                                    'system_is_owner'=>'1');
-            $system_rows_affected=$db->insert('SYSTEM_ASSETS',$system_asset_row);
-
-            $asset_address_row=array('asset_id'=>$asset_last_insert_id,
-                                     'network_id'=>$network_id,
-                                     'address_date_created'=>$create_time,
-                                     'address_ip'=>$asset_ip,
-                                     'address_port'=>$asset_port);
-            $asset_address_rows_affected=$db->insert('ASSET_ADDRESSES',$asset_address_row);
-
             $this->message( "Create Asset successfully", self::M_NOTICE);
         }
         $this->view->system_list=$system_list;
@@ -132,23 +119,23 @@ class AssetController extends SecurityController
         $id = $req->getParam('id');
         if(!empty($id)) {
             $qry = $asset->select()->setIntegrityCheck(false)
-                                   ->from(array('a'=>'ASSETS'),array());
-            $qry->join(array('p'=>'PRODUCTS'),'p.prod_id = a.prod_id',array('pname' =>'p.prod_name',
-                                                                        'pvendor' =>'p.prod_vendor',
-                                                                        'pversion' =>'p.prod_version'));
-            $qry->where("a.asset_id = $id");
+                                   ->from(array('a'=>'assets'),array());
+            $qry->join(array('p'=>'products'),'p.prod_id = a.prod_id',array('pname' =>'p.name',
+                                                                        'pvendor' =>'p.vendor',
+                                                                        'pversion' =>'p.version'));
+            $qry->where("a.id = $id");
             $this->view->assets = $asset->fetchAll($qry)->toArray();
             $qry->reset();
             $qry = $asset->select()->setIntegrityCheck(false)
-                                   ->from(array('sa'=>'SYSTEM_ASSETS'));
-            $qry->join(array('s'=>'SYSTEMS'),'s.system_id = sa.system_id',array('sname'=>'s.system_name'));
-            $qry->where("sa.asset_id = $id");
+                                   ->from(array('a'=>'assets'));
+            $qry->join(array('s'=>'systems'),'s.id = a.system_id',array('sname'=>'s.name'));
+            $qry->where("a.id = $id");
             $this->view->system = $asset->fetchAll($qry)->toArray();
             $qry->reset();
             $qry = $asset->select()->setIntegrityCheck(false)
-                                   ->from(array('aa'=>'ASSET_ADDRESSES'),array('ip'=>'aa.address_ip',
-                                                                             'port'=>'aa.address_port'));
-            $qry->where("aa.asset_id = $id");
+                                   ->from(array('a'=>'assets'),array('ip'=>'a.address_ip',
+                                                                     'port'=>'a.address_port'));
+            $qry->where("a.id = $id");
             $ipport = $asset->fetchAll($qry)->toArray();
             if(!empty($ipport)){
                 foreach($ipport as $result){

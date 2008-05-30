@@ -14,16 +14,16 @@ require_once('Zend/Log.php');
 
 class User extends Fisma_Model
 {
-    protected $_name = 'USERS';
-    protected $_primary = 'user_id';
-    protected $_log_name = 'account_log';
+    protected $_name = 'users';
+    protected $_primary = 'id';
+    protected $_log_name = 'account_logs';
     protected $_logger = null;
     protected $_log_map = array('priority'=>'priority','timestamp'=>'timestamp',
-                                'user_id' => 'uid', 'event_type' => 'type',
+                                'user_id' => 'uid', 'event' => 'type',
                                 'message'=>'message','priority_name' => 'priorityName');
 
-    protected $_map = array(self::SYS=>array('table'=>'USER_SYSTEM_ROLES','field'=>'system_id'),
-                            self::ROLE=>array('table'=>'USER_ROLES','field'=>'role_id') );
+    protected $_map = array(self::SYS=>array('table'=>'user_systems','field'=>'system_id'),
+                            self::ROLE=>array('table'=>'user_roles','field'=>'role_id') );
 
     const SYS = 'system';
     const ROLE = 'role';
@@ -50,15 +50,15 @@ class User extends Fisma_Model
         @param $id the user id
         @return array of role nickname
     */
-    public function getRoles($id, $fields=array('nickname'=>'role_nickname')) {
+    public function getRoles($id, $fields=array('nickname'=>'nickname')) {
         $role_array = array();
         $db = $this->_db;
 
         $qry = $db->select()
-                  ->from(array('u'=>'USERS'),array())
-                  ->join(array('ur'=>'USER_ROLES'),'u.user_id = ur.user_id',array())
-                  ->join(array('r'=>'ROLES'),'r.role_id = ur.role_id',$fields)
-                  ->where("u.user_id = $id and r.role_name != 'none'");
+                  ->from(array('u'=>'users'),array())
+                  ->join(array('ur'=>'user_roles'),'u.id = ur.user_id',array())
+                  ->join(array('r'=>'roles'),'r.id = ur.role_id',$fields)
+                  ->where("u.id = $id and r.name != 'none'");
 
         return  $db->fetchAll($qry);
     }
@@ -75,10 +75,11 @@ class User extends Fisma_Model
         assert($id);
         $db = Zend_Registry::get('db');
         $origin_mode = $db->getFetchMode();
-        $qry = $db->select()->from($this->_name, 'user_name')->where('user_id = ?', $id);
+        $qry = $db->select()->from($this->_name, 'account')->where('id = ?', $id);
         $user = $db->fetchOne($qry); 
 
-        $qry = $db->select()->distinct()->from('USER_SYSTEM_ROLES', 'system_id');
+        $qry->reset();
+        $qry = $db->select()->distinct()->from('user_systems', 'user_id');
         if($user != 'root') {
             $qry->where("user_id = $id");
         }
@@ -117,7 +118,7 @@ class User extends Fisma_Model
         }
         if( $type == self::LOGIN ) {
             $row->failure_count=0;
-            $row->user_date_last_login = date("YmdHis");
+            $row->last_login_ts = date("YmdHis");
             $row->save();
         }
 

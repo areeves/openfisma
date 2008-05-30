@@ -11,8 +11,8 @@ require_once 'Zend/Db/Table.php';
 
 class poam extends Zend_Db_Table
 {
-    protected $_name = 'POAMS';
-    protected $_primary = 'poam_id';
+    protected $_name = 'poams';
+    protected $_primary = 'id';
     
     /** 
     *  search poam records.
@@ -38,30 +38,32 @@ class poam extends Zend_Db_Table
         $sid_str = implode(',',$sys_ids);
         $query = $db->select();
         if( $fields == '*' ) {
-                $fields =  array('id'=>'p.poam_id',
-                               'legacy_id'=>'p.legacy_poam_id',
-                               'type'=>'p.poam_type',
-                               'status'=>'p.poam_status',
-                               'date_created'=>'p.poam_date_created',
-                               'action_date_est'=>'p.poam_action_date_est');
-                $query->from(array('p'=>'POAMS'), $fields )
-                     ->where("p.poam_action_owner IN ($sid_str)")
-                     ->join(array('f'=>'FINDINGS'),'p.finding_id = f.finding_id',array('finding_data'=>'f.finding_data'))
-                     ->joinLeft(array('fs'=>'FINDING_SOURCES'),'f.source_id = fs.source_id',
-                                                                 array('source_nickname'=>'fs.source_nickname',
-                                                                'source_name'=>'fs.source_name'))
-                     ->join(array('s'=>'SYSTEMS'),'s.system_id = p.poam_action_owner',array('action_owner_nickname'=>'s.system_nickname'));
+                $fields =  array('id'=>'p.id',
+                               'legacy_id'=>'p.legacy_finding_id',
+                               'type'=>'p.type',
+                               'status'=>'p.status',
+                               'date_created'=>'p.create_ts',
+                               'action_date_est'=>'p.action_date_est');
+                $query->from(array('p'=>'poams'), $fields )
+                     ->where("p.system_id IN ($sid_str)")
+                     //->join(array('f'=>'FINDINGS'),'p.finding_id = f.finding_id',array('finding_data'=>'f.finding_data'))
+                     //->joinLeft(array('fs'=>'FINDING_SOURCES'),'f.source_id = fs.source_id',
+                     //                                            array('source_nickname'=>'fs.source_nickname',
+                     //                                           'source_name'=>'fs.source_name'))
+                     ->join(array('s'=>'sources'),'p.source_id = s.id',array('source_nickname'=>'s.nickname',
+                                                                             'source_name'    =>'s.name'))
+                     ->join(array('sys'=>'systems'),'sys.id = p.system_id',array('action_owner_nickname'=>'sys.nickname'));
         }else{
             assert(is_array($fields));
             if( isset($fields['count']) ){
                 $groupby = $fields['count'];
                 $fields = 'count(*) as count';
                 assert(is_array($groupby));
-                $query->from(array('p'=>'POAMS'), $fields )
-                     ->where("p.poam_action_owner IN ($sid_str)")
-                     ->join(array('f'=>'FINDINGS'),'p.finding_id = f.finding_id',array())
-                     ->joinLeft(array('fs'=>'FINDING_SOURCES'),'f.source_id = fs.source_id', array() )
-                     ->join(array('s'=>'SYSTEMS'),'s.system_id = p.poam_action_owner',array());
+                $query->from(array('p'=>'poams'), $fields )
+                     ->where("p.system_id IN ($sid_str)")
+                     //->join(array('f'=>'findings'),'p.finding_id = f.finding_id',array())
+                     ->join(array('s'=>'sources'),'p.source_id = s.id', array() )
+                     ->join(array('sys'=>'systems'),'sys.id = p.system_id',array());
                 foreach($groupby as $g){
                     $query->group("p.$g");
                 }
@@ -71,73 +73,73 @@ class poam extends Zend_Db_Table
 
         
         if(isset($ids) && !empty($ids)){
-            $query->where("p.poam_id IN ($ids)");
+            $query->where("p.id IN ($ids)");
         }
 
         if(isset($source) && $source != 'any'){
-            $query->where("fs.source_id = ".$source."");
+            $query->where("p.source_id = ".$source."");
         }
 
         if(!empty($startdate)){
             $startdate = date("Y-m-d",strtotime($startdate));
-            $query->where("p.poam_action_date_est >=?",$startdate);
+            $query->where("p.action_date_est >=?",$startdate);
         }
 
         if(!empty($enddate)){
             $enddate = date("Y-m-d",strtotime($enddate));
-            $query->where("p.poam_action_date_est <=?",$enddate);
+            $query->where("p.action_date_est <=?",$enddate);
         }
 
         if(!empty($startcreatedate) ){
             $start_date_cr = date("Y-m-d",strtotime($startcreatedate));
-            $query->where("p.poam_date_created >=?",$startcreatedate); 
+            $query->where("p.create_ts >=?",$startcreatedate); 
         }
 
         if(!empty($end_date_cr) ){
             $end_date_cr = date("Y-m-d",strtotime($end_date_cr));
-            $query->where("p.poam_date_created <=?",$end_date_cr);
+            $query->where("p.create_ts <=?",$end_date_cr);
         }
 
         if(isset($type) && $type != 'any'){
             if(is_array($type)){
                 $type = implode(',',$type);
-                $query->where("p.poam_type IN ($type)");
+                $query->where("p.type IN ($type)");
             }
             else {
-                $query->where("p.poam_type = ?",$type);
+                $query->where("p.type = ?",$type);
             }
         }
 
         if(isset($status) && $status != 'any' ){
             if(is_array($status)){
                 $status = implode(',',$status);
-                $query->where("p.poam_status IN ($status)");
+                $query->where("p.status IN ($status)");
             }
             else {
-                $query->where("p.poam_status = ?", $status);
+                $query->where("p.status = ?", $status);
             }
         }
         
         if(isset($ep)){
-            $qry = $db->select()->distinct()->from(array('pe'=>'POAM_EVIDENCE'),array('poam_id'=>'pe.poam_id'))
+            $qry = $db->select()->distinct()->from(array('e'=>'evidences'),array('id'=>'e.id'))
                                             ->where("pe.ev_sso_evaluation = '".$ep['sso']."'")
                                             ->where("pe.ev_fsa_evaluation = '".$ep['fsa']."'")
                                             ->where("pe.ev_ivv_evaluation = '".$ep['ivv']."'");
             
             $ids = implode(',',$db->fetchCol($qry));
-            $query->where("p.poam_id IN ($ids)");
+            $query->where("p.id IN ($ids)");
         }
 
         if(isset($asset_owner) && $asset_owner != 'any'){
-            $query->where("s.system_id = ".$asset_owner."");
+            $query->where("sys.id = ".$asset_owner."");
         }
         
         if(isset($action_owner) && $action_owner != 'any'){
-            $query->where("s.system_id = ".$action_owner."");
+            $query->where("sys.id = ".$action_owner."");
         }
 
-        if(!empty($poam_date_modified)){
-            $query->where("p.poam_date_modified < $poam_date_modified");
+        if(!empty($date_modified)){
+            $query->where("p.modify_ts < $date_modified");
         }
 
         if( !empty( $currentPage ) && !empty( $perPage ) ){
@@ -154,93 +156,91 @@ class poam extends Zend_Db_Table
         $flag = substr($agency,0,1);
         $db = $this->_db;
         $fsa_sysgroup_id = Zend_Registry::get('fsa_sysgroup_id');
-        $fsa_system_id = Zend_Registry::get('fsa_system_id');
+        $fp_system_id = Zend_Registry::get('fsa_system_id');
         $startdate = Zend_Registry::get('startdate');
         $enddate = Zend_Registry::get('enddate');
-                $query = $db->select()->from(array('sgs'=>'SYSTEM_GROUP_SYSTEMS'),array('system_id'=>'system_id'))
-                              ->where("sgs.sysgroup_id = ".$fsa_sysgroup_id." AND sgs.system_id != ".$fsa_system_id."");
+                $query = $db->select()->from(array('sgs'=>'system_group_systems'),array('system_id'=>'system_id'))
+                              ->where("sgs.sysgroup_id = ".$fsa_sysgroup_id." AND sgs.system_id != ".$fp.system_id."");
         $result = $db->fetchCol($query);
         $system_ids = implode(',',$result);
         $query = $db->select()->distinct()
-                              ->from(array('p'=>'POAMS'),array('num_poams'=>'count(p.poam_id)'))
-                              ->join(array('f'=>'FINDINGS'),'f.finding_id = p.finding_id',array())
-                              ->join(array('a'=>'ASSETS'),'a.asset_id = f.asset_id',array())
-                              ->join(array('sa'=>'SYSTEM_ASSETS'),'sa.asset_id = a.asset_id',array());
+                              ->from(array('p'=>'poams'),array('num_poams'=>'count(p.id)'))
+                              ->join(array('a'=>'assets'),'a.id = p.asset_id',array());
         switch($flag){
             case 'a':
                 switch($agency){
                     case 'aaw':
-                        $query->where("sa.system_id = '".$fsa_system_id."'");
+                        $query->where("p.system_id = '".$fp.system_id."'");
                         break;
                     case 'as':
-                        $query->where("sa.system_id IN (".$system_ids.")");
+                        $query->where("p.system_id IN (".$system_ids.")");
                         break;
                 }
-                $query->where("p.poam_date_created < '".$startdate."'")
-                      ->where("p.poam_date_closed IS NULL OR p.poam_date_closed >= '".$startdate."'");
+                $query->where("p.create_ts < '".$startdate."'")
+                      ->where("p.close_ts IS NULL OR p.close_ts >= '".$startdate."'");
                 break;
             case 'b':
                 switch($agency){
                     case 'baw':
-                        $query->where("sa.system_id = '".$fsa_system_id."'");
+                        $query->where("p.system_id = '".$fp.system_id."'");
                         break;
                     case 'bs':
-                        $query->where("sa.system_id IN (".$system_ids.")");
+                        $query->where("p.system_id IN (".$system_ids.")");
                         break;
                 }
-                $query->where("p.poam_date_created <= '".$enddate."'")
-                      ->where("p.poam_action_date_est <= '".$enddate."'")
-                      ->where("p.poam_action_date_actual >= '".$startdate."'")
-                      ->where("p.poam_action_date_actual <= '".$enddate."'");
+                $query->where("p.create_ts <= '".$enddate."'")
+                      ->where("p.action_date_est <= '".$enddate."'")
+                      ->where("p.action_date_actual >= '".$startdate."'")
+                      ->where("p.action_date_actual <= '".$enddate."'");
                 break;
             case 'c':
                 switch($agency){
                     case 'caw':
-                        $query->where("sa.system_id = '".$fsa_system_id."'");
+                        $query->where("p.system_id = '".$fsa_system_id."'");
                         break;
                     case 'cs':
-                        $query->where("sa.system_id IN (".$system_ids.")");
+                        $query->where("p.system_id IN (".$system_ids.")");
                         break;
                 }
-                $query->where("p.poam_date_created <= '".$enddate."'")
-                      ->where("p.poam_action_date_est > '".$enddate."'")
-                      ->where("p.poam_action_date_actual IS NULL");
+                $query->where("p.create_ts <= '".$enddate."'")
+                      ->where("p.action_date_est > '".$enddate."'")
+                      ->where("p.action_date_actual IS NULL");
                 break;
             case 'd':
                 switch($agency){
                     case 'daw':
-                        $query->where("sa.system_id = '".$fsa_system_id."'");
+                        $query->where("p.system_id = '".$fsa_system_id."'");
                         break;
                     case 'ds':
-                        $query->where("sa.system_id IN (".$system_ids.")");
+                        $query->where("p.system_id IN (".$system_ids.")");
                         break;
                 }
-                $query->where("p.poam_action_date_est <= '".$enddate."'")
-                      ->where("p.poam_action_date_actual IS NULL OR p.poam_action_date_actual > '".$enddate."'");
+                $query->where("p.action_date_est <= '".$enddate."'")
+                      ->where("p.action_date_actual IS NULL OR p.action_date_actual > '".$enddate."'");
                 break;
             case 'e':
                 switch($agency){
                     case 'eaw':
-                        $query->where("sa.system_id = '".$fsa_system_id."'");
+                        $query->where("p.system_id = '".$fsa_system_id."'");
                         break;
                     case 'es':
-                        $query->where("sa.system_id IN (".$system_ids.")");
+                        $query->where("p.system_id IN (".$system_ids.")");
                         break;
                 }
-                $query->where("p.poam_date_created >= '".$startdate."'")
-                      ->where("p.poam_date_created <= '".$enddate."'");
+                $query->where("p.create_ts >= '".$startdate."'")
+                      ->where("p.create_ts <= '".$enddate."'");
                 break;
             case 'f':
                 switch($agency){
                     case 'faw':
-                        $query->where("sa.system_id = '".$fsa_system_id."'");
+                        $query->where("p.system_id = '".$fsa_system_id."'");
                         break;
                     case 'fs':
-                        $query->where("sa.system_id IN (".$system_ids.")");
+                        $query->where("p.system_id IN (".$system_ids.")");
                         break;
                 }
-                $query->where("p.poam_date_created <= '".$enddate."'")
-                      ->where("p.poam_date_closed IS NULL OR p.poam_date_closed > '".$enddate."'");
+                $query->where("p.create_ts <= '".$enddate."'")
+                      ->where("p.close_ts IS NULL OR p.close_ts > '".$enddate."'");
                 break;
         }
         $result = $db->fetchRow($query);

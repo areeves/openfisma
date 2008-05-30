@@ -20,10 +20,8 @@ class PanelController extends SecurityController
 
     public function headerAction()
     {   
-        $this->_helper->layout->assign('header',
-            $this->view->render($this->_helper->viewRenderer->getViewScript()));
+        $this->_helper->layout->assign('header',$this->view->render($this->_helper->viewRenderer->getViewScript()));
         $this->_helper->layout->setLayout('default');
-
     }
 
     public function dashboardAction()

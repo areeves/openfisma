@@ -54,7 +54,7 @@
     </tr>
     <tr>
         <td align="right" class="thc">Username:</td>
-        <td class="tdc">&nbsp;<input type="text" name="user_name"
+        <td class="tdc">&nbsp;<input type="text" name="user_account"
             value="<?php echo $this->user['username'];?>" size="90"><font color="blue"> *</font></td>
     </tr>
     <tr>

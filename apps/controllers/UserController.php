@@ -49,7 +49,7 @@ class UserController extends SecurityController
         //We may need to findout user auth configuration and using properly method
         $now = new Zend_Date();
         $db = Zend_Registry::get('db'); 
-        $authAdapter = new Zend_Auth_Adapter_DbTable($db, 'USERS', 'user_name', 'user_password');
+        $authAdapter = new Zend_Auth_Adapter_DbTable($db, 'users', 'account', 'password');
         $auth = Zend_Auth::getInstance();
         $req = $this->getRequest();
         $username = $req->getPost('username');
@@ -60,8 +60,8 @@ class UserController extends SecurityController
             $result = $auth->authenticate($authAdapter);
             if (!$result->isValid()) {
                 if(Zend_Auth_Result::FAILURE_CREDENTIAL_INVALID == $result->getCode()){
-                    $whologin = $this->_user->fetchRow("user_name = '$username'");
-                    $this->_user->log(User::LOGINFAILURE, $whologin->user_id,'Password Error');
+                    $whologin = $this->_user->fetchRow("account = '$username'");
+                    $this->_user->log(User::LOGINFAILURE, $whologin->id,'Password Error');
                 }
                 // Authentication failed; print the reasons why
                 $error = "";
@@ -70,11 +70,11 @@ class UserController extends SecurityController
                 }
                 $this->view->assign('error', $error);
             } else {
-                $me = $authAdapter->getResultRowObject(null, 'user_password');
+                $me = $authAdapter->getResultRowObject(null, 'password');
                 $period = readSysConfig('max_absent_time');
                 $deactive_time = clone $now;
                 $deactive_time->sub($period,Zend_Date::DAY);
-                $last_login = new Zend_Date($me->user_date_last_login);
+                $last_login = new Zend_Date($me->last_login_ts);
 
                 if( !$last_login->equals(new Zend_Date('0000-00-00 00:00:00')) 
                     && $last_login->isEarlier($deactive_time) ){
@@ -82,12 +82,12 @@ class UserController extends SecurityController
                              ".$period." days";
                     $this->view->assign('error',$error);
                 } else {
-                    $this->_user->log(User::LOGIN, $me->user_id, "Success");
-                    $nickname = $this->_user->getRoles($me->user_id);
+                    $this->_user->log(User::LOGIN, $me->id, "Success");
+                    $nickname = $this->_user->getRoles($me->id);
                     foreach($nickname as $n ) {
-                        $me->role_array[] = $n;
+                        $me->role_array[] = $n['nickname'];
                     }
-                    $me->systems = $this->_user->getMySystems($me->user_id);
+                    $me->systems = $this->_user->getMySystems($me->id);
                     $auth->getStorage()->write($me);
                     return $this->_forward('index','Panel');
                 }
@@ -107,7 +107,7 @@ class UserController extends SecurityController
     
     public function logoutAction()
     {
-        $this->_user->log(User::LOGOUT, $this->me->user_id,$this->me->user_name.' logout');
+        $this->_user->log(User::LOGOUT, $this->me->id,$this->me->account.' logout');
         Zend_Auth::getInstance()->clearIdentity();
         $this->_forward('login');
     }
@@ -126,14 +126,17 @@ class UserController extends SecurityController
                      'role'=>'Role',
                      'title'=>'Title',
                      'status'=>'Status',
-                     'username'=>'Username');
+                     'account'=>'Username');
         $this->view->assign('fid_array',$fid_array);
         $req = $this->getRequest();
         $this->_paging_base_path = $req->getBaseUrl().'/panel/user/sub/list';
         $this->_paging['currentPage'] = $req->getParam('p',1);
         $fid = $req->getParam('fid');
         $qv = $req->getParam('qv');
-        $res = $db->fetchRow("SELECT COUNT(*) AS count FROM `USERS` u,`ROLES` r WHERE u.role_id = r.role_id");
+        $query = $db->select()->from(array('u'=>'users'),array('count'=>'COUNT(u.id)'))
+                              ->join(array('ur'=>'user_roles'),'u.id = ur.user_id',array())
+                              ->join(array('r'=>'roles'),'ur.role_id = r.id',array());
+        $res = $db->fetchRow($query);
         $count = $res['count'];
         $this->_paging['totalItems'] = $count;
         $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";
@@ -156,32 +159,32 @@ class UserController extends SecurityController
         $qv = $req->getParam('qv');
         $fid = $req->getParam('fid');
         $qry = $user->select()->setIntegrityCheck(false)
-                    ->from(array('u'=>'USERS'),array('id'=>'user_id',
-                                                     'username'=>'user_name',
-                                                     'lastname'=>'user_name_last',
-                                                     'firstname'=>'user_name_first',
-                                                     'officephone'=>'user_phone_office',
-                                                     'mobile'=>'user_phone_mobile',
-                                                     'email'=>'user_email',
-                                                     'roleid'=>'role_id'));
-        $qry->join(array('r'=>'ROLES'),'u.role_id = r.role_id',array('rolename'=>'role_name'));
+                    ->from(array('u'=>'users'),array('id'=>'id',
+                                                     'username'=>'account',
+                                                     'lastname'=>'name_last',
+                                                     'firstname'=>'name_first',
+                                                     'officephone'=>'phone_office',
+                                                     'mobile'=>'phone_mobile',
+                                                     'email'=>'email'))
+                    ->join(array('ur'=>'user_roles'),'u.id = ur.user_id',array())
+                    ->join(array('r'=>'roles'),'ur.role_id = r.id',array('rolename'=>'r.name'));
         if(!empty($qv)){
-            $fid_array = array('user_name_last'=>'lastname',
-                               'user_name_first'=>'firstname',
-                               'user_phone_office'=>'officephone',
-                               'user_phone_mobile'=>'mobile',
-                               'user_email'=>'email',
+            $fid_array = array('name_last'=>'lastname',
+                               'name_first'=>'firstname',
+                               'phone_office'=>'officephone',
+                               'phone_mobile'=>'mobile',
+                               'email'=>'email',
                                'r.role_name'=>'role',
-                               'user_title'=>'title',
-                               'user_is_active'=>'status',
-                               'user_name'=>'username');
+                               'title'=>'title',
+                               'is_active'=>'status',
+                               'account'=>'account');
             foreach($fid_array as $k=>$v){
                 if($v == $fid){
                     $qry->where("$k = '$qv'");
                 }
             }
         }
-        $qry->order("user_name_last ASC");
+        $qry->order("name_last ASC");
         $qry->limitPage($this->_paging['currentPage'],$this->_paging['perPage']);
         $data = $user->fetchAll($qry);
         $user_list = $data->toArray();
@@ -204,34 +207,34 @@ class UserController extends SecurityController
         $db = $user->getAdapter();
         $qry = $user->select()->setIntegrityCheck(false);
         /** get user detail */
-        $qry->from(array('u'=>'USERS'),array('lastname'=>'user_name_last',
-                                           'firstname'=>'user_name_first',
-                                           'officephone'=>'user_phone_office',
-                                           'mobilephone'=>'user_phone_mobile',
-                                           'email'=>'user_email',
-                                           'title'=>'user_title',
-                                           'status'=>'user_is_active',
-                                           'username'=>'user_name',
-                                           'password'=>'user_password'))
-            ->where("u.user_id = $id");
+        $qry->from(array('u'=>'users'),array('lastname'=>'name_last',
+                                           'firstname'=>'name_first',
+                                           'officephone'=>'phone_office',
+                                           'mobilephone'=>'phone_mobile',
+                                           'email'=>'email',
+                                           'title'=>'title',
+                                           'status'=>'is_active',
+                                           'username'=>'account',
+                                           'password'=>'password'))
+            ->where("u.id = $id");
         $user_detail = $user->fetchRow($qry)->toArray();
 
-        $roles = $user->getRoles($id, array('name'=>'role_name'));
+        $roles = $user->getRoles($id, array('name'=>'name'));
 
         /** get user systems */
         $ids = implode(',',$user->getMySystems($id));
         $qry->reset();
         $systems = $db->fetchPairs($qry->from($sys->info(Zend_Db_Table::NAME),
-                               array('id'=>'system_id','name'=>'system_name'))
-                      ->where("system_id IN ( $ids )")
+                               array('id'=>'id','name'=>'name'))
+                      ->where("id IN ( $ids )")
                       ->order('id ASC'));
         $this->view->assign('id',$id);
         $this->view->assign('user',$user_detail);
         $this->view->assign('roles',$roles);
         $this->view->assign('systems',$systems);
         if('edit' == $v){
-            $qry = $db->select()->from(array('s'=>'SYSTEMS'),array('sid'=>'system_id',
-                                                                        'sname'=>'system_name'));
+            $qry = $db->select()->from(array('s'=>'systems'),array('sid'=>'id',
+                                                                   'sname'=>'name'));
             $sys = $db->fetchAll($qry);
             foreach($systems as $k=>$v){
                 $sid[] = $k;
@@ -262,19 +265,20 @@ class UserController extends SecurityController
                     if('user_' == substr($k,0,5) ){
                         if('password' == substr($k,5,8)){
                             if(!empty($v)){
-                                $field[$k] = md5($v);
-                                $field['user_date_password'] = 0;
+                                $field['password'] = md5($v);
+                                $field['date_password'] = 0;
                             }
                         }
                         else {
+                            $key = substr($k,5);
                             $field[$k] = $v;
                         }
                     }
                     if('user_is_active' == 0){
-                        $field['user_date_deleted'] = date("Y-m-d H:m:s");
+                        $field['date_deleted'] = date("Y-m-d H:m:s");
                     }
                     if('user_is_active' == 1){
-                        $field['user_date_deleted'] = '';
+                        $field['date_deleted'] = '';
                     }
                     if('system' == substr($k,0,6)){
                         $sys_field[] = $v;
@@ -282,15 +286,15 @@ class UserController extends SecurityController
                 }
                 $user = $this->_user;
                 $db = $user->getAdapter();
-                $res = $db->update('USERS',$field,'user_id = '.$id.'');
-                $res .=$db->delete('USER_SYSTEM_ROLES','user_id = '.$id.'');
+                $res = $user->update($field,'id = '.$id.'');
+                $res = $db->delete('USER_SYSTEM_ROLES','user_id = '.$id.'');
                 foreach($sys_field as $v){
                     $data = array('user_id'=>$id,'system_id'=>$v);
-                    $res .=$db->insert('USER_SYSTEM_ROLES',$data);
+                    $res  = $db->insert('USER_SYSTEM_ROLES',$data);
                 }
                 if($res){
                     $msg = '<p>User <b>modified</b> successful!</p>';
-                    $this->_user->log(User::MODIFICATION, $this->me->user_id, $field['user_name']);
+                    $this->_user->log(User::MODIFICATION, $this->me->id, $field['account']);
                 }
                 else {
                     $msg = '<p>User <b>modified</b> failed!</p>';
@@ -309,13 +313,14 @@ class UserController extends SecurityController
         $id = $req->getParam('id');
         assert($id);
         $msg ="";
-        $user = $this->_user;
-        $db = $user->getAdapter();
-        $res = $db->delete('USERS','user_id = '.$id);
-        $res = $db->delete('USER_SYSTEM_ROLES','user_id = '.$id);
-        $res = $db->delete('USER_ROLES','user_id = '.$id);
+        $rows = $this->_user->getList('account',$id);
+        $user_name = $rows[$id];
+        $res = $this->_user->delete('id = '.$id);
+        $res = $this->_user->getAdapter()->delete('user_systems','user_id = '.$id);
+        $res = $this->_user->getAdapter()->delete('user_roles','user_id = '.$id);
         if($res){
             $msg ="<p><b>User Deleted successfully</b></p>";
+            $this->_user->log(USER::TERMINATION,$this->me->id,'delete user '.$user_name); 
         }
         else {
             $msg ="<p><b>User Deleted failed</b></p>";
@@ -332,8 +337,8 @@ class UserController extends SecurityController
         $r = new Role();
         $system = new system();
 
-        $this->view->roles = $r->getList('role_name');
-        $this->view->systems = $system->getList(array('id'=>'system_id','name'=>'system_name'));
+        $this->view->roles = $r->getList('name');
+        $this->view->systems = $system->getList(array('id'=>'id','name'=>'name'));
         $this->render();
     }
 
@@ -346,29 +351,30 @@ class UserController extends SecurityController
         $req = $this->getRequest();
         foreach($req->getPost() as $k=>$v){
             if(substr($k,0,6) != 'system' ){
-                if( !in_array($k,array('role','confirm_password','user_password'))){
-                    $data[$k] = $v;
+                if( !in_array($k,array('user_role_id','confirm_password','user_password'))){
+                    $key = substr($k,5);
+                    $data[$key] = $v;
                 }else{
                     ///< @todo compare the password
                     if($k == 'user_password'){
-                        $data[$k] = md5($v);
+                        $data['password'] = md5($v);
                     }
                 }
             }else{
                 $systems[] = $v;
             }
         }
-        $data['user_date_created'] = date('Y-m-d H:i:s');
-        $data['extra_role'] = $req->getParam('user_name').'_r';
-
+        $data['created_ts'] = date('Y-m-d H:i:s');
+        $data['auto_role'] = $req->getParam('user_account').'_r';
+       
         $user_id = $this->_user->insert($data);
         $role_id = $req->getParam('role_id');
         $this->_user->associate($user_id, User::ROLE, $role_id);
 
         $this->_user->associate($user_id, User::SYS, $systems);
 
-        $this->_user->log(User::CREATION ,$this->me->user_id,'create user('.$data['user_name'].')');
-        $this->message("User({$data['user_name']}) added", self::M_NOTICE);
+        $this->_user->log(User::CREATION ,$this->me->id,'create user('.$data['account'].')');
+        $this->message("User({$data['account']}) added", self::M_NOTICE);
         $this->_forward('create');
     }
 

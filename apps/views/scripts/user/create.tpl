@@ -33,7 +33,7 @@
     </tr>
     <tr>
         <td align="right" class="thc">Role:</td>
-        <td class="tdc">&nbsp;<?php echo $this->formSelect('role_id',null,null,$this->roles);?><font color="blue">*</font></td>
+        <td class="tdc">&nbsp;<?php echo $this->formSelect('user_role_id',null,null,$this->roles);?><font color="blue">*</font></td>
     </tr>
     <tr>
         <td align="right" class="thc">Title:</td>
@@ -48,7 +48,7 @@
     </tr>
     <tr>
         <td align="right" class="thc">Username:</td>
-        <td class="tdc">&nbsp;<input type="text" name="user_name" size="90"><font color="blue"> *</font></td>
+        <td class="tdc">&nbsp;<input type="text" name="user_account" size="90"><font color="blue"> *</font></td>
     </tr>
     <tr>
         <td align="right" class="thc">Password:</td>

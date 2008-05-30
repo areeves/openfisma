@@ -29,17 +29,17 @@ class ProductController extends SecurityController
                                  ->from(array(),array());
 
         if(!empty($prod_name)){
-            $qry->where("PRODUCTS.prod_name = '$prod_name'");
+            $qry->where("name = '$prod_name'");
             $this->view->prod_name=$prod_name;
         }
 
         if(!empty($prod_vendor)){
-            $qry->where("PRODUCTS.prod_vendor='$prod_vendor'");
+            $qry->where("vendor='$prod_vendor'");
             $this->view->prod_vendor=$prod_vendor;
         }
 
         if(!empty($prod_version)){
-            $qry->where("PRODUCTS.prod_version='$prod_version'");
+            $qry->where("version='$prod_version'");
             $this->view->prod_version=$prod_version;
         }
         $qry->limit(100,0);

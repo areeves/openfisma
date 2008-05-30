@@ -42,7 +42,7 @@
     function isAllow($resource, $action) {
         $auth = Zend_Auth::getInstance();
         $me = $auth->getIdentity();
-        if($me->user_name == "root"){
+        if($me->account == "root"){
             return true;
         }
         $role_array = $me->role_array;

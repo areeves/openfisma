@@ -9,6 +9,6 @@
 require_once 'Abstract.php';
 class Network extends Fisma_Model
 {
-    protected $_name = 'NETWORKS';
-    protected $_primary = 'network_id';
+    protected $_name = 'networks';
+    protected $_primary = 'id';
 }
