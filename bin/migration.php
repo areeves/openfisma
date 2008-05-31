@@ -362,7 +362,7 @@ function finding_conv($db_src, $db_target, $data)
                   $qry->from(array('as'=>'ASSETS'))->where('as.asset_id=?',$data['asset_id'])
                       ->join(array('sys'=>'SYSTEM_ASSETS'),'sys.asset_id = as.asset_id') );
     if(empty($asset_data)) {
-        echo "{$data['asset_id']} missing for {$data['finding_id']} \n";
+        echo "asset {$data['asset_id']} missing for finding[{$data['finding_id']}] \n";
         return;
     }else{
         if(empty($poam_data)){
@@ -383,7 +383,7 @@ function finding_conv($db_src, $db_target, $data)
             $poam_data = $poam_data[0];
         }
         if($poam_data['poam_action_owner'] != $asset_data[0]['system_id']){
-            echo "[{$data['finding_id']}] {$asset_data[0]['system_id']} is inconsistent with action owner {$poam_data['poam_action_owner']} \n";
+            echo "finding_id[{$data['finding_id']}] system_id {$asset_data[0]['system_id']} is inconsistent with action owner {$poam_data['poam_action_owner']} \n";
         }
     }
 
