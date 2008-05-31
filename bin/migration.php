@@ -30,27 +30,8 @@
     $table_name=  array( 'BLSCR', 'NETWORKS', 
               'PRODUCTS','FINDING_SOURCES' , 
               'SYSTEM_GROUP_SYSTEMS','SYSTEMS',
-              'SYSTEM_GROUPS','FUNCTIONS','ROLES',
-              'ROLE_FUNCTIONS','USER_ROLES','USERS','FINDINGS');
-    /*
-
-    $table_name=  array( 'BLSCR',);
-    $table_name=  array( 'NETWORKS',);
-    $table_name=  array( 'PRODUCTS',);
-    $table_name=  array( 'FINDING_SOURCES',);
-    $table_name=  array( 'SYSTEM_GROUP_SYSTEMS',);
-    $table_name=  array( 'SYSTEMS',);
-    $table_name=  array( 'SYSTEM_GROUPS',);
-    $table_name=  array( 'FUNCTIONS',);
-    $table_name=  array( 'ROLES',);
-*/
-  //  $table_name=  array( 'ROLE_FUNCTIONS',);
-  //  $table_name=  array( 'USER_ROLES',);
-  //  $table_name=  array( 'USERS',);
- 
-    //$table_name=  array( 'ASSETS',);
-   //  $table_name=  array( 'USERS',);
-   //  $table_name=  array( 'USERS',);
+              'SYSTEM_GROUPS','FUNCTIONS','ROLES','ASSETS',
+              'USER_ROLES','USERS','FINDINGS','POAMS');
 
     $db_target = Zend_DB::factory(Zend_Registry::get('datasource')->default);
     $db_src    = Zend_DB::factory(Zend_Registry::get('legacy_datasource')->default);
@@ -59,6 +40,10 @@
 
     foreach( $table_name as $table ) 
     {
+        if($table == 'POAMS'){
+            poam_conv($db_src, $db_target);
+            continue;
+        }
         $qry = $db_src->select()->from($table,'count(*)');
         //Get count
         $count = $db_src->fetchRow($qry);
@@ -79,7 +64,6 @@
         echo "$table ( $rc ) successfully\n";
     }
 
-    poam_conv($db_src, $db_target);
 
 
 
