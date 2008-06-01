@@ -31,15 +31,19 @@
               'PRODUCTS','FINDING_SOURCES' , 
               'SYSTEM_GROUP_SYSTEMS','SYSTEMS',
               'SYSTEM_GROUPS','FUNCTIONS','ROLES','ASSETS',
-              'USER_ROLES','USERS','FINDINGS','POAMS');
+              'USER_ROLES','USERS','USER_SYSTEM_ROLES','FINDINGS','POAMS');
 
     $db_target = Zend_DB::factory(Zend_Registry::get('datasource')->default);
     $db_src    = Zend_DB::factory(Zend_Registry::get('legacy_datasource')->default);
     
     $delta = 100;
-
+    echo "start to migrate \n";
     foreach( $table_name as $table ) 
     {
+        echo "$table ";
+
+        try{
+
         if($table == 'POAMS'){
             poam_conv($db_src, $db_target);
             continue;
@@ -61,7 +65,11 @@
                 convert($db_src, $db_target, $table,$data);
             }
         }
-        echo "$table ( $rc ) successfully\n";
+        echo " ( $rc ) successfully\n";
+        }catch(Zend_Exception $e){
+            echo "skip \n\t", $e->getMessage() . "\n";
+            continue;
+        }
     }
 
 
@@ -118,6 +126,10 @@ function convert($db_src, $db_target, $table,&$data)
 
     case 'USERS':
          users_conv($db_src, $db_target, $data);
+         break;
+
+    case 'USER_SYSTEM_ROLES':
+         user_system_conv($db_src, $db_target, $data);
          break;
 /////////////////////////////////////////////////////  
     case 'ASSETS':
@@ -272,6 +284,14 @@ function user_roles_conv($db_src, $db_target, $data)
     $tmparray=array('user_id'=>$data['user_id'] ,
                     'role_id'=>$data['role_id']);
     $db_target->insert('user_roles',$tmparray);
+    unset($tmparray);
+}
+
+function user_system_conv($db_src, $db_target, $data)
+{
+    $tmparray=array('user_id'=>$data['user_id'] ,
+                    'system_id'=>$data['system_id']);
+    $db_target->insert('user_systems',$tmparray);
     unset($tmparray);
 }
 
