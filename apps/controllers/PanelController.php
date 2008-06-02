@@ -35,7 +35,7 @@ class PanelController extends SecurityController
     public function findingAction()
     {
         $req = $this->getRequest();
-        $sub = $req->getParam('sub');
+        $sub = $req->getParam('sub','searchbox');
         $this->_helper->actionStack($sub,'Finding');
         $this->_helper->actionStack('header');
     }

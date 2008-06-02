@@ -8,6 +8,7 @@
 */
 
 require_once 'Zend/Controller/Action.php';
+require_once 'Zend/Date.php';
 require_once 'Zend/Auth.php';
 require_once 'Zend/Db.php';
 require_once MODELS . DS . 'user.php';
@@ -27,6 +28,15 @@ class SecurityController extends Zend_Controller_Action
     const M_NOTICE = 'notice';
     const M_WARNING= 'warning';
 
+    static protected $now = null;
+    
+    public function init()
+    {
+        if( empty(self::$now) ) {
+            self::$now = Zend_Date::now();
+        }
+    }
+
     /**
      * Authentication check and ACL initialization
      * @todo cache the acl
@@ -35,9 +45,11 @@ class SecurityController extends Zend_Controller_Action
     {
         $auth = Zend_Auth::getInstance();
         if($auth->hasIdentity()){
-            $this->me = $auth->getIdentity();
+            if( empty($this->me) ){
+                $this->me = $auth->getIdentity();
+                $this->initializeAcl($this->me->id);
+            }
             $this->view->identity = $this->me->account;
-            $this->initializeAcl($this->me->id);
         }else{
             $this->_forward('login','user');
         }

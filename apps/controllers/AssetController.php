@@ -26,25 +26,22 @@ class AssetController extends SecurityController
         $ip = $req->getParam( 'ip' );
         $port = $req->getParam( 'port' );
 
-        $qry = $asset->select()->setIntegrityCheck(false)
-                               ->from(array('a'=>'ASSETS'),array('id'=>'id',
-                                                                 'name'=>'name'))
+        $qry = $asset->select()->from($asset,array('id'=>'id', 'name'=>'name'))
                                ->order('name ASC');
         if(!empty($system_id) && $system_id > 0){
-            //$qry->join(array('sa'=>'SYSTEM_ASSETS'),'sa.asset_id = a.asset_id',array());
-            $qry->where("a.system_id = $system_id");
+            $qry->where("system_id = $system_id");
         }
 
         if(!empty($asset_name)){
-            $qry->where("a.name='$asset_name'");
+            $qry->where("name='$asset_name'");
         }
 
         if(!empty($ip)){
-            $qry->where("a.address_ip = ".$ip);
+            $qry->where("address_ip = ".$ip);
         }
 
         if(!empty($port)){
-            $qry->where("a.address_port = ".$port);
+            $qry->where("address_port = ".$port);
         }
 
         $this->view->assets = $asset->fetchAll($qry)->toArray();
@@ -119,30 +116,13 @@ class AssetController extends SecurityController
         $id = $req->getParam('id');
         if(!empty($id)) {
             $qry = $asset->select()->setIntegrityCheck(false)
-                                   ->from(array('a'=>'assets'),array());
-            $qry->join(array('p'=>'products'),'p.prod_id = a.prod_id',array('pname' =>'p.name',
+                                   ->from(array('a'=>'assets'));
+            $qry->join(array('p'=>'products'),'p.id = a.prod_id',array('pname' =>'p.name',
                                                                         'pvendor' =>'p.vendor',
                                                                         'pversion' =>'p.version'));
             $qry->where("a.id = $id");
-            $this->view->assets = $asset->fetchAll($qry)->toArray();
-            $qry->reset();
-            $qry = $asset->select()->setIntegrityCheck(false)
-                                   ->from(array('a'=>'assets'));
-            $qry->join(array('s'=>'systems'),'s.id = a.system_id',array('sname'=>'s.name'));
-            $qry->where("a.id = $id");
-            $this->view->system = $asset->fetchAll($qry)->toArray();
-            $qry->reset();
-            $qry = $asset->select()->setIntegrityCheck(false)
-                                   ->from(array('a'=>'assets'),array('ip'=>'a.address_ip',
-                                                                     'port'=>'a.address_port'));
-            $qry->where("a.id = $id");
-            $ipport = $asset->fetchAll($qry)->toArray();
-            if(!empty($ipport)){
-                foreach($ipport as $result){
-                    $ip = $result['ip'].":".$result['port'];
-                }
-                $this->view->ip = $ip;
-            }
+            $this->view->asset = $asset->fetchRow($qry);
+            $this->view->system = '';
         }
         $this->_helper->layout->setLayout( 'ajax' );
         $this->render('detail');

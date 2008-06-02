@@ -40,7 +40,6 @@ class poam extends Zend_Db_Table
         $groupby = array();
 
         $db = $this->_db;
-        $today = date('Ymd',time());
 
         $sid_str = implode(',',$sys_ids);
         $query = $db->select();
@@ -141,23 +140,20 @@ class poam extends Zend_Db_Table
         if( $to_count ) {
             $query->join(array('as'=>'assets'), 'as.id = p.asset_id', array());
         }else{
-            if( isset($groupby) ){
-                if( $groupby == 'count(*)' ){
-                    $count_query = clone $query;
-                    $count_query->reset(Zend_Db_Select::COLUMNS);
-                    $count_query->reset(Zend_Db_Select::FROM);
-                    $count_query->from( array('p'=>$this->_name),array('count'=>$groupby) );
-                    $count_query->join(array('as'=>'assets'), 'as.id = p.asset_id',array());
-                }else{
-                    $query->reset(Zend_Db_Select::COLUMNS);
-                    $query->reset(Zend_Db_Select::FROM);
-                    $query->from( array('p'=>$this->_name),array('count'=>'count(*)',$groupby) )
-                          ->join(array('as'=>'assets'), 'as.id = p.asset_id',array())
-                          ->group("p.$groupby");
-                }
+            $query->join(array('as'=>'assets'), 'as.id = p.asset_id', 
+                array('ip'=>'as.address_ip', 'port'=>'as.address_port', 'network_id'=>'as.network_id'));
+            if( $groupby == 'count(*)' ){
+                $count_query = clone $query;
+                $count_query->reset(Zend_Db_Select::COLUMNS);
+                $count_query->reset(Zend_Db_Select::FROM);
+                $count_query->from( array('p'=>$this->_name),array('count'=>$groupby) );
+                $count_query->join(array('as'=>'assets'), 'as.id = p.asset_id',array());
             }else{
-                $query->join(array('as'=>'assets'), 'as.id = p.asset_id', 
-                    array('ip'=>'as.address_ip', 'port'=>'as.address_port', 'network_id'=>'as.network_id'));
+                $query->reset(Zend_Db_Select::COLUMNS);
+                $query->reset(Zend_Db_Select::FROM);
+                $query->from( array('p'=>$this->_name),array('count'=>'count(*)',$groupby) )
+                      ->join(array('as'=>'assets'), 'as.id = p.asset_id',array())
+                      ->group("p.$groupby");
             }
         }
 
@@ -180,7 +176,6 @@ class poam extends Zend_Db_Table
         if($to_count) {
             $ret = $db->fetchOne($query);
         }else{
-            echo $query;die();
             $ret = $db->fetchAll($query);
             if( !empty($count_query) ) {
                 $total = $db->fetchOne($count_query);
@@ -189,6 +184,30 @@ class poam extends Zend_Db_Table
         }
         return $ret;
     }
+
+    /** 
+        Get detail information of a remediation by Id
+
+        @param $id int primary key of poam
+    */
+    public function getDetail($id)
+    {
+        assert($id);
+        $db = $this->_db;
+        $query = $this->select()->setIntegrityCheck(false)->from(array('p'=>$this->_name))
+            ->where('p.id=?',$id)
+            ->joinLeft(array('s'=>'sources'),'source_id = s.id',
+                    array('source_nickname'=>'s.nickname', 'source_name'=>'s.name'))
+            ->join(array('as'=>'assets'), 'as.id = p.asset_id', 
+                array('asset_name'=>'as.name',
+                      'ip'=>'as.address_ip', 
+                      'port'=>'as.address_port', 
+                      'network_id'=>'as.network_id'))
+            ->join(array('net'=>'networks'), 'net.id = as.network_id',
+                    array('network_name'=>'net.name') );
+        return $db->fetchRow($query);
+    }
+
 
    public function fismasearch($agency){
         $flag = substr($agency,0,1);
