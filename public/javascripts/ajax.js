@@ -8,7 +8,7 @@ $(document).ready(function(){
     
     $("input#search_asset").click(function(){
         searchAsset();
-    });
+    }).trigger('click');
 
     $("input#search_product").click(function(){
         searchProduct();
