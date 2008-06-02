@@ -386,18 +386,31 @@ function finding_conv($db_src, $db_target, $data)
         return;
     }else{
         if(empty($poam_data)){
+
+            $sql = "CREATE TABLE IF NOT EXISTS poam_tmp (
+  `legacy_finding_id` int(10) unsigned NOT NULL default '0',
+  `asset_id` int(10) unsigned NOT NULL default '0',
+  `source_id` int(10) unsigned NOT NULL default '0',
+  `system_id` int(10) unsigned NOT NULL default '0',
+  `blscr_id` varchar(5) default NULL,
+  `create_ts` datetime NOT NULL default '0000-00-00 00:00:00',
+  `discover_ts` datetime NOT NULL default '0000-00-00 00:00:00',
+  `status` enum('NEW','OPEN','EN','EP','ES','CLOSED','DELETED') NOT NULL default 'NEW',
+  `finding_data` text NOT NULL) ";
+            $db_target->query($sql);
             $tmp = array(
                          'legacy_finding_id'=> $data['finding_id'],
                          'asset_id'=>$data['asset_id'],
                          'source_id'=>$data['source_id'],
                          'system_id'=>$asset_data[0]['system_id'],
                          'create_ts'=>$data['finding_date_created'],
+                         'finding_data'=>$data['finding_data'],
                          'discover_ts'=>$data['finding_date_discovered'],
                          'status'=>'NEW'
                          );
-            echo "INSERT INTO poams (" . implode(',',array_keys($tmp)).") VALUES ('" .
-                 implode("','",$tmp) . "');\n";
-            //$db_target->insert('poams',$tmp);
+            //echo "INSERT INTO poams (" . implode(',',array_keys($tmp)).") VALUES ('" .
+            //     implode("','",$tmp) . "');\n";
+            $db_target->insert('poam_tmp',$tmp);
             return;
         }else{
             $poam_data = $poam_data[0];
@@ -416,6 +429,7 @@ function finding_conv($db_src, $db_target, $data)
                  'source_id'=>$data['source_id'],
                  'system_id'=>$poam_data['poam_action_owner'],
                  'create_ts'=>$data['finding_date_created'],
+                 'finding_data'=>$data['finding_data'],
                  'discover_ts'=>$data['finding_date_discovered'],
                  'modify_ts'=>$poam_data['poam_date_modified'],
                  'close_ts'=>$poam_data['poam_date_closed'],
