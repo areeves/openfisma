@@ -26,7 +26,7 @@
                 <tr>
                     <td align="center" NOWRAP><strong>Step 1.</strong></td>
                     <td align="left">
-                        Download EXCEL templete file from  
+                        Download EXCEL template file from  
                         <a href="/zfentry.php/finding/template">here</a>.
                     </td>
                 </tr>
@@ -34,7 +34,7 @@
                 <tr>
                     <td align="center" NOWRAP><strong>Step 2.</strong></td>
                     <td align="left">
-                        Fill the work sheet with your fingding data and save it as CSV format.
+                        Fill the work sheet with your finding data and save it as CSV format.
                     </td>
                 </tr>
 

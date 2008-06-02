@@ -31,7 +31,10 @@
               'PRODUCTS','FINDING_SOURCES' , 
               'SYSTEM_GROUP_SYSTEMS','SYSTEMS',
               'SYSTEM_GROUPS','FUNCTIONS','ROLES','ASSETS',
-              'USER_ROLES','USERS','USER_SYSTEM_ROLES','FINDINGS','POAMS');
+              'USER_ROLES','USERS','USER_SYSTEM_ROLES','FINDINGS',
+              'POAMS','VULN_PRODUCTS','VULNERABILITIES',
+              'FINDING_VULNS','POAM_EVIDENCE'
+              );
 
     $db_target = Zend_DB::factory(Zend_Registry::get('datasource')->default);
     $db_src    = Zend_DB::factory(Zend_Registry::get('legacy_datasource')->default);
@@ -131,7 +134,25 @@ function convert($db_src, $db_target, $table,&$data)
     case 'USER_SYSTEM_ROLES':
          user_system_conv($db_src, $db_target, $data);
          break;
+
+    case 'VULN_PRODUCTS':
+         vuln_products_conv($db_src, $db_target, $data);
+         break;
+
+    case 'FINDING_VULNS':
+         poam_vulns_conv($db_src, $db_target, $data);
+         break;
+
+    case 'POAM_EVIDENCE':
+         poam_evidence_conv($db_src, $db_target, $data);
+         break;
+   
+ 
+
+
+
 /////////////////////////////////////////////////////  
+
     case 'ASSETS':
          assets_conv($db_src, $db_target, $data);
          break;
@@ -139,6 +160,11 @@ function convert($db_src, $db_target, $table,&$data)
     case 'FINDINGS':
          finding_conv($db_src, $db_target, $data);
          break;
+
+    case 'VULNERABILITIES':
+         vulnerabilities_conv($db_src, $db_target, $data);
+         break;
+
     default:
             assert(false);
     }
@@ -319,7 +345,16 @@ function users_conv($db_src, $db_target, $data)
                 unset($tmparray);
 }
 
+function vuln_products_conv($db_src, $db_target, $data)
+{
+    $tmparray=array('vuln_seq'=>$data['vuln_seq'] ,
+                   'vuln_type'=>$data['vuln_type'] ,
+                     'prod_id'=>$data['prod_id']);
+    $db_target->insert('vuln_products',$tmparray);
+}
+
 /////////////////////////////////////
+
 function assets_conv($db_src, $db_target,$data)
 {    
     $qry=$db_src->select()->from('SYSTEM_ASSETS' ,array('system_id'=>'system_id'))->where('asset_id=?',$data['asset_id']);
@@ -356,7 +391,6 @@ function assets_conv($db_src, $db_target,$data)
         $address_ip=$network['address_ip'];
         $address_port=$network['address_port'];
     }
-  //  echo $network['address_port'];
 
     $tmparray=array('id'=>$data['asset_id'] ,
                'prod_id'=>$data['prod_id'],
@@ -368,7 +402,6 @@ function assets_conv($db_src, $db_target,$data)
             'network_id'=>$network_id,
             'address_ip'=>$address_ip,
           'address_port'=>$address_port);
-// var_dump($tmparray);
     $db_target->insert('assets',$tmparray);
     unset($tmparray);
 }
@@ -503,6 +536,90 @@ function poam_conv( $db_src, $db_target)
      $db_target->insert('poams',$tmp);
     }
 }
+
+function  vulnerabilities_conv($db_src, $db_target, $data)
+{   
+    $descriiption="Primary:".$data['vuln_desc_primary'].
+                  "Secondary:".$data['vuln_desc_secondary'];
+    
+    $qry=$db_src->select()->from('VULN_IMPACTS',
+                           array('imp_desc'=>'imp_desc',
+                               'imp_source'=>'imp_source'))
+                          ->where('vuln_seq=?',$data['vuln_seq'])
+                          ->where('vuln_type=?',$data['vuln_type']);
+    $impact=$db_src->fetchRow($qry);
+    $impact="Description:".$impact['imp_desc']."Source:".$impact['imp_source'];
+    $qry=null;
+
+    $qry=$db_src->select()->from('VULN_REFERENCES',
+                           array('ref_name'=>'ref_name',
+                               'ref_source'=>'ref_source',
+                                  'ref_url'=>'ref_url',
+                          'ref_is_advisory'=>'ref_is_advisory',
+                         'ref_has_tool_sig'=>'ref_has_tool_sig',
+                            'ref_has_patch'=>'ref_has_patch'))
+                          ->where('vuln_seq=?',$data['vuln_seq'])
+                          ->where('vuln_type=?',$data['vuln_type']);
+    $references=$db_src->fetchRow($qry);
+    $references="Name:".$references['ref_name'].
+              "Source:".$references['ref_source'].
+                 "Url:".$references['ref_url'].
+          "Is_advisory".$references['ref_is_advisory'].
+         "Has_tool_sig".$references['ref_has_tool_sig'].
+            "Has_patch".$references['ref_has_patch'];
+    $qry=null;
+
+    $qry=$db_src->select()->from('VULN_SOLUTIONS',
+                           array('sol_desc'=>'sol_desc',
+                               'sol_source'=>'sol_source'))
+                          ->where('vuln_seq=?',$data['vuln_seq'])
+                          ->where('vuln_type=?',$data['vuln_type']);
+    $solutions=$db_src->fetchRow($qry);
+    $solutions="Description:".$solutions['sol_desc']."Source:".$solutions['sol_source'];
+
+    $tmparray=array('seq'=>$data['vuln_seq'],
+                   'type'=>$data['vuln_type'],
+            'description'=>$descriiption,
+              'modify_ts'=>$data['vuln_date_modified'],
+             'publish_ts'=>$data['vuln_date_published'],
+               'severity'=>$data['vuln_severity'],
+                 'impact'=>$impact,
+              'reference'=>$references,
+               'solution'=>$solutions
+     );
+    $db_target->insert('vulnerabilities',$tmparray); 
+    unset($tmparray);
+    
+}
+
+function poam_vulns_conv($db_src, $db_target, $data)
+{
+    $qry=$db_src->select()->from('POAMS',array('poam_id'=>'poam_id'))
+                          ->where('finding_id=?',$data['finding_id']);
+    $poam_id=$db_src->fetchRow($qry);
+    $poam_id=$poam_id['poam_id'];                      
+    if(!empty($poam_id)){
+        $tmparray=array('poam_id'=>$poam_id,
+                       'vuln_seq'=>$data['vuln_seq']  ,
+                      'vuln_type'=>$data['vuln_type'] );
+        $db_target->insert('poam_vulns',$tmparray);
+    }else{
+        echo "INSERT INTO poam_vulns( `poam_id` , `vuln_seq` , `vuln_type` ) SELECT p.id, v.seq, v.type FROM poams p, vulnerabilities v WHERE p.legacy_finding_id = '{$data['finding_id']}' AND v.seq = '{$data['vuln_seq']}' AND v.type = '{$data['vuln_type']}' \n" ;
+    }
+}
+
+function poam_evidence_conv($db_src, $db_target, $data)
+{
+    $tmparray=array('id'=>$data['ev_id'],
+               'poam_id'=>$data['poam_id'],
+            'submission'=>$data['ev_submission'],
+          'submitted_by'=>$data['ev_submitted_by'],
+             'submit_ts'=>$data['ev_date_submitted']);
+    //$db_target->insert('evidences',$tmparray);
+
+    $tmparray=array();
+}
+
 
 
 ?>
