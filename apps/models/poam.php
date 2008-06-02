@@ -18,8 +18,12 @@ class poam extends Zend_Db_Table
     *  search poam records.
     *  @param $sys_ids array system id that limit the searching agency
     *  @param $fields array information contained in the return.
-    *         array('key' => 'value'). key is the alias while the value in the set of 
-    *          [*, count, id, type, status, created_t, est_t, system_id, system_name, source_id, source_name]
+    *         array('key' => 'value'). $fields follow the sytax of Zend_Db_Select with 
+              exception of 'count'. Here 'count' is an keyword. For example, if 
+              $fieldsa = array( 'count'=>'status' ), it means count and groupby status. The 
+              returned value contains two fields 'count','status'.
+              if $fields = array( 'count'=>'count(*)' ), it return the exact value of count.
+              if $fields = array( 'count'=>'count(*)' , 'key' > 'value' , ... ) the count of the              search would be array_push into the returned variable;
     *  @param $criteria array 
     *  @param $limit integer results number.
     *  @param $pageno integer search start shift
@@ -30,6 +34,9 @@ class poam extends Zend_Db_Table
              extract($criteria);
         }
 
+        $ret =array();
+        $count_query = null;
+        $to_count = false;
         $groupby = array();
 
         $db = $this->_db;
@@ -38,88 +45,79 @@ class poam extends Zend_Db_Table
         $sid_str = implode(',',$sys_ids);
         $query = $db->select();
         if( $fields == '*' ) {
-                $fields =  array('id'=>'p.id',
-                               'legacy_id'=>'p.legacy_finding_id',
-                               'type'=>'p.type',
-                               'status'=>'p.status',
-                               'date_created'=>'p.create_ts',
-                               'action_date_est'=>'p.action_date_est');
-                $query->from(array('p'=>'poams'), $fields )
-                     ->where("p.system_id IN ($sid_str)")
-                     //->join(array('f'=>'FINDINGS'),'p.finding_id = f.finding_id',array('finding_data'=>'f.finding_data'))
-                     //->joinLeft(array('fs'=>'FINDING_SOURCES'),'f.source_id = fs.source_id',
-                     //                                            array('source_nickname'=>'fs.source_nickname',
-                     //                                           'source_name'=>'fs.source_name'))
-                     ->join(array('s'=>'sources'),'p.source_id = s.id',array('source_nickname'=>'s.nickname',
-                                                                             'source_name'    =>'s.name'))
-                     ->join(array('sys'=>'systems'),'sys.id = p.system_id',array('action_owner_nickname'=>'sys.nickname'));
+            $fields =  array('id'=>'p.id',
+                          'legacy_id'=>'p.legacy_finding_id',
+                          'system_id'=>'p.system_id',
+                          'type'=>'p.type',
+                          'status'=>'p.status',
+                          'created_ts'=>'p.create_ts',
+                          'action_est_date'=>'p.action_est_date');
+        }else if( $fields == 'count' ){
+            $to_count = true;
+            $fields['count']='count(*)';
         }else{
-            assert(is_array($fields));
             if( isset($fields['count']) ){
                 $groupby = $fields['count'];
-                $fields = 'count(*) as count';
-                assert(is_array($groupby));
-                $query->from(array('p'=>'poams'), $fields )
-                     ->where("p.system_id IN ($sid_str)")
-                     //->join(array('f'=>'findings'),'p.finding_id = f.finding_id',array())
-                     ->join(array('s'=>'sources'),'p.source_id = s.id', array() )
-                     ->join(array('sys'=>'systems'),'sys.id = p.system_id',array());
-                foreach($groupby as $g){
-                    $query->group("p.$g");
-                }
+                unset($fields['count']);
             }
         }
+        assert(is_array($fields));
 
-
+        $query->from(array('p'=>$this->_name), $fields )
+              ->where("p.system_id IN ($sid_str)");
+    
+        $query->joinLeft(array('s'=>'sources'),'p.source_id = s.id',array('source_nickname'=>'s.nickname',
+                                                                         'source_name'    =>'s.name'));
+        if(isset($source_id) && is_int($source_id)){
+            $query->where("p.source_id = ".$source."");
+        }
         
-        if(isset($ids) && !empty($ids)){
+        if(!empty($ids)){
             $query->where("p.id IN ($ids)");
         }
 
-        if(isset($source) && $source != 'any'){
-            $query->where("p.source_id = ".$source."");
+        if(!empty($est_date_begin)){
+            $query->where("p.action_est_date > ?",$est_date_begin->toString('Y-m-d'));
         }
 
-        if(!empty($startdate)){
-            $startdate = date("Y-m-d",strtotime($startdate));
-            $query->where("p.action_date_est >=?",$startdate);
+        if(!empty($est_date_end)){
+            $query->where("p.action_est_date <= ?",$est_date_end->toString('Y-m-d'));
         }
 
-        if(!empty($enddate)){
-            $enddate = date("Y-m-d",strtotime($enddate));
-            $query->where("p.action_date_est <=?",$enddate);
+        if(!empty($created_date_begin) ){
+            $query->where("p.create_ts > ?",$created_date_begin->toString('Y-m-d')); 
         }
 
-        if(!empty($startcreatedate) ){
-            $start_date_cr = date("Y-m-d",strtotime($startcreatedate));
-            $query->where("p.create_ts >=?",$startcreatedate); 
+        if(!empty($created_date_end) ){
+            $query->where("p.create_ts <=?",$created_date_end->toString('Y-m-d'));
         }
 
-        if(!empty($end_date_cr) ){
-            $end_date_cr = date("Y-m-d",strtotime($end_date_cr));
-            $query->where("p.create_ts <=?",$end_date_cr);
+        if(!empty($discovered_date_begin) ){
+            $query->where("p.discover_ts > ?",$discovered_date_begin->toString('Y-m-d')); 
         }
+
+        if(!empty($discovered_date_end) ){
+            $query->where("p.discover_ts <=?",$discovered_date_end->toString('Y-m-d'));
+        }
+
 
         if(isset($type) && $type != 'any'){
             if(is_array($type)){
-                $type = implode(',',$type);
-                $query->where("p.type IN ($type)");
-            }
-            else {
+                $type = implode("','",$type);
+                $query->where("p.type IN (".makeSqlInStmt($type).")");
+            } else {
                 $query->where("p.type = ?",$type);
             }
         }
 
-        if(isset($status) && $status != 'any' ){
+        if( !empty($status) ){
             if(is_array($status)){
-                $status = implode(',',$status);
-                $query->where("p.status IN ($status)");
-            }
-            else {
+                $query->where( "p.status IN (".makeSqlInStmt($status).")" );
+            } else {
                 $query->where("p.status = ?", $status);
             }
         }
-        
+        /*
         if(isset($ep)){
             $qry = $db->select()->distinct()->from(array('e'=>'evidences'),array('id'=>'e.id'))
                                             ->where("pe.ev_sso_evaluation = '".$ep['sso']."'")
@@ -129,29 +127,69 @@ class poam extends Zend_Db_Table
             $ids = implode(',',$db->fetchCol($qry));
             $query->where("p.id IN ($ids)");
         }
+        */
 
         if(isset($asset_owner) && $asset_owner != 'any'){
             $query->where("sys.id = ".$asset_owner."");
         }
         
-        if(isset($action_owner) && $action_owner != 'any'){
-            $query->where("sys.id = ".$action_owner."");
+        if(!empty($date_modified)){
+            assert($date_modified instanceof Zend_Date);
+            $query->where("p.modify_ts < $date_modified->toString('Y-m-d')");
         }
 
-        if(!empty($date_modified)){
-            $query->where("p.modify_ts < $date_modified");
+        if( $to_count ) {
+            $query->join(array('as'=>'assets'), 'as.id = p.asset_id', array());
+        }else{
+            if( isset($groupby) ){
+                if( $groupby == 'count(*)' ){
+                    $count_query = clone $query;
+                    $count_query->reset(Zend_Db_Select::COLUMNS);
+                    $count_query->reset(Zend_Db_Select::FROM);
+                    $count_query->from( array('p'=>$this->_name),array('count'=>$groupby) );
+                    $count_query->join(array('as'=>'assets'), 'as.id = p.asset_id',array());
+                }else{
+                    $query->reset(Zend_Db_Select::COLUMNS);
+                    $query->reset(Zend_Db_Select::FROM);
+                    $query->from( array('p'=>$this->_name),array('count'=>'count(*)',$groupby) )
+                          ->join(array('as'=>'assets'), 'as.id = p.asset_id',array())
+                          ->group("p.$groupby");
+                }
+            }else{
+                $query->join(array('as'=>'assets'), 'as.id = p.asset_id', 
+                    array('ip'=>'as.address_ip', 'port'=>'as.address_port', 'network_id'=>'as.network_id'));
+            }
+        }
+
+        if(!empty($ip)) {
+            $query->where('as.address_ip = ?', $ip);
+            if( !empty($count_query) ) {
+                $count_query->where('as.address_ip = ?', $ip);
+            }
+        }
+        if(!empty($port)) {
+            $query->where('as.address_port = ?', $port);
+            if( !empty($count_query) ) {
+                $count_query->where('as.address_port = ?', $port);
+            }
         }
 
         if( !empty( $currentPage ) && !empty( $perPage ) ){
             $query->limitPage($currentPage,$perPage);
         }
-        //var_dump($db->fetchAll($query));die();
-        //Should be order by ?
-        //$query->order('action_owner_name ASC');
-        return $db->fetchAll($query);
+        if($to_count) {
+            $ret = $db->fetchOne($query);
+        }else{
+            echo $query;die();
+            $ret = $db->fetchAll($query);
+            if( !empty($count_query) ) {
+                $total = $db->fetchOne($count_query);
+                array_push($ret, $total);
+            }
+        }
+        return $ret;
     }
-   
-    
+
    public function fismasearch($agency){
         $flag = substr($agency,0,1);
         $db = $this->_db;
@@ -189,7 +227,7 @@ class poam extends Zend_Db_Table
                         break;
                 }
                 $query->where("p.create_ts <= '".$enddate."'")
-                      ->where("p.action_date_est <= '".$enddate."'")
+                      ->where("p.action_est_date <= '".$enddate."'")
                       ->where("p.action_date_actual >= '".$startdate."'")
                       ->where("p.action_date_actual <= '".$enddate."'");
                 break;
@@ -203,7 +241,7 @@ class poam extends Zend_Db_Table
                         break;
                 }
                 $query->where("p.create_ts <= '".$enddate."'")
-                      ->where("p.action_date_est > '".$enddate."'")
+                      ->where("p.action_est_date > '".$enddate."'")
                       ->where("p.action_date_actual IS NULL");
                 break;
             case 'd':
@@ -215,7 +253,7 @@ class poam extends Zend_Db_Table
                         $query->where("p.system_id IN (".$system_ids.")");
                         break;
                 }
-                $query->where("p.action_date_est <= '".$enddate."'")
+                $query->where("p.action_est_date <= '".$enddate."'")
                       ->where("p.action_date_actual IS NULL OR p.action_date_actual > '".$enddate."'");
                 break;
             case 'e':
