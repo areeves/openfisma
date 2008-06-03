@@ -10,14 +10,14 @@
             <!-- Button Row: Status, Update Status, Convert to POAM, and Back -->
             <table>
             <tr>
-<?php if($this->act == 'edit' && $this->finding['status'] == 'NEW') { ?>
+<?php if($this->act == 'edit' && $this->finding['status'] == 'OPEN') { ?>
                 <td>
                     <a style="text-decoration:none" href="/zfentry.php/finding/edit/do/update/fid/<?php echo $this->finding['id'];?>"><button>Delete</button></a>
                 </td>
 <?php  } else { ?>
                 <td><b>Status:</b> <?php echo $this->finding['status'];?></td>
 <?php } 
-      if($this->finding['status'] == 'NEW') { ?>
+      if($this->finding['status'] != 'REMEDIATION') { ?>
          <td><a style="text-decoration:none;" href="/zfentry.php/finding/convert/id/<?php echo $this->finding['id'];?>"><button>Convert to POAM</button></a></td>
 <?php } ?>
             </tr>
@@ -50,19 +50,19 @@
                                     </tr>
                                     <tr>
                                         <td align="right"><b>Date Discovered:</b></td>
-                                        <td><?php echo $this->finding['discover_ts'];?></td>
+                                        <td><?php echo $this->finding['discovered'];?></td>
                                     </tr>
                                     <tr>
                                         <td align="right"><b>Date Opened:</b></td>
-                                        <td><?php echo $this->finding['create_ts'];?></td>
+                                        <td><?php echo $this->finding['created'];?></td>
                                     </tr>
                                     <tr>
                                         <td align="right"><b>Date Closed:</b></td>
-                                        <td><?php echo $this->finding['close_ts'];?></td>
+                                        <td><?php echo $this->finding['closed'];?></td>
                                     </tr>
                                     <tr>
                                         <td align="right"><b>Date Modified:</b></td>
-                                        <td><?php echo $this->finding['modify_ts'];?></td>
+                                        <td><?php echo $this->finding['created'];?></td>
                                     </tr>
                                 </table>
 
@@ -95,7 +95,7 @@
                                 <tr>
                                     <td align="right"><b>Network:</b></td>
                                     <td>&nbsp;
-                                        <?php echo $this->finding['network_name'];?>
+                                        <?php echo $this->finding['network'];?>
                                     </td>
                                 </tr>
                                 <tr>

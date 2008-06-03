@@ -7,10 +7,13 @@
 * @version $Id$
 */
 
-require_once MODELS . DS . 'poam.php';
+require_once 'Zend/Db/Table.php';
 
-class Finding extends Poam
+class Finding extends Zend_Db_Table
 {
+    protected $_name = 'FINDINGS';
+    protected $_primary = 'finding_id';
+    
     /**
         count the summary of findings according to certain criteria
 
@@ -18,35 +21,35 @@ class Finding extends Poam
         @param $systems system id those findings belongs to
         @return array of counts
     */
-    public function getStatusCount($systems, $date_range=array(),$status=null)
+    public function getCount($systems, $date_range=array(), $status=null ) 
     {
         assert(!empty($systems) && is_array($systems) );
-        $criteria = array();
-        if( isset($date_range) ){
-            // range follows [from, to)
-            if( !empty($date_range['from']) ){
-                $criteria['created_date_begin'] = $date_range['from'];
-            }
-            if( !empty($date_range['to']) ){
-                $criteria['created_date_end'] = $date_range['to'];
-            }
-        }
+        $qry = $this->_db->select()
+                ->from(array('f'=>$this->_name), 
+                       array('count' => "count(*)",'status'=>'f.finding_status'))
+                ->join(array('as'=>'ASSETS'),'f.asset_id=as.asset_id',array())
+                ->join(array('sys'=>'SYSTEM_ASSETS'), 
+                        'as.asset_id = sys.asset_id 
+                         AND sys.system_id IN ('.implode(',',$systems).')',
+                       array('sysid'=>'sys.system_id'))
+                ->group('sysid')->group('status');
         if( isset($status) ) {
-            $criteria = array_merge($criteria, array('status'=>$status) );
-            if(is_string($status) ){
+            if( is_string($status) ) {
                 $status = array($status);
             }
-            foreach($status as $s ){
-                $ret[$s] = 0;
+            foreach( $status as $s ) {
+                $expr[] = "f.finding_status = '$s'";
             }
-        }else{
-            $ret = array('NEW'=>0, 'OPEN'=>0, 'EN'=>0, 'EP'=>0, 'ES'=>0, 'CLOSED'=>0, 'DELETED'=>0);
+            $qry->where( implode(" OR ", $expr) ); 
         }
-        $raw = $this->search($systems,array('status'=>'status','count'=>'status'),$criteria);
-        foreach($raw as $s) {
-            $ret[$s['status']] = $s['count'];
+        // range follows [from, to)
+        if( !empty($date_range['from']) ){
+            $qry->where("finding_date_created >= '{$date_range['from']}'");
         }
-        return $ret;
+        if( !empty($date_range['to']) ){
+            $qry->where("finding_date_created < '{$date_range['to']}'");
+        }
+        return $this->_db->fetchAll($qry);
     }
 
     /**

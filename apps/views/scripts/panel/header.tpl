@@ -20,7 +20,7 @@
         echo'<ul><li><a href="/zfentry.php/panel/finding/sub/summary">Finding Summary</a></li>';
         echo'<li><a href="/zfentry.php/panel/finding/sub/searchbox">Finding Search</a></li>';
         if(isAllow('finding','create')) {
-            echo'<li><a href="/zfentry.php/panel/finding/sub/create">New Finding</a></li>';
+            echo'<li><a href="/zfentry.php/finding/create">New Finding</a></li>';
             echo'<li><a href="/zfentry.php/finding/upload">Upload Scan Results</a></li>';
             echo'<li><a href="/zfentry.php/finding/injection">Spreadsheet Upload</a></li>';
         }

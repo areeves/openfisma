@@ -18,58 +18,39 @@
 <?php
 foreach($this->statistic as $sys_id => $row){
     $search_url_base = "/zfentry.php/panel/finding/sub/searchbox/s/search/system/$sys_id";
+    $total = $row['OPEN']['total'];
 ?>
     <tr >
         <td  class="tdc" align="left">&nbsp;
-            <?php echo $row['NAME']; ?>
+            <?php echo $row['NAME']?>
         </td>
         <td class="tdc" >&nbsp;
-            <a href='<?php echo "{$search_url_base}/status/NEW/from/".
-                $this->range['today']['from']->toString('Ymd'). 
-                "/to/".
-                $this->range['today']['to']->toString('Ymd'); ?>
-            '>
-            <?php echo $row['NEW']['today']; ?></a>
+            <a href="<?php echo "{$search_url_base}/status/OPEN/from/{$this->range['today']['from']}/to/{$this->range['today']['to']}"; ?>">
+            <?php echo $row['OPEN']['today']; ?></a>
         </td>
         <td class="tdc" >&nbsp;
-            <a href="<?php echo "{$search_url_base}/status/NEW/from/".
-                $this->range['last30']['from']->toString('Ymd').
-                "/to/".
-                $this->range['last30']['to']->toString('Ymd'); 
-             ?>">
-            <?php echo $row['NEW']['last30day']; ?></a>
+            <a href="<?php echo "{$search_url_base}/status/OPEN/from/{$this->range['last30']['from']}/to/{$this->range['last30']['to']}";?>">
+            <?php echo $row['OPEN']['last30day']; ?></a>
         </td>
         <td class="tdc" >&nbsp;
-            <a href="<?php echo "{$search_url_base}/status/NEW/from/".
-                $this->range['last60']['from']->toString('Ymd').
-                "/to/".
-                $this->range['last60']['to']->toString('Ymd'); 
-             ?>">
-            <?php echo $row['NEW']['last2nd30day']; ?></a>
+            <a href="<?php echo "{$search_url_base}/status/OPEN/from/{$this->range['last60']['from']}/to/{$this->range['last30']['to']}";?>">
+            <?php echo $row['OPEN']['last2nd30day']; ?></a>
         </td>
         <td class="tdc" >&nbsp;
-            <a href="<?php echo "{$search_url_base}/status/NEW/to/".
-                $this->range['after60']['to']->toString('Ymd'); 
-             ?>">
-            <?php echo $row['NEW']['before60day']; ?></a>
+            <a href="<?php echo "{$search_url_base}/status/OPEN/from/{$this->range['after60']['from']}/to/{$this->range['after60']['to']}";?>">
+            <?php echo $row['OPEN']['before60day']; ?></a>
         </td>
         <td class="tdc" >&nbsp;
-            <a href="<?php echo "{$search_url_base}/status/REMEDIATION";?>">
-                <?php echo $row['REMEDIATION']; ?>
-            </a>
+            <a href="<?php echo "{$search_url_base}/status/REMEDIATION";?>"><?php echo $row['REMEDIATION']['total']; ?></a>
         </td>
         <td class="tdc" >&nbsp;
-            <a href="<?php echo "{$search_url_base}/status/CLOSED";?>">
-                <?php echo $row['CLOSED']; ?>
-            </a>
+            <a href="<?php echo "{$search_url_base}/status/CLOSED";?>"><?php echo $row['CLOSED']['total']; ?></a>
         </td>
         <td class="tdc" >&nbsp;
-            <a href="<?php echo "{$search_url_base}";?>">
-                <?php echo $row['CLOSED']['total']+
+            <a href="<?php echo "{$search_url_base}";?>"><?php echo $row['CLOSED']['total']+
                        $row['REMEDIATION']['total']+
-                       $row['NEW']['total'] ; ?>
-            </a>
-        </td>
+                       $row['OPEN']['total'] ; ?>
+        </td></a>
     </tr>
 <?php
 }

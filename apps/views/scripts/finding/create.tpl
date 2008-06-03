@@ -31,11 +31,12 @@
                         <tr>
                             <td align="right"><b>Finding Source:</b></td>
                             <td>
-                            <?php 
-                                $this->source[0] = '--Any--';
-                                echo $this->formSelect('source', 0, null, $this->source); 
-                            ?>
-                                
+                                <select name="source">
+                                <?php foreach($this->source_list as $sid=>$sname){
+                                          echo'<option value='.$sid.'>'.$sname.'</option>';
+                                      }
+                                ?>
+                                </select>
                             </td>
                         </tr>
                     </table>
@@ -63,13 +64,17 @@
                                     <tr>
                                         <td><b>System:</b></td>
                                         <td>
-                            <?php 
-                                $this->system[0] = '--Any--';
-                                echo $this->formSelect('system', 0, 
-                                array('url'=>"/zfentry.php/asset/search"), 
-                                $this->system); 
-                            ?>
-                                        </td>
+                                            <select name="system" url="/zfentry.php/asset/search">
+                                            <option value="">--Any--</option>
+                                            <?php foreach($this->system_list as $sid=>$sname){
+                                                     if($this->system == $sid){
+                                                        echo'<option value='.$sid.' selected>'.$sname.'</option>';
+                                                     }else {
+                                                        echo'<option value='.$sid.'>'.$sname.'</option>';
+                                                     }
+                                                  }
+                                            ?>
+                                            </select>&nbsp;                                        </td>
                                         <td><b>Asset Name:</b></td>
                                         <td><input class='assets' type="text" name="name" value="<?php echo $this->param['port']; ?>" size="10" />                                          &nbsp;                                        </td>
                                       </tr>
@@ -90,6 +95,10 @@
                         <tr>
                             <td width="200" align="center"><b>Asset Name:</b><div>
                                 <select id="asset_list" name="asset_list" size="8" style="width: 190px;">
+                                <?php foreach($this->asset_list as $aid=>$aname){
+                                          echo'<option value='.$aid.'>'.$aname.'</option>';
+                                      }
+                                ?>
                                 </select></div>                            </td>
                             <td width="600" align="center" valign="top">
                                 <fieldset style="height:115; border:1px solid #44637A; padding:5">

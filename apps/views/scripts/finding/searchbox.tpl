@@ -47,12 +47,12 @@
     </tr>
     <tr >
         <td align="right">Date Discovered From: </td>
-        <td align="left"><input type="text" name="from" size="12" maxlength="10" value="<?php echo $this->criteria['discovered_date_begin']; ?>">             
+        <td align="left"><input type="text" name="from" size="12" maxlength="10" value="<?php echo $this->criteria['from']; ?>">             
             <span onclick="javascript:show_calendar('finding.startdate');">
             <img src="/images/picker.gif" width=24 height=22 border=0></span>
         </td>
         <td align="right">To: </td>
-        <td align="left"><input type="text" name="to" size="12" maxlength="10" value="<?php echo $this->criteria['discovered_date_end']; ?>">
+        <td align="left"><input type="text" name="to" size="12" maxlength="10" value="<?php echo $this->criteria['to']; ?>">
             <span onclick="javascript:show_calendar('finding.enddate');">
             <img src="/images/picker.gif" valign="middle" width=24 height=22 border=0></span>
         </td>
