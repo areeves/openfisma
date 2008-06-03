@@ -10,7 +10,6 @@
 require_once CONTROLLERS . DS . 'SecurityController.php';
 require_once MODELS . DS . 'user.php';
 require_once MODELS . DS . 'poam.php';
-require_once MODELS . DS . 'finding.php';
 require_once 'Pager.php';
 
 class RemediationController extends SecurityController
@@ -274,36 +273,6 @@ class RemediationController extends SecurityController
         $this->view->assign('filter_status',$filter_status);
         $this->render();
     }
-
-    /**
-    Finding convert to remediation
-    */
-    public function convertAction(){
-        $db=Zend_Registry::get('db');
-        $finding_id=$this->_getParam('id');
-        $current_date = date('Y-m-d',time());
-       // echo $id;
-        $finding=new finding();
-        $result = $finding->update(array('finding_status'=>'REMEDIATION'),"finding_id=$finding_id");
-        //$qry=$finding->select()->where('finding_id=?',$id);
-        //echo $qry;
-        //$aa=$finding->fetchAll($qry)->toArray();
-        //var_dump($aa);
-
-        $system_idresult=null;
-        
-        $data=array('finding_id'=>"$finding_id",
-                    'poam_created_by'=>"$this->me->user_id",
-                    'poam_modified_by'=>"$this->me->user_id",
-                    'poam_date_created'=>"$current_date",
-                    'poam_data_modified'=>"$current_date",
-                    'poam_action_date_est'=>'0000-00-00',
-                    'poam_action_owner'=>'',);
-        echo $current_date = date('Y-m-d',time());
-
-
-    }
-
 
     /**
     Get remediation detail info

@@ -102,26 +102,5 @@ class TestController extends Zend_Controller_Action
     	$this->view->result=$result;
         $this->render();
     }
-
-    public function tableconvertAction(){
-        $db=Zend_Registry::get('db');
-        $exec="CREATE TABLE if not exists `systemgroup_systems` (
-          `sysgroup_id` int(10) unsigned NOT NULL default '0',
-            `system_id` int(10) unsigned NOT NULL default '0',
-              KEY `sysgroup_id` (`sysgroup_id`),
-                KEY `system_id` (`system_id`)
-                ) ;";
-        $result=$db->query($exec);
-        
-       // $db->setFetchMode(Zend_Db::FETCH_COLUMN); 
-        
-        $exec="select sysgroup_id, system_id from SYSTEM_GROUP_SYSTEMS ";
-        $result=$db->query($exec)->fetchRow();
-       
-        var_dump($result);
-       
-        
-        }
-
 }
 ?>
