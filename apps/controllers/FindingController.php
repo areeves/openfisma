@@ -13,37 +13,39 @@ require_once(MODELS. DS . 'system.php');
 require_once(MODELS. DS . 'source.php');
 require_once(MODELS. DS . 'network.php');
 require_once MODELS . DS . 'poam.php';
+require_once MODELS . DS . 'asset.php';
 require_once('Pager.php');
 define('TEMPLATE_NAME', "OpenFISMA_Injection_Template.xls"); 
 
 class FindingController extends SecurityController
 {
-    private $systems = array();
+    private $_systems = array();
+    private $_poam = null;
     private $_paging = array('mode'    =>'Sliding',
                              'append'  =>false,
                              'urlVar'  =>'p',
                              'path'    =>'',
                              'currentPage'=>1,
                              'perPage'=>20);                             
+
+    public function init()
+    {
+        $this->_poam = new Poam();
+    }
    
     public function preDispatch()
     {
         parent::preDispatch();
         require_once MODELS . DS . 'system.php';
-        $sys = new System();
-        $user = new User();
-        $uid = $this->me->user_id;
-        $qry = $sys->select();
-        $ids = implode(',', $user->getMySystems($uid));
-        $this->systems = $sys->getAdapter()
-                             ->fetchPairs($qry->from($sys->info(Zend_Db_Table::NAME),
-                                    array('id'=>'system_id','name'=>'system_name'))
-                                    ->where("system_id IN ( $ids )")
-                                    ->order('id ASC'));
         $req = $this->getRequest();
         $this->_paging_base_path = $req->getBaseUrl().'/panel/finding/sub/searchbox/s/search';
         $this->_paging['currentPage'] = $req->getParam('p',1);
+        $sys = new System();
+        $user = new User();
+        $uid = $this->me->id;
+        $this->_systems = $sys->getList('name',$user->getMySystems($uid));
     }
+
 
     public function searchboxAction(){
         require_once MODELS . DS . 'source.php';
@@ -54,47 +56,37 @@ class FindingController extends SecurityController
         $src = new Source();
         $net = new Network();
         $sys = new System();
+        $poam = new Poam();
 
         $req = $this->getRequest();
         // parse the params of search
-        $criteria['system'] = $req->getParam('system','any');
-        $criteria['source'] = $req->getParam('source','any');
-        $criteria['network'] = $req->getParam('network','any');
-        $criteria['ip'] = $req->getParam('ip','');
-        $criteria['port'] = $req->getParam('port','');
-        $criteria['vuln'] = $req->getParam('vuln','');
-        $criteria['product'] = $req->getParam('product','');
-        $criteria['from'] = $req->getParam('from','');
-        $criteria['to'] = $req->getParam('to','');
-        $criteria['status'] = $req->getParam('status','any');
+        $criteria['system'] = $req->getParam('system');
+        $criteria['source'] = $req->getParam('source');
+        $criteria['network'] = $req->getParam('network');
+        $criteria['ip'] = $req->getParam('ip');
+        $criteria['port'] = $req->getParam('port');
+        $criteria['vuln'] = $req->getParam('vuln');
+        $criteria['product'] = $req->getParam('product');
+        $criteria['discovered_date_begin'] = $req->getParam('from');
+        $criteria['discovered_date_end'] = $req->getParam('to');
+        $criteria['status'] = $req->getParam('status');
+        if( $criteria['status'] == 'REMEDIATION' ) {
+            $criteria['status'] = array('OPEN','EN','EP','ES');
+        }
 
         // fetch data for lists
-        $uid = $this->me->user_id;
-        $qry = $db->select();
-        $source_list  = $db->fetchPairs($qry->from($src->info(Zend_Db_Table::NAME),
-                                    array('id'=>'source_id','name'=>'source_name'))
-                                    ->order(array('id ASC')) );
-        $qry->reset();
-        $network_list = $db->fetchPairs($qry->from($net->info(Zend_Db_Table::NAME),
-                                    array('id'=>'network_id','name'=>'network_name'))
-                                    ->order(array('id ASC')) );
-        $qry->reset();
-        $ids = implode(',', $user->getMySystems($uid));
-        $system_list = $db->fetchPairs($qry->from($sys->info(Zend_Db_Table::NAME),
-                                    array('id'=>'system_id','name'=>'system_name'))
-                                    ->where("system_id IN ( $ids )")
-                                    ->order(array('id ASC')) );
+        $source_list  = $src->getList('name');
+        $network_list = $net->getList('name');
+        $system_list = $this->_systems;
+
         if( 'search' == $req->getParam('s') ) {
             $this->_helper->actionStack('search','Finding',null,
-                    array('criteria'=>$criteria,
-                          'system'  =>$ids,
-                          'source'  =>$source_list,
-                          'network' =>$network_list));
+                    array('criteria'=>$criteria) );
         }
-        $system_list['any'] = '--Any--';
-        $source_list['any'] = '--Any--';
-        $network_list['any'] = '--Any--';
-        $status_list = array( 'any'=>'--Any--' ,
+        $system_list[0] = '--Any--';
+        $source_list[0] = '--Any--';
+        $network_list[0] = '--Any--';
+        $status_list = array( 0 =>'--Any--' ,
                               "OPEN"=>'Open',
                               "REMEDIATION"=>'Remediation',
                               "CLOSED"=>'Closed');
@@ -112,74 +104,27 @@ class FindingController extends SecurityController
      */
     public function searchAction()
     {
-        $finding = new Finding();
-        $qry = $finding->select()->setIntegrityCheck(false)
-                       ->from(array('finding'=>'FINDINGS'), array('id' => 'finding_id',
-                                              'status'=>'finding_status',
-                                              'source_id' => 'source_id',
-                                              'discovered' => 'finding_date_discovered'));
-
         $req = $this->getRequest();
-
         $criteria = $req->getParam('criteria');
+        $fields = array('id' => 'id',
+                       'status'=>'status',
+                       'source_id' => 'source_id',
+                       'system_id' => 'system_id',
+                       'discovered' => 'discover_ts',
+                       'count' => 'count(*)');
+        $result = $this->_poam->search(array_keys($this->_systems), $fields, $criteria, 
+                    $this->_paging['currentPage'],$this->_paging['perPage']);
+        $total = array_pop($result);
+
         foreach($criteria as $key=>$value){
             if(!empty($value) && $value!='any'){
                 $this->_paging_base_path .='/'.$key.'/'.$value.'';
             }
         }
-        $this->_paging_base_path .= $req->getParam('path');
-        $systems = $req->getParam('system');
-
-        assert(is_array($criteria)); //be more assert
-        extract($criteria);
-        if(!empty($from)){
-            $startdate = date("Y-m-d",strtotime($from));
-            $qry->where("finding_date_discovered >= '$startdate'");
-        }
-        if(!empty($to)){
-            $enddate =date("Y-m-d",strtotime($to));
-            $qry->where("finding_date_discovered < '$enddate'");
-        }
-
-        $qry->join(array('as' => 'ASSETS'), 'as.asset_id = finding.asset_id',array())
-            ->join(array('addr' => 'ASSET_ADDRESSES'),'as.asset_id = addr.asset_id',
-                    array('ip'=>'addr.address_ip', 'port'=>'addr.address_port'));
-
-        if( !empty($source) && $source != 'any' ) {
-            $qry->where("source_id = {$source}");
-        }
-        if( !empty($status) && $status != 'any' ) {
-            $qry->where("finding_status = '$status'");
-        } else {
-            $qry->where("finding_status != 'DELETED'");
-        }
-
-        $phrase = " IN ( $systems )";
-        if( !empty($system) && $system != 'any' ) {
-            $phrase = " = $system";
-        }
-
-        $qry->join(array('sys_as' => 'SYSTEM_ASSETS'),
-                    "as.asset_id = sys_as.asset_id AND sys_as.system_id $phrase",
-                    array('sys_id'=>'sys_as.system_id') );
-
-        if( !empty($network) && $network != 'any') {
-            $qry->where("addr.network_id = $network");
-        }
-        if( !empty($ip) ) {
-            $qry->where("addr.address_ip = '$ip'");
-        }
-        if( !empty($port) ) {
-            $qry->where("addr.address_port = '$port'");
-        }
-        $this->_paging['totalItems'] = $total = count($finding->fetchAll($qry));
-        $qry->limitPage($this->_paging['currentPage'],$this->_paging['perPage']);
-        $data = $finding->fetchAll($qry);
-        $findings = $data->toArray();
+        $this->_paging['totalItems'] = $total ;
         $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";
         $pager = &Pager::factory($this->_paging);
-        $this->view->assign('findings',$findings);
-        $this->view->assign('total_pages',$total);
+        $this->view->assign('findings',$result);
         $this->view->assign('links',$pager->getLinks());
         $this->render();
     }
@@ -190,65 +135,42 @@ class FindingController extends SecurityController
      */
     public function summaryAction() {
         require_once 'Zend/Date.php';
+        $finding = new Finding();
+        $from = new Zend_Date();
+        $to = clone $from;
+        //count time range
+        $to->add(1,Zend_Date::DAY);
+        $range['today']  = array('from'=>clone $from, 'to'=>clone $to);
+        $from->sub(30,Zend_Date::DAY);
+        $to->sub(1,Zend_Date::DAY);
+        $range['last30'] = array('from'=>clone $from, 'to'=>clone $to);
+        $from->sub(30,Zend_Date::DAY);
+        $to->sub(30,Zend_Date::DAY);
+        $range['last60'] = array('from'=>clone $from, 'to'=>clone $to);
+        $to->sub(30,Zend_Date::DAY);
+        $range['after60'] = array( 'to'=>$to);
 
-        $statistic = $this->systems;
+        $statistic = $this->_systems;
         foreach($statistic as $k => $row){
+            $data = $finding->getStatusCount(array($k) );
             $statistic[$k] = array(
                         'NAME'=>$row,
-                        'OPEN'=>array('total'=>0,
+                        'NEW'=>array('total'=>$data['NEW'],
                                       'today'=>0,
                                       'last30day'=>0,
                                       'last2nd30day'=>0,
                                       'before60day'=>0),
-                        'REMEDIATION'=>array('total'=>0),
-                        'CLOSED'=>array('total'=>0));
-        }
-        $finding = new finding();
-        $user = new User();
-        $uid = $this->me->user_id;
-        $systems = $user->getMySystems($uid);
-        $from = new Zend_Date();
-        $to = clone $from;
+                        'REMEDIATION'=>$data['OPEN']+$data['ES']+$data['EN']+$data['EP'],
+                        'CLOSED'=>$data['CLOSED']);
 
-        $data = $finding->getCount($systems,array(), array('OPEN','REMEDIATION','CLOSED'));
-        foreach($data as $row){
-            $statistic[$row['sysid']][$row['status']]['total'] += $row['count'];
-        }
-        
-        //count time range
-        $to->add(1,Zend_Date::DAY);
-        $range['today']  = array('from'=>$from->toString("yyyyMMdd"),
-                                          'to'=>$to->toString("yyyyMMdd"));
-        $from->sub(30,Zend_Date::DAY);
-        $to->sub(1,Zend_Date::DAY);
-        $range['last30'] = array('from'=>$from->toString("yyyyMMdd"),
-                                          'to'=>$to->toString("yyyyMMdd"));
-        $from->sub(30,Zend_Date::DAY);
-        $to->sub(30,Zend_Date::DAY);
-        $range['last60'] = array('from'=>$from->toString("yyyyMMdd"),
-                                 'to'=>$to->toString("yyyyMMdd"));
-        $to->sub(30,Zend_Date::DAY);
-        $range['after60'] = array('from'=>null, 'to'=>$to->toString("yyyyMMdd"));
-
-        $data = $finding->getCount($systems, $range['today'], 'OPEN');
-        foreach($data as $row){
-            $statistic[$row['sysid']][$row['status']]['today'] += $row['count'];
-        }
-
-        //count 30 days before
-        $data = $finding->getCount($systems,$range['last30'], 'OPEN');
-        foreach($data as $row){
-            $statistic[$row['sysid']][$row['status']]['last30day'] += $row['count'];
-        }
-        //count 2nd 30 days before
-        $data = $finding->getCount($systems,$range['last60'], 'OPEN');
-        foreach($data as $row){
-            $statistic[$row['sysid']][$row['status']]['last2nd30day'] += $row['count'];
-        }
-        //count later
-        $data = $finding->getCount($systems, $range['after60'], 'OPEN');
-        foreach($data as $row){
-            $statistic[$row['sysid']][$row['status']]['before60day'] += $row['count'];
+            $data = $finding->getStatusCount(array($k),$range['today'],'NEW');
+            $statistic[$k]['NEW']['today'] = $data['NEW'];
+            $data = $finding->getStatusCount(array($k),$range['last30'],'NEW');
+            $statistic[$k]['NEW']['last30day'] = $data['NEW'];
+            $data = $finding->getStatusCount(array($k),$range['last60'],'NEW');
+            $statistic[$k]['NEW']['last2nd30day'] = $data['NEW'];
+            $data = $finding->getStatusCount(array($k),$range['after60'],'NEW');
+            $statistic[$k]['NEW']['before60day'] = $data['NEW'];
         }
 
         $this->view->assign('range',$range);
@@ -260,20 +182,22 @@ class FindingController extends SecurityController
        Get finding detail infomation
     */
     public function viewAction(){
-        require_once MODELS . DS . 'asset.php';
-        $this->_helper->actionStack('header','Panel');
         $req = $this->getRequest();
-        $fid = $req->getParam('fid',0);
-        assert($fid);
+        $id = $req->getParam('id',0);
+        assert($id);
 
-        $this->view->assign('fid',$fid);
+        $this->view->assign('id',$id);
+
         if(isAllow('finding','read')){
-            $finding = new Finding();
-            $finding_detail = $finding->getFindingById($fid);
-            $this->view->assign('finding',$finding_detail);
+            $sys = new System();
+            $poam = new Poam();
+            $detail = $poam->find($id)->current();
+            $this->view->finding = $poam->getDetail($id);
+            $this->view->finding['system_name'] = 
+                $this->me->systems[$this->view->finding['system_id']];
+            assert($this->view->finding['system_name']);
             $this->render();
-        }
-        else {
+        } else {
             /// @todo Add a new Excption page to indicate Access denial
             $this->render();
         }
@@ -284,14 +208,14 @@ class FindingController extends SecurityController
     */
     public function editAction(){
         $req = $this->getRequest();
-        $fid = $req->getParam('fid');
-        assert($fid);
+        $id = $req->getParam('id');
+        assert($id);
         $finding = new Finding();
         $do = $req->getParam('do');
         if($do == 'update'){
            $status = $req->getParam('status');
            $db = Zend_Registry::get('db');
-           $result = $db->query("UPDATE FINDINGS SET finding_status = '$status' WHERE finding_id = $fid");
+           $result = $db->query("UPDATE FINDINGS SET finding_status = '$status' WHERE finding_id = $id");
            if($result){
                $this->view->assign('msg',"Finding updated successfully");
            }
@@ -379,16 +303,11 @@ class FindingController extends SecurityController
         }
     }
 
-   /**
-    Create finding
-   */
-    public function createAction(){
-        require_once MODELS . DS . 'source.php';
-        require_once MODELS . DS . 'network.php';
-        require_once MODELS . DS . 'system.php';
-        require_once MODELS . DS . 'asset.php';
-
-        $db = Zend_Registry::get('db');
+    /**
+        Create finding
+    */
+    public function createAction()
+    {
         $req = $this->getRequest();
         $do = $req->getParam('is','view');
         if("new" == $do){
@@ -418,40 +337,15 @@ class FindingController extends SecurityController
             }
             $this->message($message,$model);
         }
-        $system_id = $req->getParam('system_id');
 
         $user = new User();
         $src = new Source();
         $net = new Network();
         $sys = new System();
         $asset = new Asset();
-        $uid = $this->me->user_id;
-        $qry = $db->select();
-        $source_list = $db->fetchPairs($qry->from($src->info(Zend_Db_Table::NAME),
-                                       array('id'=>'source_id','name'=>'source_name'))
-                                      ->order('id ASC'));
-        $qry->reset();
-        $network_list = $db->fetchPairs($qry->from($net->info(Zend_Db_Table::NAME),
-                                    array('id'=>'network_id','name'=>'network_name'))
-                                    ->order('id ASC'));
-        $qry->reset();
-        $ids = implode(',', $user->getMySystems($uid));
-        $system_list = $db->fetchPairs($qry->from($sys->info(Zend_Db_Table::NAME),
-                                    array('id'=>'system_id','name'=>'system_name'))
-                                    ->where("system_id IN ( $ids )")
-                                    ->order('id ASC'));
-        $qry->reset();
-        $asset_list = $db->fetchPairs($qry->from($asset->info(Zend_Db_Table::NAME),
-                                  array('id'=>'asset_id','name'=>'asset_name'))
-                                    ->order('name ASC'));
-        $discovered_date = strftime("%m/%d/%Y",(mktime(0,0,0,date("m"),date("d"),date("Y"))));
-        $this->view->assign('discovered_date',$discovered_date);
-        $this->view->assign('asset_list',$asset_list);
-        $this->view->assign('system_list',$system_list);
-        $this->view->assign('network_list',$network_list);
-        $this->view->assign('source_list',$source_list);
-        list($asset_id,$sname) = each($asset_list);
-        $this->_helper->actionStack('header','Panel');
+        $source_list = $src->getList('name');
+        $this->view->assign('system',$this->_systems);
+        $this->view->assign('source',$source_list);
         $this->render();
     }
     
@@ -493,10 +387,10 @@ class FindingController extends SecurityController
         $post = $req->getPost();
         $finding = new finding();
         $poam = new poam();
-        foreach($post as $key=>$fid){
-            if(substr($key,0,4) == 'fid_'){
-                $finding->update(array('finding_status'=>'deleted'),'finding_id = '.$fid);
-                $poam->delete('finding_id = '.$fid);
+        foreach($post as $key=>$id){
+            if(substr($key,0,4) == 'id_'){
+                $finding->update(array('finding_status'=>'deleted'),'finding_id = '.$id);
+                $poam->delete('finding_id = '.$id);
             }
         }
         $this->_forward('searchbox','finding',null,array('s'=>'search'));

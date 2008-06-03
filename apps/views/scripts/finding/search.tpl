@@ -54,13 +54,13 @@
                 <tr>
                     <?php if(isAllow('finding','delete')){?>
                     <td align="center" >
-                        <input type="checkbox" name="fid_<?php echo $row['id'];?>" value="<?php echo $row['id'];?>">
+                        <input type="checkbox" name="id_<?php echo $row['id'];?>" value="<?php echo $row['id'];?>">
                     </td>
                     <?php }?>
                     <td align="center" class="tdc"><?php echo $row['id']; ?></td>
                     <td><?php echo $row['status']; ?>&nbsp;</td>
                     <td><?php echo $this->source[$row['source_id']]; ?>&nbsp;</td>
-                    <td><?php echo $this->system[$row['sys_id']];?>&nbsp;</td>
+                    <td><?php echo $this->system[$row['system_id']];?>&nbsp;</td>
                     <td><?php echo $row['ip'];?>&nbsp;</td>
                     <td><?php echo $row['port'];?>&nbsp;</td>
                     <td>&nbsp;</td>
@@ -69,7 +69,7 @@
                     <?php if(isAllow('finding','read')){ ?>
                     <!--edit right-->
                     <td align="center" >
-                      <a href="/zfentry.php/finding/edit/fid/<?php echo $row['id'];?>" ><img src="/images/view.gif" border="0" ></a>
+                      <a href="/zfentry.php/panel/finding/sub/edit/id/<?php echo $row['id'];?>" ><img src="/images/view.gif" border="0" ></a>
                     </td>
                     <?php }
                     if(isAllow('finding','update')){
