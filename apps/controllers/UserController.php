@@ -38,7 +38,7 @@ class UserController extends SecurityController
         $req = $this->getRequest();
         $this->_paging_base_path = $req->getBaseUrl() .'/panel/user/sub/list';
         $this->_paging['currentPage'] = $req->getParam('p',1);
-        if($req->getActionName() != 'login'){
+        if(!in_array($req->getActionName(),array('login','logout') )){
             // by pass the authentication when login
             parent::preDispatch();
         }
@@ -61,7 +61,9 @@ class UserController extends SecurityController
             if (!$result->isValid()) {
                 if(Zend_Auth_Result::FAILURE_CREDENTIAL_INVALID == $result->getCode()){
                     $whologin = $this->_user->fetchRow("account = '$username'");
-                    $this->_user->log(User::LOGINFAILURE, $whologin->id,'Password Error');
+                    if( !empty($whologin) ){
+                        $this->_user->log(User::LOGINFAILURE, $whologin->id,'Password Error');
+                    }
                 }
                 // Authentication failed; print the reasons why
                 $error = "";
@@ -107,8 +109,10 @@ class UserController extends SecurityController
     
     public function logoutAction()
     {
-        $this->_user->log(User::LOGOUT, $this->me->id,$this->me->account.' logout');
-        Zend_Auth::getInstance()->clearIdentity();
+        if( !empty($this->me ) ) {
+            $this->_user->log(User::LOGOUT, $this->me->id,$this->me->account.' logout');
+            Zend_Auth::getInstance()->clearIdentity();
+        }
         $this->_forward('login');
     }
 
