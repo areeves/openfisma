@@ -62,6 +62,7 @@ CREATE TABLE `evaluations` (
   `name` varchar(32) NOT NULL,
   `precedence_id` int(10) NOT NULL default '0',
   `function_id` int(10) NOT NULL,
+  `group` tinyint(3),
   PRIMARY KEY  (`id`)
 );
 
@@ -97,34 +98,35 @@ CREATE TABLE `poams` (
   `asset_id` int(10) unsigned NOT NULL default '0',
   `source_id` int(10) unsigned NOT NULL default '0',
   `system_id` int(10) unsigned NOT NULL default '0',
-  `network_id` int(10) unsigned NOT NULL default '0',
-  `create_ts` datetime NOT NULL default '0000-00-00 00:00:00',
-  `discover_ts` datetime NOT NULL default '0000-00-00 00:00:00',
-  `modify_ts` datetime NOT NULL default '0000-00-00 00:00:00',
-  `close_ts` datetime default NULL,
+  `blscr_id` varchar(5) default NULL,
+  `create_ts` datetime NOT NULL default 0,
+  `discover_ts` datetime NOT NULL default 0,
+  `modify_ts` datetime NOT NULL default 0,
+  `close_ts` datetime default 0,
   `type` enum('NONE','CAP','FP','AR') NOT NULL default 'NONE',
   `status` enum('NEW','OPEN','EN','EP','ES','CLOSED','DELETED') NOT NULL default 'NEW',
   `is_repeat` tinyint(1) default NULL,
+  `finding_data` text NOT NULL,
   `previous_audits` text,
-  `blscr_id` varchar(5) default NULL,
-  `created_by` int(10) unsigned NOT NULL default '0',
-  `modified_by` int(10) unsigned NOT NULL default '0',
-  `closed_by` int(10) unsigned default NULL,
+  `created_by` int(10) unsigned NOT NULL default 0,
+  `modified_by` int(10) unsigned default 0,
+  `closed_by` int(10) unsigned default 0,
   `action_suggested` text,
   `action_planned` text,
   `action_status` enum('NONE','APPROVED','DENIED') NOT NULL default 'NONE',
   `action_approved_by` int(10) unsigned default NULL,
+  `action_resources` text,
+  `action_est_date` date default NULL,
+  `action_actual_date` date default NULL,
   `cmeasure` text,
   `cmeasure_effectiveness` enum('NONE','LOW','MODERATE','HIGH') NOT NULL default 'NONE',
   `cmeasure_justification` text,
-  `action_resources` text,
-  `action_date_est` date default NULL,
-  `action_date_actual` date default NULL,
   `threat_source` text,
   `threat_level` enum('NONE','LOW','MODERATE','HIGH') NOT NULL default 'NONE',
   `threat_justification` text,
   PRIMARY KEY  (`id`)
 ); 
+
 
 CREATE TABLE `poam_vulns` (
   `poam_id` int(10) unsigned NOT NULL default '0',
@@ -265,3 +267,12 @@ CREATE TABLE `user_systems` (
   `system_id` int(10) NOT NULL,
   PRIMARY KEY  (`user_id`,`system_id`)
 );
+
+CREATE TABLE `configurations` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `key` varchar(64) NOT NULL,
+  `value` varchar(64) NOT NULL,
+  `description` text,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `key` (`key`)
+)
