@@ -86,9 +86,13 @@ class TestRemediationOfSearch extends UnitTestCase{
     {
         $fields = 'status';
         $poam = new poam();
-        $query = $this->db->select()->from(array('p'=>'poams'),array('count'=>'count(status)'))->group('status');
+        $query = $this->db->select()->from(array('p'=>'poams'),array('count'=>'count(status)'))
+                          ->where('p.system_id IN ('.makeSqlInStmt($this->system_ids).')')
+                          ->group('status');
         $result = $this->db->fetchAll($query);
         $poams = $poam->search($this->system_ids,array('count'=>$fields));
+        var_dump($poams);
+        var_dump($result);
         $this->assertTrue($result == $poams);
     }
 
