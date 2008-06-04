@@ -28,19 +28,21 @@
 
 
     $table_name=  array(
-             'BLSCR', 'NETWORKS', 
-              'PRODUCTS','FINDING_SOURCES' , 
+              'BLSCR', 'NETWORKS', 
+              'PRODUCTS',
+              'FINDING_SOURCES' , 
               'SYSTEM_GROUP_SYSTEMS','SYSTEMS',
               'SYSTEM_GROUPS','FUNCTIONS','ROLES','ASSETS',
               'USER_ROLES',
               'USERS',
-              'USER_SYSTEM_ROLES','FINDINGS',
+              'USER_SYSTEM_ROLES',
+              'FINDINGS',
               'POAMS',
-            //  'VULN_PRODUCTS',
-            //  'VULNERABILITIES',
-           //   'FINDING_VULNS',
-             'POAM_EVIDENCE',
-             'POAM_COMMENTS'
+              'VULN_PRODUCTS',
+              'VULNERABILITIES',
+              'FINDING_VULNS',
+              'POAM_EVIDENCE',
+              'POAM_COMMENTS'
               );
 
     $db_target = Zend_DB::factory(Zend_Registry::get('datasource')->default);
