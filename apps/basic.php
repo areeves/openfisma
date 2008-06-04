@@ -93,4 +93,13 @@
         assert( is_array($array) );
         return "'" . implode("','", $array). "'"; 
     }
+
+    function echoDefault(&$value, $default='')
+    {
+        if( isset($value) ) {
+            echo $value;
+        }else{
+            echo $default;
+        }
+    }
  
