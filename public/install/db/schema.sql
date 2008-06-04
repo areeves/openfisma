@@ -49,7 +49,7 @@ CREATE TABLE `blscrs` (
 
 CREATE TABLE `comments` (
   `id` int(10) unsigned NOT NULL auto_increment,
-  `evaluation_id` int(10) unsigned NOT NULL default '0',
+  `ev_evaluation_id` int(10) unsigned NOT NULL default '0',
   `user_id` int(10) unsigned NOT NULL default '0',
   `date` datetime NOT NULL default '0000-00-00 00:00:00',
   `topic` varchar(64) NOT NULL default '',
@@ -71,7 +71,7 @@ CREATE TABLE `evidences` (
   `poam_id` int(10) unsigned NOT NULL default '0',
   `submission` varchar(128) NOT NULL default '',
   `submitted_by` int(10) unsigned NOT NULL default '0',
-  `date_submitted` date NOT NULL default '0000-00-00',
+  `submit_ts` date NOT NULL default '0000-00-00',
   PRIMARY KEY  (`id`)
 );
 
@@ -80,7 +80,8 @@ CREATE TABLE `ev_evaluations` (
   `ev_id` int(10) NOT NULL,
   `eval_id` int(10) NOT NULL,
   `user_id` int(10) NOT NULL,
-  `decision` enum('APPROVAL','DENY') NOT NULL,
+  `decision` enum('APPROVED','DENIED','EXECLUDED') NOT NULL,
+  `date` date NOT NULL default '0000-00-00',
   PRIMARY KEY  (`id`)
 ); 
 

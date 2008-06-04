@@ -27,19 +27,26 @@
     require_once ( CONFIGS . DS . 'database.php');
 
 
-    $table_name=  array( 'BLSCR', 'NETWORKS', 
+    $table_name=  array(
+             'BLSCR', 'NETWORKS', 
               'PRODUCTS','FINDING_SOURCES' , 
               'SYSTEM_GROUP_SYSTEMS','SYSTEMS',
               'SYSTEM_GROUPS','FUNCTIONS','ROLES','ASSETS',
-              'USER_ROLES','USERS','USER_SYSTEM_ROLES','FINDINGS',
-              'POAMS','VULN_PRODUCTS','VULNERABILITIES',
-              'FINDING_VULNS','POAM_EVIDENCE'
+              'USER_ROLES',
+              'USERS',
+              'USER_SYSTEM_ROLES','FINDINGS',
+              'POAMS',
+            //  'VULN_PRODUCTS',
+            //  'VULNERABILITIES',
+           //   'FINDING_VULNS',
+             'POAM_EVIDENCE',
+             'POAM_COMMENTS'
               );
 
     $db_target = Zend_DB::factory(Zend_Registry::get('datasource')->default);
     $db_src    = Zend_DB::factory(Zend_Registry::get('legacy_datasource')->default);
     
-    $delta = 100;
+    $delta = 1000;
     echo "start to migrate \n";
     foreach( $table_name as $table ) 
     {
@@ -163,6 +170,10 @@ function convert($db_src, $db_target, $table,&$data)
 
     case 'VULNERABILITIES':
          vulnerabilities_conv($db_src, $db_target, $data);
+         break;
+
+    case 'POAM_COMMENTS':
+         poam_comments_conv($db_src, $db_target, $data);
          break;
 
     default:
@@ -323,6 +334,8 @@ function user_system_conv($db_src, $db_target, $data)
 
 function users_conv($db_src, $db_target, $data)
 {
+    $auto_role=$data['extra_role']?$data['extra_role']:$data['user_name'].'_r';
+
     $tmparray=array('id'=>$data['user_id'] ,
                'account'=>$data['user_name'],
               'password'=>$data['user_password'],
@@ -340,9 +353,16 @@ function users_conv($db_src, $db_target, $data)
           'phone_office'=>$data['user_phone_office'],
           'phone_mobile'=>$data['user_phone_mobile'],
                  'email'=>$data['user_email'],
-             'auto_role'=>$data['extra_role']);
-            $db_target->insert('users',$tmparray);
-                unset($tmparray);
+             'auto_role'=>$auto_role);
+    $db_target->insert('users',$tmparray);
+    unset($tmparray);
+
+    try{
+        user_roles_conv($db_src, $db_target, $data);
+    }catch(Zend_Exception $e){
+        return;
+    }
+    
 }
 
 function vuln_products_conv($db_src, $db_target, $data)
@@ -538,15 +558,92 @@ function poam_conv( $db_src, $db_target)
 }
 
 function  vulnerabilities_conv($db_src, $db_target, $data)
+{
+    $description=NULL;
+    if($data['vuln_desc_primary'])
+        $description.="Primary:".$data['vuln_desc_primary'];
+    if($data['vuln_desc_secondary'])
+        $description.="\nSecondary:".$data['vuln_desc_secondary'];
+    $stmt = $db_src->query("SELECT vi.imp_desc, 
+                                   vi.imp_source,
+                                   vr.ref_name,
+                                   vr.ref_source,
+                                   vr.ref_url,
+                                   vr.ref_is_advisory,
+                                   vr.ref_has_tool_sig,
+                                   vr.ref_has_patch,
+                                   vs.sol_desc,
+                                   vs.sol_source
+                              FROM VULNERABILITIES v
+                         LEFT JOIN VULN_IMPACTS vi ON v.vuln_seq = vi.vuln_seq and v.vuln_type = vi.vuln_type
+                         LEFT JOIN VULN_REFERENCES vr ON v.vuln_seq = vr.vuln_seq and v.vuln_type = vr.vuln_type
+                         LEFT JOIN VULN_SOLUTIONS vs ON v.vuln_seq = vs.vuln_seq and v.vuln_type = vs.vuln_type
+                             WHERE v.vuln_seq = '{$data['vuln_seq']}'
+                               AND v.vuln_type = '{$data['vuln_type']}'
+                             LIMIT 1");
+    $row = $stmt->fetch();
+
+    $references=NULL;
+    if($row['ref_name'])
+        $references.="Name:".$row['ref_name']; 
+    if($row['ref_source'])
+        $references.="\nSource:".$row['ref_source'];           
+    if($row['ref_url'])
+        $references.="\nUrl:".$row['ref_url'];    
+    if($row['ref_is_advisory'])
+        $references.="\nIs_advisory".$row['ref_is_advisory'];    
+    if($row['ref_has_tool_sig'])
+        $references.="\nHas_tool_sig".$row['ref_has_tool_sig'];    
+    if($row['ref_has_patch'])
+        $references.="\nHas_patch".$row['ref_has_patch'];
+
+    $impact=NULL;
+    if($row['imp_desc'])
+        $impact.="Description:".$row['imp_desc'];
+    if($row['imp_source'])     
+        $impact.="\nSource:".$row['imp_source'];
+
+    $solutions=NUll;
+    if($row['sol_desc'])
+        $solutions.="Description:".$row['sol_desc'];
+    if($row['sol_source'])
+        $solutions.="\nSource:".$row['sol_source'];
+
+    $tmparray=array('seq'=>$data['vuln_seq'],
+                   'type'=>$data['vuln_type'],
+            'description'=>$description,
+              'modify_ts'=>$data['vuln_date_modified'],
+             'publish_ts'=>$data['vuln_date_published'],
+               'severity'=>$data['vuln_severity'],
+                 'impact'=>$impact,
+              'reference'=>$references,
+               'solution'=>$solutions
+     );
+    $db_target->insert('vulnerabilities',$tmparray); 
+    unset($tmparray);
+}
+
+/* need to edit
+
+function  vulnerabilities_conv($db_src, $db_target, $data)
 {   
-    $descriiption="Primary:".$data['vuln_desc_primary'].
+    $description="Primary:".$data['vuln_desc_primary'].
                   "Secondary:".$data['vuln_desc_secondary'];
     
-    $qry=$db_src->select()->from('VULN_IMPACTS',
-                           array('imp_desc'=>'imp_desc',
-                               'imp_source'=>'imp_source'))
+    $QRY=$DB_SRC->SELECT()->FROM('VULNERABILITIES',
+                                 array('imp_desc'=>'vi.imp_desc',
+                                     'imp_source'=>'vi.imp_source',
+                                       'ref_name'=>>'vr.ref_name',
+                                     'ref_source'=>'vr.ref_source',
+                                        'ref_url'=>'vr.ref_url',
+                                'ref_is_advisory'=>'vr.ref_is_advisory',
+                               'ref_has_tool_sig'=>'vr.ref_has_tool_sig',
+                                  'ref_has_patch'=>'vr.ref_has_patch',   
+                                       'sol_desc'=>'vs.sol_desc',
+                                     'sol_source'=>'vs.sol_source'))
                           ->where('vuln_seq=?',$data['vuln_seq'])
                           ->where('vuln_type=?',$data['vuln_type']);
+                          echo $qry;die("xxxxxx");
     $impact=$db_src->fetchRow($qry);
     $impact="Description:".$impact['imp_desc']."Source:".$impact['imp_source'];
     $qry=null;
@@ -579,7 +676,7 @@ function  vulnerabilities_conv($db_src, $db_target, $data)
 
     $tmparray=array('seq'=>$data['vuln_seq'],
                    'type'=>$data['vuln_type'],
-            'description'=>$descriiption,
+            'description'=>$description,
               'modify_ts'=>$data['vuln_date_modified'],
              'publish_ts'=>$data['vuln_date_published'],
                'severity'=>$data['vuln_severity'],
@@ -591,6 +688,7 @@ function  vulnerabilities_conv($db_src, $db_target, $data)
     unset($tmparray);
     
 }
+*/
 
 function poam_vulns_conv($db_src, $db_target, $data)
 {
@@ -608,6 +706,17 @@ function poam_vulns_conv($db_src, $db_target, $data)
     }
 }
 
+function insert_ev_eval($db_target,$ev_id,$eval_id,$decision,$date)
+{
+        if(!$date)
+            $date='0000-00-00';
+        $tmparray=array('ev_id'=>$ev_id,
+                      'eval_id'=>$eval_id, 
+                     'decision'=>$decision,
+                         'date'=>$date );
+        $db_target->insert('ev_evaluations',$tmparray);
+}
+
 function poam_evidence_conv($db_src, $db_target, $data)
 {
     $tmparray=array('id'=>$data['ev_id'],
@@ -615,11 +724,83 @@ function poam_evidence_conv($db_src, $db_target, $data)
             'submission'=>$data['ev_submission'],
           'submitted_by'=>$data['ev_submitted_by'],
              'submit_ts'=>$data['ev_date_submitted']);
-    //$db_target->insert('evidences',$tmparray);
+    $db_target->insert('evidences',$tmparray);
 
-    $tmparray=array();
+    if($data['ev_sso_evaluation']){
+        $eval_id=1;
+        $decision=$data['ev_sso_evaluation'];
+        $date=$data['ev_date_sso_evaluation'];
+        insert_ev_eval($db_target,$data['ev_id'],$eval_id,$decision,$date);
+    }
+
+    if($data['ev_fsa_evaluation']){
+        $eval_id=2;
+        $decision=$data['ev_fsa_evaluation'];
+        $date=$data['ev_date_fsa_evaluation'];
+        insert_ev_eval($db_target,$data['ev_id'],$eval_id,$decision,$date);
+    }
+     
+    if($data['ev_ivv_evaluation']){
+        $eval_id=3;
+        $decision=$data['ev_ivv_evaluation'];
+        $date=$data['ev_date_ivv_evaluation'];
+        insert_ev_eval($db_target,$data['ev_id'],$eval_id,$decision,$date);
+    }
 }
 
+function poam_comments_conv($db_src, $db_target, $data)
+{
+    /*
+    $qry=$db_target->select()->from('evaluations',array('id','name'));
+    $evals=$db_target->fetchPairs($qry);
+*/
+    $evals=array('1'=>'EV_SSO',
+                 '2'=>'EV_FSA',
+                 '3'=>'EV_IVV',
+                 '4'=>'EST',
+                 '5'=>'SSO');
+    $eval_id=NULL;
+    foreach($evals as $key=>$eval_name)
+    {
+        if($data['comment_type']==$eval_name)
+         {
+             $eval_id=$key;
+             break;
+         }
+    }
+  
+    if($eval_id&&$data['ev_id'])
+    {
+        $qry=$db_target->select()->from('ev_evaluations',array('id'))
+                                 ->where('ev_id=?',$data['ev_id'])
+                                 ->where('eval_id=?',$eval_id);
+        $ev_evaluation_id=$db_target->fetchRow($qry);
+        if(!empty($ev_evaluation_id))
+        {
+            $ev_evaluation_id=$ev_evaluation_id['id'];
 
+            $tmparray=array('id'=>$data['comment_id'],
+              'ev_evaluation_id'=>$ev_evaluation_id,
+                       'user_id'=>$data['user_id'],
+                          'date'=>$data['comment_date'],
+                         'topic'=>$data['comment_topic'],
+                       'content'=>$data['comment_body']);
+            $db_target->insert('comments',$tmparray);
+         }
+    }
+    $description="";
+    if($data['comment_topic'])
+        $description=$data['comment_topic'];
+    if($data['comment_body'])
+        $description.="\n".$data['comment_body'];
+    if($data['comment_log'])
+        $description.="\n".$data['comment_log'];
+    $tmparray=array('poam_id'=>$data['poam_id'],
+                    'user_id'=>$data['user_id'],
+                  'timestamp'=>$data['comment_date'],
+                      'event'=>"MODIFICATION",
+                'description'=>$description);
+    $db_target->insert('audit_logs',$tmparray);
 
+}
 ?>
