@@ -25,8 +25,8 @@
         $base_url = BASE . $sid;
     ?>
     <tr>
-        <td width='45%' align='left'   class='tdc'>(<?php echo $this->systems[$sid]['system_nickname'];?>)
-                                                    <?php echo $this->systems[$sid]['system_name'];?></td>
+        <td width='45%' align='left'   class='tdc'>(<?php echo $this->systems[$sid]['nickname'];?>)
+                                                    <?php echo $this->systems[$sid]['name'];?></td>
         <td align='center' class='tdc'><?php echo $row['NEW'] == ''?'-':'<a href="'.$base_url.'/status/NEW">'.$row['NEW'].'</a>';?></td>
         <td align='center' class='tdc'><?php echo $row['OPEN']== ''?'-':'<a href="'.$base_url.'/status/OPEN">'.$row['OPEN'].'</a>';?></td>
         <td align='center' class='tdc'><?php echo $row['EN']== ''?'-':'<a href="'.$base_url.'/status/EN">'.$row['EN'].'</a>';?></td>

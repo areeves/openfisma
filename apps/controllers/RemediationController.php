@@ -20,11 +20,17 @@ class RemediationController extends SecurityController
                              'path'        =>'',
                              'currentPage' =>1,
                              'perPage'     =>20);
+
+    public function init()
+    {
+        $this->_poam = new Poam();
+        parent::init();
+    }
+
     public function preDispatch()
     {
         parent::preDispatch();
         $req = $this->getRequest();
-        $uid = $this->me->id;
         $this->_paging_base_path = $req->getBaseUrl() .'/panel/remediation/sub/searchbox/s/search';
         $this->_paging['currentPage'] = $req->getParam('p',1);
     }
@@ -33,77 +39,26 @@ class RemediationController extends SecurityController
         require_once MODELS . DS . 'system.php';
         $req = $this->getRequest();
         $user = new user();
-        $uid = $this->me->id;
-        $system_list = $user->getMySystems($uid);
-        $system_ids = implode(',',$system_list);
-        $poam = new poam();
-        $system = new System();
-        $today = date('Ymd',time());
-        $total = array('NEW'=>0,'OPEN'=>0,'EN'=>0,'EO'=>0,'EP_SNP'=>0,'EP_SSO'=>0,'ES'=>0,'CLOSED'=>0,'TOTAL'=>0);
+        $system_list = $this->me->systems;
+        $sys = new System();
+        $systems = $sys->getList(array('name','nickname'),$system_list);
+
+        $today = parent::$now->toString('Ymd');
+
+        $summary_tmp = array('NEW'=>0,'OPEN'=>0,'EN'=>0,'EO'=>0,'EP'=>0,'EP_SNP'=>0,'EP_SSO'=>0,'ES'=>0,'CLOSED'=>0,'TOTAL'=>0);
+        ///@todo EP_SNP & EP_SSO not counted
+        $total = $summary_tmp;
         foreach($system_list as $id) {
-            $remediations = $poam->search(array($id));
-            if(!empty($remediations)){
-                $sum = array('NEW'=>0,'OPEN'=>0,'EN'=>0,'EO'=>0,'EP_SNP'=>0,'EP_SSO'=>0,'ES'=>0,'CLOSED'=>0,'TOTAL'=>0);
-                foreach($remediations as $row){
-                    switch($row['status']) {
-                    case 'OPEN':
-                        if( $row['type'] == 'NONE' ) {
-                            $sum['NEW'] ++;//count the NEW items
-                            $total['NEW'] ++;
-                        }else{ 
-                            $sum['OPEN'] ++;//count the OPEN items
-                            $total['OPEN'] ++;
-                        }
-                        break;
-                    case 'EN':
-                        $est = implode(split('-',$row['action_date_est']));
-                        if($est < $today){
-                            $sum['EO'] ++;                    //update the display to show it as EN in the list
-                            $total['EO']++;
-                        } else {//still on time,just count it
-                            $sum['EN'] ++;
-                            $total['EN'] ++;
-                        }
-                        break;
-                    case 'EP':
-                        //if the SSO has approved it,then tag it as S&P
-                        $db = Zend_Registry::get('db');
-                        $query = $db->select()
-                              ->from(array('pe'=>'POAM_EVIDENCE'),array('evaluation'=>'pe.ev_sso_evaluation'))
-                              ->where("id = ".$row['id']."")
-                              ->order("ev_id DESC")
-                              ->limit(1);
-                        $approval = $db->fetchRow($query);
-                        if(isset($approval['evaluation']) && $approval['evaluation'] == 'APPROVED'){
-                            $sum['EP_SNP']++;
-                            $total['EP_SNP'] ++;
-                        } else {//else tag it SSO
-                            $sum['EP_SSO']++;
-                            $total['EP_SSO']++;
-                        }
-                        break;
-                    case 'ES':
-                        $sum['ES']++;
-                        $total['ES']++;
-                        break;
-                    case 'CLOSED':
-                        $sum['CLOSED']++;
-                        $total['CLOSED']++;
-                        break;
-                    }
-                    $sum['TOTAL']++;
-                    $total['TOTAL']++;
-                }
-                $summary[$id] = $sum;
+            $summary[$id] = $summary_tmp;
+            $sum = $this->_poam->search(array($id),array('count'=>'status','status'));
+            foreach( $sum as $s ) {
+                $summary[$id][$s['status']] = $s['count'];
+                $summary[$id]['TOTAL'] += $s['count']; //ATTENTION!!!!
+                $total[$s['status']] += $s['count'];
             }
         }
- 	//$poam->search($id, 'count', array('ep'=>array('sso'=>'APPROVAL') ) );
-        $systems = $system->find($system_list);
-        foreach( $systems as $s ) {
-            $sys_list[$s->system_id] = $s->toArray();
-        }
         $this->view->assign('total',$total);
-        $this->view->assign('systems',$sys_list);
+        $this->view->assign('systems',$systems);
         $this->view->assign('summary',$summary );
         $this->render('summary');
     }
@@ -113,25 +68,32 @@ class RemediationController extends SecurityController
         $this->_paging_base_path = $req->getBaseUrl().'/panel/remediation/sub/searchbox/s/search';
         $this->_paging['currentPage'] = $req->getParam('p',1);
        
-        $user = new user();
-        $uid = $this->me->user_id;
-        $system_list = $user->getMySystems($uid);
+        $system_list = array_keys($this->me->systems);
         $criteria = $req->getParam('criteria');
         foreach($criteria as $key=>$value){
-            if(!empty($value) && $value!='any'){
+            if(!empty($value) && $value!='0'){
                 $this->_paging_base_path .='/'.$key.'/'.$value.'';
             }
         }
 
-        $this->_paging_base_path .= $req->getParam('path');
+        //$this->_paging_base_path .= $req->getParam('path');
         
-        $poam = new poam();
-        $totals = $poam->search($system_list,array('count'=>array()),$criteria);
-        $list = $poam->search($system_list,'*',$criteria,$this->_paging['currentPage'],$this->_paging['perPage']);
-        $this->_paging['totalItems'] = $total = $totals[0]['count'];
+        $list = $this->_poam->search($system_list, array('id',
+                                                         'source_id',
+                                                         'system_id',
+                                                         'type',
+                                                         'status',
+                                                         'finding_data',
+                                                         'action_est_date',
+                                                         'count'=>'count(*)'),
+                                     $criteria,$this->_paging['currentPage'],
+                                     $this->_paging['perPage']);
+        $total = array_pop($list);
+
+        $this->_paging['totalItems'] = $total;
         $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";
         $pager = &Pager::factory($this->_paging);
-        $this->view->assign('summary_list',$list);
+        $this->view->assign('list',$list);
         $this->view->assign('total_pages',$total);
         $this->view->assign('links',$pager->getLinks());
         $this->render('search');
@@ -144,53 +106,50 @@ class RemediationController extends SecurityController
         require_once MODELS . DS . 'network.php';
 
         $db = Zend_Registry::get('db');
-        $user = new User();
         $src = new Source();
         $net = new Network();
         $sys = new System();
         
         $req = $this->getRequest();
-        $uid = $this->me->id;
         // parse the params of search
-        $criteria['system'] = $req->getParam('system','any');
-        $criteria['source'] = $req->getParam('source','any');
-        $criteria['type'] = $req->getParam('type','any');
-        $criteria['status'] = $req->getParam('status','any');
+        $criteria['system'] = $req->getParam('system',0);
+        $criteria['source'] = $req->getParam('source',0);
+        $criteria['type'] = $req->getParam('type');
+        $criteria['status'] = $req->getParam('status');
         $criteria['ids'] = $req->getParam('ids','');
-        $criteria['asset_owner'] = $req->getParam('asset_owner','any');
-        $criteria['action_owner'] = $req->getParam('action_owner','any');
-        $criteria['startdate'] = $req->getParam('startdate','');
-        $criteria['enddate'] = $req->getParam('enddate','');
-        $criteria['startcreatedate'] = $req->getParam('startcreatedate','');
-        $criteria['endcreatedate'] = $req->getParam('endcreatedate');
+        $criteria['asset_owner'] = $req->getParam('asset_owner',0);
+        $criteria['system_id'] = $req->getParam('action_owner',0);
+        $tmp = $req->getParam('est_date_begin');
+        if(!empty($tmp)) {
+            $criteria['est_date_begin'] = new Zend_Date($tmp);
+        }
+        $tmp = $req->getParam('est_date_end');
+        if(!empty($tmp)) {
+            $criteria['est_date_end'] = new Zend_Date($tmp);
+        }
+        $tmp = $req->getParam('created_data_begin');
+        if(!empty($tmp)) {
+            $criteria['created_data_begin'] = new Zend_Date($tmp);
+        }
+        $tmp = $req->getParam('created_data_end');
+        if(!empty($tmp)) {
+            $criteria['created_data_end'] = new Zend_Date($tmp);
+        }
 
         $internal_crit = $criteria;
 
-        $qry = $db->select();
-        $source_list  = $db->fetchPairs($qry->from($src->info(Zend_Db_Table::NAME),
-                                    array('id'=>'id','name'=>'name'))
-                                    ->order(array('id ASC')) );
-        $qry->reset();
-        $network_list = $db->fetchPairs($qry->from($net->info(Zend_Db_Table::NAME),
-                                    array('id'=>'id','name'=>'name'))
-                                    ->order(array('id ASC')) );
-        $qry->reset();
-        $ids = implode(',', $user->getMySystems($uid));
-        $system_list = $db->fetchPairs($qry->from($sys->info(Zend_Db_Table::NAME),
-                                    array('id'=>'id','name'=>'name'))
-                                    ->where("id IN ( $ids )")
-                                    ->order('id ASC'));
-        $system_list['any'] = '--Any--';
-        $source_list['any'] = '--Any--';
-        $network_list['any'] = '--Any--';
+        $source_list  = $src->getList('name');
+        $system_list = $sys->getList('name',array_keys($this->me->systems) );
+        $system_list = array_merge(array('0'=>'--Any--'),$system_list);
+        $source_list = array_merge(array('0'=>'--Any--'),$source_list);
         
-        $filter_type = array('any'  =>'--- Any Type ---',
+        $filter_type = array(0  =>'--- Any Type ---',
                         'NONE' =>'(NONE) Unclassified',
                         'CAP'  =>'(CAP) Corrective Action Plan',
                         'AR'   =>'(AR) Accepted Risk',
                         'FP'   =>'(FP) False Positive');
 
-        $filter_status = array('any'   =>'--- Any Status ---',
+        $filter_status = array(0    =>'--- Any Status ---',
                         'NEW'       =>'(NEW) Awaiting Mitigation Type and Approval',
                         'OPEN'      =>'(OPEN) Awaiting Mitigation Approval',
                         'EN'        =>'(EN) Evidence Needed',
@@ -210,26 +169,26 @@ class RemediationController extends SecurityController
                     $this->_paging_base_path .= '/'.$key.'/'.$value.'';
                 }
             }    
-            if(isset($criteria['status']) && $criteria['status'] != 'any'){
-                $current_date = date('Y-m-d',time());
+            if( !empty($criteria['status']) ){
+                $now = clone parent::$now;
                 switch($criteria['status']){
                     case 'NEW':
-                        $internal_crit['status'] = 'OPEN';
+                        $internal_crit['status'] = 'NEW';
                         $internal_crit['type']   = 'NONE';
                         break;
                     case 'OPEN':
                         $internal_crit['status'] = 'OPEN';
-                        $internal_crit['type']   = array("'NONE'","'CAP'","'FP'","'AR'");
                         break;
                     case 'EN':
                         $internal_crit['status'] = 'EN';
-                        $internal_crit['startdate'] = date('Y-m-d',time());
+                        $internal_crit['est_date_begin'] = $now->toString('Ymd');
                         break;
                     case 'EO':
                         $internal_crit['status'] = 'EN';                        
-                        $internal_crit['enddate'] = date('Y-m-d',time());
+                        $internal_crit['est_date_end'] = $now->toString('Ymd');
                         break;
                     case 'EP-SSO':
+                    ///@todo EP searching needed
                         $internal_crit['status'] = 'EP';
                         $internal_crit['ep']     = array('sso'=>'APPROVED',
                                                     'fsa'=>'NONE',
@@ -252,15 +211,15 @@ class RemediationController extends SecurityController
                         break;
                     case 'NOUP-30':
                         $internal_crit['status'] = array("'OPEN'","'EN'","'EP'","'ES'");
-                        $internal_crit['poam_date_modified'] = 'SUBDATE("'.$current_date.'",30)';
+                        $internal_crit['modify_ts'] = $now->sub(30, Zend_Date::DAY);
                         break;
                     case 'NOUP-60':
                         $internal_crit['status'] = array("'OPEN'","'EN'","'EP'","'ES'");
-                        $internal_crit['poam_date_modified'] = 'SUBDATE("'.$current_date.'",60)';
+                        $internal_crit['modify_ts'] = $now->sub(60, Zend_Date::DAY);
                         break;
                     case 'NOUP-90':
                         $internal_crit['status'] = array("'OPEN'","'EN'","'EP'","'ES'");
-                        $internal_crit['poam_date_modified'] = 'SUBDATE("'.$current_date.'",90)';
+                        $internal_crit['modify_ts'] = $now->sub(90, Zend_Date::DAY);
                         break;
                 }
             }
@@ -275,8 +234,8 @@ class RemediationController extends SecurityController
     }
 
     /**
-    Get remediation detail info
-    */
+        Get remediation detail info
+    **/
     public function viewAction(){
         $req = $this->getRequest();
         $id = $req->getParam('id');
@@ -287,14 +246,15 @@ class RemediationController extends SecurityController
         // Finding Information Query
         $query->from(array('p'=>'poams'),array('f_id'=>'p.legacy_finding_id',
                                                'f_status'=>'p.status',
+                                               'f_data'  =>'p.finding_data',
                                                'f_discovered'=>'p.discover_ts',
                                                'f_created'=>'p.create_ts'));
         $query->join(array('s'=>'sources'),'s.id = p.source_id',array('source_nickname'=>'s.nickname',
                                                                       'source_name'=>'s.name'));
         $query->join(array('a'=>'assets'),'a.id = p.asset_id',array('asset_id'=>'a.id',
                                                                     'asset_name'=>'a.name'));
-        $query->join(array('s'=>'systems'),'s.id = p.system_id',array('system_nickname'=>'s.nickname',
-                                                                      'system_name'=>'s.name'));
+        $query->join(array('sys'=>'systems'),'sys.id = p.system_id',array('system_nickname'=>'sys.nickname',
+                                                                      'system_name'=>'sys.name'));
         $query->where("p.id = ".$id."");
         $finding = $poam->fetchRow($query)->toArray();
         $this->view->assign('finding',$finding);
@@ -313,11 +273,11 @@ class RemediationController extends SecurityController
         $query->reset();
         $query->from(array('p'=>'poams'),array());
         $query->join(array('pv'=>'poam_vulns'),'pv.poam_id = p.id',array());
-        $query->join(array('v'=>'vulnerabilities'),'v.type = pv.vuln_type AND v.vuln_seq = pv.vuln_seq',
+        $query->join(array('v'=>'vulnerabilities'),'v.type = pv.vuln_type AND v.seq = pv.vuln_seq',
                           array('type'=>'v.type',
-                                'seq'=>'v.seq',
-                                'primary'=>'v.desc_primary',
-                                'secondary'=>'v.desc_secondary'));
+                                'seq'=>'v.seq'));
+                                //'primary'=>'v.desc_primary',
+                                //'secondary'=>'v.desc_secondary'));
         $query->where("p.id = ".$id."");
         $vulnerabilities = $poam->fetchAll($query)->toArray();
 
@@ -334,7 +294,7 @@ class RemediationController extends SecurityController
             $remediation = $data->toArray();
             $this->view->assign('remediation',$remediation);
 
-            $est = implode(split('-',$remediation['action_date_est']));
+            $est = implode(split('-',$remediation['action_est_date']));
             if(($est < $today) && ($remediation['status']=='EN')){
                 $remediation['status'] = 'EO';
             }
@@ -345,11 +305,11 @@ class RemediationController extends SecurityController
       
            // Product Query
             $query->reset();
-            $query->from(array('p'=>'products'),array('prod_id'=>'p.id',
-                                               'prod_vendor'=>'p.vendor',
-                                               'prod_name'=>'p.name',
-                                               'prod_version'=>'p.version'));
-            $query->join(array('a'=>'assets'),'a.prod_id = p.id',array());
+            $query->from(array('pr'=>'products'),array('prod_id'=>'pr.id',
+                                               'prod_vendor'=>'pr.vendor',
+                                               'prod_name'=>'pr.name',
+                                               'prod_version'=>'pr.version'));
+            $query->join(array('a'=>'assets'),'a.prod_id = pr.id',array());
             $query->join(array('p'=>'poams'),'p.asset_id = a.id',array());
             $query->where("p.id = ".$remediation['id']);
             $products = $poam->fetchRow($query);
@@ -359,7 +319,7 @@ class RemediationController extends SecurityController
         //Blscr Query
         $query->reset();
         $query->from(array('b'=>'blscrs'),'*');
-        $query->join(array('p'=>'poams'),'p.blscr_id = b.id',array());
+        $query->join(array('p'=>'poams'),'p.blscr = b.code',array());
         $query->where("p.id = ".$id."");
         $data = $poam->fetchRow($query);
         if(!empty($data)){
@@ -369,8 +329,8 @@ class RemediationController extends SecurityController
             $blscr = array();
         }
         $query->reset();
-        $query->distinct()->from(array('b'=>'blscrs'),array('value'=>'b.id'))
-                          ->order("b.id ASC");
+        $query->distinct()->from(array('b'=>'blscrs'),array('value'=>'b.code'))
+                          ->order("b.code ASC");
         $this->view->assign('all_values',$db->fetchCol($query));
 
         // Comments Query
@@ -420,14 +380,14 @@ class RemediationController extends SecurityController
         //Audit Log
         $query->reset();
         $query->from(array('al'=>'audit_logs'),array('*','time'=>'al.timestamp'));
-        $query->join(array('p'=>'poams'),'p.poam_id = al.poam_id',array());
-        $query->join(array('u'=>'USERS'),'al.user_id = u.id',array('user_name'=>'u.uccount'));
+        $query->join(array('p'=>'poams'),'p.id = al.poam_id',array());
+        $query->join(array('u'=>'users'),'al.user_id = u.id',array('user_name'=>'u.account'));
         $query->where("p.id = ".$id."");
-        $query->order("al.date DESC");
-        $logs = $poam->fetchAll($query)->toArray();
-        foreach($logs as $k=>$v){
-            $logs[$k]['time'] = date('Y-m-d H:i:s',$logs[$k]['time']);
-        }
+        $query->order("al.timestamp DESC");
+        $logs = $poam->fetchAll($query)->toArray();var_dump($logs);
+        foreach($logs as $k=>$v){var_dump($logs[$k]['timestamp']);
+            $logs[$k]['time'] = date('Y-m-d H:i:s',$logs[$k]['timestamp']);
+        }var_dump($logs);
         $this->view->assign('logs',$logs);
         $this->view->assign('num_logs',count($logs));
 
@@ -443,8 +403,8 @@ class RemediationController extends SecurityController
             $r = $remediation;
             $r_fields_null = array($r['threat_source'], $r['threat_justification'],
             $r['cmeasure'], $r['cmeasure_justification'], $r['action_suggested'],
-            $r['action_planned'], $r['action_resources'], $r['blscr_id']);
-            $r_fields_zero = array($r['action_date_est']);
+            $r['action_planned'], $r['action_resources'], $r['blscr']);
+            $r_fields_zero = array($r['action_est_date']);
             $r_fields_none = array($r['cmeasure_effectiveness'], $r['threat_level']);
             $is_completed = (in_array(null, $r_fields_null) || in_array('NONE', $r_fields_none) || in_array('0000-00-00', $r_fields_zero))?'no':'yes';
             $this->view->assign('is_completed', $is_completed);
@@ -452,12 +412,12 @@ class RemediationController extends SecurityController
         
         
         $user = new user();
-        $uid = $this->me->user_id;
+        $uid = $this->me->id;
         $ids = implode(',', $user->getMySystems($uid));
         $qry = $db->select()->from(array('s'=>'systems'), array('id'=>'id',
                                                                 'name'=>'name',
                                                                 'nickname'=>'nickname'))
-                                    ->where("system_id IN ( $ids )")
+                                    ->where("id IN ( $ids )")
                                     ->order('id ASC');
         $system_list = $db->fetchAll($qry);
         $this->view->assign('system_list',$system_list);
@@ -474,7 +434,7 @@ class RemediationController extends SecurityController
         $ev_id   = $req->getParam('ev_id');
         assert($id);
         $today = date("Ymd",time());
-        $user_id = $this->me->user_id;
+        $user_id = $this->me->id;
         $now = date('Y-m-d,h:i:s',time());
         $poam = new poam();
         $db = $poam->getAdapter();
@@ -484,26 +444,25 @@ class RemediationController extends SecurityController
             }
         }
         $fields['finding_id'] = 'finding_id';
-        $query = $db->select()
-                              //->from(array(),$fields)
-                              ->from(array('p'=>'poams'),array())
+        /*$query = $db->select()->from(array('p'=>'poams'),array())
                               ->joinleft(array('e'=>'evidences'),'p.id = e.id',array())
                               ->where("p.id = $id");
-        $poams = $db->fetchRow($query);
+        $poams = $db->fetchRow($query);*/
+        $poams = $poam->find($id)->toArray();
         foreach($_POST as $k=>$v){
           if(!empty($v)){
             switch($k){
-                case 'poam_blscr':
+                case 'blscr':
                     $data = array('blscr'=>''.$v.'');
                     $result = $db->update('poams',$data,'id = '.$id.'');
                     break;
-                case 'poam_type':
+                case 'type':
                     $data = array('type'=>''.$v.'',
                                   'status'=>'OPEN',
                                   'modify_ts'=>''.$now.'',
                                   'action_planned'=>'null',
-                                  'action_date_est'=>'null',
-                                  'action_date_actual'=>'null',
+                                  'action_est_date'=>'null',
+                                  'action_actual_date'=>'null',
                                   'action_resources'=>'null',
                                   'action_status'=>'NONE');
                     $result = $db->update('poams',$data,'id = '.$id.'');
@@ -514,17 +473,17 @@ class RemediationController extends SecurityController
                     $data = array('ev_ivv_evaluation'=>'EXCLUDED');
                     $result = $db->update('POAM_EVIDENCE',$data,array('id = '.$id.'','ev_ivv_evaluation="NONE"'));
                     break;
-                case 'poam_action_planned':
+                case 'action_planned':
                     $data = array('action_planned'=>''.$v.'',
                                   'action_status'=>'NONE');
                     $result = $db->update('poams',$data,'id = '.$id.'');
                     break;
-                case 'poam_action_date_est':
-                    $data = array('action_date_est'=>''.$v.'',
+                case 'action_est_date':
+                    $data = array('action_est_date'=>''.$v.'',
                                   'action_status'  =>'NONE');
                     $result = $db->update('poams',$data,'id = '.$id.'');
                     break;
-                case 'poam_action_status':
+                case 'action_status':
                     $data = array('action_status' =>''.$v.'');
                     $result = $db->update('poams',$data,'id = '.$id.'');
                     if('APPROVED' == $v){
@@ -533,50 +492,50 @@ class RemediationController extends SecurityController
                         $db->update('poams',array('status'=>'OPEN'),'id = '.$id.'');
                     }
                     break;
-                case 'poam_action_suggested':
+                case 'action_suggested':
                     $data = array('action_suggested'=>''.$v.'',
                                   'action_status'   =>'NONE');
                     $result = $db->update('poams',$data,'id = '.$id.'');
                     break;
-                case 'poam_action_owner':
+                case 'action_owner':
                     $data = array('system_id'=>''.$v.'');
                     $result = $db->update('poams',$data,'id = '.$id.'');
                     break;                                                               
-                case 'poam_action_resources':
+                case 'action_resources':
                     $data = array('action_resources'=>''.$v.'');
                     $result = $db->update('poams',$data,'id = '.$id.'');
                     break;
-                case 'poam_cmeasure_effectiveness':
+                case 'cmeasure_effectiveness':
                     $data = array('cmeasure_effectiveness'=>''.$v.'',
                                   'action_status'         =>'NONE');
                     $result = $db->update('poams',$data,'id = '.$id.'');
                     break;
-                case 'poam_cmeasure':
+                case 'cmeasure':
                     $data = array('cmeasure'      =>''.$v.'',
                                   'action_status' =>'NONE');
                     $result = $db->update('poams',$data,'id = '.$id.'');
                     break;
-                case 'poam_cmeasure_justification':
+                case 'cmeasure_justification':
                     $data = array('cmeasure_justification'=>''.$v.'',
                                   'action_status'         =>'NONE');
                     $result = $db->update('poams',$data,'id = '.$id.'');
                     break;
-                case 'poam_threat_level':
+                case 'threat_level':
                     $data = array('threat_level' =>''.$v.'',
                                   'action_status'=>'NONE');
                     $result = $db->update('poams',$data,'id = '.$id.'');
                     break;
-                case 'poam_threat_source':
+                case 'threat_source':
                     $data = array('threat_source'=>''.$v.'',
                                   'action_status'=>'NONE');
                     $result = $db->update('poams',$data,'id = '.$id.'');
                     break;
-                case 'poam_threat_justification':
+                case 'threat_justification':
                     $data = array('threat_justification'=>''.$v.'',
                                   'action_status'       =>'NONE');
                     $result = $db->update('poams',$data,'id = '.$id.'');
                     break;
-                case 'ev_sso_evaluation':
+                case 'sso_evaluation':
                     $data['ev_sso_evaluation'] = $v;
                     $data['ev_date_sso_evaluation'] = $now;
                     if('DENIED' == $v ){
@@ -661,7 +620,7 @@ class RemediationController extends SecurityController
         $comment = $req->getParam('comment_body');
         assert($id);
         $today = date("Ymd",time());
-        $user_id = $this->me->user_id;
+        $user_id = $this->me->id;
         $now = date('Y-m-d,h:i:s',time());
         $db = Zend_Registry::get('db');
         if($_FILES && $id>0){

@@ -31,7 +31,7 @@
             <?php echo $this->formSelect('asset_owner',$this->criteria['asset_owner'],null,$this->system_list);?>
         </td>
         <td ><b>Action Owners: </b><br>
-            <?php echo $this->formSelect('action_owner',$this->criteria['action_owner'],null,$this->system_list);?>
+            <?php echo $this->formSelect('action_owner',$this->criteria['system_id'],null,$this->system_list);?>
         </td>
     </tr>
     <tr>
@@ -45,17 +45,21 @@
                 </tr>
                 <tr>
                     <td width="84"> From:</td>
-                    <td width="133"><input type="text" name="startdate" size="12" maxlength="10" value="<?php echo $this->criteria['startdate'];?>">mm/dd/yyyy</td>
-                    <td width="33"><span onClick="javascript:show_calendar('filters.filter_startdate');"><img src="/images/picker.gif" width=24 height=22 border=0></span></td>
+                    <td width="133"><input type="text" name="est_date_begin" size="12" maxlength="10" 
+                    value="<?php echoDefault($this->criteria['est_date_begin']);?>">mm/dd/yyyy</td>
+                    <td width="33"></td>
                     <td width="27">To:</td>
-                    <td width="115"><input type="text" name="enddate" size="12" maxlength="10" value="<?php echo $this->criteria['enddate'];?>"> mm/dd/yyyy</td>
-                    <td width="56"><span onClick="javascript:show_calendar('filters.filter_enddate');"><img src="/images/picker.gif" width=24 height=22 border=0></span></td>
+                    <td width="115"><input type="text" name="est_date_end" size="12" maxlength="10" 
+                    value="<?php echoDefault($this->criteria['est_date_end']);?>"> mm/dd/yyyy</td>
+                    <td width="56"></td>
                     <td width="47">From:</td>
-                    <td width="96"><input type="text" name="startcreatedate" size="12" maxlength="10" value="<?php echo $this->criteria['startcreatedate'];?>"> mm/dd/yyyy</td>
-                    <td width="32"><span onClick="javascript:show_calendar('filters.filter_startcreatedate');"><img src="/images/picker.gif" width=24 height=22 border=0></span></td>
+                    <td width="96"><input type="text" name="created_date_begin" size="12" maxlength="10" 
+                    value="<?php echoDefault($this->criteria['created_date_begin']);?>"> mm/dd/yyyy</td>
+                    <td width="32"></td>
                     <td width="27">To:</td>
-                    <td width="115"><input type="text" name="endcreatedate" size="12" maxlength="10" value="<?php echo $this->criteria['endcreatedate'];?>">mm/dd/yyyy</td>
-                    <td width="109"><span onClick="javascript:show_calendar('filters.filter_endcreatedate');"><img src="/images/picker.gif" width=24 height=22 border=0></span></td>
+                    <td width="115"><input type="text" name="created_date_end" size="12" maxlength="10" 
+                    value="<?php echoDefault($this->criteria['created_date_end']);?>">mm/dd/yyyy</td>
+                    <td width="109"></td>
                 </tr>
             </table>
         </td>

@@ -81,9 +81,10 @@ class FindingController extends SecurityController
             $this->_helper->actionStack('search','Finding',null,
                     array('criteria'=>$criteria) );
         }
-        $system_list[0] = '--Any--';
-        $source_list[0] = '--Any--';
-        $network_list[0] = '--Any--';
+        $system_list = array_merge(array(0=>'--Any--'),$system_list);
+        $source_list = array_merge(array(0=>'--Any--'),$source_list);
+        $network_list= array_merge(array(0=>'--Any--'),$network_list);
+        
         $status_list = array(   0 =>'--Any--' ,
                              "NEW"=>'NEW',
                      "REMEDIATION"=>"REMEDIATION",

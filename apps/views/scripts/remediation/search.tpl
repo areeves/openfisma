@@ -46,19 +46,18 @@
             <th nowrap>View</th>
             </tr>
             <!-- REMEDIATION ROWS -->
-            <?php foreach($this->summary_list as $row){
+            <?php foreach($this->list as $row){
                 $today = date('Y-m-d',time());
                 $finding_data = strlen($row['finding_data'])>120?substr($row['finding_data'],0,120)."...":$row['finding_data'];
-                $poam_id =  $row['legacy_id'] == null?$row['id']:$row['id']."(".$row['legacy_id'].")";
             ?>
             <tr>
-                <td align='center' class='tdc'><?php echo $poam_id;?></td>
-                <td align='center' class='tdc' nowrap><?php echo $row['source_nickname'];?></td>
-                <td align='center' class='tdc'><?php echo $row['action_owner_nickname'];?></td>
+                <td align='center' class='tdc'><?php echo $row['id'];?></td>
+                <td align='center' class='tdc' nowrap><?php echo $row['source_id'];?></td>
+                <td align='center' class='tdc'><?php echo $row['system_id'];?></td>
                 <td align='center' class='tdc' nowrap><?php echo $row['type'];?></td>
                 <td align='center' class='tdc' nowrap><?php echo $row['status']=='EN' && $row['action_date_est']<$today?'EO':$row['status'];?></td>
                 <td align='left'   class='tdc'><?php echo $finding_data;?></td>
-                <td align='center' class='tdc' nowrap><?php echo $row['action_date_est'];?></td> 
+                <td align='center' class='tdc' nowrap><?php echo $row['action_est_date'];?></td> 
                 <td align="center" valign='middle' class='tdc'><a href='/zfentry.php/panel/remediation/sub/view/id/<?php echo $row['id'];?>'><img src='/images/view.gif' border="0"></a></td>
             </tr>
             <?php } ?>
