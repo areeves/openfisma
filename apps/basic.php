@@ -87,4 +87,10 @@
         }
         return Zend_Registry::get(SYSCONFIG)->$key;
     }
+
+    function makeSqlInStmt($array)
+    {
+        assert( is_array($array) );
+        return "'" . implode("','", $array). "'"; 
+    }
  

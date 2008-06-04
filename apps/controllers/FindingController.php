@@ -31,6 +31,7 @@ class FindingController extends SecurityController
     public function init()
     {
         $this->_poam = new Poam();
+        parent::init();
     }
    
     public function preDispatch()
@@ -187,7 +188,8 @@ class FindingController extends SecurityController
     /**
        Get finding detail infomation
     */
-    public function viewAction(){
+    public function viewAction()
+    {
         $req = $this->getRequest();
         $id = $req->getParam('id',0);
         assert($id);
@@ -317,28 +319,22 @@ class FindingController extends SecurityController
         $req = $this->getRequest();
         $do = $req->getParam('is','view');
         if("new" == $do){
-            $source = $req->getParam('source');
-            $asset_id = $req->getParam('asset_list');
-            $status = 'OPEN';
-            $discovereddate = $req->getParam('discovereddate');
-            $finding_data = $req->getParam('finding_data');
+            try{
+                $data = array();
+                $data['source_id'] = $req->getParam('source');
+                $data['asset_id'] = $req->getParam('asset_list');
+                $data['status'] = 'OPEN';
+                $data['discover_ts'] = $req->getParam('discovereddate');
+                $data['finding_data'] = $req->getParam('finding_data');
 
-            $now = date("Y-m-d H:m:s");
-            $m = substr($discovereddate, 0, 2);
-            $d = substr($discovereddate, 3, 2);
-            $y = substr($discovereddate, 6, 4);
-            $disdate = strftime("%Y-%m-%d", (mktime(0, 0, 0, $m, $d, $y)));
+                $data['create_ts'] = self::$now->toString("Y-m-d H:m:s");
+                $data['created_by'] = $this->me->id;
 
-            $sql = "INSERT INTO `FINDINGS`
-                  (source_id, asset_id, finding_status, finding_date_created,finding_date_discovered,finding_data)
-                  VALUES ('$source', '$asset_id', '$status', '$now', '$disdate', '$finding_data')";
-            $res = $db->query($sql);
-            if($res){
+                $this->_poam->insert($data);
                 $message="Finding created successfully";
                 $model=self::M_NOTICE;
-            }
-            else {
-                $message="Finding creation failed";
+            }catch(Zend_Exception $e){
+                $message= "Error in creating";//htmlspecialchars($e->getMessage());
                 $model=self::M_WARNING;
             }
             $this->message($message,$model);
@@ -456,11 +452,11 @@ class FindingController extends SecurityController
         $resp = $this->getResponse();
 
         $src = new System();
-        $this->view->systems = $src->getList('system_nickname') ;
+        $this->view->systems = $src->getList('nickname') ;
         $src = new Network();
-        $this->view->networks = $src->getList('network_nickname');
+        $this->view->networks = $src->getList('nickname');
         $src = new Source();
-        $this->view->sources = $src->getList('source_nickname');
+        $this->view->sources = $src->getList('nickname');
         $this->render();
     }
 }

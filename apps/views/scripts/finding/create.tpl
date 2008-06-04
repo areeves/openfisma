@@ -6,7 +6,7 @@
 </div>
 <br>
 
-<form name="finding" method="post" action="/zfentry.php/finding/create/is/new" >
+<form name="finding" method="post" action="/zfentry.php/panel/finding/sub/create/is/new" >
 <table width="810" border="0" align="center" cellpadding="5">
     <tr><td>
         <input name="button" type="submit" id="button" value="Create Finding" >
