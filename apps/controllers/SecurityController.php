@@ -28,7 +28,7 @@ class SecurityController extends Zend_Controller_Action
     const M_NOTICE = 'notice';
     const M_WARNING= 'warning';
 
-    static protected $now = null;
+    public static $now = null;
     
     public function init()
     {
