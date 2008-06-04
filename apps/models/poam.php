@@ -14,65 +14,19 @@ class poam extends Zend_Db_Table
     protected $_name = 'poams';
     protected $_primary = 'id';
     
-    /** 
-    *  search poam records.
-    *  @param $sys_ids array system id that limit the searching agency
-    *  @param $fields array information contained in the return.
-    *         array('key' => 'value'). $fields follow the sytax of Zend_Db_Select with 
-              exception of 'count'. Here 'count' is an keyword. For example, if 
-              $fieldsa = array( 'count'=>'status' ), it means count and groupby status. The 
-              returned value contains two fields 'count','status'.
-              if $fields = array( 'count'=>'count(*)' ), it return the exact value of count.
-              if $fields = array( 'count'=>'count(*)' , 'key' > 'value' , ... ) the count of the              search would be array_push into the returned variable;
-    *  @param $criteria array 
-    *  @param $limit integer results number.
-    *  @param $pageno integer search start shift
-    *  @return a list of record.
-    */
-    public function search($sys_ids, $fields = '*',$criteria=array(),$currentPage=null, $perPage=null){
-        if(is_array($criteria)){
-             extract($criteria);
+
+    protected function _parseWhere($query,$where)
+    {
+        assert( $query instanceof Zend_Db_Select );
+        if(is_array($where)){
+             extract($where);
         }
-
-        $ret =array();
-        $count_query = null;
-        $to_count = false;
-        $groupby = array();
-
-        $db = $this->_db;
-
-        $sid_str = implode(',',$sys_ids);
-        $query = $db->select();
-        if( $fields == '*' ) {
-            $fields =  array('id'=>'p.id',
-                          'legacy_id'=>'p.legacy_finding_id',
-                          'system_id'=>'p.system_id',
-                          'type'=>'p.type',
-                          'status'=>'p.status',
-                          'created_ts'=>'p.create_ts',
-                          'action_est_date'=>'p.action_est_date');
-        }else if( $fields == 'count' ){
-            $to_count = true;
-            $fields['count']='count(*)';
-        }else{
-            if( isset($fields['count']) ){
-                $groupby = $fields['count'];
-                unset($fields['count']);
-            }
-        }
-        assert(is_array($fields));
-
-        $query->from(array('p'=>$this->_name), $fields )
-              ->where("p.system_id IN ($sid_str)");
-    
-        $query->joinLeft(array('s'=>'sources'),'p.source_id = s.id',array('source_nickname'=>'s.nickname',
-                                                                         'source_name'    =>'s.name'));
         if(isset($source_id) && is_int($source_id)){
-            $query->where("p.source_id = ".$source."");
+            $query->where("p.source_id = ".$source_id."");
         }
         
         if(!empty($ids)){
-            $query->where("p.id IN ($ids)");
+            $query->where("p.id IN (". makeSqlInStmt($ids) .")");
         }
 
         if(!empty($est_date_begin)){
@@ -99,10 +53,8 @@ class poam extends Zend_Db_Table
             $query->where("p.discover_ts <=?",$discovered_date_end->toString('Y-m-d'));
         }
 
-
-        if(isset($type) && $type != 'any'){
+        if( !empty($type) ){
             if(is_array($type)){
-                $type = implode("','",$type);
                 $query->where("p.type IN (".makeSqlInStmt($type).")");
             } else {
                 $query->where("p.type = ?",$type);
@@ -127,60 +79,111 @@ class poam extends Zend_Db_Table
             $query->where("p.id IN ($ids)");
         }
         */
-
-        if(isset($asset_owner) && $asset_owner != 'any'){
-            $query->where("sys.id = ".$asset_owner."");
+        if( !empty($ip) || !empty($port) ){
+            if(!empty($ip)) {
+                $query->where('as.address_ip = ?', $ip);
+            }
+            if(!empty($port)) {
+                $query->where('as.address_port = ?', $port);
+            }
         }
-        
+
+        if( !empty($group) ){
+            $query->group($group);
+        }
+
         if(!empty($date_modified)){
             assert($date_modified instanceof Zend_Date);
             $query->where("p.modify_ts < $date_modified->toString('Y-m-d')");
         }
 
-        if( $to_count ) {
-            $query->join(array('as'=>'assets'), 'as.id = p.asset_id', array());
-        }else{
-            $query->join(array('as'=>'assets'), 'as.id = p.asset_id', 
-                array('ip'=>'as.address_ip', 'port'=>'as.address_port', 'network_id'=>'as.network_id'));
-            if( $groupby == 'count(*)' ){
-                $count_query = clone $query;
-                $count_query->reset(Zend_Db_Select::COLUMNS);
-                $count_query->reset(Zend_Db_Select::FROM);
-                $count_query->from( array('p'=>$this->_name),array('count'=>$groupby) );
-                $count_query->join(array('as'=>'assets'), 'as.id = p.asset_id',array());
-            }else{
-                $query->reset(Zend_Db_Select::COLUMNS);
-                $query->reset(Zend_Db_Select::FROM);
-                $query->from( array('p'=>$this->_name),array('count'=>'count(*)',$groupby) )
-                      ->join(array('as'=>'assets'), 'as.id = p.asset_id',array())
-                      ->group("p.$groupby");
-            }
-        }
+        return $query;
+    }
 
-        if(!empty($ip)) {
-            $query->where('as.address_ip = ?', $ip);
-            if( !empty($count_query) ) {
-                $count_query->where('as.address_ip = ?', $ip);
+    /** 
+    *  search poam records.
+    *  @param $sys_ids array system id that limit the searching agency
+    *  @param $fields array information contained in the return.
+    *         array('key' => 'value'). $fields follow the sytax of Zend_Db_Select with 
+              exception of 'count'. Here 'count' is an keyword. There are 3 cases for fields: 
+              1.  $fields = array( 'count'=>'status' ...)
+                  It means count and groupby status. The returned value contains 'count'... and more
+
+              2.  $fields = array( 'count'=>'count(*)' )
+                  It return the exact value of count.
+
+              3.  $fields = array( 'count'=>'count(*)' , 'key'=> 'value' , ... ) 
+                  the count of the result is array_push into the returned variable;
+    *  @param $criteria array 
+    *  @param $limit integer results number.
+    *  @param $pageno integer search start shift
+    *  @return a list of record.
+    */
+    public function search($sys_ids, $fields = '*',$criteria=array(),$currentPage=null, $perPage=null)
+    {
+        static $EXTRA_FIELDS = array( 'asset'=>array('as.address_ip'=>'ip',
+                                                     'as.address_port'=>'port'),
+                                    'source'=>array('s.nickname'=>'source_nickname',
+                                                    's.name'=>'source_name'  ));
+        $ret =array();
+        $count = 0;
+
+        if( $fields == '*' ) {
+            $fields = $this->_cols;
+        }else if( isset($fields['count']) ) {
+            $count_fields = true;
+            if( $fields =='count' || $fields == array('count'=>'count(*)') ) {
+                $fields = array(); //count only
+            }else{
+                if( $fields['count'] != 'count(*)' ) {
+                    $count_fields = false;
+                    $criteria['group'] = $fields['count'];
+                    $fields['count'] = 'count(*)';
+                }else{
+                    //array_push count
+                    unset($fields['count']);
+                }
             }
         }
-        if(!empty($port)) {
-            $query->where('as.address_port = ?', $port);
-            if( !empty($count_query) ) {
-                $count_query->where('as.address_port = ?', $port);
+        assert(is_array($fields));
+        $table_fields = array_values($fields);
+
+        $p_fields = array_diff($fields, $EXTRA_FIELDS['asset'], $EXTRA_FIELDS['source'] );
+        $as_fields = array_flip(array_intersect( $EXTRA_FIELDS['asset'],
+                                                 $table_fields) );
+        $src_fields = array_flip(array_intersect( $EXTRA_FIELDS['source'],
+                                                 $table_fields) );
+
+        $query = $this->_db->select()
+                           ->from(array('p'=>$this->_name), $p_fields)
+                           ->where("p.system_id IN (".makeSqlInStmt($sys_ids).")");
+        
+        if( !empty($as_fields) ) {
+            $query->join( array('as'=>'assets'), 'as.id = p.asset_id',$as_fields);
+        }
+        if( !empty($src_fields) ) {
+            $query->joinLeft( array('s'=>'sources'), 's.id = p.source_id',$src_fields);
+        }
+        $query = $this->_parseWhere($query, $criteria);
+
+        if( $count_fields ) {
+            $count_query = clone $query;
+            $count_query->reset(Zend_Db_Select::COLUMNS);
+            $count_query->reset(Zend_Db_Select::FROM);
+            $count_query->reset(Zend_Db_Select::GROUP);
+            $count_query->from( array('p'=>$this->_name),array('count'=>'count(*)') );
+            $count = $this->_db->fetchOne($count_query);
+            if( empty($p_fields) ) {
+                return $count;
             }
         }
 
         if( !empty( $currentPage ) && !empty( $perPage ) ){
             $query->limitPage($currentPage,$perPage);
         }
-        if($to_count) {
-            $ret = $db->fetchOne($query);
-        }else{
-            $ret = $db->fetchAll($query);
-            if( !empty($count_query) ) {
-                $total = $db->fetchOne($count_query);
-                array_push($ret, $total);
-            }
+        $ret = $this->_db->fetchAll($query);
+        if( $count_fields && $count ) {
+            array_push($ret, $count);
         }
         return $ret;
     }
