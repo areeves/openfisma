@@ -70,9 +70,6 @@ class FindingController extends SecurityController
         $criteria['discovered_date_begin'] = $req->getParam('from');
         $criteria['discovered_date_end'] = $req->getParam('to');
         $criteria['status'] = $req->getParam('status');
-        if( $criteria['status'] == 'REMEDIATION' ) {
-            $criteria['status'] = array('OPEN','EN','EP','ES');
-        }
 
         // fetch data for lists
         $source_list  = $src->getList('name');
@@ -86,10 +83,13 @@ class FindingController extends SecurityController
         $system_list[0] = '--Any--';
         $source_list[0] = '--Any--';
         $network_list[0] = '--Any--';
-        $status_list = array( 0 =>'--Any--' ,
-                              "OPEN"=>'Open',
-                              "REMEDIATION"=>'Remediation',
-                              "CLOSED"=>'Closed');
+        $status_list = array(   0 =>'--Any--' ,
+                             "NEW"=>'NEW',
+                     "REMEDIATION"=>"REMEDIATION",
+                            'OPEN'=>'-- OPEN',
+                              'EN'=>'-- EN',
+                              'EP'=>'-- EP',
+                          "CLOSED"=>'Closed');
         $this->view->source = $source_list;
         $this->view->network = $network_list;
         $this->view->system = $system_list;
@@ -106,21 +106,27 @@ class FindingController extends SecurityController
     {
         $req = $this->getRequest();
         $criteria = $req->getParam('criteria');
-        $fields = array('id' => 'id',
-                       'status'=>'status',
-                       'source_id' => 'source_id',
-                       'system_id' => 'system_id',
-                       'discovered' => 'discover_ts',
-                       'count' => 'count(*)');
-        $result = $this->_poam->search(array_keys($this->_systems), $fields, $criteria, 
-                    $this->_paging['currentPage'],$this->_paging['perPage']);
-        $total = array_pop($result);
-
         foreach($criteria as $key=>$value){
             if(!empty($value) && $value!='any'){
                 $this->_paging_base_path .='/'.$key.'/'.$value.'';
             }
         }
+        $fields = array('id',
+                       'legacy_finding_id',
+                       'ip',
+                       'port',
+                       'status',
+                       'source_id',
+                       'system_id',
+                       'discover_ts',
+                       'count'=>'count(*)');
+        if( $criteria['status'] == 'REMEDIATION' ) {
+            $criteria['status'] = array('OPEN','EN','EP','ES');
+        }
+        $result = $this->_poam->search(array_keys($this->_systems), $fields, $criteria, 
+                    $this->_paging['currentPage'],$this->_paging['perPage']);
+        $total = array_pop($result);
+
         $this->_paging['totalItems'] = $total ;
         $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";
         $pager = &Pager::factory($this->_paging);
