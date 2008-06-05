@@ -62,7 +62,7 @@ CREATE TABLE `evaluations` (
   `name` varchar(32) NOT NULL,
   `precedence_id` int(10) NOT NULL default '0',
   `function_id` int(10) NOT NULL,
-  `group` tinyint(3),
+  `group` enum('EVIDENCE','ACTION') NOT NULL,
   PRIMARY KEY  (`id`)
 );
 
