@@ -58,20 +58,15 @@ div.barleft p {
     background-color:#dfe5ed;
     height:24px;
     vertical-align:center;
-}
-
-div.barleft b,
-div.barleft span {
-    margin:0 3em;
     font-size:12px;
     line-height:24px;
     color:#42617B;
+    position:relative;
 }
-div.barleft b {
-    float:left;
-}
-div.barleft span {
-    float:right;
+
+div.barleft .barright span {
+    position:absolute;
+    right:1em;
 }
 div.barleft{
     background: url(/images/left_circle.gif) no-repeat left;
