@@ -62,7 +62,7 @@
                     <td><?php echo $row['legacy_finding_id']; ?>&nbsp;</td>
                     <td><?php echo $row['status']; ?>&nbsp;</td>
                     <td><?php echo $this->source[$row['source_id']]; ?>&nbsp;</td>
-                    <td><?php echo $this->system[$row['system_id']];?>&nbsp;</td>
+                    <td><?php echo $this->system[$row['system_id']]; ?>&nbsp;</td>
                     <td><?php echo $row['ip'];?>&nbsp;</td>
                     <td><?php echo $row['port'];?>&nbsp;</td>
                     <td>&nbsp;</td>

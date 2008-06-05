@@ -14,6 +14,8 @@ require_once(MODELS. DS . 'source.php');
 require_once(MODELS. DS . 'network.php');
 require_once MODELS . DS . 'poam.php';
 require_once MODELS . DS . 'asset.php';
+require_once MODELS . DS . 'source.php';
+require_once MODELS . DS . 'network.php';
 require_once('Pager.php');
 define('TEMPLATE_NAME', "OpenFISMA_Injection_Template.xls"); 
 
@@ -30,8 +32,14 @@ class FindingController extends SecurityController
 
     public function init()
     {
-        $this->_poam = new Poam();
         parent::init();
+        $this->_poam = new Poam();
+        $src = new Source();
+        $net = new Network();
+        $sys = new System();
+        $this->_source_list  = $src->getList('name');
+        $this->_system_list = $sys->getList('name',$this->me->systems );
+        $this->_network_list = $net->getList('name');
     }
    
     public function preDispatch()
@@ -41,78 +49,48 @@ class FindingController extends SecurityController
         $req = $this->getRequest();
         $this->_paging_base_path = $req->getBaseUrl().'/panel/finding/sub/searchbox/s/search';
         $this->_paging['currentPage'] = $req->getParam('p',1);
-        $sys = new System();
-        $user = new User();
-        $uid = $this->me->id;
-        $this->_systems = $sys->getList('name',$user->getMySystems($uid));
     }
 
 
     public function searchboxAction(){
-        require_once MODELS . DS . 'source.php';
-        require_once MODELS . DS . 'network.php';
-
-        $db = Zend_Registry::get('db');
-        $user = new User();
-        $src = new Source();
-        $net = new Network();
-        $sys = new System();
-        $poam = new Poam();
 
         $req = $this->getRequest();
         // parse the params of search
-        $criteria['system'] = $req->getParam('system');
-        $criteria['source'] = $req->getParam('source');
-        $criteria['network'] = $req->getParam('network');
+        $criteria['system_id'] = $req->getParam('system_id');
+        $criteria['source_id'] = $req->getParam('source_id');
+        $criteria['network_id'] = $req->getParam('network_id');
         $criteria['ip'] = $req->getParam('ip');
         $criteria['port'] = $req->getParam('port');
         $criteria['vuln'] = $req->getParam('vuln');
         $criteria['product'] = $req->getParam('product');
-        $criteria['discovered_date_begin'] = $req->getParam('from');
-        $criteria['discovered_date_end'] = $req->getParam('to');
+        $criteria['discovered_date_begin'] = $req->getParam('discovered_date_begin');
+        $criteria['discovered_date_end'] = $req->getParam('discovered_date_end');
         $criteria['status'] = $req->getParam('status');
 
-        // fetch data for lists
-        $source_list  = $src->getList('name');
-        $network_list = $net->getList('name');
-        $system_list = $this->_systems;
-
-        if( 'search' == $req->getParam('s') ) {
-            $this->_helper->actionStack('search','Finding',null,
-                    array('criteria'=>$criteria) );
-        }
-        $system_list = array_merge(array(0=>'--Any--'),$system_list);
-        $source_list = array_merge(array(0=>'--Any--'),$source_list);
-        $network_list= array_merge(array(0=>'--Any--'),$network_list);
-        
-        $status_list = array(   0 =>'--Any--' ,
-                             "NEW"=>'NEW',
-                     "REMEDIATION"=>"REMEDIATION",
-                            'OPEN'=>'-- OPEN',
-                              'EN'=>'-- EN',
-                              'EP'=>'-- EP',
-                          "CLOSED"=>'Closed');
-        $this->view->source = $source_list;
-        $this->view->network = $network_list;
-        $this->view->system = $system_list;
-        $this->view->status = $status_list;
+        $this->view->source = $this->_source_list;
+        $this->view->network = $this->_network_list;
+        $this->view->system = $this->_system_list;
         $this->view->criteria = $criteria;
         $this->render();
+        if( 'search' == $req->getParam('s') ) {
+            foreach($criteria as $key=>$value){
+                if(!empty($value) ){
+                    $this->_paging_base_path .='/'.$key.'/'.$value.'';
+                }
+            }
+            $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";
+            $this->_search($criteria) ;
+        }
     }
 
     /**
         Provide searching capability of findings
         Data is limited in legal systems.
      */
-    public function searchAction()
+    protected function _search($criteria)
     {
-        $req = $this->getRequest();
-        $criteria = $req->getParam('criteria');
-        foreach($criteria as $key=>$value){
-            if(!empty($value) && $value!='any'){
-                $this->_paging_base_path .='/'.$key.'/'.$value.'';
-            }
-        }
+        //$req = $this->getRequest();
+        //$criteria = $req->getParam('criteria');
         $fields = array('id',
                        'legacy_finding_id',
                        'ip',
@@ -125,16 +103,16 @@ class FindingController extends SecurityController
         if( $criteria['status'] == 'REMEDIATION' ) {
             $criteria['status'] = array('OPEN','EN','EP','ES');
         }
-        $result = $this->_poam->search(array_keys($this->_systems), $fields, $criteria, 
+        $result = $this->_poam->search($this->me->systems, $fields, $criteria, 
                     $this->_paging['currentPage'],$this->_paging['perPage']);
         $total = array_pop($result);
 
         $this->_paging['totalItems'] = $total ;
-        $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";
         $pager = &Pager::factory($this->_paging);
+
         $this->view->assign('findings',$result);
         $this->view->assign('links',$pager->getLinks());
-        $this->render();
+        $this->render('search');
     }
 
     /**
@@ -158,7 +136,7 @@ class FindingController extends SecurityController
         $to->sub(30,Zend_Date::DAY);
         $range['after60'] = array( 'to'=>$to);
 
-        $statistic = $this->_systems;
+        $statistic = $this->_system_list;
         foreach($statistic as $k => $row){
             $data = $finding->getStatusCount(array($k) );
             $statistic[$k] = array(

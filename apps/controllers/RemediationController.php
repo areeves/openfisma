@@ -10,6 +10,9 @@
 require_once CONTROLLERS . DS . 'SecurityController.php';
 require_once MODELS . DS . 'user.php';
 require_once MODELS . DS . 'poam.php';
+require_once MODELS . DS . 'system.php';
+require_once MODELS . DS . 'source.php';
+require_once MODELS . DS . 'network.php';
 require_once 'Pager.php';
 
 class RemediationController extends SecurityController
@@ -20,11 +23,19 @@ class RemediationController extends SecurityController
                              'path'        =>'',
                              'currentPage' =>1,
                              'perPage'     =>20);
+    protected $_system_list =null;
+    protected $_source_list =null;
+    protected $_poam =null;
 
     public function init()
     {
-        $this->_poam = new Poam();
         parent::init();
+        $this->_poam = new Poam();
+        $src = new Source();
+        $net = new Network();
+        $sys = new System();
+        $this->_source_list  = $src->getList('name');
+        $this->_system_list = $sys->getList('name',$this->me->systems );
     }
 
     public function preDispatch()
@@ -38,17 +49,13 @@ class RemediationController extends SecurityController
     public function summaryAction(){
         require_once MODELS . DS . 'system.php';
         $req = $this->getRequest();
-        $user = new user();
-        $system_list = $this->me->systems;
-        $sys = new System();
-        $systems = $sys->getList(array('name','nickname'),$system_list);
 
         $today = parent::$now->toString('Ymd');
 
         $summary_tmp = array('NEW'=>0,'OPEN'=>0,'EN'=>0,'EO'=>0,'EP'=>0,'EP_SNP'=>0,'EP_SSO'=>0,'ES'=>0,'CLOSED'=>0,'TOTAL'=>0);
         ///@todo EP_SNP & EP_SSO not counted
         $total = $summary_tmp;
-        foreach($system_list as $id) {
+        foreach($this->_system_list as $id=>$names) {
             $summary[$id] = $summary_tmp;
             $sum = $this->_poam->search(array($id),array('count'=>'status','status'));
             foreach( $sum as $s ) {
@@ -58,27 +65,70 @@ class RemediationController extends SecurityController
             }
         }
         $this->view->assign('total',$total);
-        $this->view->assign('systems',$systems);
+        $this->view->assign('systems',$this->_system_list);
         $this->view->assign('summary',$summary );
         $this->render('summary');
     }
 
-    public function searchAction(){
-        $req = $this->getRequest();
-        $this->_paging_base_path = $req->getBaseUrl().'/panel/remediation/sub/searchbox/s/search';
-        $this->_paging['currentPage'] = $req->getParam('p',1);
-       
-        $system_list = array_keys($this->me->systems);
-        $criteria = $req->getParam('criteria');
-        foreach($criteria as $key=>$value){
-            if(!empty($value) && $value!='0'){
-                $this->_paging_base_path .='/'.$key.'/'.$value.'';
+    protected function _search($criteria){
+        //refer to searchbox.tpl for a complete status list
+        $internal_crit = &$criteria;
+        if( !empty($criteria['status']) ){
+            $now = clone parent::$now;
+            switch($criteria['status']){
+                case 'NEW':
+                    $internal_crit['status'] = 'NEW';
+                    $internal_crit['type']   = 'NONE';
+                    break;
+                case 'OPEN':
+                    $internal_crit['status'] = 'OPEN';
+                    break;
+                case 'EN':
+                    $internal_crit['status'] = 'EN';
+                    $internal_crit['est_date_begin'] = $now;
+                    break;
+                case 'EO':
+                    $internal_crit['status'] = 'EN';                        
+                    $internal_crit['est_date_end'] = $now;
+                    break;
+                case 'EP-SSO':
+                ///@todo EP searching needed
+                    $internal_crit['status'] = 'EP';
+                    $internal_crit['ep']     = array('sso'=>'APPROVED',
+                                                'fsa'=>'NONE',
+                                                'ivv'=>'NONE');
+                    break;
+                case 'EP-SNP':
+                    $internal_crit['status'] = 'EP';
+                    $internal_crit['ep']     = array('sso'=>'APPROVED',
+                                                'fsa'=>'NONE',
+                                                'ivv'=>'NONE');
+                    break;
+                case 'ES':
+                    $internal_crit['status'] = 'ES';
+                    break;
+                case 'CLOSED':
+                    $internal_crit['status'] = 'CLOSED';
+                    break;
+                case 'NOT-CLOSED':
+                    $internal_crit['status'] = array('OPEN','EN','EP','ES');
+                    break;
+                case 'NOUP-30':
+                    $internal_crit['status'] = array('OPEN','EN','EP','ES');
+                    $internal_crit['modify_ts'] = $now->sub(30, Zend_Date::DAY);
+                    break;
+                case 'NOUP-60':
+                    $internal_crit['status'] = array('OPEN','EN','EP','ES');
+                    $internal_crit['modify_ts'] = $now->sub(60, Zend_Date::DAY);
+                    break;
+                case 'NOUP-90':
+                    $internal_crit['status'] = array('OPEN','EN','EP','ES');
+                    $internal_crit['modify_ts'] = $now->sub(90, Zend_Date::DAY);
+                    break;
             }
         }
 
-        //$this->_paging_base_path .= $req->getParam('path');
-        
-        $list = $this->_poam->search($system_list, array('id',
+        $list = $this->_poam->search($this->me->systems, array('id',
                                                          'source_id',
                                                          'system_id',
                                                          'type',
@@ -86,7 +136,7 @@ class RemediationController extends SecurityController
                                                          'finding_data',
                                                          'action_est_date',
                                                          'count'=>'count(*)'),
-                                     $criteria,$this->_paging['currentPage'],
+                                     $internal_crit,$this->_paging['currentPage'],
                                      $this->_paging['perPage']);
         $total = array_pop($list);
 
@@ -94,6 +144,8 @@ class RemediationController extends SecurityController
         $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";
         $pager = &Pager::factory($this->_paging);
         $this->view->assign('list',$list);
+        $this->view->assign('systems',$this->_system_list);
+        $this->view->assign('sources',$this->_source_list);
         $this->view->assign('total_pages',$total);
         $this->view->assign('links',$pager->getLinks());
         $this->render('search');
@@ -101,24 +153,14 @@ class RemediationController extends SecurityController
 
     public function searchboxAction()
     {
-        require_once MODELS . DS . 'system.php';
-        require_once MODELS . DS . 'source.php';
-        require_once MODELS . DS . 'network.php';
-
-        $db = Zend_Registry::get('db');
-        $src = new Source();
-        $net = new Network();
-        $sys = new System();
-        
         $req = $this->getRequest();
         // parse the params of search
-        $criteria['system'] = $req->getParam('system',0);
-        $criteria['source'] = $req->getParam('source',0);
+        $criteria['system_id'] = $req->getParam('system_id');
+        $criteria['source_id'] = $req->getParam('source_id');
         $criteria['type'] = $req->getParam('type');
         $criteria['status'] = $req->getParam('status');
-        $criteria['ids'] = $req->getParam('ids','');
+        $criteria['ids'] = $req->getParam('ids');
         $criteria['asset_owner'] = $req->getParam('asset_owner',0);
-        $criteria['system_id'] = $req->getParam('action_owner',0);
         $tmp = $req->getParam('est_date_begin');
         if(!empty($tmp)) {
             $criteria['est_date_begin'] = new Zend_Date($tmp);
@@ -136,101 +178,21 @@ class RemediationController extends SecurityController
             $criteria['created_data_end'] = new Zend_Date($tmp);
         }
 
-        $internal_crit = $criteria;
-
-        $source_list  = $src->getList('name');
-        $system_list = $sys->getList('name',array_keys($this->me->systems) );
-        $system_list = array_merge(array('0'=>'--Any--'),$system_list);
-        $source_list = array_merge(array('0'=>'--Any--'),$source_list);
-        
-        $filter_type = array(0  =>'--- Any Type ---',
-                        'NONE' =>'(NONE) Unclassified',
-                        'CAP'  =>'(CAP) Corrective Action Plan',
-                        'AR'   =>'(AR) Accepted Risk',
-                        'FP'   =>'(FP) False Positive');
-
-        $filter_status = array(0    =>'--- Any Status ---',
-                        'NEW'       =>'(NEW) Awaiting Mitigation Type and Approval',
-                        'OPEN'      =>'(OPEN) Awaiting Mitigation Approval',
-                        'EN'        =>'(EN) Evidence Needed',
-                        'EO'        =>'(EO) Evidence Overdue',
-                        'EP'        =>'(EP) Evidence Provided',
-                        'EP-SSO'    =>'(EP-SSO) Evidence Provided to SSO',
-                        'EP-SNP'    =>'(EP-S&P) Evidence Provided to S&P',
-                        'ES'        =>'(ES) Evidence Submitted to IV&V',
-                        'CLOSED'    =>'(CLOSED) Officially Closed',
-                        'NOT-CLOSED'=>'(NOT-CLOSED) Not Closed',
-                        'NOUP-30'   =>'(NOUP-30) 30+ Days Since Last Update',
-                        'NOUP-60'   =>'(NOUP-60) 60+ Days Since Last Update',
-                        'NOUP-90'   =>'(NOUP-90) 90+ Days Since Last Update');
+        $this->view->assign('criteria',$criteria);
+        $this->view->assign('systems',$this->_system_list);
+        $this->view->assign('sources',$this->_source_list);
+        $this->render();
         if('search' == $req->getParam('s')){
+            $this->_paging_base_path = $req->getBaseUrl().'/panel/remediation/sub/searchbox/s/search';
+            $this->_paging['currentPage'] = $req->getParam('p',1);
+           
             foreach($criteria as $key=>$value){
-                if(!empty($value) && $value!= 'any'){
+                if(!empty($value) ){
                     $this->_paging_base_path .= '/'.$key.'/'.$value.'';
                 }
             }    
-            if( !empty($criteria['status']) ){
-                $now = clone parent::$now;
-                switch($criteria['status']){
-                    case 'NEW':
-                        $internal_crit['status'] = 'NEW';
-                        $internal_crit['type']   = 'NONE';
-                        break;
-                    case 'OPEN':
-                        $internal_crit['status'] = 'OPEN';
-                        break;
-                    case 'EN':
-                        $internal_crit['status'] = 'EN';
-                        $internal_crit['est_date_begin'] = $now->toString('Ymd');
-                        break;
-                    case 'EO':
-                        $internal_crit['status'] = 'EN';                        
-                        $internal_crit['est_date_end'] = $now->toString('Ymd');
-                        break;
-                    case 'EP-SSO':
-                    ///@todo EP searching needed
-                        $internal_crit['status'] = 'EP';
-                        $internal_crit['ep']     = array('sso'=>'APPROVED',
-                                                    'fsa'=>'NONE',
-                                                    'ivv'=>'NONE');
-                        break;
-                    case 'EP-SNP':
-                        $internal_crit['status'] = 'EP';
-                        $internal_crit['ep']     = array('sso'=>'APPROVED',
-                                                    'fsa'=>'NONE',
-                                                    'ivv'=>'NONE');
-                        break;
-                    case 'ES':
-                        $internal_crit['status'] = 'ES';
-                        break;
-                    case 'CLOSED':
-                        $internal_crit['status'] = 'CLOSED';
-                        break;
-                    case 'NOT-CLOSED':
-                        $internal_crit['status'] = array("'OPEN'","'EN'","'EP'","'ES'");
-                        break;
-                    case 'NOUP-30':
-                        $internal_crit['status'] = array("'OPEN'","'EN'","'EP'","'ES'");
-                        $internal_crit['modify_ts'] = $now->sub(30, Zend_Date::DAY);
-                        break;
-                    case 'NOUP-60':
-                        $internal_crit['status'] = array("'OPEN'","'EN'","'EP'","'ES'");
-                        $internal_crit['modify_ts'] = $now->sub(60, Zend_Date::DAY);
-                        break;
-                    case 'NOUP-90':
-                        $internal_crit['status'] = array("'OPEN'","'EN'","'EP'","'ES'");
-                        $internal_crit['modify_ts'] = $now->sub(90, Zend_Date::DAY);
-                        break;
-                }
-            }
-            $this->_helper->actionStack('search','Remediation',null,array('criteria'=>$internal_crit));
+            $this->_search($criteria);
         }
-        $this->view->assign('criteria',$criteria);
-        $this->view->assign('system_list',$system_list);
-        $this->view->assign('source_list',$source_list);
-        $this->view->assign('filter_type',$filter_type);
-        $this->view->assign('filter_status',$filter_status);
-        $this->render();
     }
 
     /**
@@ -387,7 +349,7 @@ class RemediationController extends SecurityController
         $logs = $poam->fetchAll($query)->toArray();var_dump($logs);
         foreach($logs as $k=>$v){var_dump($logs[$k]['timestamp']);
             $logs[$k]['time'] = date('Y-m-d H:i:s',$logs[$k]['timestamp']);
-        }var_dump($logs);
+        }
         $this->view->assign('logs',$logs);
         $this->view->assign('num_logs',count($logs));
 

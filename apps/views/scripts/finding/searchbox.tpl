@@ -1,3 +1,18 @@
+<?php
+    $status_list = array(   0 =>'--Any--' ,
+                         "NEW"=>'NEW',
+                 "REMEDIATION"=>"REMEDIATION",
+                        'OPEN'=>'-- OPEN',
+                          'EN'=>'-- EN',
+                          'EP'=>'-- EP',
+                      "CLOSED"=>'Closed');
+    $this->source[0] = '--Any--';
+    $this->system[0] = '--Any--';
+    $this->network[0] = '--Any--';
+    asort($this->source);
+    asort($this->system);
+    asort($this->network);
+?>
 <div class="barleft">
 <div class="barright">
 <p><b>Search Findings</b></p>
@@ -10,25 +25,29 @@
     <tr >
         <td id="cell 1" align="right">System:</td>
         <td id="cell 2" align="left">
-        <?php echo $this->formSelect('system', $this->criteria['system'],
+        <?php echo $this->formSelect('system_id', 
+                                    nullGet($this->criteria['system_id'],0),
                                         null, $this->system); ?>
         </td>
         <td id="cell 3" align="right">Source:</td>
         <td id="cell 4" align="left">
-        <?php echo $this->formSelect('source', $this->criteria['source'],
+        <?php echo $this->formSelect('source_id', 
+                                    nullGet($this->criteria['source_id'],0),
                                         null, $this->source); ?>
         </td>
     </tr>
     <tr >
         <td align="right">Network:</td>
         <td align="left">
-        <?php echo $this->formSelect('network', $this->criteria['network'],
+        <?php echo $this->formSelect('network_id', 
+                                    nullGet($this->criteria['network_id'],0),
                                         null, $this->network); ?>
         </td>
         <td align="right">Status:</td>
         <td align="left">
-        <?php echo $this->formSelect('status', $this->criteria['status'],
-                                        null, $this->status); ?>
+        <?php echo $this->formSelect('status', 
+                                    nullGet($this->criteria['status'],0),
+                                        null, $status_list); ?>
         </td>
     </tr>
     <tr >
@@ -47,12 +66,12 @@
     </tr>
     <tr >
         <td align="right">Date Discovered From: </td>
-        <td align="left"><input type="text" name="from" size="12" maxlength="10" value="<?php echo $this->criteria['discovered_date_begin']; ?>">             
+        <td align="left"><input type="text" name="discovered_date_begin" size="12" maxlength="10" value="<?php echo $this->criteria['discovered_date_begin']; ?>">             
             <span onclick="javascript:show_calendar('finding.startdate');">
             <img src="/images/picker.gif" width=24 height=22 border=0></span>
         </td>
         <td align="right">To: </td>
-        <td align="left"><input type="text" name="to" size="12" maxlength="10" value="<?php echo $this->criteria['discovered_date_end']; ?>">
+        <td align="left"><input type="text" name="discovered_date_end" size="12" maxlength="10" value="<?php echo $this->criteria['discovered_date_end']; ?>">
             <span onclick="javascript:show_calendar('finding.enddate');">
             <img src="/images/picker.gif" valign="middle" width=24 height=22 border=0></span>
         </td>

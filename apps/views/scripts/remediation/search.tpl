@@ -52,10 +52,14 @@
             ?>
             <tr>
                 <td align='center' class='tdc'><?php echo $row['id'];?></td>
-                <td align='center' class='tdc' nowrap><?php echo $row['source_id'];?></td>
-                <td align='center' class='tdc'><?php echo $row['system_id'];?></td>
+                <td align='center' class='tdc' nowrap>
+                <?php 
+                        echoDefault($this->sources[$row['source_id']],'Missing Source id');
+                ?>
+                </td>
+                <td align='center' class='tdc'><?php echo $this->systems[$row['system_id']];?></td>
                 <td align='center' class='tdc' nowrap><?php echo $row['type'];?></td>
-                <td align='center' class='tdc' nowrap><?php echo $row['status']=='EN' && $row['action_date_est']<$today?'EO':$row['status'];?></td>
+                <td align='center' class='tdc' nowrap><?php echo $row['status']=='EN' && $row['action_est_date']<$today?'EO':$row['status'];?></td>
                 <td align='left'   class='tdc'><?php echo $finding_data;?></td>
                 <td align='center' class='tdc' nowrap><?php echo $row['action_est_date'];?></td> 
                 <td align="center" valign='middle' class='tdc'><a href='/zfentry.php/panel/remediation/sub/view/id/<?php echo $row['id'];?>'><img src='/images/view.gif' border="0"></a></td>
