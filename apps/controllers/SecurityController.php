@@ -29,29 +29,31 @@ class SecurityController extends Zend_Controller_Action
     const M_WARNING= 'warning';
 
     public static $now = null;
+    protected $_auth = null;
     
+    /**
+     * Authentication check and ACL initialization
+     * @todo cache the acl
+     */
     public function init()
     {
         if( empty(self::$now) ) {
             self::$now = Zend_Date::now();
         }
-    }
-
-    /**
-     * Authentication check and ACL initialization
-     * @todo cache the acl
-     */
-    public function preDispatch()
-    {
-        $auth = Zend_Auth::getInstance();
-        if($auth->hasIdentity()){
+        $this->_auth = Zend_Auth::getInstance();
+        if($this->_auth->hasIdentity()){
             if( empty($this->me) ){
-                $this->me = $auth->getIdentity();
+                $this->me = $this->_auth->getIdentity();
                 $this->initializeAcl($this->me->id);
             }
             $this->view->identity = $this->me->account;
-        }else{
-            $this->_forward('login','user');
+        }
+    }
+
+    public function preDispatch()
+    {
+        if( empty($this->me ) ) {
+            $this->_forward('login','User');
         }
     }
 

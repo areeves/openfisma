@@ -1,0 +1,48 @@
+<?php
+/**
+* OpenFISMA
+*
+* MIT LICENSE
+*
+* @version $Id$
+*/
+
+require_once MODELS . DS . 'poam.php';
+require_once MODELS . DS . 'system.php';
+require_once MODELS . DS . 'source.php';
+require_once MODELS . DS . 'network.php';
+require_once CONTROLLERS . DS . 'SecurityController.php';
+
+class PoamBaseController extends SecurityController 
+{
+    protected $_system_list =null;
+    protected $_source_list =null;
+    protected $_network_list =null;
+    protected $_poam =null;
+    protected $_paging = array('mode'        =>'Sliding',
+                             'append'      =>false,
+                             'urlVar'      =>'p',
+                             'path'        =>'',
+                             'currentPage' =>1,
+                             'perPage'     =>20);
+
+    public function init()
+    {
+        parent::init();
+        $this->_poam = new Poam();
+        $src = new Source();
+        $net = new Network();
+        $sys = new System();
+        $this->_source_list  = $src->getList('name');
+        $this->_system_list = $sys->getList('name',$this->me->systems );
+        $this->_network_list = $net->getList('name');
+    }
+
+    public function preDispatch()
+    {
+        parent::preDispatch();
+        $req = $this->getRequest();
+        $this->_paging_base_path = $req->getBaseUrl();
+        $this->_paging['currentPage'] = $req->getParam('p',1);
+    }
+}

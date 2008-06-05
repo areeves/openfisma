@@ -96,10 +96,15 @@
 
     function echoDefault(&$value, $default='')
     {
+        echo nullGet($value, $default);
+    }
+
+    function nullGet(&$value, $default='')
+    {
         if( isset($value) ) {
-            echo $value;
+            return $value;
         }else{
-            echo $default;
+            return $default;
         }
     }
  

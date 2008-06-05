@@ -7,55 +7,20 @@
 * @version $Id$
 */
 
-require_once(CONTROLLERS . DS . 'SecurityController.php');
+require_once(CONTROLLERS . DS . 'PoamBaseController.php');
 require_once(MODELS . DS . 'finding.php');
-require_once(MODELS. DS . 'system.php');
-require_once(MODELS. DS . 'source.php');
-require_once(MODELS. DS . 'network.php');
-require_once MODELS . DS . 'poam.php';
 require_once MODELS . DS . 'asset.php';
 require_once MODELS . DS . 'source.php';
-require_once MODELS . DS . 'network.php';
 require_once('Pager.php');
 define('TEMPLATE_NAME', "OpenFISMA_Injection_Template.xls"); 
 
-class FindingController extends SecurityController
+class FindingController extends PoamBaseController
 {
-    private $_systems = array();
-    private $_poam = null;
-    private $_paging = array('mode'    =>'Sliding',
-                             'append'  =>false,
-                             'urlVar'  =>'p',
-                             'path'    =>'',
-                             'currentPage'=>1,
-                             'perPage'=>20);                             
-
-    public function init()
-    {
-        parent::init();
-        $this->_poam = new Poam();
-        $src = new Source();
-        $net = new Network();
-        $sys = new System();
-        $this->_source_list  = $src->getList('name');
-        $this->_system_list = $sys->getList('name',$this->me->systems );
-        $this->_network_list = $net->getList('name');
-    }
-   
-    public function preDispatch()
-    {
-        parent::preDispatch();
-        require_once MODELS . DS . 'system.php';
-        $req = $this->getRequest();
-        $this->_paging_base_path = $req->getBaseUrl().'/panel/finding/sub/searchbox/s/search';
-        $this->_paging['currentPage'] = $req->getParam('p',1);
-    }
-
-
     public function searchboxAction(){
 
         $req = $this->getRequest();
         // parse the params of search
+        $this->_paging_base_path .= '/panel/finding/sub/searchbox/s/search';
         $criteria['system_id'] = $req->getParam('system_id');
         $criteria['source_id'] = $req->getParam('source_id');
         $criteria['network_id'] = $req->getParam('network_id');

@@ -7,44 +7,12 @@
 * @version $Id$
 */
 
-require_once CONTROLLERS . DS . 'SecurityController.php';
+require_once CONTROLLERS . DS . 'PoamBaseController.php';
 require_once MODELS . DS . 'user.php';
-require_once MODELS . DS . 'poam.php';
-require_once MODELS . DS . 'system.php';
-require_once MODELS . DS . 'source.php';
-require_once MODELS . DS . 'network.php';
 require_once 'Pager.php';
 
-class RemediationController extends SecurityController
+class RemediationController extends PoamBaseController
 {
-    private $_paging = array('mode'        =>'Sliding',
-                             'append'      =>false,
-                             'urlVar'      =>'p',
-                             'path'        =>'',
-                             'currentPage' =>1,
-                             'perPage'     =>20);
-    protected $_system_list =null;
-    protected $_source_list =null;
-    protected $_poam =null;
-
-    public function init()
-    {
-        parent::init();
-        $this->_poam = new Poam();
-        $src = new Source();
-        $net = new Network();
-        $sys = new System();
-        $this->_source_list  = $src->getList('name');
-        $this->_system_list = $sys->getList('name',$this->me->systems );
-    }
-
-    public function preDispatch()
-    {
-        parent::preDispatch();
-        $req = $this->getRequest();
-        $this->_paging_base_path = $req->getBaseUrl() .'/panel/remediation/sub/searchbox/s/search';
-        $this->_paging['currentPage'] = $req->getParam('p',1);
-    }
 
     public function summaryAction(){
         require_once MODELS . DS . 'system.php';
@@ -154,6 +122,7 @@ class RemediationController extends SecurityController
     public function searchboxAction()
     {
         $req = $this->getRequest();
+        $this->_paging_base_path .= '/panel/remediation/sub/searchbox/s/search';
         // parse the params of search
         $criteria['system_id'] = $req->getParam('system_id');
         $criteria['source_id'] = $req->getParam('source_id');
