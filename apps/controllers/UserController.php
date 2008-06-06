@@ -30,6 +30,7 @@ class UserController extends SecurityController
 
     public function init()
     {
+        parent::init();
         $this->_user = new User();
     }
 
