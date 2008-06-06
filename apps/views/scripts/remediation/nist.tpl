@@ -10,7 +10,7 @@
 </table>
 <!-- End Heading Block -->
 <br>
-    <?php if((!empty($this->blscr) && $this->blscr['blscr_number'] == '')|| empty($this->blscr)){ ?>
+    <?php if((!empty($this->blscr) && $this->blscr['code'] == '')|| empty($this->blscr)){ ?>
         <!-- BLSCR TABLE -->
         <table border="1" width="95%" align="center" cellpadding="5" cellspacing="1" class="tipframe">
             <th align="left" >Security Control</th>
@@ -18,7 +18,7 @@
             <tr>
                 <td>
                     <b>Number:</b>
-                    <div id="blscr" type="select" name="poam_blscr"
+                    <div id="blscr" type="select" name="blscr"
                         option='{<?php foreach($this->all_values as $value){?>
                         "<?php echo $value;?>":"<?php echo $value;?>",
                         <?php } ?> }'>
@@ -33,7 +33,7 @@
             </tr>
         </table>
     <?php }
-        if(!empty($this->blscr) && ($this->blscr['blscr_number'] != "")){ ?>
+        if(!empty($this->blscr) && ($this->blscr['code'] != "")){ ?>
         <table border="0" width="95%" align="center" cellpadding="5" class="tipframe">
             <tr>
                 <td>
@@ -49,7 +49,7 @@
                 </tr>
                 <tr>
                     <td class="tdc" align="center">
-                        <div id="blscr" type="select" name="poam_blscr"
+                        <div id="blscr" type="select" name="blscr"
                              option='{<?php foreach($this->all_values as $value){?>
                             "<?php echo $value;?>":"<?php echo $value;?>",
                             <?php } ?> }'>
@@ -58,40 +58,40 @@
                                 <img src='/images/button_modify.png' style="cursor:pointer;">
                                 </span>
                             <?php } ?>
-                            <span class="contenter"><?php echo $this->blscr['blscr_number'];?></span>
+                            <span class="contenter"><?php echo $this->blscr['code'];?></span>
                         </div>
                     </td>
-                    <td class="tdc"><?php echo $this->blscr['blscr_class'];?></td>
-                    <td class="tdc"><?php echo $this->blscr['blscr_family'];?></td>
-                    <td class="tdc"><?php echo $this->blscr['blscr_subclass'];?></td>
+                    <td class="tdc"><?php echo $this->blscr['class'];?></td>
+                    <td class="tdc"><?php echo $this->blscr['family'];?></td>
+                    <td class="tdc"><?php echo $this->blscr['subclass'];?></td>
                     <td class="tdc" align="center">
-                        <?php echo 1 == $this->blscr['blscr_low']?'Control Required':'Control Not Required';?>
+                        <?php echo 'low' == $this->blscr['control_level']?'Control Required':'Control Not Required';?>
                     </td>
                     <td class="tdc" align="center">
-                        <?php echo 1 == $this->blscr['blscr_moderate']?'Control Required':'Control Not Required';?>
+                        <?php echo 'moderate' == $this->blscr['control_level']?'Control Required':'Control Not Required';?>
                     </td>
                     <td class="tdc" align="center">
-                        <?php echo 1 == $this->blscr['blscr_high']?'Control Required':'Control Not Required';?>
+                        <?php echo 'high' == $this->blscr['control_level']?'Control Required':'Control Not Required';?>
                     </td>
                 </tr>
             </table>
                 </td>
             </tr>
-            <tr><td><b>Control: </b> <?php echo $this->blscr['blscr_control'];?></td></tr>
-            <tr><td><b>Guidance: </b> <?php echo $this->blscr['blscr_guidance'];?></td></tr>
+            <tr><td><b>Control: </b> <?php echo $this->blscr['control'];?></td></tr>
+            <tr><td><b>Guidance: </b> <?php echo $this->blscr['guidance'];?></td></tr>
             <tr><td><b>Enhancements: </b>
-                <?php if($this->blscr['blscr_enhancements'] == '.'){
+                <?php if($this->blscr['enhancements'] == '.'){
                           echo'<i>(none given)</i>';
                       }else {
-                          echo $this->blscr['blscr_enhancements'];
+                          echo $this->blscr['enhancements'];
                       }
                 ?>
             </td></tr>
             <tr><td><b>Supplement: </b>
-                <?php if($this->blscr['blscr_supplement'] == '.'){
+                <?php if($this->blscr['supplement'] == '.'){
                           echo'<i>(none given)</i>';
                       }else {
-                          echo $this->blscr['blscr_supplement'];
+                          echo $this->blscr['supplement'];
                       }
                 ?>
             </td></tr>

@@ -76,10 +76,10 @@ class User extends Fisma_Model
         $db = Zend_Registry::get('db');
         $origin_mode = $db->getFetchMode();
         $qry = $db->select()->from($this->_name, 'account')->where('id = ?', $id);
-        $user = $db->fetchOne($qry); 
+        $user = $db->fetchOne($qry);
 
         $qry->reset();
-        $qry = $db->select()->distinct()->from('user_systems', 'user_id');
+        $qry = $db->select()->distinct()->from('user_systems', 'system_id');
         if($user != 'root') {
             $qry->where("user_id = $id");
         }

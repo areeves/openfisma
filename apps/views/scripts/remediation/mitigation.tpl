@@ -24,30 +24,30 @@
                 <tr>
                     <td align="left">
                         <b>Type:</b>
-                        <div id="poam_type" name="poam_type" type="select"
+                        <div id="poam_type" name="type" type="select"
                              option='{"CAP":"(CAP) Corrective Action Plan",                                                                          "AR":"(AR) Accepted the Risk",
                                       "FP":"(FP) Prove False Positive"}'>
                         <span class="sponsor">
                         <?php if(isAllow('remediation','update')){
-                            if('OPEN' == $this->remediation['poam_status']){
+                            if('OPEN' == $this->remediation['status']){
                         ?>
                         <img src='/images/button_modify.png' style="cursor:pointer;">
                         <? } } ?></span>
-                        <span class="contenter"><?php echo $this->remediation['poam_type'];?></span>
+                        <span class="contenter"><?php echo $this->remediation['type'];?></span>
                     </td>
                 </tr>
                 <tr>
                     <td>
                         <b>Description:</b>
-                        <div id="description" type="textarea" name="poam_action_planned" rows="5" cols="160">
+                        <div id="description" type="textarea" name="action_planned" rows="5" cols="160">
                         <?php if(isAllow('remediation','update_finding_course_of_action')){
-                             if('OPEN' == $this->remediation['poam_status']){
+                             if('OPEN' == $this->remediation['status']){
                         ?>
                         <span class="sponsor">
                         <img src='/images/button_modify.png' style="cursor:pointer;">
                         </span>
                         <? } }?>
-                        <span class="contenter"><?php echo $this->remediation['poam_action_planned'];?></span>
+                        <span class="contenter"><?php echo $this->remediation['action_planned'];?></span>
                     </td>
                 </tr>
             </table>
@@ -63,13 +63,13 @@
                 <th align="left">Resources Required for Course of Action</th>
                 <tr>
                     <td>
-                        <div id="resources" type="textarea" name="poam_action_resources" rows="5" cols="160">
+                        <div id="resources" type="textarea" name="action_resources" rows="5" cols="160">
                         <?php if(isAllow('remediation','update_finding_resources')){?>
                         <span class="sponsor">
                         <img src='/images/button_modify.png' style="cursor:pointer;">
                         </span>
                         <? } ?>
-                       <span class="contenter"><?php echo $this->remediation['poam_action_resources'];?></span>
+                       <span class="contenter"><?php echo $this->remediation['action_resources'];?></span>
                     </td>
                 </tr>
             </table>
@@ -81,19 +81,19 @@
     <tr>
         <td width='50%'>
             <b>Estimated Completion Date:</b>
-            <div id="date_est" type="text" name="poam_action_date_est" size="20">
+            <div id="date_est" type="text" name="action_est_date" size="20">
             <?php if(isAllow('remediation','update_est_completion_date')){
-                if('OPEN' == $this->remediation['poam_status']){
+                if('OPEN' == $this->remediation['status']){
             ?>
             <span class="sponsor">
             <img src='/images/button_modify.png' style="cursor:pointer;">
             </span>
             <?php } }?>
-            <span class="contenter"><?php echo $this->remediation['poam_action_date_est'];?></span>
+            <span class="contenter"><?php echo $this->remediation['action_est_date'];?></span>
         </td>
         <td width='50%'>
             <b>Actual Completion Date:</b>
-            <?php echo '' != $this->remediation['poam_action_date_actual']?$this->remediation['poam_action_date_actual']:'<i>(action not yet completed)</i>';?>
+            <?php echo '' != $this->remediation['action_actual_date']?$this->remediation['action_actual_date']:'<i>(action not yet completed)</i>';?>
         </td>
     </tr>
     <?php if($this->num_comments_est > 0){ ?>

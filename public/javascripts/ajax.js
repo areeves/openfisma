@@ -120,9 +120,9 @@ function asset_detail() {
         edit( 'cmeasure' );
         edit( 'cmeasure_justification' );
         edit( 'sso_approval' );
-        edit( 'sso_evaluate' );
-        edit( 'fsa_evaluate' );
-        edit( 'ivv_evaluate' );
+        edit( 'EV_SSO' );
+        edit( 'EV_FSA' );
+        edit( 'EV_IVV' );
     });
 
 

@@ -128,11 +128,11 @@ class DashboardController extends SecurityController
             if ($status) {
                 switch ($status) {
                     case "EN" :
-                    $poam->where('status = ? and action_date_est > NOW()', $status);
+                    $poam->where('status = ? and action_est_date > NOW()', $status);
                     break;
                     case "EO" :
-                    $poam->where('status = ? and action_date_est <= NOW() ','EN');
-                    $poam->orwhere('action_date_est = ? ','NULL');
+                    $poam->where('status = ? and action_est_date <= NOW() ','EN');
+                    $poam->orwhere('action_est_date = ? ','NULL');
                     break;
                     default   :
                     $poam->where('status = ? ', $status);

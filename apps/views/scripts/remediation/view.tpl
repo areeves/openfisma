@@ -7,20 +7,20 @@
         <td>
             <!-- SAVE MODIFICATIONS TO REMEDIATION -->
             <form action="/zfentry.php/panel/remediation/sub/modify/id/<?php echo $this->remediation_id;?>" method="post">
-            <input type='hidden' name='poam_action_owner' value=''>
-            <input type='hidden' name='poam_action_suggested' value=''>
-            <input type='hidden' name='poam_type' value=''>
-            <input type='hidden' name='poam_action_planned' value=''>
-            <input type='hidden' name='poam_action_resources' value=''>
-            <input type='hidden' name='poam_action_date_est' value=''>
-            <input type='hidden' name='poam_blscr' value=''>
-            <input type='hidden' name='poam_threat_level' value=''>
-            <input type='hidden' name='poam_threat_source' value=''>
-            <input type='hidden' name='poam_threat_justification' value=''>
-            <input type='hidden' name='poam_cmeasure_effectiveness' value=''>
-            <input type='hidden' name='poam_cmeasure' value=''>
-            <input type='hidden' name='poam_cmeasure_justification' value=''>
-            <input type='hidden' name='poam_action_status' value=''>
+            <input type='hidden' name='action_owner' value=''>
+            <input type='hidden' name='action_suggested' value=''>
+            <input type='hidden' name='type' value=''>
+            <input type='hidden' name='action_planned' value=''>
+            <input type='hidden' name='action_resources' value=''>
+            <input type='hidden' name='action_est_date' value=''>
+            <input type='hidden' name='blscr' value=''>
+            <input type='hidden' name='threat_level' value=''>
+            <input type='hidden' name='threat_source' value=''>
+            <input type='hidden' name='threat_justification' value=''>
+            <input type='hidden' name='cmeasure_effectiveness' value=''>
+            <input type='hidden' name='cmeasure' value=''>
+            <input type='hidden' name='cmeasure_justification' value=''>
+            <input type='hidden' name='action_status' value=''>
             <input type='hidden' name='action_approval' value=''>
             <input type='submit' title='Save or Submit' value="Save" style="cursor: pointer;">
             </form>
@@ -57,8 +57,9 @@
                                 'is_completed'          =>$this->is_completed,
                                 'num_comments_sso'      =>$this->num_comments_sso,
                                 'comments_sso'          =>$this->comments_sso,
+                                'evaluations'           =>$this->evaluations,
                                 'num_evidence'          =>$this->num_evidence,
-                                'all_evidence'          =>$this->all_evidence));
+                                'evidences'             =>$this->evidences));
      echo $this->partial('remediation/log.tpl',
                           array('num_logs'              =>$this->num_logs,
                                 'logs'                  =>$this->logs));

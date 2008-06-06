@@ -45,7 +45,7 @@
                     <tr>
                         <td>
                             <b>Level:</b>
-                            <div id ="threat" type="select" name="poam_threat_level" 
+                            <div id ="threat" type="select" name="threat_level" 
                                  option='{"NONE":"NONE","LOW":"LOW","MODERATE":"MODERATE","HIGH":"HIGH"}'>
                             <?php if(isAllow('remediation','update_threat')){ ?>
                             <span class="sponsor">
@@ -59,21 +59,22 @@
                     <tr>
                         <td>
                             <b>Source:</b>
-                            <div id ="source" type="textarea" name="poam_threat_source" rows="5" cols="160">
+                            <div id ="source" type="textarea" name="threat_source" rows="5" cols="160">
                             <?php if(isAllow('remediation','update_threat')){ ?>
                             <span class="sponsor">
                             <img src='/images/button_modify.png' style="cursor:pointer;">
                             </span>
                             <?php } ?>
                             <span class="contenter">
-                                <?php echo $this->remediation['poam_threat_source'];?>
+                                <?php echo $this->remediation['threat_source'];?>
                             </span>
+                            </div>
                         </td>
                     </tr>
                     <tr>
                         <td>
                             <b>Justification:</b>
-                            <div id ="justification" type="textarea" name="poam_threat_justification"
+                            <div id ="justification" type="textarea" name="threat_justification"
                                  rows="5" cols="160">
                             <?php if(isAllow('remediation','update_threat')){ ?>
                             <span class="sponsor">
@@ -81,8 +82,9 @@
                             </span>
                             <?php } ?>
                             <span class="contenter">
-                                <?php echo $this->remediation['poam_threat_justification'];?>
+                                <?php echo $this->remediation['threat_justification'];?>
                             </span>
+                            </div>
                         </td>
                     </tr>
                 </table>
@@ -102,7 +104,7 @@
                     <tr>
                         <td>
                             <b>Effectiveness:</b>
-                            <div id="effectivness" type="select" name="poam_cmeasure_effectiveness"
+                            <div id="effectivness" type="select" name="cmeasure_effectiveness"
                                 option='{"NONE":"NONE","LOW":"LOW","MODERATE":"MODERATE","HIGH":"HIGH"}'>
                             <!-- RESTRICT UPDATE BASED ON STATUS AND ROLE-->
                             <?php if(isAllow('remediation','update_cmeasures')){ ?>
@@ -119,20 +121,21 @@
                     <tr>
                         <td>
                             <b>Countermeasure:</b>
-                            <div id="cmeasure" type="textarea" name="poam_cmeasure" rows="5" cols="160">
+                            <div id="cmeasure" type="textarea" name="cmeasure" rows="5" cols="160">
                             <!--RESTRICT UPDATE BASED ON STATUS AND ROLE-->
                             <?php if(isAllow('remediation','update_cmeasure')){ ?>
                             <span class="sponsor">
                             <img src='/images/button_modify.png' style="cursor:pointer;">
                             </span>
                             <?php } ?>
-                            <span class="contenter"><?php echo $this->remediation['poam_cmeasure'];?></span>
+                            <span class="contenter"><?php echo $this->remediation['cmeasure'];?></span>
+                            </div>
                         </td>
                     </tr>
                      <tr>
                         <td>
                             <b>Justification:</b>
-                            <div id="cmeasure_justification" type="textarea" name="poam_cmeasure_justification"
+                            <div id="cmeasure_justification" type="textarea" name="cmeasure_justification"
                                 rows="5" cols="160">
                             <!--RESTRICT UPDATE BASED ON STATUS AND ROLE-->
                             <?php if(isAllow('remediation','udpate_cmeasure')){ ?>
@@ -141,8 +144,9 @@
                             </span>
                             <?php } ?>
                             <span class="contenter">
-                                <?php echo $this->remediation['poam_cmeasure_justification'];?>
+                                <?php echo $this->remediation['cmeasure_justification'];?>
                             </span>
+                            </div>
                         </td>
                     </tr>
                 </table>
@@ -165,7 +169,7 @@
 
                 <td colspan='2'>
                     <b>SSO Approval:</b><!-- Action Approval-->
-                    <div id="sso_approval" type="select" name="poam_action_status"
+                    <div id="sso_approval" type="select" name="action_status"
                         option='{"APPROVED":"APPROVED","DENIED":"DENIED"}'>                    
                     <!--RESTRICT UPDATE BASED ON STATUS AND ROLE-->
                     <?php if(isAllow('remediation','update_mitigation_strategy_approval')){
@@ -175,7 +179,7 @@
                         <img src='/images/button_modify.png' style="cursor:pointer;">
                         </span>
                     <?php }  }  } ?>
-                    <span class="contenter"><?php echo $this->remediation['poam_action_status'];?></span>
+                    <span class="contenter"><?php echo $this->remediation['action_status'];?></span>
                     </div>
                 </td>
             </tr>
@@ -215,20 +219,20 @@
     <tr>
         <td>
             <form action="/zfentry.php/panel/remediation/sub/modify/id/<?php echo $this->remediation_id;?>" method="post">
-            <input type='hidden' name='poam_action_owner' value=''>
-            <input type='hidden' name='poam_action_suggested' value=''>
-            <input type='hidden' name='poam_type' value=''>
-            <input type='hidden' name='poam_action_planned' value=''>
-            <input type='hidden' name='poam_action_resources' value=''>
-            <input type='hidden' name='poam_action_date_est' value=''>
-            <input type='hidden' name='poam_blscr' value=''>
-            <input type='hidden' name='poam_threat_level' value=''>
-            <input type='hidden' name='poam_threat_source' value=''>
-            <input type='hidden' name='poam_threat_justification' value=''>
-            <input type='hidden' name='poam_cmeasure_effectiveness' value=''>
-            <input type='hidden' name='poam_cmeasure' value=''>
-            <input type='hidden' name='poam_cmeasure_justification' value=''>
-            <input type='hidden' name='poam_action_status' value=''>
+            <input type='hidden' name='action_owner' value=''>
+            <input type='hidden' name='action_suggested' value=''>
+            <input type='hidden' name='type' value=''>
+            <input type='hidden' name='action_planned' value=''>
+            <input type='hidden' name='action_resources' value=''>
+            <input type='hidden' name='action_est_date' value=''>
+            <input type='hidden' name='blscr' value=''>
+            <input type='hidden' name='threat_level' value=''>
+            <input type='hidden' name='threat_source' value=''>
+            <input type='hidden' name='threat_justification' value=''>
+            <input type='hidden' name='cmeasure_effectiveness' value=''>
+            <input type='hidden' name='cmeasure' value=''>
+            <input type='hidden' name='cmeasure_justification' value=''>
+            <input type='hidden' name='action_status' value=''>
             <input type='hidden' name='action_approval' value=''>
             <input type='submit' title='Save or Submit' value="Save" style="cursor: pointer;">
             </form>
@@ -266,112 +270,59 @@
 
         <!--loop through the evidence-->
         <?php if($this->num_evidence > 0 ){
-            //-- Statement 3 -->
-            foreach($this->all_evidence as $row){
-                //DO NOT SHOW BAD EVIDENCE AT STATUS ES
-                if(($this->remediation_status == 'ES')&& ($row['ev_sso_evaluation'] != 'APPROVED') ||($this->remediation_status == 'ES') && ($row['ev_fsa_evaluation'] != 'APPROVED')){
-                }
-                else {
+            foreach($this->evidences as $evidence){
         ?>
     <tr>
         <!-- EVIDENCE TABLE-->
         <td colspan='2' width='100%'>
             <table border='0' cellpadding='3' cellspacing='1' class='tipframe' width='100%'>
-                <tr><th align='left' colspan="2">Evidence Submitted by <?php echo $row['submitted_by'];?> on <?php echo $row['ev_date_submitted'];?></th></tr>
+                <tr><th align='left' colspan="2">Evidence Submitted by <?php echo $evidence['submitted_by'];?> on <?php echo $evidence['date_submitted'];?></th></tr>
                 <tr colspan="2">
                     <td><b>Evidence:</b>
-                    <?php if($row['fileExists'] == 1){ ?>
-                    <a href="javascript:void(0)" onClick="window.open('<?php echo $row['ev_submission'];?>', 'evidence_window', config='resizable=yes,menubar=no,scrollbars=yes')"><?php echo $row['fileName'];?></a>
-                    <?php } else { echo $row['fileName'];} ?></td>
+                    <?php if($evidence['fileExists'] == 1){ ?>
+                    <a href="javascript:void(0)" onClick="window.open('<?php echo $evidence['submission'];?>', 'evidence_window', config='resizable=yes,menubar=no,scrollbars=yes')"><?php echo $evidence['fileName'];?></a>
+                    <?php } else { echo $evidence['fileName'];} ?></td>
                 </tr>
-                <!-- SSO EVALUATION -->
-                <tr>
-
-                <!-- RESTRICT UPDATE BASED ON STATUS AND ROLE-->
-                <?php if((isAllow('remediation','update_evidence_approval_first')) && ($this->remediation_status == 'EP') && ($row['ev_sso_evaluation'] == 'NONE')){
+                <?php foreach($this->evaluations[$evidence['id']] as $k=>$v){
+                    if(isAllow($v['screen'],$v['action'])){
+                        if($v['decision'] == 'NONE' || $v['decision'] == NULL){
+                            if($k == 0 || ($k > 0 && $this->evaluations[$evidence['id']][$k-1]['decision'] == 'APPROVED')){
                 ?>
-                    <td>
-                        <b>ISSO Evaluation:</b>
-                            <div id="sso_evaluate" type="select" name="ev_sso_evaluation" 
-                                option='{"NONE":"NONE","APPROVED":"APPROVED","DENIED":"DENIED"}'>
-                                <span class="sponsor">
-                                <img src='/images/button_modify.png' style="cursor:pointer;">
-                                </span>
-                                <span class="contenter"><?php echo $row['ev_sso_evaluation'];?></span>
-                            </div>
-                    </td>
-                <?php } else { ?>
-                    <td><b>ISSO Evaluation:</b><?php echo $row['ev_sso_evaluation'];?></td>
-                    <?php if(isset($row['comments']['EV_SSO']) && $row['comments']['EV_SSO'] != ''){ ?>
-                    <td width="85%">
-                        <table border="0" cellpadding="3" cellspacing="1" class="tipframe" width="100%">
-                            <tr><th align='left'><?php echo $row['comments']['EV_SSO']['comment_topic'].$row['comments']['EV_SSO']['comment_log'];?></th></tr>
-                            <tr><td ><?php echo $row['comments']['EV_SSO']['comment_body'];?></td></tr>
-                            <tr><td align='right'><i><?php echo $row['comments']['EV_SSO']['comment_date'];?>by<?php echo $row['comments']['EV_SSO']['user_name'];?></i></td></tr>
-                        </table>
-                    </td>
-                    <?php } } ?>
-                </tr>
-                <!--FSA EVALUATION-->
-                <tr>
-                <!--RESTRICT UPDATE BASED ON STATUS AND ROLE-->
-                <?php if((isAllow('remediation','update_evidence_approval_second'))&& ($this->remediation_status == 'EP') && ($row['ev_sso_evaluation'] == 'APPROVED') && ($row['ev_fsa_evaluation'] == 'NONE')){ ?>
-                    <td>
-                        <b>IV&V Evaluation:</b>
-                            <div id="fsa_evaluate" type="select" name="ev_fsa_evaluation" 
-                                option='{"NONE":"NONE","APPROVED":"APPROVED","DENIED":"DENIED"}'>
-                                <span class="sponsor">
-                                <img src='/images/button_modify.png' style="cursor:pointer;">
-                                </span>
-                                <span class="contenter"><?php echo $row['ev_fsa_evaluation'];?></span>
-                            </div>
-                    </td>
-                <?php } else { ?>
-                    <td><b>IV&V Evaluation:</b> <?php echo $row['ev_fsa_evaluation'];?></td>
-                         <?php if(isset($row['comments']['EV_FSA']) && $row['comments']['EV_FSA'] != ''){ ?>
-                    <td width="85%">
-                        <table border="0" cellpadding="3" cellspacing="1" class="tipframe" width="100%">
-                            <tr><th align='left'><?php echo $row['comments']['EV_FSA']['comment_topic'];?></th></tr>
-                            <tr><td ><?php echo $row['comments']['EV_FSA']['comment_body'];?></td></tr>
-                            <tr><td align='right'><i><?php echo $row['comments']['EV_FSA']['comment_date'];?> by <?php echo $row['comments']['EV_FSA']['user_name'];?></i></td></tr>
-                        </table>
-                    </td>
-                        <?php } } ?>
-                </tr>
-                <!-- IVV EVALUATION -->
-                <tr>
-                    <!-- RESTRICT UPDATE BASED ON STATUS AND ROLE -->
-                    <?php if((isAllow('remediation','update_evidence_approval_second'))&& ($this->remediation_status == 'ES') && ($row['ev_sso_evaluation'] == 'APPROVED') && ($row['ev_fsa_evaluation'] == 'APPROVED')){
-                    ?>
-                        <td>
-                            <b>Final Evaluation:</b>
-                            <div id="ivv_evaluate" type="select" name="ev_ivv_evaluation" 
+                            <tr><td>
+                                <b><?php echo $v['name'];?>:</b>
+                                <input type="hidden" name="ev_id" value="<?php echo $evidence['id'];?>">
+                                <div id="<?php echo $v['name'];?>" type="select" name="<?php echo $v['name'];?>"
                                     option='{"NONE":"NONE","APPROVED":"APPROVED","DENIED":"DENIED"}'>
-                                <span class="sponsor">
-                                <img src='/images/button_modify.png' style="cursor:pointer;">
-                                </span>
-                                <span class="contenter"><?php echo $row['ev_ivv_evaluation'];?></span>
-                            </div>
-                        </td>
-                    <?php } else { ?>
-                        <td><b>Final Evaluation:</b><?php echo $row['ev_ivv_evaluation'];?></td>
-                        <?php if(isset($row['comments']['EV_IVV']) && $row['comments']['EV_IVV'] != ''){ ?>
-                        <td width="85%">
-                            <table border="0" cellpadding="3" cellspacing="1" class="tipframe" width="100%">
-                                <tr><th align='left'><?php echo $row['comments']['EV_IVV']['comment_topic'];?></th><tr>
-                                <tr><td ><?php echo $row['comments']['EV_IVV']['comment_body'];?></td></tr>
-                                <tr><td align='right'><i><?php echo $row['comments']['EV_IVV']['comment_date'];?> by <?php echo $row['comments']['EV_IVV']['user_name'];?></i></td></tr>
-                            </table>
-                        </td>
-                    <?php } } ?>
-                </tr>
+                                    <span class="sponsor">
+                                    <img src='/images/button_modify.png' style="cursor:pointer;">
+                                    </span>
+                                    <span class="contenter"><?php echo $v['decision'];?></span>
+                                </div>
+                                <input type="hidden" name="eval_id" value="<?php echo $v['id'];?>">
+                            </td></tr>
+                            <tr><td><textarea name="comment_body" rows="2" cols="50">denied info:</textarea></td></tr>
+                        <?php   }   else    {
+                                        echo'<tr><td><b>'.$v['name'].':</b> NULL</td></tr>';
+                                    }
+                            }   else    {   ?>
+                            <tr><td><b><?php echo $v['name'];?>:</b><?php echo $v['decision'];?></td>
+                        <?php if($v['decision'] == 'DENIED'){ ?>
+                                    <td width="85%">
+                                        <table class="tipframe" width="100%">
+                                            <tr><th align="left"><?php echo $v['comment_topic'];?></tr></tr>
+                                            <tr><td><?php echo $v['comment_content'];?></td></tr>
+                                            <tr><td align="right">
+                                               <i><?php echo $v['comment_date'].' by '.$v['comment_username'];?></i></td></tr>
+                                        </table>
+                                    </td>
+                        <?php } ?>
+                            </tr>
+                        <?php }  }  } ?>
                 <!-- denied input-->
-                <tr><td><textarea name="comment_body" rows="2" cols="50">denied info:</textarea></td></tr>
-            </table>
+                           </table>
         </td>
     </tr>
-    <input type='hidden' name='ev_id' value='<?php echo $row['ev_id'];?>'>
-        <?php }  } } ?>
+            <?php  } } ?>
          <!-- RESTRICT UPDATE BASED ON STATUS AND ROLE-->
         <?php if(isAllow('remediation','update_evidence')){ ?>
             <tr align='left'>
@@ -382,9 +333,9 @@
             <?php } else { ?>
                 <td colspan="2">
                     <!-- SAVE MODIFICATIONS TO EVIDENCE -->
-                        <input type='hidden' name='ev_sso_evaluation' value=''>
-                        <input type='hidden' name='ev_fsa_evaluation' value=''>
-                        <input type='hidden' name='ev_ivv_evaluation' value=''>
+                        <input type='hidden' name='EV_SSO' value=''>
+                        <input type='hidden' name='EV_FSA' value=''>
+                        <input type='hidden' name='EV_IVV' value=''>
                         <input type='submit' title='Save or Submit' value="Save" style="cursor: pointer;">
                     </form>
                 </td>
@@ -392,7 +343,7 @@
           <?php } } ?>
     </table>
     <br>
-<?php } } ?>
+<?php  } } ?>
 <div id="maskDiv" style="display: none;"></div>
 <div id="editorDIV" style="display: none;">
     <div id="editorTopDIV"><span class="left">Upload Evidence</span><span class="right">close</span></div>

@@ -270,19 +270,19 @@ class UserController extends SecurityController
                         if('password' == substr($k,5,8)){
                             if(!empty($v)){
                                 $field['password'] = md5($v);
-                                $field['date_password'] = 0;
+                                //$field['date_password'] = 0;
                             }
                         }
                         else {
                             $key = substr($k,5);
-                            $field[$k] = $v;
+                            $field[$key] = $v;
                         }
                     }
                     if('user_is_active' == 0){
-                        $field['date_deleted'] = date("Y-m-d H:m:s");
+                        $field['termination_ts'] = date("Y-m-d H:m:s");
                     }
                     if('user_is_active' == 1){
-                        $field['date_deleted'] = '';
+                        $field['termination_ts'] = '';
                     }
                     if('system' == substr($k,0,6)){
                         $sys_field[] = $v;
@@ -291,10 +291,10 @@ class UserController extends SecurityController
                 $user = $this->_user;
                 $db = $user->getAdapter();
                 $res = $user->update($field,'id = '.$id.'');
-                $res = $db->delete('USER_SYSTEM_ROLES','user_id = '.$id.'');
+                $res = $db->delete('user_systems','user_id = '.$id.'');
                 foreach($sys_field as $v){
                     $data = array('user_id'=>$id,'system_id'=>$v);
-                    $res  = $db->insert('USER_SYSTEM_ROLES',$data);
+                    $res  = $db->insert('user_systems',$data);
                 }
                 if($res){
                     $msg = '<p>User <b>modified</b> successful!</p>';

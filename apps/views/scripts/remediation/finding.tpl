@@ -22,12 +22,12 @@
                 <th align="left" colspan="2">Finding Information</th>
                 <tr><td><b>Finding ID:</b><?php echo $this->finding['f_id'];?></td></tr>
                 <tr><td><b>Date Opened:</b><?php echo $this->finding['f_created'];?></td></tr>
-                <tr><td><b>Finding Source:</b> (<?php echo $this->finding['fs_nickname'];?>)<?php echo $this->finding['fs_name'];?></td></tr>
+                <tr><td><b>Finding Source:</b> (<?php echo $this->finding['source_nickname'];?>)<?php echo $this->finding['source_name'];?></td></tr>
                 <tr><td><b>Finding Status:</b><?php echo $this->remediation_status;?></td></tr>
                 <tr>
                     <td>
                         <b>Responsible System:</b>
-                        <div id="system" type="select" name="poam_action_owner"
+                        <div id="system" type="select" name="action_owner"
                              option='{<?php foreach($this->system_list as $row){?>
                              "<?php echo $row['id'];?>":"<?php echo "(".$row['nickname'].")".$row['name'];?>",
                              <?php } ?> }'>
@@ -125,13 +125,13 @@
                 <th align='left' colspan='2'>Recommendation</th>
                 <tr>
                     <td colspan='2'>
-                        <div id="recommendation" name="poam_action_suggested" type="textarea" rows="5" cols="160">
+                        <div id="recommendation" name="action_suggested" type="textarea" rows="5" cols="160">
                         <?php if(isAllow('remediation','update_finding_recommendation')){?>
                         <span class="sponsor">
                             <img src='/images/button_modify.png' style="cursor:pointer;"></span> 
                         <?php }?>
                         <span class="contenter">
-                            <?php echo $this->remediation['poam_action_suggested'];?>
+                            <?php echo $this->remediation['action_suggested'];?>
                         </span></div>
                     </td>
                 </tr>
