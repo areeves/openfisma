@@ -331,7 +331,7 @@ class RemediationController extends PoamBaseController
             //Blscr Query
             $query->reset();
             $query->from(array('b'=>'blscrs'),'*');
-            $query->join(array('p'=>'poams'),'p.blscr = b.code',array());
+            $query->join(array('p'=>'poams'),'p.blscr_id = b.code',array());
             $query->where("p.id = ".$id."");
             $data = $poam->fetchRow($query);
             if(!empty($data)){
@@ -372,7 +372,7 @@ class RemediationController extends PoamBaseController
                 $r = $remediation;
                 $r_fields_null = array($r['threat_source'], $r['threat_justification'],
                 $r['cmeasure'], $r['cmeasure_justification'], $r['action_suggested'],
-                $r['action_planned'], $r['action_resources'], $r['blscr']);
+                $r['action_planned'], $r['action_resources'], $r['blscr_id']);
                 $r_fields_zero = array($r['action_est_date']);
                 $r_fields_none = array($r['cmeasure_effectiveness'], $r['threat_level']);
                 $is_completed = (in_array(null, $r_fields_null) || in_array('NONE', $r_fields_none) || in_array('0000-00-00', $r_fields_zero))?'no':'yes';
