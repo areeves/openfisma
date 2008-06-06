@@ -22,17 +22,64 @@ class RemediationController extends PoamBaseController
         $today = parent::$now->toString('Ymd');
 
         $summary_tmp = array('NEW'=>0,'OPEN'=>0,'EN'=>0,'EO'=>0,'EP'=>0,'EP_SNP'=>0,'EP_SSO'=>0,'ES'=>0,'CLOSED'=>0,'TOTAL'=>0);
-        ///@todo EP_SNP & EP_SSO not counted
         $total = $summary_tmp;
-        foreach($this->_system_list as $id=>$names) {
+        $ret = $this->_poam->search($this->me->systems,
+                        array('count'=>array('status','system_id'), 'status','system_id'));
+        $detail = $this->_poam->search($this->me->systems, 
+                        array('id','status','action_est_date','system_id',), 
+                        array('status'=>array('EP','EN') ));
+
+        $sum =array();
+        foreach($ret as $s) {
+            $sum[$s['system_id']][$s['status']] = $s['count'];
+        }
+        foreach($sum as $id=>&$s) {
             $summary[$id] = $summary_tmp;
-            $sum = $this->_poam->search(array($id),array('count'=>'status','status'));
-            foreach( $sum as $s ) {
-                $summary[$id][$s['status']] = $s['count'];
-                $summary[$id]['TOTAL'] += $s['count']; //ATTENTION!!!!
-                $total[$s['status']] += $s['count'];
+            $summary[$id]['NEW'] = nullGet($s['NEW'],0);
+            $summary[$id]['OPEN'] = nullGet($s['OPEN'],0);
+            $summary[$id]['ES'] = nullGet($s['ES'],0);
+            $summary[$id]['CLOSED'] = nullGet($s['CLOSED'],0);
+            $summary[$id]['TOTAL'] = array_sum($s);
+            $total['NEW'] += $summary[$id]['NEW'];
+            $total['CLOSED'] += $summary[$id]['CLOSED'];
+            $total['OPEN'] += $summary[$id]['OPEN'];
+            $total['ES'] += $summary[$id]['ES'];
+            $total['TOTAL'] += $summary[$id]['TOTAL'];
+        }
+
+        $ep_id = array();
+        $now = parent::$now->getTimestamp();
+        $est = $now;
+        foreach( $detail as $d ) {
+            $id = &$d['system_id'];
+            if( $d['status'] == 'EN' ) {
+                if( !empty($d['action_est_date'])) {
+                    $est = strtotime( $d['action_est_date'] );
+                }else{
+                    //assert(false);
+                }
+                if( $est > $now ){
+                    $summary[$id]['EO']++;
+                }else{
+                    $summary[$id]['EN']++;
+                }
+            }else{
+                assert($d['status']=='EP');
+                $ep_id[$d['id']] = $d['system_id'];
             }
         }
+        
+        $ret = $this->_poam->getEvaluation(array_keys($ep_id),true);
+        foreach( $ret as $e ) {
+            if( isset($e['decision']) && $e['decision'] == 'APPROVED' ){
+                if( $e['eval_name'] == 'EV_SSO' ){ //hardcoded
+                    $summary[$ep_id[$e['poam_id']]]['EP_SNP']++;
+                }
+            }else{
+                $summary[$ep_id[$e['poam_id']]]['EP_SSO']++;
+            }
+        }
+
         $this->view->assign('total',$total);
         $this->view->assign('systems',$this->_system_list);
         $this->view->assign('summary',$summary );

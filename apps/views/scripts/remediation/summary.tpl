@@ -20,7 +20,7 @@
 
     <!-- SUMMARY LOOP -->
     <?php 
-    define('BASE', "/zfentry.php/panel/remediation/sub/searchbox/s/search/action_owner/");
+    define('BASE', "/zfentry.php/panel/remediation/sub/searchbox/s/search/system_id/");
     foreach($this->summary as $sid=>$row){
         $base_url = BASE . $sid;
     ?>

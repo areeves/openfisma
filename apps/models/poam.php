@@ -21,8 +21,12 @@ class poam extends Zend_Db_Table
         if(is_array($where)){
              extract($where);
         }
-        if(isset($source_id) && is_int($source_id)){
+        if( !empty($source_id) ){
             $query->where("p.source_id = ".$source_id."");
+        }
+
+        if( !empty($system_id) ){
+            $query->where("p.system_id = ".$system_id."");
         }
         
         if(!empty($ids)){
@@ -30,7 +34,7 @@ class poam extends Zend_Db_Table
         }
 
         if(!empty($est_date_begin)){
-            $query->where("p.action_est_date > ?",$est_date_begin->toString('Y-m-d'));
+            $query->where("p.action_est_date >= ?",$est_date_begin->toString('Y-m-d'));
         }
 
         if(!empty($est_date_end)){
@@ -89,7 +93,12 @@ class poam extends Zend_Db_Table
         }
 
         if( !empty($group) ){
-            $query->group($group);
+            if( !is_array( $group ) ){
+                $group = array($group);
+            }
+            foreach( $group as $g){
+                $query->group($g);
+            }
         }
 
         if(!empty($date_modified)){
@@ -128,6 +137,7 @@ class poam extends Zend_Db_Table
         $ret =array();
         $count = 0;
 
+        $count_fields = false;
         if( $fields == '*' ) {
             $fields = $this->_cols;
         }else if( isset($fields['count']) ) {
@@ -211,6 +221,47 @@ class poam extends Zend_Db_Table
         return $db->fetchRow($query);
     }
 
+
+    /** Get list of evaluations on evidence of specified poam
+
+        @param $poam_ids int|array poam id(s)
+        @param $final boolean to get the final status or all the history
+        @param $decision enum{APPROVED,DENIED} 
+    */
+    public function getEvaluation($poam_id, $final=false,$decision=null)
+    {
+        if( is_numeric($poam_id) ){
+            $poam_id = array($poam_id);
+        }
+
+        $query = $this->_db->select()->from(array('ev'=>'evidences'))
+                  ->where('ev.poam_id IN ('.makeSqlInStmt($poam_id).')')
+                  ->joinLeft(array('evv'=>'ev_evaluations'),'ev.id=evv.ev_id',
+                             array('decision','date'))
+                  ->joinLeft(array('u'=>'users'),'u.id=evv.user_id',
+                            array('username'=>'account'))
+                  ->joinLeft(array('el'=>'evaluations'),'el.id=evv.eval_id',
+                             array('eval_name'=>'el.name'))
+                  ->where('el.group = ?', 'EVIDENCE')
+                  ->order(array('submit_ts DESC','ev.id','evv.date DESC'));
+        if( !empty($decision) ){
+            assert( in_array($decision, array('APPROVED','DENIED')) );
+            $query->where('evv.decision =?',$decision);
+        }
+
+        $ret = $this->_db->fetchAll($query);
+        if($final){
+            $final = array();
+            foreach($ret as $k=>$r) {
+                if( !isset( $final[$r['id']] ) ) { //It's up to order SQL phrase !!
+                    $final[$r['id']] = $r['decision'];
+                }else{
+                    unset($ret[$k]);
+                }
+            }
+        }
+        return $ret;
+    }
 
    public function fismasearch($agency){
         $flag = substr($agency,0,1);
