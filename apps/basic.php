@@ -23,7 +23,7 @@
             if( is_dir($dir) ) {
                 $target_path .= $dir . PATH_SEPARATOR ;
             }else{
-                throw new Sws_Exception();
+                throw new fisma_Exception($dir . ' is missing or not a directory');
             }
         }
         if(! empty($target_path) ){
