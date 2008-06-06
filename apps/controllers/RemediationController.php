@@ -22,13 +22,16 @@ class RemediationController extends PoamBaseController
         $today = parent::$now->toString('Ymd');
 
         $summary_tmp = array('NEW'=>0,'OPEN'=>0,'EN'=>0,'EO'=>0,'EP'=>0,'EP_SNP'=>0,'EP_SSO'=>0,'ES'=>0,'CLOSED'=>0,'TOTAL'=>0);
+
+        // mock array_fill_key in 5.2.0 
+        $count = count($this->me->systems);
+        $sum = array_fill(0,$count,$summary_tmp);
+        $summary = array_combine($this->me->systems, $sum);
+
         $total = $summary_tmp;
+
         $ret = $this->_poam->search($this->me->systems,
                         array('count'=>array('status','system_id'), 'status','system_id'));
-        $detail = $this->_poam->search($this->me->systems, 
-                        array('id','status','action_est_date','system_id',), 
-                        array('status'=>array('EP','EN') ));
-
         $sum =array();
         foreach($ret as $s) {
             $sum[$s['system_id']][$s['status']] = $s['count'];
@@ -38,6 +41,8 @@ class RemediationController extends PoamBaseController
             $summary[$id]['NEW'] = nullGet($s['NEW'],0);
             $summary[$id]['OPEN'] = nullGet($s['OPEN'],0);
             $summary[$id]['ES'] = nullGet($s['ES'],0);
+            $summary[$id]['EN'] = nullGet($s['EN'],0);
+            $summary[$id]['EP_SSO'] = nullGet($s['EP'],0); //temp placeholder
             $summary[$id]['CLOSED'] = nullGet($s['CLOSED'],0);
             $summary[$id]['TOTAL'] = array_sum($s);
             $total['NEW'] += $summary[$id]['NEW'];
@@ -47,36 +52,27 @@ class RemediationController extends PoamBaseController
             $total['TOTAL'] += $summary[$id]['TOTAL'];
         }
 
-        $ep_id = array();
-        $now = parent::$now->getTimestamp();
-        $est = $now;
-        foreach( $detail as $d ) {
-            $id = &$d['system_id'];
-            if( $d['status'] == 'EN' ) {
-                if( !empty($d['action_est_date'])) {
-                    $est = strtotime( $d['action_est_date'] );
-                }else{
-                    //assert(false);
-                }
-                if( $est > $now ){
-                    $summary[$id]['EO']++;
-                }else{
-                    $summary[$id]['EN']++;
-                }
-            }else{
-                assert($d['status']=='EP');
-                $ep_id[$d['id']] = $d['system_id'];
-            }
+        $eo_count = $this->_poam->search($this->me->systems, 
+                        array('count'=>'system_id','system_id'),
+                        array(
+                              'status'=>'EN',
+                              'est_date_end'=> parent::$now )
+                        );
+        foreach($eo_count as $eo ) {
+            $summary[$eo['system_id']]['EO'] = $eo['count'];
         }
+
+        $list = $this->_poam->search($this->me->systems, 
+                        array('id','system_id'), array('status'=>'EP'));
         
-        $ret = $this->_poam->getEvaluation(array_keys($ep_id),true);
-        foreach( $ret as $e ) {
+        foreach( $list as $r ) {
+            $ep_list[$r['id']] = $r['system_id'];
+        }
+        $ret = $this->_poam->getEvaluation(array_keys($ep_list),true);
+        foreach( $ret as $k=>$e ) {
             if( isset($e['decision']) && $e['decision'] == 'APPROVED' ){
-                if( $e['eval_name'] == 'EV_SSO' ){ //hardcoded
-                    $summary[$ep_id[$e['poam_id']]]['EP_SNP']++;
-                }
-            }else{
-                $summary[$ep_id[$e['poam_id']]]['EP_SSO']++;
+                $summary[$ep_list[$e['poam_id']]]['EP_SNP']++;
+                $summary[$ep_list[$e['poam_id']]]['EP_SSO']--;
             }
         }
 

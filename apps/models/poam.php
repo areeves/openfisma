@@ -105,7 +105,6 @@ class poam extends Zend_Db_Table
             assert($date_modified instanceof Zend_Date);
             $query->where("p.modify_ts < $date_modified->toString('Y-m-d')");
         }
-
         return $query;
     }
 
@@ -241,22 +240,22 @@ class poam extends Zend_Db_Table
                   ->joinLeft(array('u'=>'users'),'u.id=evv.user_id',
                             array('username'=>'account'))
                   ->joinLeft(array('el'=>'evaluations'),'el.id=evv.eval_id',
-                             array('eval_name'=>'el.name'))
+                             array('eval_name'=>'el.name','level'=>'el.precedence_id'))
                   ->where('el.group = ?', 'EVIDENCE')
-                  ->order(array('submit_ts DESC','ev.id','evv.date DESC'));
+                  ->order(array('ev.poam_id','ev.id','level DESC'));
         if( !empty($decision) ){
             assert( in_array($decision, array('APPROVED','DENIED')) );
             $query->where('evv.decision =?',$decision);
         }
-
         $ret = $this->_db->fetchAll($query);
         if($final){
             $final = array();
-            foreach($ret as $k=>$r) {
-                if( !isset( $final[$r['id']] ) ) { //It's up to order SQL phrase !!
-                    $final[$r['id']] = $r['decision'];
-                }else{
+            $last_pid = null;
+            foreach($ret as $k=>&$r) {
+                if( isset($last_pid) && $r['poam_id'] == $last_pid ) {
                     unset($ret[$k]);
+                }else{
+                    $last_pid = $r['poam_id'];
                 }
             }
         }
