@@ -13,7 +13,7 @@
             <input type='hidden' name='action_planned' value=''>
             <input type='hidden' name='action_resources' value=''>
             <input type='hidden' name='action_est_date' value=''>
-            <input type='hidden' name='blscr' value=''>
+            <input type='hidden' name='blscr_id' value=''>
             <input type='hidden' name='threat_level' value=''>
             <input type='hidden' name='threat_source' value=''>
             <input type='hidden' name='threat_justification' value=''>

@@ -104,12 +104,7 @@
                         <!-- VULERABILITIES TABLE -->
                         <table border="0" cellpadding="5" cellspacing="1" width="100%">
                             <tr><td><b>Vulnerability ID:</b><?php echo $row['type'].'-'.$row['seq'];?></td></tr>
-                            <tr><td><b>Primary Description:</b><?php echo $row['primary'];?></td></tr>
-                            <tr>
-                                <td><b>Secondary Description:</b>
-                                    <?php echo '0'==$row['secondary']?'<li>(none given)</li>':$row['secondary'];?>
-                                </td>
-                            </tr>
+                            <tr><td><b>Description:</b><?php echo $row['description'];?></td></tr>
                         </table>
                         <!-- END VULERABILITIES TABLE -->
                     </td>

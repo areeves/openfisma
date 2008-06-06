@@ -18,7 +18,7 @@
             <tr>
                 <td>
                     <b>Number:</b>
-                    <div id="blscr" type="select" name="blscr"
+                    <div id="blscr" type="select" name="blscr_id"
                         option='{<?php foreach($this->all_values as $value){?>
                         "<?php echo $value;?>":"<?php echo $value;?>",
                         <?php } ?> }'>

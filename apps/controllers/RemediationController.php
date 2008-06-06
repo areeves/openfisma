@@ -231,7 +231,11 @@ class RemediationController extends PoamBaseController
         $query->join(array('sys'=>'systems'),'sys.id = p.system_id',array('system_nickname'=>'sys.nickname',
                                                                       'system_name'=>'sys.name'));
         $query->where("p.id = ".$id."");
-        $finding = $poam->fetchRow($query)->toArray();
+        $result = $poam->fetchRow($query);
+        if(empty($result)){
+            die('wrong poam!');
+        }
+        $finding = $result->toArray();
         $this->view->assign('finding',$finding);
         
         //Asset Network And Addresses Query
@@ -250,9 +254,13 @@ class RemediationController extends PoamBaseController
         $query->join(array('pv'=>'poam_vulns'),'pv.poam_id = p.id',array());
         $query->join(array('v'=>'vulnerabilities'),'v.type = pv.vuln_type AND v.seq = pv.vuln_seq',
                           array('type'=>'v.type',
-                                'seq'=>'v.seq'));
+                                'seq'=>'v.seq',
+                                'description'=>'description'));
         $query->where("p.id = ".$id."");
-        $vulnerabilities = $poam->fetchAll($query)->toArray();
+        $result = $poam->fetchAll($query);
+        if(!empty($result)){
+            $vulnerabilities = $result->toArray();
+        }
 
         // Remediation Query
 
@@ -309,7 +317,7 @@ class RemediationController extends PoamBaseController
                                           'comment_content'=>'content'))
                           ->joinLeft(array('u'=>'users'),'u.id = c.user_id',
                                           array('comment_username'=>'u.account'))
-                          ->where("eval.group = 1")
+                          ->where("eval.group = 'EVIDENCE'")
                           ->order("eval.precedence_id");
                     $evaluations[$row['id']] = $db->fetchAll($query);
                     $evidences[$k]['fileName'] = basename($row['submission']);
@@ -323,7 +331,7 @@ class RemediationController extends PoamBaseController
                 $this->view->assign('num_evidence',$num_evidence);
                 $this->view->assign('evaluations',$evaluations);
             }
-        
+            
             //Blscr Query
             $query->reset();
             $query->from(array('b'=>'blscrs'),'*');
@@ -350,9 +358,9 @@ class RemediationController extends PoamBaseController
             $query->where("p.id = ".$id."");
             $query->order("al.timestamp DESC");
             $logs = $poam->fetchAll($query)->toArray();
-            foreach($logs as $k=>$v){
+            /*foreach($logs as $k=>$v){
                 $logs[$k]['time'] = date('Y-m-d H:i:s',$logs[$k]['timestamp']);
-            }
+            }*/
             $this->view->assign('logs',$logs);
             $this->view->assign('num_logs',count($logs));
 
@@ -419,7 +427,7 @@ class RemediationController extends PoamBaseController
           if(!empty($v)){
             switch($k){
                 case 'blscr':
-                    $data = array('blscr'=>$v);
+                    $data = array('blscr_id'=>$v);
                     $result = $db->update('poams',$data,'id = '.$id.'');
                     break;
                 case 'type':
@@ -608,7 +616,7 @@ class RemediationController extends PoamBaseController
             $insert_data = array('poam_id'          =>$id,
                                  'submission'    =>$path,
                                  'submitted_by'  =>$user_id,
-                                 'date_submitted'=>$today);
+                                 'submit_ts'=>$today);
             $result = $db->insert('evidences',$insert_data);
             $update_data = array('status'             => 'EP',
                                  'action_actual_date' => $now);

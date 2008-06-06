@@ -225,7 +225,7 @@
             <input type='hidden' name='action_planned' value=''>
             <input type='hidden' name='action_resources' value=''>
             <input type='hidden' name='action_est_date' value=''>
-            <input type='hidden' name='blscr' value=''>
+            <input type='hidden' name='blscr_id' value=''>
             <input type='hidden' name='threat_level' value=''>
             <input type='hidden' name='threat_source' value=''>
             <input type='hidden' name='threat_justification' value=''>
@@ -276,7 +276,7 @@
         <!-- EVIDENCE TABLE-->
         <td colspan='2' width='100%'>
             <table border='0' cellpadding='3' cellspacing='1' class='tipframe' width='100%'>
-                <tr><th align='left' colspan="2">Evidence Submitted by <?php echo $evidence['submitted_by'];?> on <?php echo $evidence['date_submitted'];?></th></tr>
+                <tr><th align='left' colspan="2">Evidence Submitted by <?php echo $evidence['submitted_by'];?> on <?php echo $evidence['submit_ts'];?></th></tr>
                 <tr colspan="2">
                     <td><b>Evidence:</b>
                     <?php if($evidence['fileExists'] == 1){ ?>
