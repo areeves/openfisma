@@ -42,7 +42,7 @@
     <?php foreach($this->rpdata as $row){ ?>
     <tr>
         <td class="tdc" align="center"><?php echo $row['system'];?></td>
-        <td class="tdc" align="center"><?php echo $row['findingnum'];?></td>
+        <td class="tdc" align="center"><?php echo $row['poamnum'];?></td>
         <td class="tdc"><?php echo $row['finding'];?></td>
         <td class="tdc" align="center"><?php echo $row['ptype'];?></td>
         <td class="tdc" align="center"><?php echo $row['pstatus'];?></td>

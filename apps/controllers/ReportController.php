@@ -123,14 +123,15 @@ class ReportController extends SecurityController
             $status = $req->get('status');
             $overdue = $req->get('overdue');
             $query = $poam->select()->setIntegrityCheck(false);
-            $query->from(array('p'=>'poams'),array('findingnum'=>'p.id',
+            $query->from(array('p'=>'poams'),array('poamnum'=>'p.id',
+                                                   'finding'=>'p.finding_data',
                                                    'ptype'=>'p.type',
                                                    'pstatus'=>'p.status',
                                                    'recommendation'=>'p.action_suggested',
                                                    'effectiveness'=>'p.cmeasure_effectiveness',
                                                    'correctiveaction'=>'p.action_planned',
                                                    'threatlevel'=>'p.threat_level',
-                                                   'EstimatedCompletionDate'=>'p.action_date_est'));
+                                                   'EstimatedCompletionDate'=>'p.action_est_date'));
             $query->join(array('sys'=>'systems'),'p.system_id = sys.id',
                                              array('system'=>'sys.nickname',
                                                    'tier'  =>'sys.tier',
@@ -153,7 +154,7 @@ class ReportController extends SecurityController
             if(!empty($fy)){
                 $begin_date = $fy. "-01-01";
                 $end_date = $fy. "-12-31";
-                $query->where("p.create_ts >= '$begin_date' and p.createe_ts <= '$end_date'");
+                $query->where("p.create_ts >= '$begin_date' and p.create_ts <= '$end_date'");
             }
             if(!empty($type)){
                 $query->where("p.type = '$type'");
@@ -163,43 +164,42 @@ class ReportController extends SecurityController
                     case '':
                         break;
                     case 'closed':
-                        $query->where("p.status ='closed'");
+                        $query->where("p.status ='CLOSED'");
                         break;
                     case 'open':
-                        $query->where("p.status != 'closed'");
+                        $query->where("p.status != 'CLOSED'");
                         break;
                     case 'openOverdue':
-                        $query->where("p.status = 'open'");
+                        $query->where("p.status = 'OPEN'");
                         break;
                     case 'enOverdue':
-                        $query->where("p.status = 'en'");
+                        $query->where("p.status = 'EN'");
                         break;
                 }
-                if(!empty($overdue)){
-                    switch($overdue){
-                        case '':
-                            break;
-                        case '30':
-                            $query->where("p.action_date_est >SUBDATE(NOW(),30) AND 
-                                           p.create_ts <NOW()");
-                            break;
-                        case '60':
-                            $query->where("p.action_date_est <SUBDATE(NOW(),30) AND 
-                                           p.action_date_est >SUBDATE(NOW(),60)");
-                            break;
-                        case '90':
-                            $query->where("p.action_date_est <SUBDATE(NOW(),60) AND 
-                                           p.action_date_est >SUBDATE(NOW(),90)");
-                            break;
-                        case '120':
-                            $query->where("p.action_date_est <SUBDATE(NOW(),90) AND
-                                           p.action_date_est >SUBDATE(NOW(),120)");
-                            break;
-                        case 'greater':
-                            $query->where("p.action_date_est < SUBDATE(NOW(),120)");
-                            break;
-                    }
-                                          
+            }
+            if(!empty($overdue)){
+                switch($overdue){
+                    case '':
+                        break;
+                    case '30':
+                        $query->where("p.action_est_date >SUBDATE(NOW(),30) AND 
+                                       p.create_ts <NOW()");
+                        break;
+                    case '60':
+                        $query->where("p.action_est_date <SUBDATE(NOW(),30) AND 
+                                       p.action_est_date >SUBDATE(NOW(),60)");
+                        break;
+                    case '90':
+                        $query->where("p.action_est_date <SUBDATE(NOW(),60) AND 
+                                       p.action_est_date >SUBDATE(NOW(),90)");
+                        break;
+                    case '120':
+                        $query->where("p.action_est_date <SUBDATE(NOW(),90) AND
+                                       p.action_est_date >SUBDATE(NOW(),120)");
+                        break;
+                    case 'greater':
+                        $query->where("p.action_est_date < SUBDATE(NOW(),120)");
+                        break;
                 }
             }
             $poams = $poam->fetchAll($query)->toArray();
@@ -264,7 +264,7 @@ class ReportController extends SecurityController
             case 1:
                 $rpdata = array();
                 $query = $db->select()->from(array('p'=>'poams'),array('n'=>'count(p.id)'))
-                                      ->join(array('b'=>'blscrs'),'b.id = p.blscr_id',
+                                      ->join(array('b'=>'blscrs'),'b.code = p.blscr_id',
                                              array('t'=>'b.code'))
                                       ->where("b.class = 'MANAGEMENT'")
                                       ->group("b.code");
@@ -272,7 +272,7 @@ class ReportController extends SecurityController
                 array_push($rpdata,$result);
                 $query->reset();
                 $query = $db->select()->from(array('p'=>'poams'),array('n'=>'count(p.id)'))
-                                      ->join(array('b'=>'blscrs'),'b.id = p.blscr_id',
+                                      ->join(array('b'=>'blscrs'),'b.code = p.blscr_id',
                                              array('t'=>'b.code'))
                                       ->where("b.class = 'OPERATIONAL'")
                                       ->group("b.code");
@@ -280,7 +280,7 @@ class ReportController extends SecurityController
                 array_push($rpdata,$result);
                 $query->reset();
                 $query = $db->select()->from(array('p'=>'poams'),array('n'=>'count(p.id)'))
-                                      ->join(array('b'=>'blscrs'),'b.id = p.blscr_id',
+                                      ->join(array('b'=>'blscrs'),'b.code = p.blscr_id',
                                              array('t'=>'b.code'))
                                       ->where("b.class = 'TECHNICAL'")
                                       ->group("b.code");
@@ -413,11 +413,11 @@ class ReportController extends SecurityController
     public function fismaAction(){
         $req = $this->getRequest();
         $user = new User();
-        $uid = $this->me->user_id;
+        $uid = $this->me->id;
         $ids = implode(',',$user->getMySystems($uid));
         $db = $user->getAdapter();
         $query = $db->select()->distinct()->from(array('s'=>'systems'),array('name'=>'s.nickname'))
-                                          ->where("system_id in (".$ids.")");
+                                          ->where("id in (".$ids.")");
         $systems = $db->fetchAll($query);
         foreach($systems as $k=>$v){
             $systems[$v['name']] = $v['name'];
@@ -491,17 +491,17 @@ class ReportController extends SecurityController
         }
 
         $query = $db->select()->from(array('s'=>'systems'),array('id'=>'s.id'))
-                              ->where("nickname = '".$system."'")
+                              ->where("nickname = '$system'")
                               ->limit(1);
         $result = $db->fetchRow($query);
-        if('' == $result){
+        if(empty($result)){
             die("getFSASysID -no entry found in SYSTEMS for FSA");
         }
         $fsa_system_id = $result['id'];
 
         $query->reset();
         $query = $db->select()->from(array('sg'=>'system_groups'),array('id'=>'id'))
-                              ->where("nickname = '".$system."'")
+                              ->where("nickname = '$system'")
                               ->limit(1);
         $result = $db->fetchRow($query);
         if('' == $result){
@@ -512,7 +512,7 @@ class ReportController extends SecurityController
         Zend_Registry::set('fsa_system_id',   $fsa_system_id);
         Zend_Registry::set('startdate',       $startdate);
         Zend_Registry::set('enddate',         $enddate);
- 
+
         $this->view->assign('AAW',$poam->fismasearch('aaw'));
         $this->view->assign('AS', $poam->fismasearch('as'));
         $this->view->assign('BAW',$poam->fismasearch('baw'));

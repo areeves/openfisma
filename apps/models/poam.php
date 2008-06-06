@@ -269,8 +269,8 @@ class poam extends Zend_Db_Table
         $fp_system_id = Zend_Registry::get('fsa_system_id');
         $startdate = Zend_Registry::get('startdate');
         $enddate = Zend_Registry::get('enddate');
-                $query = $db->select()->from(array('sgs'=>'system_group_systems'),array('system_id'=>'system_id'))
-                              ->where("sgs.sysgroup_id = ".$fsa_sysgroup_id." AND sgs.system_id != ".$fp.system_id."");
+        $query = $db->select()->from(array('sgs'=>'systemgroup_systems'),array('system_id'=>'system_id'))
+                              ->where("sgs.sysgroup_id = ".$fsa_sysgroup_id." AND sgs.system_id != ".$fp_system_id."");
         $result = $db->fetchCol($query);
         $system_ids = implode(',',$result);
         $query = $db->select()->distinct()
@@ -280,77 +280,77 @@ class poam extends Zend_Db_Table
             case 'a':
                 switch($agency){
                     case 'aaw':
-                        $query->where("p.system_id = '".$fp.system_id."'");
+                        $query->where("p.system_id = '$fp_system_id'");
                         break;
                     case 'as':
                         $query->where("p.system_id IN (".$system_ids.")");
                         break;
                 }
-                $query->where("p.create_ts < '".$startdate."'")
-                      ->where("p.close_ts IS NULL OR p.close_ts >= '".$startdate."'");
+                $query->where("p.create_ts < '$startdate'")
+                      ->where("p.close_ts IS NULL OR p.close_ts >= '$startdate'");
                 break;
             case 'b':
                 switch($agency){
                     case 'baw':
-                        $query->where("p.system_id = '".$fp.system_id."'");
+                        $query->where("p.system_id = '$fp_system_id'");
                         break;
                     case 'bs':
                         $query->where("p.system_id IN (".$system_ids.")");
                         break;
                 }
-                $query->where("p.create_ts <= '".$enddate."'")
-                      ->where("p.action_est_date <= '".$enddate."'")
-                      ->where("p.action_date_actual >= '".$startdate."'")
-                      ->where("p.action_date_actual <= '".$enddate."'");
+                $query->where("p.create_ts <= '$enddate'")
+                      ->where("p.action_est_date <= '$enddate'")
+                      ->where("p.action_date_actual >= '$startdate'")
+                      ->where("p.action_date_actual <= '$enddate'");
                 break;
             case 'c':
                 switch($agency){
                     case 'caw':
-                        $query->where("p.system_id = '".$fsa_system_id."'");
+                        $query->where("p.system_id = '$fsa_system_id'");
                         break;
                     case 'cs':
                         $query->where("p.system_id IN (".$system_ids.")");
                         break;
                 }
-                $query->where("p.create_ts <= '".$enddate."'")
-                      ->where("p.action_est_date > '".$enddate."'")
+                $query->where("p.create_ts <= '$enddate'")
+                      ->where("p.action_est_date > '$enddate'")
                       ->where("p.action_date_actual IS NULL");
                 break;
             case 'd':
                 switch($agency){
                     case 'daw':
-                        $query->where("p.system_id = '".$fsa_system_id."'");
+                        $query->where("p.system_id = '$fsa_system_id'");
                         break;
                     case 'ds':
                         $query->where("p.system_id IN (".$system_ids.")");
                         break;
                 }
-                $query->where("p.action_est_date <= '".$enddate."'")
-                      ->where("p.action_date_actual IS NULL OR p.action_date_actual > '".$enddate."'");
+                $query->where("p.action_est_date <= '$enddate'")
+                      ->where("p.action_date_actual IS NULL OR p.action_date_actual > '$enddate'");
                 break;
             case 'e':
                 switch($agency){
                     case 'eaw':
-                        $query->where("p.system_id = '".$fsa_system_id."'");
+                        $query->where("p.system_id = '$fsa_system_id'");
                         break;
                     case 'es':
                         $query->where("p.system_id IN (".$system_ids.")");
                         break;
                 }
-                $query->where("p.create_ts >= '".$startdate."'")
-                      ->where("p.create_ts <= '".$enddate."'");
+                $query->where("p.create_ts >= '$startdate'")
+                      ->where("p.create_ts <= '$enddate'");
                 break;
             case 'f':
                 switch($agency){
                     case 'faw':
-                        $query->where("p.system_id = '".$fsa_system_id."'");
+                        $query->where("p.system_id = '$fsa_system_id'");
                         break;
                     case 'fs':
                         $query->where("p.system_id IN (".$system_ids.")");
                         break;
                 }
-                $query->where("p.create_ts <= '".$enddate."'")
-                      ->where("p.close_ts IS NULL OR p.close_ts > '".$enddate."'");
+                $query->where("p.create_ts <= '$enddate'")
+                      ->where("p.close_ts IS NULL OR p.close_ts > '$enddate'");
                 break;
         }
         $result = $db->fetchRow($query);
