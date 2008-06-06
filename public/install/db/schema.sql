@@ -80,7 +80,7 @@ CREATE TABLE `ev_evaluations` (
   `ev_id` int(10) NOT NULL,
   `eval_id` int(10) NOT NULL,
   `user_id` int(10) NOT NULL,
-  `decision` enum('APPROVED','DENIED','EXECLUDED') NOT NULL,
+  `decision` enum('APPROVED','DENIED') NOT NULL,
   `date` date NOT NULL default '0000-00-00',
   PRIMARY KEY  (`id`)
 ); 
