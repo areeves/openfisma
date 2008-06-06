@@ -710,8 +710,13 @@ function poam_vulns_conv($db_src, $db_target, $data)
 
 function insert_ev_eval($db_target,$ev_id,$eval_id,$decision,$date)
 {
-        if(!$date)
+        if(!$date){
             $date='0000-00-00';
+        }
+        if(in_array($decision, array('EXCLUDED','NONE'))){
+            echo "evidence($ev_id) $decision is discarded by design\n";
+            return;
+        }
         $tmparray=array('ev_id'=>$ev_id,
                       'eval_id'=>$eval_id, 
                      'decision'=>$decision,
