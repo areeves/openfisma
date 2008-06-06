@@ -25,11 +25,14 @@
     require_once 'Zend/Db/Table.php';
     require_once MODELS . DS . 'Abstract.php';
     require_once 'Zend/Controller/Plugin/ErrorHandler.php';
+    require_once 'Zend/Date.php';
     require_once ( CONFIGS . DS . 'database.php');
 
     $db = Zend_DB::factory(Zend_Registry::get('datasource')->default);
     Zend_Db_Table::setDefaultAdapter($db);
     Zend_Registry::set('db', $db);
+    Zend_Date::setOptions(array('format_type' => 'php'));
+
     $options = array(
         'layout'     => 'default',
         'layoutPath' => VIEWS . DS . 'layouts',
