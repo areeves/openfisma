@@ -72,19 +72,20 @@ class User extends Fisma_Model
     */
     public function getMySystems($id)
     {
-        assert($id);
-        $db = Zend_Registry::get('db');
+        assert(!empty($id));
+        $db = $this->_db;
         $origin_mode = $db->getFetchMode();
         $qry = $db->select()->from($this->_name, 'account')->where('id = ?', $id);
         $user = $db->fetchOne($qry);
-
-        $qry->reset();
-        $qry = $db->select()->distinct()->from('user_systems', 'system_id');
-        if($user != 'root') {
-            $qry->where("user_id = $id");
-        }
         $db->setFetchMode(Zend_Db::FETCH_OBJ);
-        $sys = $db->fetchCol($qry);
+        if($user == 'root') {
+            $sys = $db->fetchCol('SELECT id from systems where 1');
+        }else{
+            $qry->reset();
+            $qry = $db->select()->distinct()->from('user_systems', 'user_id')
+                                ->where("user_id = $id");
+            $sys = $db->fetchCol($qry);
+        }
         $db->setFetchMode($origin_mode);
         if( empty($sys) ){
             throw new fisma_Exception('ATTENTION: No systems found! Please

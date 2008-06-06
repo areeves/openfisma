@@ -6,8 +6,8 @@
 #
 
 PROJECT = OpenFISMA
-CODE = ZF
-VERSION =2.0
+CODE = Migration
+VERSION =1.0
 
 TAR = tar
 DOXYGEN = doxygen
@@ -17,16 +17,15 @@ NAME = $(PROJECT)-$(CODE)-$(VERSION)
 ROOT = $(WKDIR)
 
 src = $(NAME)/public     \
-      $(NAME)/include    \
-      $(NAME)/lib        \
       $(NAME)/log        \
       $(NAME)/vendor     \
       $(NAME)/apps       \
       $(NAME)/conf       \
-      $(NAME)/smarty     \
-      $(NAME)/inject     \
       $(NAME)/paths.php  \
-      $(NAME)/index.html
+      $(NAME)/bin        \
+      $(NAME)/include    \
+      $(NAME)/index.html \
+      $(NAME)/INSTALL
 
 dev = $(NAME)/test       \
       $(NAME)/DEVELOP    \

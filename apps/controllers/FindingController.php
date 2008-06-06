@@ -284,14 +284,8 @@ class FindingController extends PoamBaseController
             $this->message($message,$model);
         }
 
-        $user = new User();
-        $src = new Source();
-        $net = new Network();
-        $sys = new System();
-        $asset = new Asset();
-        $source_list = $src->getList('name');
-        $this->view->assign('system',$this->_systems);
-        $this->view->assign('source',$source_list);
+        $this->view->assign('system',$this->_system_list);
+        $this->view->assign('source',$this->_source_list);
         $this->render();
     }
     
