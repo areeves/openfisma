@@ -239,7 +239,7 @@ table.rafImpact td {
   </tr>
   <tr>
     <td colspan="4">
-      <b>Business Case Jusification for accepted low risk:</b>
+      <b>Business Case Justification for accepted low risk:</b>
     </td>
   </tr>
   <tr>
@@ -280,7 +280,7 @@ table.rafImpact td {
   <tr>
     <td align="right" colspan="4">
       <input type="button" name="Button" value="Print" onclick="javascript:window.print();">
-      <input type="button" name="Button" value="Export to PDF" onclick="javascript:window.location='raf.php?poam_id={$poam_id}&pdf=true';">
+      <input type="button" name="Button" value="Export to PDF" onclick="javascript:window.location='craf.php?poam_id={$poam_id}';">
     </td>
   </tr>
 {/if}

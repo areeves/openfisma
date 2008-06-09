@@ -28,7 +28,6 @@ if(isset($_POST['poam_id'])) {
 	die("needs poam_id");
 }
 
-//
 $rafObj = new Raf($db);
 $rafObj->setPoam_id($poam_id);
 $screen_name = "RAF";
