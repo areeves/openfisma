@@ -40,12 +40,12 @@ class PanelController extends SecurityController
         $this->_helper->actionStack('header');
     }
     
-    public function userAction()
+    public function accountAction()
     {
         $req = $this->getRequest();
         $sub = $req->getParam('sub');
-        $this->_helper->actionStack($sub,'User');
-        $this->_helper->actionStack('searchbox','User');
+        $this->_helper->actionStack($sub,'Account');
+        $this->_helper->actionStack('searchbox','Account');
         $this->_helper->actionStack('header');
     }
 
