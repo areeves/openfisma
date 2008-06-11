@@ -335,13 +335,16 @@ switch ($op){
             $name_c = $sm->getConfigVal('name_c');
             $passwd_c = $sm->getConfigVal('pass_c');
             $stage =  sprintf(_INST_ID_L2 . "<br />", $dbname );
-            $db->Connect($sm->getConfigVal('host'),$sm->getConfigVal('uname'),$sm->getConfigVal('upass'),$dbname);
-            $db->SelectDB($sm->getConfigVal('dbname'));
+            $uname=$sm->getConfigVal('uname');
+            $upass=$sm->getConfigVal('upass');
+            $db->Connect($sm->getConfigVal('host'),$uname,$upass,$dbname);
+            $db->SelectDB($dbname);
             $content .= _OKIMG . $stage;
             $stage = sprintf(_INST_ID_L4 . "<br />", $name_c, $dbname) ;
-            $db->query("GRANT ALL PRIVILEGES ON `$dbname` . * TO '$name_c'@'localhost'
-                    IDENTIFIED BY '$passwd_c' WITH GRANT OPTION");
-            $content .= _OKIMG . $stage;
+            if($uname!=$name_c){
+                $db->query("GRANT ALL PRIVILEGES ON `$dbname` . * TO '$name_c'@'localhost' IDENTIFIED BY '$passwd_c' WITH GRANT OPTION");
+                $content .= _OKIMG . $stage;
+            }
             $stage = _INST_ID_L5 . "<br />"  ;
             $schema_file = OVMS_INSTALL_PATH . DS. "db". DS. OVMS_DATABASE;
             if(file_exists($schema_file)){

@@ -83,10 +83,16 @@ class setting_manager {
                 $this->dsn[$key] = trim($this->sanitizer->stripSlashesGPC($_POST[$key.$this->dbSurfix]));
             }
         }
-        $this->pass_c_mismatch = true;
-        if(isset($_POST['pass_c'.$this->dbSurfix.'_ag'])) {
-            $this->pass_c_mismatch = 
+        $this->pass_c_mismatch = false;
+        if(empty($this->dsn['name_c']) && empty($this->dsn['pass_c'])){
+            $this->dsn['name_c']=$this->dsn['uname'];
+            $this->dsn['pass_c']=$this->dsn['upass'];
+            $this->pass_c_mismatch=true;
+        }else{
+            if(isset($_POST['pass_c'.$this->dbSurfix.'_ag'])) {
+                $this->pass_c_mismatch = 
                 ($this->dsn['pass_c'] == trim($this->sanitizer->stripSlashesGPC($_POST['pass_c'.$this->dbSurfix.'_ag']) ) );
+            }
         }
         if(isset($_POST['sws_url'])){
             $this->url = $this->sanitizer->stripSlashesGPC($_POST['sws_url']);
