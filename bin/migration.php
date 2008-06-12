@@ -84,6 +84,11 @@
         }
     }
 
+    $db_target->query(' INSERT INTO `poams` 
+        (`legacy_finding_id`, `asset_id`, `source_id`, 
+        `system_id`, `blscr_id`, `create_ts`, `discover_ts`, 
+        `status`, `finding_data`) SELECT * from poam_tmp');
+
 
 
 
@@ -558,6 +563,7 @@ function poam_conv( $db_src, $db_target)
      $db_target->insert('poams',$tmp);
     }
 }
+
 
 function  vulnerabilities_conv($db_src, $db_target, $data)
 {
