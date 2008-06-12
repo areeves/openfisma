@@ -12,11 +12,11 @@
 		<td  align="left"><b>Alerts </b><br>
 			<br>
 			<!-- Awaiting Mitigation Strategy -->
-			<li>There are <b><?PHP echo $this->escape($this->open);?></b> finding(s) awaiting a mitigation strategy and approval.</li>
+			<li>There are <b><?PHP echo $this->alert['OPEN'];?></b> finding(s) awaiting a mitigation strategy and approval.</li>
 			<!-- Awaiting Evidence -->
-			<li>There are <b><?PHP echo $this->escape($this->need_ev_ot);?></b> finding(s) awaiting evidence.
+			<li>There are <b><?PHP echo $this->alert['EN'];?></b> finding(s) awaiting evidence.
             <!-- Overdue Awaiting Evidence -->
-			<li>There are <b><?PHP echo $this->escape($this->need_ev_od);?></b> overdue finding(s) awaiting evidence.
+			<li>There are <b><?PHP echo $this->alert['EO'];?></b> overdue finding(s) awaiting evidence.
             <br>
 		</td>
 	</tr>
@@ -29,9 +29,28 @@
 <table width="95%" align="center" border="0" cellpadding="0" cellspacing="0" class="tipframe">
 	<tr><td colspan="3"  align="left"><b>&nbsp;&nbsp;&nbsp;Management Overview </b></td></tr>
     <tr>
-      <td width="33%"  align="center"><?PHP echo $this->OneChart; ?></td>
-      <td width="34%"  align="center"><?PHP echo $this->TwoChart; ?></td>
-      <td width="33%"  align="center"><?PHP echo $this->ThreeChart; ?></td>
+      <td width="33%"  align="center">
+        <?php echo $this->partial('dashboard/chart.tpl', array(
+                    'source_url'=> '/zfentry.php/dashboard/totalstatus/format/xml/type/pie',
+                    'width'=>380,
+                    'height'=>220 ) );
+        ?>
+      </td>
+      <td width="34%"  align="center">
+        <?php echo $this->partial('dashboard/chart.tpl', array(
+                    'source_url'=> urlencode(
+                        '/zfentry.php/dashboard/totalstatus/format/xml/type/3d column'),
+                    'width'=>200,
+                    'height'=>220 ) );
+        ?>
+      </td>
+      <td width="33%"  align="center">
+        <?php echo $this->partial('dashboard/chart.tpl', array(
+                    'source_url'=> '/zfentry.php/dashboard/totaltype/format/xml',
+                    'width'=>380,
+                    'height'=>220 ));
+        ?>
+      </td>
     </tr>
     <tr>
       <td width="33%"  align="center">Current Distribution of<br>POA&M Status</td>
