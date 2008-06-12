@@ -34,7 +34,7 @@ class AccountController extends SecurityController
     public function preDispatch()
     {
         $req = $this->getRequest();
-        $this->_paging_base_path = $req->getBaseUrl() .'/panel/user/sub/list';
+        $this->_paging_base_path = $req->getBaseUrl() .'/panel/account/sub/list';
         $this->_paging['currentPage'] = $req->getParam('p',1);
         if(!in_array($req->getActionName(),array('login','logout') )){
             // by pass the authentication when login
@@ -59,7 +59,7 @@ class AccountController extends SecurityController
                      'account'=>'Username');
         $this->view->assign('fid_array',$fid_array);
         $req = $this->getRequest();
-        $this->_paging_base_path = $req->getBaseUrl().'/panel/user/sub/list';
+        $this->_paging_base_path = $req->getBaseUrl().'/panel/account/sub/list';
         $this->_paging['currentPage'] = $req->getParam('p',1);
         $fid = $req->getParam('fid');
         $qv = $req->getParam('qv');
