@@ -50,6 +50,17 @@
     
     $delta = 1000;
     echo "start to migrate \n";
+    $sql = "CREATE TABLE IF NOT EXISTS poam_tmp (
+`legacy_finding_id` int(10) unsigned NOT NULL default '0',
+`asset_id` int(10) unsigned NOT NULL default '0',
+`source_id` int(10) unsigned NOT NULL default '0',
+`system_id` int(10) unsigned NOT NULL default '0',
+`blscr_id` varchar(5) default NULL,
+`create_ts` datetime NOT NULL default '0000-00-00 00:00:00',
+`discover_ts` datetime NOT NULL default '0000-00-00 00:00:00',
+`status` enum('NEW','OPEN','EN','EP','ES','CLOSED','DELETED') NOT NULL default 'NEW',
+`finding_data` text NOT NULL) ";
+    $db_target->query($sql);
     foreach( $table_name as $table ) 
     {
         echo "$table ";
@@ -443,41 +454,22 @@ function finding_conv($db_src, $db_target, $data)
                       ->join(array('sys'=>'SYSTEM_ASSETS'),'sys.asset_id = as.asset_id') );
     if(empty($asset_data)) {
         echo "asset {$data['asset_id']} missing for finding[{$data['finding_id']}] \n";
+    }
+    if(empty($poam_data)){
+        $tmp = array(
+                     'legacy_finding_id'=> $data['finding_id'],
+                     'asset_id'=>$data['asset_id'],
+                     'source_id'=>$data['source_id'],
+                     'system_id'=> isset($asset_data[0]['system_id'])?$asset_data[0]['system_id']:0,
+                     'create_ts'=>$data['finding_date_created'],
+                     'finding_data'=>$data['finding_data'],
+                     'discover_ts'=>$data['finding_date_discovered'],
+                     'status'=>'NEW'
+                     );
+        $db_target->insert('poam_tmp',$tmp);
         return;
     }else{
-        if(empty($poam_data)){
-
-            $sql = "CREATE TABLE IF NOT EXISTS poam_tmp (
-  `legacy_finding_id` int(10) unsigned NOT NULL default '0',
-  `asset_id` int(10) unsigned NOT NULL default '0',
-  `source_id` int(10) unsigned NOT NULL default '0',
-  `system_id` int(10) unsigned NOT NULL default '0',
-  `blscr_id` varchar(5) default NULL,
-  `create_ts` datetime NOT NULL default '0000-00-00 00:00:00',
-  `discover_ts` datetime NOT NULL default '0000-00-00 00:00:00',
-  `status` enum('NEW','OPEN','EN','EP','ES','CLOSED','DELETED') NOT NULL default 'NEW',
-  `finding_data` text NOT NULL) ";
-            $db_target->query($sql);
-            $tmp = array(
-                         'legacy_finding_id'=> $data['finding_id'],
-                         'asset_id'=>$data['asset_id'],
-                         'source_id'=>$data['source_id'],
-                         'system_id'=>$asset_data[0]['system_id'],
-                         'create_ts'=>$data['finding_date_created'],
-                         'finding_data'=>$data['finding_data'],
-                         'discover_ts'=>$data['finding_date_discovered'],
-                         'status'=>'NEW'
-                         );
-            //echo "INSERT INTO poams (" . implode(',',array_keys($tmp)).") VALUES ('" .
-            //     implode("','",$tmp) . "');\n";
-            $db_target->insert('poam_tmp',$tmp);
-            return;
-        }else{
-            $poam_data = $poam_data[0];
-        }
-        if($poam_data['poam_action_owner'] != $asset_data[0]['system_id']){
-            echo "finding_id[{$data['finding_id']}] system_id {$asset_data[0]['system_id']} is inconsistent with action owner {$poam_data['poam_action_owner']} \n";
-        }
+        $poam_data = $poam_data[0];
     }
 
     if($data['finding_id'] != $poam_data['finding_id']){
@@ -814,6 +806,5 @@ function poam_comments_conv($db_src, $db_target, $data)
                       'event'=>"MODIFICATION",
                 'description'=>$description);
     $db_target->insert('audit_logs',$tmparray);
-
 }
 ?>
