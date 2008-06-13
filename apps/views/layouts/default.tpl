@@ -5,7 +5,18 @@
 <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
 <script LANGUAGE="JavaScript" type="text/javascript" src="/javascripts/jquery/jquery.js"></script>
 <script LANGUAGE="JavaScript" type="text/javascript" src="/javascripts/ajax.js"></script>
-<!--[If lte IE 6]>
+
+<script LANGUAGE="JavaScript" type="text/javascript" src="/javascripts/jquery/jquery.ui/jquery.dimensions.js"></script>
+<script LANGUAGE="JavaScript" type="text/javascript" src="/javascripts/jquery/jquery.ui/ui.dialog.js"></script>
+<script LANGUAGE="JavaScript" type="text/javascript" src="/javascripts/jquery/jquery.ui/ui.resizable.js"></script>
+<script LANGUAGE="JavaScript" type="text/javascript" src="/javascripts/jquery/jquery.ui/ui.mouse.js"></script>
+<script LANGUAGE="JavaScript" type="text/javascript" src="/javascripts/jquery/jquery.ui/ui.draggable.js"></script>
+<script LANGUAGE="JavaScript" type="text/javascript" src="/javascripts/jquery/jquery.ui/datepicker/core/ui.datepicker.js"></script>
+<script LANGUAGE="JavaScript" type="text/javascript" src="/javascripts/menu.js"></script>
+<script LANGUAGE="JavaScript" type="text/javascript" src="/javascripts/cal.js"></script>
+
+<link rel="stylesheet" href="/javascripts/jquery/jquery.ui/themes/flora/flora.all.css" type="text/css">
+<link rel="stylesheet" href="/javascripts/jquery/jquery.ui/datepicker/core/ui.datepicker.css" type="text/css"><!--[If lte IE 6]>
 <style type="text/css" >
 @import url("/stylesheets/ie.css");
 </style>
