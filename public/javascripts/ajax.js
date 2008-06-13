@@ -127,8 +127,30 @@ function asset_detail() {
 
 
 function upload_evidence(){
-    $("#maskDiv").show();
-    $("#editorDIV").show();
+    //$("#up_evidence").blur();
+    var dw = $(document).width();
+    var dh = $(document).height();
+
+    $('<div id="full"></div>')
+                .width(dw).height(dh)
+                .css({backgroundColor:"#000000", marginTop:-1*dh, opacity:0, zIndex:10})
+                .appendTo("body").fadeTo(1, 0.4);
+                
+    $('<div class="flora" title="Upload Evidence">Loading ....</div>').load( 'http://localhost:8363/kkk.php', null, function(){
+        $(this).dialog({position:'center', width: 540, height: 250, resizable: true,
+            buttons: {
+                'Continue': function() {  
+                    $('#upload_ev').submit();
+                },
+                'Cancel': function() {    
+                    $('#full').hide().remove();
+                    $(this).dialogClose();
+                    $('.ui-dialog').remove();
+                }
+            }
+        });
+    });
+    return false;
 }
     
 
