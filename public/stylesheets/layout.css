@@ -12,6 +12,7 @@ img#logo {
 }
 
 #container {
-    padding: 0 5em;
+    padding: 0 5px;
+    margin: 0 5px;
 }
 
