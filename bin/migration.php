@@ -28,9 +28,10 @@
 
 
     $table_name=  array(
-              'BLSCR', 'NETWORKS', 
+              'BLSCR', 
+              'NETWORKS', 
               'PRODUCTS',
-              'FINDING_SOURCES' , 
+              'FINDING_SOURCES', 
               'SYSTEM_GROUP_SYSTEMS','SYSTEMS',
               'SYSTEM_GROUPS','FUNCTIONS','ROLES','ASSETS',
               'USER_ROLES',
@@ -41,7 +42,7 @@
               'VULN_PRODUCTS',
               'VULNERABILITIES',
               'FINDING_VULNS',
-              'POAM_EVIDENCE',
+              'POAM_EVIDENCE', 
               'POAM_COMMENTS'
               );
 
@@ -449,6 +450,7 @@ function finding_conv($db_src, $db_target, $data)
     $qry = $db_src->select();
     $poam_data = $db_src->fetchAll($qry->from('POAMS')->where('finding_id=?',$data['finding_id']));
     $qry->reset();
+ 
     $asset_data = $db_src->fetchAll(
                   $qry->from(array('as'=>'ASSETS'))->where('as.asset_id=?',$data['asset_id'])
                       ->join(array('sys'=>'SYSTEM_ASSETS'),'sys.asset_id = as.asset_id') );
@@ -475,6 +477,12 @@ function finding_conv($db_src, $db_target, $data)
     if($data['finding_id'] != $poam_data['finding_id']){
         echo "{$data['finding_id']} is inconsistent between finding_id and poam.finding_id \n";
     }
+
+    if($poam_data['poam_status']=='OPEN' && $poam_data['poam_type']=='NONE')
+    {
+        $poam_data['poam_status']='NEW';
+    }
+
     $tmp = array('id'=> $poam_data['poam_id'],
                  'legacy_finding_id'=> $data['finding_id'],
                  'asset_id'=>$data['asset_id'],
@@ -715,11 +723,11 @@ function insert_ev_eval($db_target,$ev_id,$eval_id,$decision,$date)
             echo "evidence($ev_id) $decision is discarded by design\n";
             return;
         }
-        $tmparray=array('ev_id'=>$ev_id,
+        $tmparray=array('group_id'=>$ev_id,
                       'eval_id'=>$eval_id, 
                      'decision'=>$decision,
                          'date'=>$date );
-        $db_target->insert('ev_evaluations',$tmparray);
+        $db_target->insert('poam_evaluations',$tmparray);
 }
 
 function poam_evidence_conv($db_src, $db_target, $data)
@@ -753,45 +761,72 @@ function poam_evidence_conv($db_src, $db_target, $data)
     }
 }
 
+function insert_poam_eval($db_target,$poam_id,$eval_id,$decision,$date)
+{
+        if(!$date){
+            $date='0000-00-00';
+        }
+        if(!in_array($decision, array('APPROVED','DENIED','EST_CHANGED'))){
+            echo "evaluation($poam_id) $decision is wrong!!\n";
+            return;
+        }
+        $tmparray=array('group_id'=>$poam_id,
+                      'eval_id'=>$eval_id, 
+                     'decision'=>$decision,
+                         'date'=>$date );
+        $db_target->insert('poam_evaluations',$tmparray);
+        return $db_target->lastInsertId();
+}
+
 function poam_comments_conv($db_src, $db_target, $data)
 {
-    /*
-    $qry=$db_target->select()->from('evaluations',array('id','name'));
-    $evals=$db_target->fetchPairs($qry);
-*/
-    $evals=array('1'=>'EV_SSO',
-                 '2'=>'EV_FSA',
-                 '3'=>'EV_IVV',
-                 '4'=>'EST',
-                 '5'=>'SSO');
-    $eval_id=NULL;
-    foreach($evals as $key=>$eval_name)
-    {
-        if($data['comment_type']==$eval_name)
-         {
-             $eval_id=$key;
-             break;
-         }
+    $evals=array('EV_SSO'=> 1,
+                 'EV_FSA'=> 2,
+                 'EV_IVV'=> 3,
+                 'EST'  => 4,
+                 'SSO' => 5);
+    $eval_id = 0;
+    if(isset($evals[$data['comment_type']])){
+        $eval_id = $evals[$data['comment_type']];
+    }else if( isset($evals[$data['comment_log']]) ){
+        $eval_id = $evals[$data['comment_log']];
+        $data['comment_type'] = $data['comment_log'];
+        $data['comment_log'] = $data['comment_body'];
+        $data['comment_body'] = $data['comment_topic'];
+        $data['comment_topic'] = '';
+    }else{
+        return;
     }
-  
-    if($eval_id&&$data['ev_id'])
+
+    if($eval_id == 4 )
     {
-        $qry=$db_target->select()->from('ev_evaluations',array('id'))
-                                 ->where('ev_id=?',$data['ev_id'])
+        assert( $data['poam_id']);
+        $ev_evaluation_id = insert_poam_eval($db_target, $data['poam_id'],$eval_id,'EST_CHANGED',$data['comment_date']);
+    }else if($eval_id == 5){
+        $ev_evaluation_id = insert_poam_eval($db_target, $data['poam_id'],$eval_id,'DENIED',$data['comment_date']);
+
+    }else{
+        assert( $data['ev_id']);
+        $qry=$db_target->select()->from('poam_evaluations',array('id'))
+                                 ->where('group_id=?',$data['ev_id'])
                                  ->where('eval_id=?',$eval_id);
         $ev_evaluation_id=$db_target->fetchRow($qry);
         if(!empty($ev_evaluation_id))
         {
             $ev_evaluation_id=$ev_evaluation_id['id'];
-
-            $tmparray=array('id'=>$data['comment_id'],
-              'ev_evaluation_id'=>$ev_evaluation_id,
-                       'user_id'=>$data['user_id'],
-                          'date'=>$data['comment_date'],
-                         'topic'=>$data['comment_topic'],
-                       'content'=>$data['comment_body']);
-            $db_target->insert('comments',$tmparray);
-         }
+        }else{
+            $ev_evaluation_id=0;
+        }
+    }
+    if(!empty($ev_evaluation_id) )
+    {
+        $tmparray=array('id'=>$data['comment_id'],
+        'poam_evaluation_id'=>$ev_evaluation_id,
+                   'user_id'=>$data['user_id'],
+                      'date'=>$data['comment_date'],
+                     'topic'=>$data['comment_topic'],
+                   'content'=>$data['comment_body'].$data['comment_log']);
+        $db_target->insert('comments',$tmparray);
     }
     $description="";
     if($data['comment_topic'])

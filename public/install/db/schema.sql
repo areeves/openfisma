@@ -49,7 +49,7 @@ CREATE TABLE `blscrs` (
 
 CREATE TABLE `comments` (
   `id` int(10) unsigned NOT NULL auto_increment,
-  `ev_evaluation_id` int(10) unsigned NOT NULL default '0',
+  `poam_evaluation_id` int(10) unsigned NOT NULL default '0',
   `user_id` int(10) unsigned NOT NULL default '0',
   `date` datetime NOT NULL default '0000-00-00 00:00:00',
   `topic` varchar(64) NOT NULL default '',
@@ -66,6 +66,16 @@ CREATE TABLE `evaluations` (
   PRIMARY KEY  (`id`)
 );
 
+CREATE TABLE `poam_evaluations` (
+  `id` int(10) NOT NULL auto_increment,
+  `group_id` int(10) NOT NULL,
+  `eval_id` int(10) NOT NULL,
+  `user_id` int(10) NOT NULL,
+  `decision` enum('APPROVED','DENIED','EST_CHANGED'),
+  `date` date NOT NULL default '0000-00-00',
+  PRIMARY KEY  (`id`)
+); 
+
 CREATE TABLE `evidences` (
   `id` int(10) unsigned NOT NULL auto_increment,
   `poam_id` int(10) unsigned NOT NULL default '0',
@@ -75,15 +85,6 @@ CREATE TABLE `evidences` (
   PRIMARY KEY  (`id`)
 );
 
-CREATE TABLE `ev_evaluations` (
-  `id` int(10) NOT NULL auto_increment,
-  `ev_id` int(10) NOT NULL,
-  `eval_id` int(10) NOT NULL,
-  `user_id` int(10) NOT NULL,
-  `decision` enum('APPROVED','DENIED') NOT NULL,
-  `date` date NOT NULL default '0000-00-00',
-  PRIMARY KEY  (`id`)
-); 
 
 CREATE TABLE `networks` (
   `id` int(10) unsigned NOT NULL auto_increment,
