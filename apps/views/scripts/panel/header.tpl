@@ -28,7 +28,7 @@
     }
     if(isAllow('remediation','read')) {
         echo'<ul><li >
-            <a><h2>Remediation</h2></a> 
+            <a href="/zfentry.php/panel/remediation/sub/index/"><h2>Remediation</h2></a> 
             <ul><li><a href="/zfentry.php/panel/remediation/sub/summary">Remediation Summary</a></li>
             <li><a href="/zfentry.php/panel/remediation/sub/searchbox">Remediation Search</a></li></ul></li></ul>';
     }
