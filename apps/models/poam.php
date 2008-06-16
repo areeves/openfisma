@@ -21,6 +21,9 @@ class poam extends Zend_Db_Table
         if(is_array($where)){
              extract($where);
         }
+        if( !empty($id) ){
+            $query->where("p.id = ?",$id);
+        }
         if( !empty($source_id) ){
             $query->where("p.source_id = ".$source_id."");
         }
@@ -130,7 +133,11 @@ class poam extends Zend_Db_Table
     public function search($sys_ids, $fields = '*',$criteria=array(),$currentPage=null, $perPage=null)
     {
         static $EXTRA_FIELDS = array( 'asset'=>array('as.address_ip'=>'ip',
-                                                     'as.address_port'=>'port'),
+                                                     'as.address_port'=>'port',
+                                                     'as.network_id'=>'network_id',
+                                                     'as.prod_id'=>'prod_id',
+                                                     'as.name'=>'asset_name',
+                                                     'as.system_id'=>'asset_owner'),
                                     'source'=>array('s.nickname'=>'source_nickname',
                                                     's.name'=>'source_name'  ));
         $ret =array();
@@ -138,7 +145,8 @@ class poam extends Zend_Db_Table
 
         $count_fields = false;
         if( $fields == '*' ) {
-            $fields = $this->_cols;
+            $fields = array_merge($this->_cols,
+                             $EXTRA_FIELDS['asset'], $EXTRA_FIELDS['source']);
         }else if( isset($fields['count']) ) {
             $count_fields = true;
             if( $fields =='count' || $fields == array('count'=>'count(*)') ) {
@@ -164,8 +172,10 @@ class poam extends Zend_Db_Table
                                                  $table_fields) );
 
         $query = $this->_db->select()
-                           ->from(array('p'=>$this->_name), $p_fields)
-                           ->where("p.system_id IN (".makeSqlInStmt($sys_ids).")");
+                           ->from(array('p'=>$this->_name), $p_fields);
+        if( !empty($sys_ids) ){
+            $query->where("p.system_id IN (".makeSqlInStmt($sys_ids).")");
+        }
         
         if( !empty($as_fields) ) {
             $query->join( array('as'=>'assets'), 'as.id = p.asset_id',$as_fields);
@@ -202,22 +212,51 @@ class poam extends Zend_Db_Table
 
         @param $id int primary key of poam
     */
-    public function getDetail($id)
+    public function &getDetail($id)
     {
-        assert($id);
-        $db = $this->_db;
-        $query = $this->select()->setIntegrityCheck(false)->from(array('p'=>$this->_name))
-            ->where('p.id=?',$id)
-            ->joinLeft(array('s'=>'sources'),'source_id = s.id',
-                    array('source_nickname'=>'s.nickname', 'source_name'=>'s.name'))
-            ->join(array('as'=>'assets'), 'as.id = p.asset_id', 
-                array('asset_name'=>'as.name',
-                      'ip'=>'as.address_ip', 
-                      'port'=>'as.address_port', 
-                      'network_id'=>'as.network_id'))
-            ->join(array('net'=>'networks'), 'net.id = as.network_id',
-                    array('network_name'=>'net.name') );
-        return $db->fetchRow($query);
+        if( !is_numeric($id) ) {
+            throw new fisma_Expection('Make sure a valid ID is inputed');
+        }
+        $poam_detail = $this->search(null, '*', array('id'=>$id ) );
+        $ret = array();
+        if( empty($poam_detail) ){
+            return $ret;
+        }
+        $ret = $poam_detail[0];
+        $query = $this->_db->select()
+                    ->from(array('pv'=>'poam_vulns'),array())
+                    ->where("pv.poam_id = ?",$id )
+                    ->join(array('v'=>'vulnerabilities'),
+                           'v.type = pv.vuln_type AND v.seq = pv.vuln_seq',
+                           array('type'=>'v.type',
+                                 'seq'=>'v.seq',
+                                 'description'=>'description'));
+        $vuln = $this->_db->fetchAll($query);
+        if( !empty($vuln) ){
+            $ret['vuln'] = $vuln;
+        }
+
+        $query->reset();
+        $query->from(array('pr'=>'products'),array('prod_id'=>'pr.id',
+                                           'prod_vendor'=>'pr.vendor',
+                                           'prod_name'=>'pr.name',
+                                           'prod_version'=>'pr.version'))
+              ->where("pr.id = ?",$ret['prod_id']);
+        $products = $this->_db->fetchRow($query);
+        if( !empty( $product ) ){
+            $ret['product'] = $products;
+        }
+        if( !empty($ret['blscr_id']) ){
+            $query->reset();
+            $query->from(array('b'=>'blscrs'),'*')
+                  ->where('b.code = ?', $ret['blscr_id']);
+            $blscr = $this->_db->fetchRow($query);
+            if(!empty($blscr)){
+                $ret['blscr'] = &$blscr;
+            }
+        }
+
+        return $ret;
     }
 
 
@@ -225,9 +264,10 @@ class poam extends Zend_Db_Table
 
         @param $poam_ids int|array poam id(s)
         @param $final boolean to get the final status or all the history
-        @param $decision enum{APPROVED,DENIED} 
+        @param $decision enum{'APPROVED','DENIED'}
+        @return array list of evidences and their evaluation
     */
-    public function getEvaluation($poam_id, $final=false,$decision=null)
+    public function getEvEvaluation($poam_id, $final=false,$decision=null)
     {
         if( is_numeric($poam_id) ){
             $poam_id = array($poam_id);
@@ -235,17 +275,18 @@ class poam extends Zend_Db_Table
 
         $query = $this->_db->select()->from(array('ev'=>'evidences'))
                   ->where('ev.poam_id IN ('.makeSqlInStmt($poam_id).')')
-                  ->joinLeft(array('evv'=>'ev_evaluations'),'ev.id=evv.ev_id',
-                             array('decision','date'))
-                  ->joinLeft(array('u'=>'users'),'u.id=evv.user_id',
-                            array('username'=>'account'))
-                  ->joinLeft(array('el'=>'evaluations'),'el.id=evv.eval_id',
-                             array('eval_name'=>'el.name','level'=>'el.precedence_id'))
-                  ->where('el.group = ?', 'EVIDENCE')
-                  ->order(array('ev.poam_id','ev.id','level DESC'));
+                  ->joinLeft(array('pvv'=>'poam_evaluations'),'ev.id=pvv.group_id',
+                             array('decision','date','eval_id'=>'pvv.id'))
+                  ->joinLeft(array('pu'=>'users'),'pu.id=ev.submitted_by',
+                            array('submitted_by'=>'pu.account'))
+                  ->joinLeft(array('u'=>'users'),'u.id=pvv.user_id',
+                            array('username'=>'u.account'))
+                  ->join(array('el'=>'evaluations'),'el.id=pvv.eval_id AND el.group = \'EVIDENCE\'',
+                             array('eval_name'=>'el.name','el.group','level'=>'el.precedence_id'))
+                  ->order(array('ev.poam_id','ev.id','level ASC'));
         if( !empty($decision) ){
             assert( in_array($decision, array('APPROVED','DENIED')) );
-            $query->where('evv.decision =?',$decision);
+            $query->where('pvv.decision =?',$decision);
         }
         $ret = $this->_db->fetchAll($query);
         if($final){
@@ -260,6 +301,52 @@ class poam extends Zend_Db_Table
             }
         }
         return $ret;
+    }
+
+    /** 
+        Get action evaluations according to poam id(s).
+
+        @param poam_id int|array poam id(s)
+        @param decision enum{APPROVED, DENIED, EST_CHANCED}
+        @return array list of evaluations
+     */
+    public function getActEvaluation($poam_id,$decision=null)
+    {
+        if( is_numeric($poam_id) ){
+            $poam_id = array($poam_id);
+        }
+        $query = $this->_db->select()
+                  ->from(array('pvv'=>'poam_evaluations'), array('decision','date','eval_id'=>'pvv.id'))
+                  ->where('pvv.group_id IN ('.makeSqlInStmt($poam_id).')')
+                  ->join(array('el'=>'evaluations'),'el.id=pvv.eval_id AND el.group = \'ACTION\'',
+                             array('eval_name'=>'el.name','level'=>'el.precedence_id'))
+                  ->joinLeft(array('u'=>'users'),'u.id=pvv.user_id',
+                            array('username'=>'account'))
+                  ->order(array('pvv.id','pvv.date DESC','level DESC'));
+        if( !empty($decision) ){
+            assert( in_array($decision, array('APPROVED','DENIED','EST_CHANCED')) );
+            $query->where('pvv.decision =?',$decision);
+        }
+        $ret = $this->_db->fetchAll($query);
+        return $ret;
+    }
+
+
+    /** 
+        Get audit logs according to poam id
+
+        @param poam_id int the poam id
+        @return array list of audit logs sorted by time desc
+     */
+    public function getLogs($poam_id)
+    {
+        assert(is_numeric($poam_id));
+        $query = $this->_db->select()->from(array('al'=>'audit_logs'))
+                  ->join(array('p'=>'poams'),'p.id = al.poam_id',array())
+                  ->join(array('u'=>'users'),'al.user_id = u.id',array('username'=>'u.account'))
+                  ->where("p.id =?",$poam_id)
+                  ->order("al.timestamp DESC");
+        return  $this->_db->fetchAll($query);
     }
 
    public function fismasearch($agency){

@@ -9,7 +9,7 @@
 <br>
 
 <!-- FINDING DETAIL TABLE -->
-<table align="center" border="0" cellpadding="3" cellspacing="1" width="95%">
+<table align="center" border="0" cellpadding="3" cellspacing="1" width="100%">
 
     <!-- finding and asset row -->
     <tr>
@@ -18,12 +18,27 @@
         <td width="50%" valign="top">
 
             <!-- FINDING TABLE -->
-            <table border="0" cellpadding="5" cellspacing="1" class="tipframe" width="100%">
+            <table border="0" cellpadding="5" cellspacing="1" class="tipframe" >
                 <th align="left" colspan="2">Finding Information</th>
-                <tr><td><b>Finding ID:</b><?php echo $this->finding['f_id'];?></td></tr>
-                <tr><td><b>Date Opened:</b><?php echo $this->finding['f_created'];?></td></tr>
-                <tr><td><b>Finding Source:</b> (<?php echo $this->finding['source_nickname'];?>)<?php echo $this->finding['source_name'];?></td></tr>
-                <tr><td><b>Finding Status:</b><?php echo $this->remediation_status;?></td></tr>
+                <tr><td><b>POAM ID:</b><?php echo $this->poam['id'];?></td></tr>
+                <tr><td><b>(Legacy)Finding ID:</b>
+                <?php echo $this->poam['legacy_finding_id'];?></td></tr>
+                <tr><td><b>Date Opened:</b><?php echo $this->poam['create_ts'];?></td></tr>
+                <tr><td><b>Source:</b> 
+                (<?php echo $this->poam['source_nickname'];?>)
+                <?php echo $this->poam['source_name'];?></td></tr>
+                <tr><td><b>Status:</b>
+                <?php 
+                    $st = $this->poam['status'];
+                    if( 'EN' == $st ) {
+                        $date = new Zend_Date($this->poam['action_est_date']);
+                        if( $date->isLater(Zend_Date::now()) ){
+                            $st = 'EO';
+                        }
+                    }
+                    echo $st;
+                ?>
+                </td></tr>
                 <tr>
                     <td>
                         <b>Responsible System:</b>
@@ -34,10 +49,11 @@
                              <span class="sponsor">
                              <?php
                                  if(isAllow('remediation','update_finding_assignment')){
-                                     if('OPEN' == $this->remediation_status){ ?>
+                                     if('OPEN' == $this->poam['status']){ ?>
                                          <img src='/images/button_modify.png' style="cursor:pointer;"></span>
                              <?php } } ?></span>
-                             <span class="contenter"><?php echo "(".$this->remediation['system_nickname'].")".$this->remediation['system_name'];?></span>
+                             <span class="contenter"> 
+                             <?php echo $this->system_list[$this->poam['system_id']];?></span>
                         </div>
                     </td>
                 </tr>
@@ -50,30 +66,30 @@
             <table border="0" cellpadding="5" cellspacing="1" class="tipframe" width="100%">
                 <th align="left" colspan="2">Asset Information</th>
                 <tr>
-                    <td><b>Asset Owner:</b><?php echo '('.$this->finding['system_nickname'].')'.$this->finding['system_name'];?></td>
+                    <td><b>Asset Owner:</b>
+                    <?php echo $this->system_list[$this->poam['asset_owner']];?></td>
                 </tr>
                 <tr>
                     <td><b>Asset Name:</b>
-                        <?php echo 'NULL'==$this->finding['asset_name']?'(none given)':$this->finding['asset_name'];?>
+                        <?php echo nullGet($this->poam['asset_name'],'(none given)');?>
                     </td>
                 </tr>
                 <tr>
                     <td><b>Known Address(es):</b>
-                        <?php foreach($this->asset_address as $asset){
-                            echo '('.$asset['network_nickname'].')';
-                            echo ''==$asset['ip']?'<i>(none_given)</i>':$asset['ip'];
-                            echo ''==$asset['port']?'<i>(none given)</i>':$asset['port'];
-                        }
-                        ?>
+                    <i><?php echo $this->network_list[$this->poam['network_id']],$this->poam['ip'],':',$this->poam['port']?> </i>
                     </td>
                 </tr>
                 <tr>
                     <td><b>Product Information:</b>
-                         <?php if($this->product['prod_id'] == ""){ ?>
-                            <i>(none given)</i>
-                        <?php } else {
-                            echo $this->product['prod_vendor'].$this->product['prod_name'].$this->product['prod_version'];
-                        }?>
+                    <i>
+                        <?php  if( !empty($this->poam['product']) ){
+                            echo $this->poam['product']['prod_vendor'].
+                                 $this->poam['product']['prod_name'].
+                                 $this->poam['product']['prod_version'];
+                        }else{
+                            echo '(not given)';
+                        } ?>
+                    </i>
                     </td>
                 </tr>
             </table>
@@ -84,9 +100,11 @@
         <td colspan="2" width="90%">
 
             <!-- INSTANCE DATA TABLE -->
-            <table border="0" cellpadding="5" cellspacing="1" class="tipframe" width="100%">
+            <table border="0" cellpadding="5" cellspacing="1" class="tipframe" >
                 <th align="left">Finding Description</th>
-                <tr><td><?php echo ''==$this->finding['f_data']?'<i>(none given)</i>':$this->finding['f_data'];?></td></tr>
+                <tr><td><i>
+                <?php echo nullGet($this->poam['finding_data'],'(none given)'); ?></i>
+                </td></tr>
             </table>
             <!-- END INSTANCE DATA TABLE -->
 
@@ -94,11 +112,11 @@
     </tr>
     <tr>
         <td colspan="2">
-
-            <table border="0" cellpadding="5" cellspacing="1" width="100%" align="center" class="tipframe">
+            <?php if( !empty($this->poam['vuln']) ) { ?>
+            <table border="0" cellpadding="5" cellspacing="1" align="center" class="tipframe">
                 <th align='left'>Additional Vulnerability Detail</th>
                 <!-- VULNERABILITY ROW(S) -->
-                <?php foreach($this->vulner as $row){ ?>
+                <?php foreach($this->poam['vuln'] as $row){ ?>
                 <tr>
                     <td colspan="2">
                         <!-- VULERABILITIES TABLE -->
@@ -111,7 +129,7 @@
                 </tr>
                 <?php }?>
             </table>
-
+            <?php } ?>
         </td>
      </tr>
     <tr>
@@ -126,7 +144,7 @@
                             <img src='/images/button_modify.png' style="cursor:pointer;"></span> 
                         <?php }?>
                         <span class="contenter">
-                            <?php echo $this->remediation['action_suggested'];?>
+                            <?php echo $this->poam['action_suggested'];?>
                         </span></div>
                     </td>
                 </tr>

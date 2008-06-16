@@ -2,9 +2,6 @@
 <table width="95%" border="0" align="center">
 <tr>
 <td>
-<table border="0" align="left">
-    <tr>
-        <td>
             <!-- SAVE MODIFICATIONS TO REMEDIATION -->
             <form action="/zfentry.php/panel/remediation/sub/modify/id/<?php echo $this->remediation_id;?>" method="post">
             <input type='hidden' name='action_owner' value=''>
@@ -24,43 +21,45 @@
             <input type='hidden' name='action_approval' value=''>
             <input type='submit' title='Save or Submit' value="Save" style="cursor: pointer;">
             </form>
-        </td>
-    </tr>
-</table>
 </td>
 </tr>
 </table>
 <?php 
      echo $this->partial('remediation/finding.tpl',
-                          array('finding'=>$this->finding,
-                                'remediation_status'  =>$this->remediation_status,
-                                'system_list'         =>$this->system_list,
-                                'asset_address'       =>$this->asset_address,
-                                'product'             =>$this->product,
-                                'vulner'              =>$this->vulner,
-                                'remediation'         =>$this->remediation));
-     echo $this->partial('remediation/mitigation.tpl',
-                          array('num_comments_est'    =>$this->num_comments_est,
-                                'remediation'         =>$this->remediation,
-                                'comments_est'            =>$this->comments_est));
-     echo $this->partial('remediation/nist.tpl',
-                          array('blscr'               =>$this->blscr,
-                                'remediation'         =>$this->remediation,
-                                'all_values'          =>$this->all_values));
-     echo $this->partial('remediation/risk.tpl',
-                          array('threat_level'        =>$this->threat_level,
-                                'cmeasure_effectiveness'=>$this->cmeasure_effectiveness,
-                                'remediation'           =>$this->remediation,
-                                'remediation_id'        =>$this->remediation_id,
-                                'remediation_type'      =>$this->remediation_type,
-                                'remediation_status'    =>$this->remediation_status,
-                                'is_completed'          =>$this->is_completed,
-                                'num_comments_sso'      =>$this->num_comments_sso,
-                                'comments_sso'          =>$this->comments_sso,
-                                'evaluations'           =>$this->evaluations,
-                                'num_evidence'          =>$this->num_evidence,
-                                'evidences'             =>$this->evidences));
-     echo $this->partial('remediation/log.tpl',
-                          array('num_logs'              =>$this->num_logs,
-                                'logs'                  =>$this->logs));
+                          array('poam'=>&$this->poam, 'system_list' =>&$this->system_list));
+     echo $this->partial('remediation/mitigation.tpl',  array('poam'    =>&$this->poam));
+     echo $this->partial('remediation/nist.tpl', array('poam'=>&$this->poam));
 ?>
+     <!-- Heading Block -->
+     <div class="barleft">
+     <div class="barright">
+     <p><b>Supporting Evidence</b>(<?php echo count($this->ev_evals);?> total)<span></span></p>
+     </div>
+     </div>
+
+     <?php 
+          echo $this->partialLoop('remediation/evidence.tpl', $this->ev_evals );
+     ?>
+
+     <?php if($this->poam['status'] == 'EN' && isAllow('remediation','update_evidence') ){ ?>
+     <button id="up_evidence" onclick ="upload_evidence();">Upload Evidence</button>
+     <?php } ?>
+
+     <!-- Heading Block -->
+     <div class="barleft">
+     <div class="barright">
+     <p><b>Audit Log</b><span></span></p>
+     </div>
+     </div>
+     <table align="center" cellpadding="5" cellspacing="1" width="95%" class="tbframe">
+         <tr>
+             <th>Timestamp</td>
+             <th>User</td>
+             <th>Event</td>
+             <th>Description</td>
+         </tr>
+<?php 
+     echo $this->partialLoop('remediation/log.tpl', $this->logs);
+?>
+</table>
+

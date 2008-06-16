@@ -10,10 +10,16 @@
 require_once CONTROLLERS . DS . 'PoamBaseController.php';
 require_once MODELS . DS . 'user.php';
 require_once MODELS . DS . 'evaluation.php';
+require_once APPS . DS . 'Exception.php';
 require_once 'Pager.php';
 
 class RemediationController extends PoamBaseController
 {
+
+    public function indexAction(){
+        $this->_helper->actionStack('searchbox','Remediation');
+        $this->_helper->actionStack('summary','Remediation');
+    }
 
     public function summaryAction(){
         require_once MODELS . DS . 'system.php';
@@ -214,163 +220,32 @@ class RemediationController extends PoamBaseController
     public function viewAction(){
         $req = $this->getRequest();
         $id = $req->getParam('id');
-        $today = date("Ymd",time());
-        $poam = new poam();
-        $db = $poam->getAdapter();
-        $query = $poam->select()->setIntegrityCheck(false);
-        // Finding Information Query
-        $query->from(array('p'=>'poams'),array('f_id'=>'p.legacy_finding_id',
-                                               'f_status'=>'p.status',
-                                               'f_data'  =>'p.finding_data',
-                                               'f_discovered'=>'p.discover_ts',
-                                               'f_created'=>'p.create_ts'));
-        $query->join(array('s'=>'sources'),'s.id = p.source_id',array('source_nickname'=>'s.nickname',
-                                                                      'source_name'=>'s.name'));
-        $query->join(array('a'=>'assets'),'a.id = p.asset_id',array('asset_id'=>'a.id',
-                                                                    'asset_name'=>'a.name'));
-        $query->join(array('sys'=>'systems'),'sys.id = p.system_id',array('system_nickname'=>'sys.nickname',
-                                                                      'system_name'=>'sys.name'));
-        $query->where("p.id = ".$id."");
-        $result = $poam->fetchRow($query);
-        if(empty($result)){
-            die('wrong poam!');
-        }
-        $finding = $result->toArray();
-        $this->view->assign('finding',$finding);
-        
-        //Asset Network And Addresses Query
+        $poam_detail = $this->_poam->getDetail($id);
 
-        $query->reset();
-        $query->from(array('n'=>'networks'),array('network_nickname'=>'n.nickname'));
-        $query->join(array('a'=>'assets'),'n.id = a.network_id',array('ip'=>'a.address_ip',
-                                                                      'port'=>'a.address_port'));
-        $query->where("a.id = ".$finding['asset_id']."");
-        $asset_address = $poam->fetchAll($query)->toArray();
-        $this->view->assign('asset_address',$asset_address); 
-        // Finding Vulnerabilities Query
-
-        $query->reset();
-        $query->from(array('p'=>'poams'),array());
-        $query->join(array('pv'=>'poam_vulns'),'pv.poam_id = p.id',array());
-        $query->join(array('v'=>'vulnerabilities'),'v.type = pv.vuln_type AND v.seq = pv.vuln_seq',
-                          array('type'=>'v.type',
-                                'seq'=>'v.seq',
-                                'description'=>'description'));
-        $query->where("p.id = ".$id."");
-        $result = $poam->fetchAll($query);
-        if(!empty($result)){
-            $vulnerabilities = $result->toArray();
+        if(empty($poam_detail)){
+            throw new fisma_Expection("POAM($id) is not found, Make sure a valid ID is inputed");
         }
 
-        // Remediation Query
-
-        $query->reset();
-        $query->from(array('p'=>'poams'),'*');
-        $query->join(array('s'=>'systems'),'s.id = p.system_id',array('system_nickname'=>'s.nickname',
-                                                                      'system_name'=>'s.name'));
-        $query->join(array('u'=>'users'),'u.id = p.modified_by',array('modified_by'=>'u.account'));
-        $query->where("p.id = ".$id."");
-        $data = $poam->fetchRow($query);
-        if(!empty($data)){
-            $remediation = $data->toArray();
-            $this->view->assign('remediation',$remediation);
-
-            $est = implode(split('-',$remediation['action_est_date']));
-            if(($est < $today) && ($remediation['status']=='EN')){
-                $remediation['status'] = 'EO';
+        $ev_evaluation = $this->_poam->getEvEvaluation($id);
+        // currently we don't need to support the comments for est_date change
+        //$act_evaluation = $this->_poam->getActEvaluation($id);
+        $evs = array();
+        foreach($ev_evaluation as $ev_eval){
+            $evid = &$ev_eval['id'];
+            if( !isset($evs[$evid]['ev']) ){
+                $evs[$evid]['ev'] = array_slice($ev_eval,0,5);
             }
-            $this->view->assign('remediation_status',$remediation['status']);
-            $this->view->assign('remediation_type',$remediation['type']);
-            $this->view->assign('threat_level',$remediation['threat_level']);
-            $this->view->assign('cmeasure_effectiveness',$remediation['cmeasure_effectiveness']);
-      
-           // Product Query
-            $query->reset();
-            $query->from(array('pr'=>'products'),array('prod_id'=>'pr.id',
-                                               'prod_vendor'=>'pr.vendor',
-                                               'prod_name'=>'pr.name',
-                                               'prod_version'=>'pr.version'));
-            $query->join(array('a'=>'assets'),'a.prod_id = pr.id',array());
-            $query->join(array('p'=>'poams'),'p.asset_id = a.id',array());
-            $query->where("p.id = ".$remediation['id']);
-            $products = $poam->fetchRow($query);
-            $this->view->assign('products',$products);
-           
-            // New 
-            $query->reset();
-            $query->from(array('evi'=>'evidences'),'*')
-                  ->where('evi.poam_id = '.$id);
-            $evidences = $db->fetchAll($query);
-            if(!empty($evidences)){
-                $num_evidence = count($evidences);
-                foreach($evidences as $k=>$row){
-                    $query->reset();
-                    $query->from(array('eval'=>'evaluations'),'*')
-                          ->join(array('f'=>'functions'),'eval.function_id = f.id',
-                                          array('screen'=>'f.screen','action'=>'f.action'))
-                          ->joinLeft(array('ev_eval'=>'ev_evaluations'),
-                                        'ev_eval.eval_id = eval.id and ev_eval.ev_id = '.$row['id'],
-                                        array('decision'=>'decision','eval_id'=>'eval_id'))
-                          ->joinLeft(array('c'=>'comments'),'c.ev_evaluation_id = ev_eval.id',
-                                    array('comment_date'=>'date',
-                                          'comment_topic'=>'topic',
-                                          'comment_content'=>'content'))
-                          ->joinLeft(array('u'=>'users'),'u.id = c.user_id',
-                                          array('comment_username'=>'u.account'))
-                          ->where("eval.group = 'EVIDENCE'")
-                          ->order("eval.precedence_id");
-                    $evaluations[$row['id']] = $db->fetchAll($query);
-                    $evidences[$k]['fileName'] = basename($row['submission']);
-                    if(file_exists($row['submission'])){
-                        $evidences[$k]['fileExists'] = 1;
-                    }else {
-                        $evidences[$k]['fileExists'] = 0;
-                    }
-                }
-                $this->view->assign('evidences',$evidences);
-                $this->view->assign('num_evidence',$num_evidence);
-                $this->view->assign('evaluations',$evaluations);
-            }
-            
-            //Blscr Query
-            $query->reset();
-            $query->from(array('b'=>'blscrs'),'*');
-            $query->join(array('p'=>'poams'),'p.blscr_id = b.code',array());
-            $query->where("p.id = ".$id."");
-            $data = $poam->fetchRow($query);
-            if(!empty($data)){
-                $blscr = $poam->fetchRow($query)->toArray();
-            }
-            else {
-                $blscr = array();
-            }
-            $query->reset();
-            $query->distinct()->from(array('b'=>'blscrs'),array('value'=>'b.code'))
-                              ->order("b.code ASC");
-            $this->view->assign('all_values',$db->fetchCol($query));
+            $evs[$evid]['eval'][$ev_eval['level']] = array_slice($ev_eval,5);
+        }
 
-        
-            //Audit Log
-            $query->reset();
-            $query->from(array('al'=>'audit_logs'),array('*','time'=>'al.timestamp'));
-            $query->join(array('p'=>'poams'),'p.id = al.poam_id',array());
-            $query->join(array('u'=>'users'),'al.user_id = u.id',array('user_name'=>'u.account'));
-            $query->where("p.id = ".$id."");
-            $query->order("al.timestamp DESC");
-            $logs = $poam->fetchAll($query)->toArray();
-            /*foreach($logs as $k=>$v){
-                $logs[$k]['time'] = date('Y-m-d H:i:s',$logs[$k]['timestamp']);
-            }*/
-            $this->view->assign('logs',$logs);
-            $this->view->assign('num_logs',count($logs));
 
+/*
             //Root Comment
             $query->reset();
             $query->from(array('c'=>'comments'),array('comment_id'=>'c.id'));
             $query->where("c.id = ".$id."");
             $root_comment = $poam->fetchRow($query);
             $this->view->assign('root_comment',$root_comment);
-
             //All Fields Ok?
             if(!empty($remediation)){
                 $r = $remediation;
@@ -384,20 +259,12 @@ class RemediationController extends PoamBaseController
             }
         
         
-            $user = new user();
-            $uid = $this->me->id;
-            $ids = implode(',', $user->getMySystems($uid));
-            $qry = $db->select()->from(array('s'=>'systems'), array('id'=>'id',
-                                                                    'name'=>'name',
-                                                                    'nickname'=>'nickname'))
-                                ->where("id IN ( $ids )")
-                                ->order('id ASC');
-            $system_list = $db->fetchAll($qry);
-            $this->view->assign('system_list',$system_list);
-            $this->view->assign('vulner',$vulnerabilities);
-            $this->view->assign('blscr',$blscr);
             $this->view->assign('remediation_id',$id);
-        }
+        }*/
+        $this->view->assign('poam',$poam_detail);
+        $this->view->assign('logs',$this->_poam->getLogs($id));
+        $this->view->assign('ev_evals',$evs);
+        $this->view->assign('system_list',$this->_system_list);
         $this->render();
     }
 
