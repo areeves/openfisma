@@ -74,7 +74,7 @@ class RemediationController extends PoamBaseController
         foreach( $list as $r ) {
             $ep_list[$r['id']] = $r['system_id'];
         }
-        $ret = $this->_poam->getEvaluation(array_keys($ep_list),true);
+        $ret = $this->_poam->getEvEvaluation(array_keys($ep_list),true);
         foreach( $ret as $k=>$e ) {
             if( isset($e['decision']) && $e['decision'] == 'APPROVED' ){
                 $summary[$ep_list[$e['poam_id']]]['EP_SNP']++;
