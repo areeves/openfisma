@@ -4,24 +4,17 @@
 <p><b>Finding Description</b><span><?php echo date('Y-M-D h:i:s:A');?></span>
 </div>
 </div>
-<!-- End Heading Block -->
-
-<br>
-
 <!-- FINDING DETAIL TABLE -->
-<table align="center" border="0" cellpadding="3" cellspacing="1" width="100%">
-
+<table align="center" border="0" cellpadding="3" cellspacing="1" width="95%">
     <!-- finding and asset row -->
     <tr>
-
         <!-- finding information -->
         <td width="50%" valign="top">
-
             <!-- FINDING TABLE -->
             <table border="0" cellpadding="5" cellspacing="1" class="tipframe" >
                 <th align="left" colspan="2">Finding Information</th>
-                <tr><td><b>POAM ID:</b><?php echo $this->poam['id'];?></td></tr>
-                <tr><td><b>(Legacy)Finding ID:</b>
+                <tr><td><b>POAM ID:</b><?php echo $this->poam['id'];?> 
+                        <i>(Legacy Finding ID):</i>
                 <?php echo $this->poam['legacy_finding_id'];?></td></tr>
                 <tr><td><b>Date Opened:</b><?php echo $this->poam['create_ts'];?></td></tr>
                 <tr><td><b>Source:</b> 
@@ -42,19 +35,16 @@
                 <tr>
                     <td>
                         <b>Responsible System:</b>
-                        <div id="system" type="select" name="action_owner"
-                             option='{<?php foreach($this->system_list as $row){?>
-                             "<?php echo $row['id'];?>":"<?php echo "(".$row['nickname'].")".$row['name'];?>",
-                             <?php } ?> }'>
-                             <span class="sponsor">
-                             <?php
-                                 if(isAllow('remediation','update_finding_assignment')){
-                                     if('OPEN' == $this->poam['status']){ ?>
-                                         <img src='/images/button_modify.png' style="cursor:pointer;"></span>
-                             <?php } } ?></span>
-                             <span class="contenter"> 
-                             <?php echo $this->system_list[$this->poam['system_id']];?></span>
-                        </div>
+                        <span name="action_owner"
+    <?php
+        if('OPEN' == $this->poam['status'] && 
+            isAllow('remediation','update_finding_assignment')){
+            echo ' type="select" class="editable" 
+                   href="/zfentry.php/metainfo/list/o/system/format/html/"';
+        }
+        echo '>',$this->system_list[$this->poam['system_id']];
+    ?>
+                        </span>
                     </td>
                 </tr>
             </table>
@@ -96,62 +86,45 @@
             <!-- END ASSET TABLE -->
         </td>
     </tr>
-    <tr> <!-- INSTANCE SPECIFIC DATA ROW -->
-        <td colspan="2" width="90%">
+    </table>
+<table border="0" cellpadding="5" cellspacing="1" class="tipframe" >
+    <th align="left">Finding Description</th>
+    <tr><td><i>
+    <?php echo nullGet($this->poam['finding_data'],'(none given)'); ?></i>
+    </td></tr>
+</table>
 
-            <!-- INSTANCE DATA TABLE -->
-            <table border="0" cellpadding="5" cellspacing="1" class="tipframe" >
-                <th align="left">Finding Description</th>
-                <tr><td><i>
-                <?php echo nullGet($this->poam['finding_data'],'(none given)'); ?></i>
-                </td></tr>
+<?php if( !empty($this->poam['vuln']) ) { ?>
+<table border="0" cellpadding="5" cellspacing="1" class="tipframe">
+    <th align='left'>Additional Vulnerability Detail</th>
+    <!-- VULNERABILITY ROW(S) -->
+    <?php foreach($this->poam['vuln'] as $row){ ?>
+    <tr>
+        <td colspan="2">
+            <!-- VULERABILITIES TABLE -->
+            <table border="0" cellpadding="5" cellspacing="1" width="100%">
+                <tr><td><b>Vulnerability ID:</b><?php echo $row['type'].'-'.$row['seq'];?></td></tr>
+                <tr><td><b>Description:</b><?php echo $row['description'];?></td></tr>
             </table>
-            <!-- END INSTANCE DATA TABLE -->
-
+            <!-- END VULERABILITIES TABLE -->
         </td>
     </tr>
-    <tr>
-        <td colspan="2">
-            <?php if( !empty($this->poam['vuln']) ) { ?>
-            <table border="0" cellpadding="5" cellspacing="1" align="center" class="tipframe">
-                <th align='left'>Additional Vulnerability Detail</th>
-                <!-- VULNERABILITY ROW(S) -->
-                <?php foreach($this->poam['vuln'] as $row){ ?>
-                <tr>
-                    <td colspan="2">
-                        <!-- VULERABILITIES TABLE -->
-                        <table border="0" cellpadding="5" cellspacing="1" width="100%">
-                            <tr><td><b>Vulnerability ID:</b><?php echo $row['type'].'-'.$row['seq'];?></td></tr>
-                            <tr><td><b>Description:</b><?php echo $row['description'];?></td></tr>
-                        </table>
-                        <!-- END VULERABILITIES TABLE -->
-                    </td>
-                </tr>
-                <?php }?>
-            </table>
-            <?php } ?>
-        </td>
-     </tr>
-    <tr>
-        <td colspan="2">
-            <table cellpadding="5" width="100%" class="tipframe">
-                <th align='left' colspan='2'>Recommendation</th>
-                <tr>
-                    <td colspan='2'>
-                        <div id="recommendation" name="action_suggested" type="textarea" rows="5" cols="160">
-                        <?php if(isAllow('remediation','update_finding_recommendation')){?>
-                        <span class="sponsor">
-                            <img src='/images/button_modify.png' style="cursor:pointer;"></span> 
-                        <?php }?>
-                        <span class="contenter">
-                            <?php echo $this->poam['action_suggested'];?>
-                        </span></div>
-                    </td>
-                </tr>
-            </table>
+    <?php }?>
+</table>
+<?php } ?>
 
+<table cellpadding="5" width="100%" class="tipframe">
+    <th align='left' colspan='2'>Recommendation</th>
+    <tr>
+        <td colspan='2'>
+            <div id="recommendation" name="action_suggested" type="textarea" rows="5" cols="160">
+            <?php if(isAllow('remediation','update_finding_recommendation')){?>
+            <span class="sponsor">
+                <img src='/images/button_modify.png' style="cursor:pointer;"></span> 
+            <?php }?>
+            <span class="contenter">
+                <?php echo $this->poam['action_suggested'];?>
+            </span></div>
         </td>
     </tr>
 </table>
-<!-- END FINDING TABLE -->
-    

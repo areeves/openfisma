@@ -4,9 +4,8 @@
      </div>
      </div>
 
-            <table width="100%" cellpadding="5" class="tipframe">
-                <th align="left">Course of Action</th>
-
+            <table cellpadding="5" class="tipframe">
+                <tr><th align="left">Course of Action</th></tr>
                 <tr>
                     <td align="left">
                         <b>Type:</b>

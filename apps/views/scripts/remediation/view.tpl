@@ -1,29 +1,5 @@
-<br>
-<table width="95%" border="0" align="center">
-<tr>
-<td>
-            <!-- SAVE MODIFICATIONS TO REMEDIATION -->
-            <form action="/zfentry.php/panel/remediation/sub/modify/id/<?php echo $this->remediation_id;?>" method="post">
-            <input type='hidden' name='action_owner' value=''>
-            <input type='hidden' name='action_suggested' value=''>
-            <input type='hidden' name='type' value=''>
-            <input type='hidden' name='action_planned' value=''>
-            <input type='hidden' name='action_resources' value=''>
-            <input type='hidden' name='action_est_date' value=''>
-            <input type='hidden' name='blscr_id' value=''>
-            <input type='hidden' name='threat_level' value=''>
-            <input type='hidden' name='threat_source' value=''>
-            <input type='hidden' name='threat_justification' value=''>
-            <input type='hidden' name='cmeasure_effectiveness' value=''>
-            <input type='hidden' name='cmeasure' value=''>
-            <input type='hidden' name='cmeasure_justification' value=''>
-            <input type='hidden' name='action_status' value=''>
-            <input type='hidden' name='action_approval' value=''>
-            <input type='submit' title='Save or Submit' value="Save" style="cursor: pointer;">
-            </form>
-</td>
-</tr>
-</table>
+<form action="/zfentry.php/panel/remediation/sub/modify/id/<?php echo $this->remediation_id;?>" method="post">
+<input type='submit' title='Save or Submit' value="Save" style="cursor: pointer;">
 <?php 
      echo $this->partial('remediation/finding.tpl',
                           array('poam'=>&$this->poam, 'system_list' =>&$this->system_list));
@@ -63,3 +39,4 @@
 ?>
 </table>
 
+</form>

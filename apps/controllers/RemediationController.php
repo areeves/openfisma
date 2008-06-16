@@ -237,30 +237,6 @@ class RemediationController extends PoamBaseController
             }
             $evs[$evid]['eval'][$ev_eval['level']] = array_slice($ev_eval,5);
         }
-
-
-/*
-            //Root Comment
-            $query->reset();
-            $query->from(array('c'=>'comments'),array('comment_id'=>'c.id'));
-            $query->where("c.id = ".$id."");
-            $root_comment = $poam->fetchRow($query);
-            $this->view->assign('root_comment',$root_comment);
-            //All Fields Ok?
-            if(!empty($remediation)){
-                $r = $remediation;
-                $r_fields_null = array($r['threat_source'], $r['threat_justification'],
-                $r['cmeasure'], $r['cmeasure_justification'], $r['action_suggested'],
-                $r['action_planned'], $r['action_resources'], $r['blscr_id']);
-                $r_fields_zero = array($r['action_est_date']);
-                $r_fields_none = array($r['cmeasure_effectiveness'], $r['threat_level']);
-                $is_completed = (in_array(null, $r_fields_null) || in_array('NONE', $r_fields_none) || in_array('0000-00-00', $r_fields_zero))?'no':'yes';
-                $this->view->assign('is_completed', $is_completed);
-            }
-        
-        
-            $this->view->assign('remediation_id',$id);
-        }*/
         $this->view->assign('poam',$poam_detail);
         $this->view->assign('logs',$this->_poam->getLogs($id));
         $this->view->assign('ev_evals',$evs);
@@ -437,22 +413,22 @@ class RemediationController extends PoamBaseController
                     break;
             }
           }
+        }
+        $data = array('modify_ts'=>$now,
+                      'modified_by'  =>$user_id);
+        $result = $db->update('poams',$data,'id = '.$id);
+        $now = time();
+        foreach($_POST as $k=>$v){
+            if(!in_array($k,array('id','comment_body','ev_id','eval_id')) && !empty($v)){
+                $data = array('poam_id'=>$id,        
+                              'user_id'=>$user_id,
+                              'timestamp'   =>$now,
+                              'event'  =>'MODIFICATION',
+                              'description'=>'Original:'.$poams[$k].' New:'.$v.'');
+                $result = $db->insert('audit_logs',$data);
             }
-            $data = array('modify_ts'=>$now,
-                          'modified_by'  =>$user_id);
-            $result = $db->update('poams',$data,'id = '.$id);
-            $now = time();
-            foreach($_POST as $k=>$v){
-                if(!in_array($k,array('id','comment_body','ev_id','eval_id')) && !empty($v)){
-                    $data = array('poam_id'=>$id,        
-                                  'user_id'=>$user_id,
-                                  'timestamp'   =>$now,
-                                  'event'  =>'MODIFICATION',
-                                  'description'=>'Original:'.$poams[$k].' New:'.$v.'');
-                    $result = $db->insert('audit_logs',$data);
-                }
-            }
-            $this->_helper->actionStack('view','Remediation',null,array('id'=>$id));
+        }
+        $this->_helper->actionStack('view','Remediation',null,array('id'=>$id));
     }
 
     public function uploadevidenceAction(){

@@ -8,9 +8,12 @@
             <tr>
                 <th align="left" >Security Control
                 <span id="blscr" type="select" name="blscr_id"
-                    <?php if(isAllow('remediation','update_control_assignment')){ ?>
-                        <img src='/images/button_modify.png' style="cursor:pointer;">
-                    <?php } ?>
+                <?php
+                    if(isAllow('remediation','update_control_assignment')){ 
+                        echo ' class="editable" href="/zfentry.php/metainfo/list/o/blscr/format/html/"';
+                    }
+                    echo '>',$this->poam['blscr_id'];
+                ?>
                 </span>
                 </th>
             </tr>
@@ -101,48 +104,42 @@
                 <tr>
                     <td>
                     <b>Level:</b>
-                    <div id ="threat" type="select" name="threat_level" 
-                                 option='{"NONE":"NONE","LOW":"LOW","MODERATE":"MODERATE","HIGH":"HIGH"}'>
-                            <?php if(isAllow('remediation','update_threat')){ ?>
-                            <span class="sponsor">
-                            <img src='/images/button_modify.png' style="cursor:pointer;">
-                            </span>
-                            <?php } ?>
-                            <span class="contenter"><?php echo $this->poam['threat_level'];?></span>
-                            </div>
+                    <span id ="threat" type="select" name="threat_level" 
+                        <?php 
+                        if(isAllow('remediation','update_threat')){ 
+                            echo ' class="editable" href="/zfentry.php/metainfo/list/o/threat_level/format/html/"';
+                            echo '>',$this->poam['threat_level'];
+                        } 
+                        ?>
+                     </span>
                     </td>
                  </tr>
                  <tr>
                      <td>
                      <b>Source:</b>
-                     <div id ="source" type="textarea" name="threat_source" rows="5" cols="160">
-                         <?php if(isAllow('remediation','update_threat')){ ?>
-                            <span class="sponsor">
-                            <img src='/images/button_modify.png' style="cursor:pointer;">
-                            </span>
-                            <?php } ?>
-                            <span class="contenter">
-                                <?php echo $this->poam['threat_source'];?>
-                            </span>
-                     </div>
+                     <span type="textarea" name="threat_source" rows="5" cols="160"
+                     <?php 
+                        if(isAllow('remediation','update_threat')){ 
+                            echo 'class="editable"';
+                        }
+                        echo '>',$this->poam['threat_level'];
+                     ?>
+                     </span>
                      </td>
                  </tr>
                  <tr>
-                     <td>
-                            <b>Justification:</b>
-                            <div id ="justification" type="textarea" name="threat_justification"
-                                 rows="5" cols="160">
-                            <?php if(isAllow('remediation','update_threat')){ ?>
-                            <span class="sponsor">
-                            <img src='/images/button_modify.png' style="cursor:pointer;">
-                            </span>
-                            <?php } ?>
-                            <span class="contenter">
-                                <?php echo $this->poam['threat_justification'];?>
-                            </span>
-                            </div>
-                        </td>
-                    </tr>
+                    <td>
+                    <b>Justification:</b>
+                    <span type="textarea" name="threat_justification" rows="5" cols="160"
+                    <?php 
+                       if(isAllow('remediation','update_threat')){ 
+                           echo 'class="editable"';
+                       }
+                       echo '>',$this->poam['threat_justification'];
+                    ?>
+                    </span>
+                    </td>
+                  </tr>
                 </table>
                  <!-- END THREATS TABLE -->
             <!-- COUNTERMEASURE TABLE -->
@@ -156,78 +153,65 @@
                     <tr>
                         <td>
                             <b>Effectiveness:</b>
-                            <div id="effectivness" type="select" name="cmeasure_effectiveness"
-                                option='{"NONE":"NONE","LOW":"LOW","MODERATE":"MODERATE","HIGH":"HIGH"}'>
-                            <!-- RESTRICT UPDATE BASED ON STATUS AND ROLE-->
-                            <?php if(isAllow('remediation','update_cmeasures')){ ?>
-                            <span class="sponsor">
-                            <img src='/images/button_modify.png' style="cursor:pointer;">
+                            <span type="select" name="cmeasure_effectiveness"
+                            <?php 
+                                if(isAllow('remediation','update_cmeasures')){ 
+                                    echo 'class="editable" 
+                                    href="/zfentry.php/metainfo/list/o/cmeasure_effectiveness/format/html/';
+                                }
+                                echo '>',$this->poam['cmeasure_effectiveness'];
+                            ?>
                             </span>
-                            <?php } ?>
-                            <span class="contenter">
-                                <?php echo $this->cmeasure_effectiveness;?>
-                            </span>
-                            </div>
                         </td>
                     </tr>
                     <tr>
                         <td>
                             <b>Countermeasure:</b>
-                            <div id="cmeasure" type="textarea" name="cmeasure" rows="5" cols="160">
-                            <!--RESTRICT UPDATE BASED ON STATUS AND ROLE-->
-                            <?php if(isAllow('remediation','update_cmeasure')){ ?>
-                            <span class="sponsor">
-                            <img src='/images/button_modify.png' style="cursor:pointer;">
+                            <span type="textarea" name="cmeasure" rows="5" cols="160"
+                            <?php 
+                                if(isAllow('remediation','update_cmeasures')){ 
+                                    echo 'class="editable"';
+                                }
+                                echo '>',$this->poam['cmeasure'];
+                            ?>
                             </span>
-                            <?php } ?>
-                            <span class="contenter"><?php echo $this->poam['cmeasure'];?></span>
-                            </div>
                         </td>
                     </tr>
                      <tr>
                         <td>
                             <b>Justification:</b>
-                            <div id="cmeasure_justification" type="textarea" name="cmeasure_justification"
-                                rows="5" cols="160">
-                            <!--RESTRICT UPDATE BASED ON STATUS AND ROLE-->
-                            <?php if(isAllow('remediation','udpate_cmeasure')){ ?>
-                            <span class="sponsor">
-                            <img src='/images/button_modify.png' style="cursor:pointer;">
+                            <span type="textarea" name="cmeasure_justification" rows="5" cols="160"
+                            <?php 
+                                if(isAllow('remediation','update_cmeasures')){ 
+                                    echo 'class="editable"';
+                                }
+                                echo '>',$this->poam['cmeasure_justification'];
+                            ?>
                             </span>
-                            <?php } ?>
-                            <span class="contenter">
-                                <?php echo $this->poam['cmeasure_justification'];?>
-                            </span>
-                            </div>
                         </td>
                     </tr>
                 </table>
             <!-- END COUNTERMEASURE TABLE -->
 
-<table border="0" cellpadding="5" cellspacing="1" width="100%" class="tipframe">
+<table border="0" cellpadding="5" cellspacing="1" class="tipframe">
     <th align='left'>Approval</th>
     <tr>
-        <td colspan="2">
+        <td>
             <i>(All fileds above must be set and saved to make SSO approval field editable.)</i>
         </td>
     </tr>
     <tr>
-
-        <td colspan='2'>
+        <td>
             <b>SSO Approval:</b><!-- Action Approval-->
-            <div id="sso_approval" type="select" name="action_status"
-                option='{"APPROVED":"APPROVED","DENIED":"DENIED"}'>                    
-            <!--RESTRICT UPDATE BASED ON STATUS AND ROLE-->
-            <?php if(isAllow('remediation','update_mitigation_strategy_approval')){
-                if($this->is_completed == 'yes'){
-                    if(($this->poam['status'] == 'OPEN') || ($this->poam['status'] == 'EN') || 
-                         ($this->poam['status'] == 'EO')){ ?>
-                <span class="sponsor">
-                <img src='/images/button_modify.png' style="cursor:pointer;">
-                </span>
-            <?php }  }  } ?>
-            <span class="contenter"><?php echo $this->poam['action_status'];?></span>
-            </div>
+            <span type="select" name="action_status"
+            <?php 
+                if(isAllow('remediation','update_mitigation_strategy_approval') &&
+                    in_array($this->poam['status'],array('OPEN', 'EN')) ) {
+                    echo 'class="editable" href="/zfentry.php/metainfo/list/o/decision/format/html/"';
+                }
+                echo '>',$this->poam['action_status'];
+            ?>
+            </span>
         </td>
     </tr>
 </table>

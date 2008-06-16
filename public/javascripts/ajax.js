@@ -1,3 +1,7 @@
+String.prototype.trim = function() {
+        return this.replace(/^\s+|\s+$/g,"");
+}
+
 $(document).ready(function(){
 
     $("select[name='system']").change(function(){
@@ -24,6 +28,28 @@ $(document).ready(function(){
         $('input[@type=checkbox]').removeAttr('checked');
     });
 
+    $("span.editable").click(function(){
+        var name = $(this).attr('name');
+        var type = $(this).attr('type');
+        var url = $(this).attr('href');
+        var cur_val = $(this).text();
+        var cur_span = $(this);
+        if(type == 'text'){
+            cur_span.replaceWith( '<input type="text" value="'+cur_val.trim()+'" />');
+        }else if( type == 'textarea' ){
+            var row = $(this).attr('rows');
+            var col = $(this).attr('cols');
+            cur_span.replaceWith( '<textarea rows="'+row+'" cols="'+col+'" name="'+name+'">'+
+                    cur_val.trim()+ '</textarea>');
+        }else{
+            $.get(url,{value:cur_val.trim()},
+            function(data){
+                if(type == 'select'){
+                    cur_span.replaceWith('<select name="'+name+'">'+data+'</select>');
+                }
+            });
+        }
+    });
 });
 
 function searchAsset( ){
