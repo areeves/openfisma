@@ -112,3 +112,8 @@ div#editorDIV{
     z-index: 20;
 }
 
+span.editable {
+    background:url(/images/button_modify.png) no-repeat left;
+    padding-left:24px;
+    cursor:pointer;
+}
