@@ -77,6 +77,10 @@ td {
 	font-weight: normal;
 	color: #000000;
 	border: 1px solid #44637A;
-    border-collapse: collapse;
+    width:95%;
+    margin:6px auto;
 }
 
+.tipframe th {
+	height: auto;
+}
