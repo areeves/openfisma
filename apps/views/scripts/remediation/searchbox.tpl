@@ -88,19 +88,35 @@
                 <tr>
                     <td width="84"> From:</td>
                     <td width="133"><input type="text" name="est_date_begin" size="12" maxlength="10" 
-                    value="<?php echoDefault($this->criteria['est_date_begin']);?>">mm/dd/yyyy</td>
+                    value="<?php $ts = nullGet($this->criteria['est_date_begin'],'');
+                                 if($ts instanceof Zend_Date){
+                                     $ts = $ts->toString('Ymd');
+                                 }
+                             echo $ts; ?>">yyyy-mm-dd</td>
                     <td width="33"></td>
                     <td width="27">To:</td>
                     <td width="115"><input type="text" name="est_date_end" size="12" maxlength="10" 
-                    value="<?php echoDefault($this->criteria['est_date_end']);?>"> mm/dd/yyyy</td>
+                    value="<?php $ts = nullGet($this->criteria['est_date_end'],'');
+                                 if($ts instanceof Zend_Date){
+                                     $ts = $ts->toString('Ymd');
+                                 }
+                             echo $ts; ?>">yyyy-mm-dd</td>
                     <td width="56"></td>
                     <td width="47">From:</td>
                     <td width="96"><input type="text" name="created_date_begin" size="12" maxlength="10" 
-                    value="<?php echoDefault($this->criteria['created_date_begin']);?>"> mm/dd/yyyy</td>
+                    value="<?php $ts = nullGet($this->criteria['created_data_begin'],'');
+                                 if($ts instanceof Zend_Date){
+                                     $ts = $ts->toString('Ymd');
+                                 }
+                             echo $ts; ?>">yyyy-mm-dd</td>
                     <td width="32"></td>
                     <td width="27">To:</td>
                     <td width="115"><input type="text" name="created_date_end" size="12" maxlength="10" 
-                    value="<?php echoDefault($this->criteria['created_date_end']);?>">mm/dd/yyyy</td>
+                    value="<?php $ts = nullGet($this->criteria['created_data_end'],'');
+                                 if($ts instanceof Zend_Date){
+                                     $ts = $ts->toString('Ymd');
+                                 }
+                             echo $ts; ?>">yyyy-mm-dd</td>
                     <td width="109"></td>
                 </tr>
             </table>
