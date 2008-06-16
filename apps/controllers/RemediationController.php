@@ -29,18 +29,18 @@ class RemediationController extends PoamBaseController
 
         $summary_tmp = array('NEW'=>0,'OPEN'=>0,'EN'=>0,'EO'=>0,'EP'=>0,'EP_SNP'=>0,'EP_SSO'=>0,'ES'=>0,'CLOSED'=>0,'TOTAL'=>0);
 
-        // mock array_fill_key in 5.2.0 
+        // mock array_fill_key in 5.2.0
         $count = count($this->me->systems);
         $sum = array_fill(0,$count,$summary_tmp);
         $summary = array_combine($this->me->systems, $sum);
 
         $total = $summary_tmp;
-
         $ret = $this->_poam->search($this->me->systems,
-                        array('count'=>array('status','system_id'), 'status','system_id'));
+                       array('count'=>array('status','system_id'), 'status','type','system_id'));
         $sum =array();
+
         foreach($ret as $s) {
-            $sum[$s['system_id']][$s['status']] = $s['count'];
+                $sum[$s['system_id']][$s['status']] = $s['count'];
         }
         foreach($sum as $id=>&$s) {
             $summary[$id] = $summary_tmp;
@@ -52,25 +52,25 @@ class RemediationController extends PoamBaseController
             $summary[$id]['CLOSED'] = nullGet($s['CLOSED'],0);
             $summary[$id]['TOTAL'] = array_sum($s);
             $total['NEW'] += $summary[$id]['NEW'];
+            $total['EN'] += $summary[$id]['EN'];
             $total['CLOSED'] += $summary[$id]['CLOSED'];
             $total['OPEN'] += $summary[$id]['OPEN'];
             $total['ES'] += $summary[$id]['ES'];
             $total['TOTAL'] += $summary[$id]['TOTAL'];
         }
 
-        $eo_count = $this->_poam->search($this->me->systems, 
-                        array('count'=>'system_id','system_id'),
-                        array(
-                              'status'=>'EN',
-                              'est_date_end'=> parent::$now )
+        $eo_count = $this->_poam->search($this->me->systems,
+                        array('count'        => 'system_id','system_id'),
+                        array('status'       => 'EN',
+                              'est_date_end' => parent::$now )
                         );
         foreach($eo_count as $eo ) {
             $summary[$eo['system_id']]['EO'] = $eo['count'];
+            $total['EO'] += $summary[$eo['system_id']]['EO'];
         }
 
-        $list = $this->_poam->search($this->me->systems, 
+        $list = $this->_poam->search($this->me->systems,
                         array('id','system_id'), array('status'=>'EP'));
-        
         foreach( $list as $r ) {
             $ep_list[$r['id']] = $r['system_id'];
         }
@@ -79,6 +79,8 @@ class RemediationController extends PoamBaseController
             if( isset($e['decision']) && $e['decision'] == 'APPROVED' ){
                 $summary[$ep_list[$e['poam_id']]]['EP_SNP']++;
                 $summary[$ep_list[$e['poam_id']]]['EP_SSO']--;
+                $total['EP_SNP'] += $summary[$ep_list[$e['poam_id']]]['EP_SNP'];
+                $total['EP_SSO'] += $summary[$ep_list[$e['poam_id']]]['EP_SSO'];
             }
         }
 
@@ -96,20 +98,20 @@ class RemediationController extends PoamBaseController
             switch($criteria['status']){
                 case 'NEW':
                     $internal_crit['status'] = 'NEW';
-                    $internal_crit['type']   = 'NONE';
                     break;
                 case 'OPEN':
                     $internal_crit['status'] = 'OPEN';
+                    $internal_crit['type']   = array('CAP','FP','AR');
                     break;
                 case 'EN':
                     $internal_crit['status'] = 'EN';
                     $internal_crit['est_date_begin'] = $now;
                     break;
                 case 'EO':
-                    $internal_crit['status'] = 'EN';                        
+                    $internal_crit['status'] = 'EN';
                     $internal_crit['est_date_end'] = $now;
                     break;
-                case 'EP-SSO':
+                 case 'EP-SSO':
                 ///@todo EP searching needed
                     $internal_crit['status'] = 'EP';
                     $internal_crit['ep']     = array('sso'=>'APPROVED',
@@ -145,7 +147,7 @@ class RemediationController extends PoamBaseController
                     break;
             }
         }
-
+        
         $list = $this->_poam->search($this->me->systems, array('id',
                                                          'source_id',
                                                          'system_id',
@@ -168,8 +170,8 @@ class RemediationController extends PoamBaseController
         $this->view->assign('links',$pager->getLinks());
         $this->render('search');
     }
-
-    public function searchboxAction()
+    
+     public function searchboxAction()
     {
         $req = $this->getRequest();
         $this->_paging_base_path .= '/panel/remediation/sub/searchbox/s/search';
@@ -182,38 +184,34 @@ class RemediationController extends PoamBaseController
         $criteria['asset_owner'] = $req->getParam('asset_owner',0);
         $tmp = $req->getParam('est_date_begin');
         if(!empty($tmp)) {
-            $criteria['est_date_begin'] = new Zend_Date($tmp,Zend_Date::DATES);
+            $criteria['est_date_begin'] = new Zend_Date($tmp);
         }
         $tmp = $req->getParam('est_date_end');
         if(!empty($tmp)) {
-            $criteria['est_date_end'] = new Zend_Date($tmp,Zend_Date::DATES);
+            $criteria['est_date_end'] = new Zend_Date($tmp);
         }
         $tmp = $req->getParam('created_data_begin');
         if(!empty($tmp)) {
-            $criteria['created_data_begin'] = new Zend_Date($tmp, Zend_Date::DATES);
+            $criteria['created_data_begin'] = new Zend_Date($tmp);
         }
         $tmp = $req->getParam('created_data_end');
         if(!empty($tmp)) {
-            $criteria['created_data_end'] = new Zend_Date($tmp,Zend_Date::DATES);
+            $criteria['created_data_end'] = new Zend_Date($tmp);
         }
 
         $this->view->assign('criteria',$criteria);
         $this->view->assign('systems',$this->_system_list);
         $this->view->assign('sources',$this->_source_list);
         $this->render();
-        if('search' == $req->getParam('s')){
+         if('search' == $req->getParam('s')){
             $this->_paging_base_path = $req->getBaseUrl().'/panel/remediation/sub/searchbox/s/search';
             $this->_paging['currentPage'] = $req->getParam('p',1);
-           
+
             foreach($criteria as $key=>$value){
                 if(!empty($value) ){
-                    if( $value instanceof Zend_Date) {
-                        $this->_paging_base_path .= '/'.$key.'/'.$value->toString('Ymd').'';
-                    }else{
-                        $this->_paging_base_path .= '/'.$key.'/'.$value.'';
-                    }
+                    $this->_paging_base_path .= '/'.$key.'/'.$value.'';
                 }
-            }    
+            }
             $this->_search($criteria);
         }
     }
@@ -239,7 +237,6 @@ class RemediationController extends PoamBaseController
             if( !isset($evs[$evid]['ev']) ){
                 $evs[$evid]['ev'] = array_slice($ev_eval,0,5);
             }
-            $evs[$evid]['eval'][$ev_eval['level']] = array_slice($ev_eval,5);
         }
         $this->view->assign('poam',$poam_detail);
         $this->view->assign('logs',$this->_poam->getLogs($id));

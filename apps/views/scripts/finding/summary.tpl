@@ -17,7 +17,7 @@
     </tr>
 <?php
 foreach($this->statistic as $sys_id => $row){
-    $search_url_base = "/zfentry.php/panel/finding/sub/searchbox/s/search/system/$sys_id";
+    $search_url_base = "/zfentry.php/panel/finding/sub/searchbox/s/search/system_id/$sys_id";
 ?>
     <tr >
         <td  class="tdc" align="left">&nbsp;

@@ -47,17 +47,13 @@
                     <td>&nbsp;</td>
                     <td>From:</td>
                     <td>
-                        <input type="text" name="startdate" value="<?php echo $this->startdate;?>" size="10" maxlength="10" value="" onclick="javascript:show_calendar('filter.startdate');" readonly>
+                        <input type="text" name="startdate" value="<?php echo $this->startdate;?>" size="10" maxlength="10" value="">
                     </td>
-                    <td><a href="#" onclick="javascript:show_calendar('filter.startdate');">
-                        <img src="/images/picker.gif" width=24 height=22 border=0></a>
-                    </td>
+                    <td><a href="#"><img src="/images/picker.gif" width=24 height=22 border=0></a></td>
                     <td>&nbsp;</td>
                     <td>End Date:</td>
-                    <td><input type="text" name="enddate" value="<?php echo $this->enddate;?>" size="10" maxlength="10" value="" onclick="javascript:show_calendar('filter.enddate');" readonly></td>
-                    <td><a href="#" onclick="javascript:show_calendar('filter.enddate');">
-                        <img src="/images/picker.gif" width=24 height=22 border=0></a>
-                    </td>
+                    <td><input type="text" name="enddate" value="<?php echo $this->enddate;?>" size="10" maxlength="10" value=""></td>
+                    <td><a href="#"><img src="/images/picker.gif" width=24 height=22 border=0></a></td>
                     <td>&nbsp;</td>
                     <td>&nbsp;</td>
                 </tr>

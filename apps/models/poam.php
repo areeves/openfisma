@@ -31,9 +31,9 @@ class poam extends Zend_Db_Table
         if( !empty($system_id) ){
             $query->where("p.system_id = ".$system_id."");
         }
-        
+        /// @todo sanitize the $ids
         if(!empty($ids)){
-            $query->where("p.id IN (". makeSqlInStmt($ids) .")");
+            $query->where("p.id IN (".$ids.")");
         }
 
         if(!empty($est_date_begin)){
@@ -184,13 +184,14 @@ class poam extends Zend_Db_Table
             $query->joinLeft( array('s'=>'sources'), 's.id = p.source_id',$src_fields);
         }
         $query = $this->_parseWhere($query, $criteria);
-
+        
         if( $count_fields ) {
             $count_query = clone $query;
             $count_query->reset(Zend_Db_Select::COLUMNS);
             $count_query->reset(Zend_Db_Select::FROM);
             $count_query->reset(Zend_Db_Select::GROUP);
-            $count_query->from( array('p'=>$this->_name),array('count'=>'count(*)') );
+            $count_query->from( array('p'=>$this->_name),array('count'=>'count(*)') )
+                        ->join( array('as'=>'assets'),'as.id = p.asset_id',array());
             $count = $this->_db->fetchOne($count_query);
             if( empty($p_fields) ) {
                 return $count;
@@ -204,6 +205,7 @@ class poam extends Zend_Db_Table
         if( $count_fields && $count ) {
             array_push($ret, $count);
         }
+        
         return $ret;
     }
 
@@ -302,6 +304,47 @@ class poam extends Zend_Db_Table
         }
         return $ret;
     }
+   
+    public function getEvidence($id)
+    {
+        $ret = '';
+        $query = $this->select()->setIntegrityCheck(false);
+        $query->from(array('evi'=>'evidences'),'*')
+              ->join(array('u'=>'users'),'u.id = evi.submitted_by',array('submitted_by'=>'account'))
+              ->where('evi.poam_id = '.$id);
+        $evidences = $this->_db->fetchAll($query);
+        if(!empty($evidences)){
+            $num_evidence = count($evidences);
+            foreach($evidences as $k=>$row){
+                $query->reset();
+                $query->from(array('eval'=>'evaluations'),array('name'))
+                      ->join(array('f'=>'functions'),'eval.function_id = f.id',
+                                      array('screen'=>'f.screen','action'=>'f.action'))
+                      ->joinLeft(array('ev_eval'=>'ev_evaluations'),
+                                    'ev_eval.eval_id = eval.id and ev_eval.ev_id = '.$row['id'],
+                                    array('decision'=>'decision','eval_id'=>'eval_id'))
+                      ->joinLeft(array('c'=>'comments'),'c.ev_evaluation_id = ev_eval.id',
+                                array('comment_date'=>'date',
+                                      'comment_topic'=>'topic',
+                                      'comment_content'=>'content'))
+                      ->joinLeft(array('u'=>'users'),'u.id = c.user_id',
+                                      array('comment_username'=>'u.account'))
+                      ->where("eval.group = 'EVIDENCE'")
+                      ->order("eval.precedence_id");
+                $evaluations[$row['id']] = $this->_db->fetchAll($query);
+                $evidences[$k]['fileName'] = basename($row['submission']);
+                if(file_exists(ROOT.'/public/'.$row['submission'])){
+                    $evidences[$k]['fileExists'] = 1;
+                }else {
+                    $evidences[$k]['fileExists'] = 0;
+                }
+            }
+            $ret['evidence'] = $evidences;
+            $ret['evaluation'] = $evaluations;
+            $ret['num']      = $num_evidence;
+        }
+        return $ret;
+    }
 
     /** 
         Get action evaluations according to poam id(s).
@@ -357,7 +400,7 @@ class poam extends Zend_Db_Table
         $startdate = Zend_Registry::get('startdate');
         $enddate = Zend_Registry::get('enddate');
         $query = $db->select()->from(array('sgs'=>'systemgroup_systems'),array('system_id'=>'system_id'))
-                              ->where("sgs.sysgroup_id = ".$fsa_sysgroup_id." AND sgs.system_id != ".$fp_system_id."");
+                    ->where("sgs.sysgroup_id = ".$fsa_sysgroup_id." AND sgs.system_id != ".$fp_system_id."");
         $result = $db->fetchCol($query);
         $system_ids = implode(',',$result);
         $query = $db->select()->distinct()
