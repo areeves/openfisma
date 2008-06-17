@@ -236,7 +236,13 @@ class poam extends Zend_Db_Table
         if( !empty($vuln) ){
             $ret['vuln'] = $vuln;
         }
-
+        $query->reset();
+        $query->from(array('n'=>'networks'),array('network_name'=>'n.name'))
+              ->where('n.id = ?',$ret['network_id']);
+        $networks = $this->_db->fetchRow($query);
+        if(!empty($networks)){
+            $ret['network_name'] = $networks['network_name'];
+        }
         $query->reset();
         $query->from(array('pr'=>'products'),array('prod_id'=>'pr.id',
                                            'prod_vendor'=>'pr.vendor',
