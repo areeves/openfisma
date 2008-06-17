@@ -57,7 +57,7 @@ class AssetController extends SecurityController
         $systems= new System();
         $user=new User();
         $product=new Product();
-        $systems=$user->getMySystems($this->me->user_id);
+        $systems=$user->getMySystems($this->me->id);
         $sys_id_set=implode(',',$systems);
 
         $db=Zend_Registry::get('db');
