@@ -8,6 +8,7 @@
 */
 
 require_once 'Zend/Db/Table.php';
+require_once 'Zend/Db/Expr.php';
 
 class poam extends Zend_Db_Table
 {
@@ -67,7 +68,18 @@ class poam extends Zend_Db_Table
                 $query->where("p.type = ?",$type);
             }
         }
-
+        if( isset($ep) ) {
+            $query->join(array('ev'=>
+                        new Zend_Db_Expr("(
+                        SELECT e1.poam_id,MAX( e1.submit_ts ),MAX(eval.precedence_id) level,
+                               pe.decision
+                        FROM `evidences` AS e1, `poam_evaluations` AS pe, `evaluations` AS eval
+                        WHERE ( eval.id = pe.eval_id AND e1.id = pe.group_id) 
+                        GROUP BY e1.poam_id,e1.poam_id)")), 
+                        "ev.poam_id=p.id AND 
+                         ((ev.level<'$ep' AND ev.decision='APPROVED') OR ev.level IS NULL)",
+                         array() );
+        }
         if( !empty($status) ){
             if(is_array($status)){
                 $query->where( "p.status IN (".makeSqlInStmt($status).")" );
@@ -75,17 +87,6 @@ class poam extends Zend_Db_Table
                 $query->where("p.status = ?", $status);
             }
         }
-        /*
-        if(isset($ep)){
-            $qry = $db->select()->distinct()->from(array('e'=>'evidences'),array('id'=>'e.id'))
-                                            ->where("pe.ev_sso_evaluation = '".$ep['sso']."'")
-                                            ->where("pe.ev_fsa_evaluation = '".$ep['fsa']."'")
-                                            ->where("pe.ev_ivv_evaluation = '".$ep['ivv']."'");
-            
-            $ids = implode(',',$db->fetchCol($qry));
-            $query->where("p.id IN ($ids)");
-        }
-        */
         if( !empty($ip) || !empty($port) ){
             if(!empty($ip)) {
                 $query->where('as.address_ip = ?', $ip);
@@ -178,7 +179,7 @@ class poam extends Zend_Db_Table
         }
         
         if( !empty($as_fields) ) {
-            $query->join( array('as'=>'assets'), 'as.id = p.asset_id',$as_fields);
+            $query->joinLeft( array('as'=>'assets'), 'as.id = p.asset_id',$as_fields);
         }
         if( !empty($src_fields) ) {
             $query->joinLeft( array('s'=>'sources'), 's.id = p.source_id',$src_fields);
@@ -187,17 +188,15 @@ class poam extends Zend_Db_Table
         
         if( $count_fields ) {
             $count_query = clone $query;
+            $from = $count_query->getPart(Zend_Db_Select::FROM);
             $count_query->reset(Zend_Db_Select::COLUMNS);
-            $count_query->reset(Zend_Db_Select::FROM);
             $count_query->reset(Zend_Db_Select::GROUP);
-            $count_query->from( array('p'=>$this->_name),array('count'=>'count(*)') )
-                        ->join( array('as'=>'assets'),'as.id = p.asset_id',array());
+            $count_query->from( null,array('count'=>'count(*)') );
             $count = $this->_db->fetchOne($count_query);
             if( empty($p_fields) ) {
                 return $count;
             }
         }
-
         if( !empty( $currentPage ) && !empty( $perPage ) ){
             $query->limitPage($currentPage,$perPage);
         }

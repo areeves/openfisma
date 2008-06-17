@@ -48,7 +48,7 @@ class RemediationController extends PoamBaseController
             $summary[$id]['OPEN'] = nullGet($s['OPEN'],0);
             $summary[$id]['ES'] = nullGet($s['ES'],0);
             $summary[$id]['EN'] = nullGet($s['EN'],0);
-            $summary[$id]['EP_SSO'] = nullGet($s['EP'],0); //temp placeholder
+            $summary[$id]['EP'] = nullGet($s['EP'],0); //temp placeholder
             $summary[$id]['CLOSED'] = nullGet($s['CLOSED'],0);
             $summary[$id]['TOTAL'] = array_sum($s);
             $total['NEW'] += $summary[$id]['NEW'];
@@ -69,19 +69,17 @@ class RemediationController extends PoamBaseController
             $total['EO'] += $summary[$eo['system_id']]['EO'];
         }
 
-        $list = $this->_poam->search($this->me->systems,
-                        array('id','system_id'), array('status'=>'EP'));
-        foreach( $list as $r ) {
-            $ep_list[$r['id']] = $r['system_id'];
+        $spsso = $this->_poam->search($this->me->systems,
+                        array('count'=>'system_id','system_id'), array('status'=>'EP','ep'=>0));
+        foreach($spsso as $sp) {
+            $summary[$sp['system_id']]['EP_SSO'] = $sp['count'];
+            $total['EP_SSO'] += $sp['count'];
         }
-        $ret = $this->_poam->getEvEvaluation(array_keys($ep_list),true);
-        foreach( $ret as $k=>$e ) {
-            if( isset($e['decision']) && $e['decision'] == 'APPROVED' ){
-                $summary[$ep_list[$e['poam_id']]]['EP_SNP']++;
-                $summary[$ep_list[$e['poam_id']]]['EP_SSO']--;
-                $total['EP_SNP'] += $summary[$ep_list[$e['poam_id']]]['EP_SNP'];
-                $total['EP_SSO'] += $summary[$ep_list[$e['poam_id']]]['EP_SSO'];
-            }
+        $spsnp = $this->_poam->search($this->me->systems,
+                        array('count'=>'system_id','system_id'), array('status'=>'EP','ep'=>1));
+        foreach($spsnp as $sp) {
+            $summary[$sp['system_id']]['EP_SNP'] = $sp['count'];
+            $total['EP_SNP'] += $sp['count'];
         }
 
         $this->view->assign('total',$total);
@@ -105,7 +103,8 @@ class RemediationController extends PoamBaseController
                     break;
                 case 'EN':
                     $internal_crit['status'] = 'EN';
-                    $internal_crit['est_date_begin'] = $now;
+                    //Should we include EO status in?
+                    //$internal_crit['est_date_begin'] = $now;
                     break;
                 case 'EO':
                     $internal_crit['status'] = 'EN';
@@ -114,15 +113,11 @@ class RemediationController extends PoamBaseController
                 case 'EP-SSO':
                 ///@todo EP searching needed
                     $internal_crit['status'] = 'EP';
-                    $internal_crit['ep']     = array('sso'=>'APPROVED',
-                                                'fsa'=>'NONE',
-                                                'ivv'=>'NONE');
+                    $internal_crit['ep']     = 0;//level
                     break;
                 case 'EP-SNP':
                     $internal_crit['status'] = 'EP';
-                    $internal_crit['ep']     = array('sso'=>'APPROVED',
-                                                'fsa'=>'NONE',
-                                                'ivv'=>'NONE');
+                    $internal_crit['ep']     = 1;//level
                     break;
                 case 'ES':
                     $internal_crit['status'] = 'ES';
