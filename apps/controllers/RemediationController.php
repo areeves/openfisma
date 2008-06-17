@@ -111,7 +111,7 @@ class RemediationController extends PoamBaseController
                     $internal_crit['status'] = 'EN';
                     $internal_crit['est_date_end'] = $now;
                     break;
-                 case 'EP-SSO':
+                case 'EP-SSO':
                 ///@todo EP searching needed
                     $internal_crit['status'] = 'EP';
                     $internal_crit['ep']     = array('sso'=>'APPROVED',
@@ -171,7 +171,7 @@ class RemediationController extends PoamBaseController
         $this->render('search');
     }
     
-     public function searchboxAction()
+    public function searchboxAction()
     {
         $req = $this->getRequest();
         $this->_paging_base_path .= '/panel/remediation/sub/searchbox/s/search';
@@ -184,19 +184,19 @@ class RemediationController extends PoamBaseController
         $criteria['asset_owner'] = $req->getParam('asset_owner',0);
         $tmp = $req->getParam('est_date_begin');
         if(!empty($tmp)) {
-            $criteria['est_date_begin'] = new Zend_Date($tmp);
+            $criteria['est_date_begin'] = new Zend_Date($tmp,Zend_Date::DATES);
         }
         $tmp = $req->getParam('est_date_end');
         if(!empty($tmp)) {
-            $criteria['est_date_end'] = new Zend_Date($tmp);
+            $criteria['est_date_end'] = new Zend_Date($tmp,Zend_Date::DATES);
         }
         $tmp = $req->getParam('created_data_begin');
         if(!empty($tmp)) {
-            $criteria['created_data_begin'] = new Zend_Date($tmp);
+            $criteria['created_data_begin'] = new Zend_Date($tmp,Zend_Date::DATES);
         }
         $tmp = $req->getParam('created_data_end');
         if(!empty($tmp)) {
-            $criteria['created_data_end'] = new Zend_Date($tmp);
+            $criteria['created_data_end'] = new Zend_Date($tmp,Zend_Date::DATES);
         }
 
         $this->view->assign('criteria',$criteria);
@@ -210,6 +210,11 @@ class RemediationController extends PoamBaseController
             foreach($criteria as $key=>$value){
                 if(!empty($value) ){
                     $this->_paging_base_path .= '/'.$key.'/'.$value.'';
+                    if($value instanceof Zend_Date){
+                        $this->_paging_base_path .='/'.$key.'/'.$value->toString('Ymd').'';
+                    }else{
+                        $this->_paging_base_path .='/'.$key.'/'.$value.'';
+                    }
                 }
             }
             $this->_search($criteria);
@@ -237,6 +242,7 @@ class RemediationController extends PoamBaseController
             if( !isset($evs[$evid]['ev']) ){
                 $evs[$evid]['ev'] = array_slice($ev_eval,0,5);
             }
+            $evs[$evid]['eval'][$ev_eval['level']] = array_slice($ev_eval,5);
         }
         $this->view->assign('poam',$poam_detail);
         $this->view->assign('logs',$this->_poam->getLogs($id));

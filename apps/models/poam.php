@@ -304,47 +304,6 @@ class poam extends Zend_Db_Table
         }
         return $ret;
     }
-   
-    public function getEvidence($id)
-    {
-        $ret = '';
-        $query = $this->select()->setIntegrityCheck(false);
-        $query->from(array('evi'=>'evidences'),'*')
-              ->join(array('u'=>'users'),'u.id = evi.submitted_by',array('submitted_by'=>'account'))
-              ->where('evi.poam_id = '.$id);
-        $evidences = $this->_db->fetchAll($query);
-        if(!empty($evidences)){
-            $num_evidence = count($evidences);
-            foreach($evidences as $k=>$row){
-                $query->reset();
-                $query->from(array('eval'=>'evaluations'),array('name'))
-                      ->join(array('f'=>'functions'),'eval.function_id = f.id',
-                                      array('screen'=>'f.screen','action'=>'f.action'))
-                      ->joinLeft(array('ev_eval'=>'ev_evaluations'),
-                                    'ev_eval.eval_id = eval.id and ev_eval.ev_id = '.$row['id'],
-                                    array('decision'=>'decision','eval_id'=>'eval_id'))
-                      ->joinLeft(array('c'=>'comments'),'c.ev_evaluation_id = ev_eval.id',
-                                array('comment_date'=>'date',
-                                      'comment_topic'=>'topic',
-                                      'comment_content'=>'content'))
-                      ->joinLeft(array('u'=>'users'),'u.id = c.user_id',
-                                      array('comment_username'=>'u.account'))
-                      ->where("eval.group = 'EVIDENCE'")
-                      ->order("eval.precedence_id");
-                $evaluations[$row['id']] = $this->_db->fetchAll($query);
-                $evidences[$k]['fileName'] = basename($row['submission']);
-                if(file_exists(ROOT.'/public/'.$row['submission'])){
-                    $evidences[$k]['fileExists'] = 1;
-                }else {
-                    $evidences[$k]['fileExists'] = 0;
-                }
-            }
-            $ret['evidence'] = $evidences;
-            $ret['evaluation'] = $evaluations;
-            $ret['num']      = $num_evidence;
-        }
-        return $ret;
-    }
 
     /** 
         Get action evaluations according to poam id(s).
