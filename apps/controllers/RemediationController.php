@@ -209,7 +209,6 @@ class RemediationController extends PoamBaseController
 
             foreach($criteria as $key=>$value){
                 if(!empty($value) ){
-                    $this->_paging_base_path .= '/'.$key.'/'.$value.'';
                     if($value instanceof Zend_Date){
                         $this->_paging_base_path .='/'.$key.'/'.$value->toString('Ymd').'';
                     }else{
