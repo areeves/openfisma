@@ -49,11 +49,11 @@
                     <td>
                         <input type="text" name="startdate" value="<?php echo $this->startdate;?>" size="10" maxlength="10" value="">
                     </td>
-                    <td><a href="#"><img src="/images/picker.gif" width=24 height=22 border=0></a></td>
+                    <td><span onclick="javascript:show_calendar('finding.discovereddate');"><img src="/images/picker.gif" border="0" height="22" width="24"></span></td>
                     <td>&nbsp;</td>
                     <td>End Date:</td>
                     <td><input type="text" name="enddate" value="<?php echo $this->enddate;?>" size="10" maxlength="10" value=""></td>
-                    <td><a href="#"><img src="/images/picker.gif" width=24 height=22 border=0></a></td>
+                    <td><span onclick="javascript:show_calendar('finding.discovereddate');"><img src="/images/picker.gif" border="0" height="22" width="24"></span></td>
                     <td>&nbsp;</td>
                     <td>&nbsp;</td>
                 </tr>

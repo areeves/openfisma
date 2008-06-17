@@ -19,36 +19,35 @@
 foreach($this->statistic as $sys_id => $row){
     $search_url_base = "/zfentry.php/panel/finding/sub/searchbox/s/search/system_id/$sys_id";
 ?>
-    <tr >
-        <td  class="tdc" align="left">&nbsp;
+    <tr>
+        <td class="tdc" align="left">&nbsp;
             <?php echo $row['NAME']; ?>
         </td>
         <td class="tdc" >&nbsp;
-            <a href='<?php echo "{$search_url_base}/status/NEW/from/".
+            <a href='<?php echo "{$search_url_base}/status/NEW/created_date_begin/".
                 $this->range['today']['from']->toString('Ymd'). 
-                "/to/".
-                $this->range['today']['to']->toString('Ymd'); ?>
-            '>
+                "/created_date_end/".
+                $this->range['today']['to']->toString('Ymd'); ?>'>
             <?php echo $row['NEW']['today']; ?></a>
         </td>
         <td class="tdc" >&nbsp;
-            <a href="<?php echo "{$search_url_base}/status/NEW/from/".
+            <a href="<?php echo "{$search_url_base}/status/NEW/created_date_begin/".
                 $this->range['last30']['from']->toString('Ymd').
-                "/to/".
+                "/created_date_end/".
                 $this->range['last30']['to']->toString('Ymd'); 
              ?>">
             <?php echo $row['NEW']['last30day']; ?></a>
         </td>
         <td class="tdc" >&nbsp;
-            <a href="<?php echo "{$search_url_base}/status/NEW/from/".
+            <a href="<?php echo "{$search_url_base}/status/NEW/created_date_begin/".
                 $this->range['last60']['from']->toString('Ymd').
-                "/to/".
+                "/created_date_end/".
                 $this->range['last60']['to']->toString('Ymd'); 
              ?>">
             <?php echo $row['NEW']['last2nd30day']; ?></a>
         </td>
         <td class="tdc" >&nbsp;
-            <a href="<?php echo "{$search_url_base}/status/NEW/to/".
+            <a href="<?php echo "{$search_url_base}/status/NEW/created_date_end/".
                 $this->range['after60']['to']->toString('Ymd'); 
              ?>">
             <?php echo $row['NEW']['before60day']; ?></a>

@@ -28,8 +28,16 @@ class FindingController extends PoamBaseController
         $criteria['port'] = $req->getParam('port');
         $criteria['vuln'] = $req->getParam('vuln');
         $criteria['product'] = $req->getParam('product');
-        $criteria['discovered_date_begin'] = $req->getParam('discovered_date_begin');
-        $criteria['discovered_date_end'] = $req->getParam('discovered_date_end');
+        $criteria['created_date_begin'] = $req->getParam('created_date_begin');
+        $criteria['created_date_end']   = $req->getParam('created_date_end');
+        $tmp = $req->getParam('created_date_begin');
+        if(!empty($tmp)){
+            $criteria['created_date_begin'] = new Zend_Date($tmp,Zend_Date::DATES);
+        }
+        $tmp = $req->getParam('created_date_end');
+        if(!empty($tmp)){
+            $criteria['created_date_end'] = new Zend_Date($tmp,Zend_Date::DATES);
+        }
         $criteria['status'] = $req->getParam('status');
 
         $this->view->source = $this->_source_list;
@@ -40,7 +48,11 @@ class FindingController extends PoamBaseController
         if( 'search' == $req->getParam('s') ) {
             foreach($criteria as $key=>$value){
                 if(!empty($value) ){
-                    $this->_paging_base_path .='/'.$key.'/'.$value.'';
+                    if($value instanceof Zend_Date){
+                        $this->_paging_base_path .='/'.$key.'/'.$value->toString('Ymd').'';
+                    }else{
+                        $this->_paging_base_path .='/'.$key.'/'.$value.'';
+                    }
                 }
             }
             $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";
@@ -113,7 +125,7 @@ class FindingController extends PoamBaseController
                                       'before60day'=>0),
                         'REMEDIATION'=>$data['OPEN']+$data['ES']+$data['EN']+$data['EP'],
                         'CLOSED'=>$data['CLOSED']);
-
+            
             $data = $finding->getStatusCount(array($k),$range['today'],'NEW');
             $statistic[$k]['NEW']['today'] = $data['NEW'];
             $data = $finding->getStatusCount(array($k),$range['last30'],'NEW');
@@ -123,7 +135,7 @@ class FindingController extends PoamBaseController
             $data = $finding->getStatusCount(array($k),$range['after60'],'NEW');
             $statistic[$k]['NEW']['before60day'] = $data['NEW'];
         }
-
+        
         $this->view->assign('range',$range);
         $this->view->assign('statistic',$statistic);
         $this->render();
@@ -145,8 +157,7 @@ class FindingController extends PoamBaseController
             $poam = new Poam();
             $detail = $poam->find($id)->current();
             $this->view->finding = $poam->getDetail($id);
-            $this->view->finding['system_name'] = 
-                $this->me->systems[$this->view->finding['system_id']];
+            $this->view->finding['system_name'] = $this->me->systems[$this->view->finding['system_id']];
             assert($this->view->finding['system_name']);
             $this->render();
         } else {
