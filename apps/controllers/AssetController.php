@@ -95,9 +95,7 @@ class AssetController extends SecurityController
                               'network_id'=>$network_id,
                               'address_ip'=>$asset_ip,
                               'address_port'=>$asset_port);
-            $asset_rows_affected=$db->insert('assets',$asset_row);
-
-            $asset_last_insert_id=$db->lastInsertId();
+            $asset_last_insert_id=$asset->insert($asset_row);
             $this->message( "Create Asset successfully", self::M_NOTICE);
         }
         $this->view->system_list=$system_list;

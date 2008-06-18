@@ -11,6 +11,7 @@ require_once(CONTROLLERS . DS . 'PoamBaseController.php');
 require_once(MODELS . DS . 'finding.php');
 require_once MODELS . DS . 'asset.php';
 require_once MODELS . DS . 'source.php';
+require_once MODELS . DS . 'poam.php';
 require_once('Pager.php');
 define('TEMPLATE_NAME', "OpenFISMA_Injection_Template.xls"); 
 
@@ -223,23 +224,18 @@ class FindingController extends PoamBaseController
                 $fileSize = $csvFile['size'];
 
                 $failedArray = $succeedArray = array();
-                $row = -2;
                 $handle = fopen($tempFile,'r');
+                $data = fgetcsv($handle,1000,",",'"'); //skip the first line
+                $data = fgetcsv($handle,1000,",",'"'); //skip the second line
+                $row = 0;
                 while($data = fgetcsv($handle,1000,",",'"')) {
                     if(implode('',$data)!=''){
                         $row++;
-                        if($row>0){
-                            $sql = $this->csvQueryBuild($data);
-                            if(!$sql){
-                                $failedArray[] = $data;
-                            }
-                            else {
-                                foreach($sql as $query){
-                                    $db = Zend_Registry::get('db');
-                                    $db->query($query);
-                                }
-                                $succeedArray[] = $data;
-                            }
+                        $ret = $this->insertCsvRow($data);
+                        if(empty($ret) ){
+                            $failedArray[] = $data;
+                        }else{
+                            $succeedArray[] = $data;
                         }
                     }
                 }
@@ -336,19 +332,19 @@ class FindingController extends PoamBaseController
     public function deleteAction(){
         $req = $this->getRequest();
         $post = $req->getPost();
-        $finding = new finding();
         $poam = new poam();
         foreach($post as $key=>$id){
             if(substr($key,0,4) == 'id_'){
-                $finding->update(array('finding_status'=>'deleted'),'finding_id = '.$id);
-                $poam->delete('finding_id = '.$id);
+                $poam->update(array('status'=>'DELETED'),'id = '.$id);
             }
         }
         $this->_forward('searchbox','finding',null,array('s'=>'search'));
 
     }
 
-    public function csvQueryBuild($row){
+    public function insertCsvRow($row){
+        $asset = new asset();
+        $poam = new poam();
         if (!is_array($row) || (count($row)<7)){
             return false;
         }
@@ -363,25 +359,29 @@ class FindingController extends PoamBaseController
             return false;
         }
         $db = Zend_Registry::get('db');
-        $result = $db->fetchRow("SELECT system_id FROM `SYSTEMS` WHERE system_nickname = '$row[0]'");
-        $row[0] = is_array($result)?array_pop($result):false;
-        $result = $db->fetchRow("SELECT network_id FROM `NETWORKS` WHERE network_nickname = '$row[1]'");
-        $row[1] = is_array($result)?array_pop($result):false;
-        $result = $db->fetchRow("SELECT source_id FROM `FINDING_SOURCES` WHERE source_nickname = '$row[5]'");
-        $row[5] = is_array($result)?array_pop($result):false;
+        $query = $db->select()->from('systems','id')->where('nickname = ?',$row[0]);
+        $result = $db->fetchRow($query);
+        $row[0] = !empty($result)?$result['id']:false;
+        $query->reset();
+        $query = $db->select()->from('networks','id')->where('nickname = ?',$row[1]);
+        $result = $db->fetchRow($query);
+        $row[1] = !empty($result)?$result['id']:false;
+        $query->reset();
+        $query = $db->select()->from('sources','id')->where('nickname = ?',$row[5]);
+        $result = $db->fetchRow($query);        
+        $row[5] = !empty($result)?$result['id']:false;
         if (!$row[0] || !$row[1] || !$row[5]) {
             return false;
         }
-        $sql[] = "INSERT INTO `ASSETS`(asset_name, asset_date_created, asset_source)
-                  VALUES(':$row[3]:$row[4]', '$row[2]', 'SCAN')";
-        $sql[] = "INSERT INTO `SYSTEM_ASSETS` (system_id, asset_id, system_is_owner)
-                  VALUES($row[0], LAST_INSERT_ID(), 1)";
-        $sql[] = "INSERT INTO `ASSET_ADDRESSES` (asset_id,network_id,address_date_created,address_ip,address_port)
-                  VALUES(LAST_INSERT_ID(), $row[1], '$row[2]', '$row[3]', '$row[4]')";
-        $sql[] = "INSERT INTO `FINDINGS` (source_id,asset_id,finding_status,finding_date_created,
-                  finding_date_discovered,finding_data)
-                  VALUES($row[5], LAST_INSERT_ID(), 'OPEN', '$current_time_string', '$row[2]', '$row[6]')";
-        return $sql;
+        $asset_data = array('name'=>$row[3].':'.$row[4],'create_ts'=>$row[2],'source'=>'SCAN',
+                             'system_id'=>$row[0],'network_id'=>$row[1],'address_ip'=>$row[3],
+                             'address_port'=>$row[4]);
+        $asset_id = $asset->insert($asset_data);
+        $poam_data = array('asset_id'=>$asset_id,'source_id'=>$row[5],'system_id'=>$row[0],
+                              'status'=>'NEW','create_ts'=>self::$now->toString('Y-m-d h:i:s') ,
+                              'discover_ts'=>$row[2],'finding_data'=>$row[6]);
+        $ret =  $poam->insert($poam_data);
+        return $ret;
     }
 
     /** 
