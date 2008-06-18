@@ -5,7 +5,7 @@
     <tr>
         <td>&nbsp;</td>
         <td align="right"><b>System:</b></td>
-        <td colspan="7"> <?php echo $this->system; ?> </td>
+        <td colspan="7"> <?php echo $this->asset['sname']; ?> </td>
     </tr>
     <tr>
         <td>&nbsp;</td>

@@ -114,13 +114,14 @@ class AssetController extends SecurityController
         $id = $req->getParam('id');
         if(!empty($id)) {
             $qry = $asset->select()->setIntegrityCheck(false)
-                                   ->from(array('a'=>'assets'));
-            $qry->join(array('p'=>'products'),'p.id = a.prod_id',array('pname' =>'p.name',
+                                   ->from(array('a'=>'assets'),array('ip'=>'address_ip'))
+                                   ->join(array('s'=>'systems'),'a.system_id=s.id',array('sname'=>'s.name'))
+                                   ->join(array('p'=>'products'),
+                                   'p.id = a.prod_id',array('pname' =>'p.name',
                                                                         'pvendor' =>'p.vendor',
                                                                         'pversion' =>'p.version'));
             $qry->where("a.id = $id");
-            $this->view->asset = $asset->fetchRow($qry);
-            $this->view->system = '';
+            $this->view->asset = $asset->fetchRow($qry)->toArray();
         }
         $this->_helper->layout->setLayout( 'ajax' );
         $this->render('detail');
