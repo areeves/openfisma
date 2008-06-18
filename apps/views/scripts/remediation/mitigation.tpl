@@ -9,10 +9,9 @@
                 <tr>
                     <td align="left">
                         <b>Type:</b>
-                        <span name="poam[type]" type="select"
+                        <span name="poam[type]"
     <?php
-        if('NEW' == $this->poam['status'] && 
-            isAllow('remediation','update')){
+        if('NEW' == $this->poam['status'] && isAllow('remediation','update')){
             echo ' type="select" class="editable" 
                    href="/zfentry.php/metainfo/list/o/type/format/html/"';
         }
@@ -24,14 +23,13 @@
                 <tr>
                     <td>
                         <b>Description:</b>
-                        <span name="poam[action_planned]" type="textarea" rows="5" cols="160"
-    <?php
-        if('OPEN' == $this->poam['status'] && 
-            isAllow('remediation','update_finding_course_of_action')){
-            echo ' type="select" class="editable" ';
-        }
-        echo '>',$this->poam['action_planned'];
-    ?>
+                        <span name="poam[action_planned]"
+       <?php 
+           if('OPEN' == $this->poam['status'] && isAllow('remediation','update_finding_course_of_action')){
+               echo ' type="textarea" rows="5" cols="160" class="editable" ';
+           }
+           echo '>',$this->poam['action_planned'];
+       ?>           
                         </span>
                     </td>
                 </tr>
@@ -46,7 +44,7 @@
                         <span name="poam[action_resources]" type="textarea" rows="5" cols="160"
     <?php
         if( isAllow('remediation','update_finding_resources')){
-            echo ' type="select" class="editable" ';
+            echo ' class="editable" ';
         }
         echo '>',$this->poam['action_resources'];
     ?>

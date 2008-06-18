@@ -205,8 +205,23 @@
             <b>SSO Approval:</b><!-- Action Approval-->
             <span type="select" name="poam[action_status]"
             <?php 
+                $array = array('recommendation'=>$this->poam['action_suggested'],
+                               'desciption'    =>$this->poam['action_planned'],
+                               'resources'     =>$this->poam['action_resources'],
+                               'blscr'         =>$this->poam['blscr_id'],
+                               'threat_level'  =>$this->poam['threat_level'],
+                               'threat_source' =>$this->poam['threat_source'],
+                               'threat_justification'=>$this->poam['threat_justification'],
+                               'cmeasure_effectiveness'=>$this->poam['cmeasure_effectiveness'],
+                               'cmeasure_justification'=>$this->poam['cmeasure_justification']);
+                $error = 0;
+                foreach($array as $value){
+                    if($value == ''){
+                        $error++;
+                    }
+                }
                 if(isAllow('remediation','update_mitigation_strategy_approval') &&
-                    in_array($this->poam['status'],array('OPEN', 'EN')) ) {
+                    in_array($this->poam['status'],array('OPEN', 'EN')) && 0 == $error) {
                     echo 'class="editable" href="/zfentry.php/metainfo/list/o/decision/format/html/"';
                 }
                 echo '>',$this->poam['action_status'];

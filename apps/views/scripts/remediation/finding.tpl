@@ -117,14 +117,14 @@
     <th align='left' colspan='2'>Recommendation</th>
     <tr>
         <td colspan='2'>
-            <div id="recommendation" name="action_suggested" type="textarea" rows="5" cols="160">
-            <?php if(isAllow('remediation','update_finding_recommendation')){?>
-            <span class="sponsor">
-                <img src='/images/button_modify.png' style="cursor:pointer;"></span> 
-            <?php }?>
-            <span class="contenter">
-                <?php echo $this->poam['action_suggested'];?>
-            </span></div>
+            <span name="poam[action_suggested]"
+            <?php 
+                if(isAllow('remediation','update_finding_recommendation')){
+                    echo ' type="textarea" rows="5" cols="160" class="editable" ';
+                }
+                echo '>',$this->poam['action_suggested'];
+            ?>
+            </span>
         </td>
     </tr>
 </table>
