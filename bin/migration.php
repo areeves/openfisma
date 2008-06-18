@@ -26,14 +26,15 @@
     require_once 'Zend/Controller/Plugin/ErrorHandler.php';
     require_once ( CONFIGS . DS . 'database.php');
 
-
     $table_name=  array(
               'BLSCR', 
               'NETWORKS', 
               'PRODUCTS',
               'FINDING_SOURCES', 
               'SYSTEM_GROUP_SYSTEMS','SYSTEMS',
-              'SYSTEM_GROUPS','FUNCTIONS','ROLES','ASSETS',
+              'SYSTEM_GROUPS','FUNCTIONS',
+            //  'ROLES',
+              'ROLE_FUNCTIONS','ASSETS',
               'USER_ROLES',
               'USERS',
               'USER_SYSTEM_ROLES',
@@ -48,7 +49,30 @@
 
     $db_target = Zend_DB::factory(Zend_Registry::get('datasource')->default);
     $db_src    = Zend_DB::factory(Zend_Registry::get('legacy_datasource')->default);
-    
+   
+$qry="select role_id,role_nickname from ROLES";
+$oldroles=$db_src->fetchPairs($qry);
+$qry="select nickname,id from roles";
+$newroles=$db_target->fetchPairs($qry);
+
+$role_mapping=array();
+$mismatch = array();
+foreach($oldroles as $key=>$role)
+{
+    if( isset($newroles[$role]) ){
+        $role_mapping[$key]=$newroles[$role];
+    }else{
+        $role_mapping[$key]=$newroles['REVIEWER'];
+        $mismatch[] =  $role;
+    }
+}
+if( !empty($mismatch) ){
+    echo 'Roles has to be contained in new schema';
+    echo "Mismatch roles from legacy database\n";
+    print_r($mismatch);
+    echo "Current roles in new schema\n";
+    print_r($newroles);
+}
     $delta = 1000;
     echo "start to migrate \n";
     $sql = "CREATE TABLE IF NOT EXISTS poam_tmp (
@@ -86,7 +110,7 @@
             $rows = $db_src->fetchAll($qry);
             $rc += count($rows);
             foreach($rows as &$data) {
-                convert($db_src, $db_target, $table,$data);
+                convert($db_src, $db_target, $table,$data,$role_mapping);
             }
         }
         echo " ( $rc ) successfully\n";
@@ -105,7 +129,7 @@
 
 
 
-function convert($db_src, $db_target, $table,&$data)
+function convert($db_src, $db_target, $table,&$data,$role_mapping)
 {
     switch($table)
     {
@@ -154,7 +178,7 @@ function convert($db_src, $db_target, $table,&$data)
          break;
 
     case 'USERS':
-         users_conv($db_src, $db_target, $data);
+         users_conv($db_src, $db_target, $data,$role_mapping);
          break;
 
     case 'USER_SYSTEM_ROLES':
@@ -351,9 +375,14 @@ function user_system_conv($db_src, $db_target, $data)
     unset($tmparray);
 }
 
-function users_conv($db_src, $db_target, $data)
+function users_conv($db_src, $db_target, $data,$role_mapping)
 {
     $auto_role=$data['extra_role']?$data['extra_role']:$data['user_name'].'_r';
+    
+    if(empty($data['failure_count']))
+    {
+        $data['failure_count']=0;
+    }
 
     $tmparray=array('id'=>$data['user_id'] ,
                'account'=>$data['user_name'],
@@ -375,8 +404,14 @@ function users_conv($db_src, $db_target, $data)
              'auto_role'=>$auto_role);
     $db_target->insert('users',$tmparray);
     unset($tmparray);
-
     try{
+        if(isset($role_mapping[$data['role_id']]))
+        {
+            $data['role_id']=$role_mapping[$data['role_id']];
+        }else{
+            echo "user_id:{$data['user_id']} user_name:{$data['user_name']} has illegal role_id:{$data['role_id']}.\n"; 
+        }
+
         user_roles_conv($db_src, $db_target, $data);
     }catch(Zend_Exception $e){
         return;
@@ -710,7 +745,7 @@ function poam_vulns_conv($db_src, $db_target, $data)
                       'vuln_type'=>$data['vuln_type'] );
         $db_target->insert('poam_vulns',$tmparray);
     }else{
-        echo "INSERT INTO poam_vulns( `poam_id` , `vuln_seq` , `vuln_type` ) SELECT p.id, v.seq, v.type FROM poams p, vulnerabilities v WHERE p.legacy_finding_id = '{$data['finding_id']}' AND v.seq = '{$data['vuln_seq']}' AND v.type = '{$data['vuln_type']}' \n" ;
+        echo "INSERT INTO poam_vulns( `poam_id` , `vuln_seq` , `vuln_type` ) SELECT p.id, v.seq, v.type FROM poams p, vulnerabilities v WHERE p.legacy_finding_id = '{$data['finding_id']}' AND v.seq = '{$data['vuln_seq']}' AND v.type = '{$data['vuln_type']}' \n" ; 
     }
 }
 
