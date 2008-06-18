@@ -9,30 +9,30 @@
                 <tr>
                     <td align="left">
                         <b>Type:</b>
-                        <div id="poam_type" name="type" type="select"
-                             option='{"CAP":"(CAP) Corrective Action Plan",                                                                          "AR":"(AR) Accepted the Risk",
-                                      "FP":"(FP) Prove False Positive"}'>
-                        <span class="sponsor">
-                        <?php if(isAllow('remediation','update')){
-                            if('OPEN' == $this->poam['status']){
-                        ?>
-                        <img src='/images/button_modify.png' style="cursor:pointer;">
-                        <? } } ?></span>
-                        <span class="contenter"><?php echo $this->poam['type'];?></span>
+                        <span name="poam[type]" type="select"
+    <?php
+        if('NEW' == $this->poam['status'] && 
+            isAllow('remediation','update')){
+            echo ' type="select" class="editable" 
+                   href="/zfentry.php/metainfo/list/o/type/format/html/"';
+        }
+        echo '>',$this->poam['type'];
+    ?>
+                        </span>
                     </td>
                 </tr>
                 <tr>
                     <td>
                         <b>Description:</b>
-                        <div id="description" type="textarea" name="action_planned" rows="5" cols="160">
-                        <?php if(isAllow('remediation','update_finding_course_of_action')){
-                             if('OPEN' == $this->poam['status']){
-                        ?>
-                        <span class="sponsor">
-                        <img src='/images/button_modify.png' style="cursor:pointer;">
+                        <span name="poam[action_planned]" type="textarea" rows="5" cols="160"
+    <?php
+        if('OPEN' == $this->poam['status'] && 
+            isAllow('remediation','update_finding_course_of_action')){
+            echo ' type="select" class="editable" ';
+        }
+        echo '>',$this->poam['action_planned'];
+    ?>
                         </span>
-                        <? } }?>
-                        <span class="contenter"><?php echo $this->poam['action_planned'];?></span>
                     </td>
                 </tr>
             </table>
@@ -43,13 +43,14 @@
                 <th align="left">Resources Required for Course of Action</th>
                 <tr>
                     <td>
-                        <div id="resources" type="textarea" name="action_resources" rows="5" cols="160">
-                        <?php if(isAllow('remediation','update_finding_resources')){?>
-                        <span class="sponsor">
-                        <img src='/images/button_modify.png' style="cursor:pointer;">
+                        <span name="poam[action_resources]" type="textarea" rows="5" cols="160"
+    <?php
+        if( isAllow('remediation','update_finding_resources')){
+            echo ' type="select" class="editable" ';
+        }
+        echo '>',$this->poam['action_resources'];
+    ?>
                         </span>
-                        <? } ?>
-                       <span class="contenter"><?php echo $this->poam['action_resources'];?></span>
                     </td>
                 </tr>
             </table>

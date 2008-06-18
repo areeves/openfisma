@@ -35,7 +35,7 @@
                 <tr>
                     <td>
                         <b>Responsible System:</b>
-                        <span name="action_owner"
+                        <span name="poam[system_id]"
     <?php
         if('OPEN' == $this->poam['status'] && 
             isAllow('remediation','update_finding_assignment')){

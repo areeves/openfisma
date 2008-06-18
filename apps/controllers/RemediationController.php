@@ -247,189 +247,39 @@ class RemediationController extends PoamBaseController
 
     public function modifyAction(){
         $req = $this->getRequest();
-        $post = $req->getPost();
         $id = $req->getParam('id');
-        $comment = $req->getParam('comment_body');
-        $ev_id   = $req->getParam('ev_id');
-        $eval_id = $req->getParam('eval_id');
-        assert($id);
-        $today = date("Ymd",time());
-        $user_id = $this->me->id;
-        $now = date('Y-m-d,h:i:s',time());
-        $poam = new poam();
-        $db = $poam->getAdapter();
-        $query = $db->select()->from(array('p'=>'poams'),'*');
-        if(!empty($eval_id)){
-            $query->joinLeft(array('ev'=>'evidences'),'ev.poam_id = p.id',array())
-                  ->joinLeft(array('eval'=>'ev_evaluations'),'eval.ev_id = ev.id and 
-                                   eval.id = '.$eval_id,
-                                   array('decision'=>'decision'));
-        }
-        $query->where("p.id = $id");
-        $poams = $db->fetchRow($query);
-        foreach($post as $k=>$v){
-          if(!empty($v)){
-            switch($k){
-                case 'blscr':
-                    $data = array('blscr_id'=>$v);
-                    $result = $db->update('poams',$data,'id = '.$id.'');
-                    break;
-                case 'type':
-                    $data = array('type'=>$v,
-                                  'status'=>'OPEN',
-                                  'modify_ts'=>''.$now.'',
-                                  'action_planned'=>'null',
-                                  'action_est_date'=>'null',
-                                  'action_actual_date'=>'null',
-                                  'action_resources'=>'null',
-                                  'action_status'=>'NONE');
-                    $result = $db->update('poams',$data,'id = '.$id.'');
-                    break;
-                case 'action_planned':
-                    $data = array('action_planned'=>$v,
-                                  'action_status'=>'NONE');
-                    $result = $db->update('poams',$data,'id = '.$id.'');
-                    break;
-                case 'action_est_date':
-                    $data = array('action_est_date'=>$v,
-                                  'action_status'  =>'NONE');
-                    $result = $db->update('poams',$data,'id = '.$id.'');
-                    break;
-                case 'action_status':
-                    $data = array('action_status' =>$v);
-                    $result = $db->update('poams',$data,'id = '.$id.'');
-                    if('APPROVED' == $v){
-                        $db->update('poams',array('status'=>'EN'),'id = '.$id.'');
-                    } else {
-                        $db->update('poams',array('status'=>'OPEN'),'id = '.$id.'');
-                    }
-                    break;
-                case 'action_suggested':
-                    $data = array('action_suggested'=>$v,
-                                  'action_status'   =>'NONE');
-                    $result = $db->update('poams',$data,'id = '.$id.'');
-                    break;
-                case 'action_owner':
-                    $data = array('system_id'=>$v);
-                    $result = $db->update('poams',$data,'id = '.$id.'');
-                    break;                                                               
-                case 'action_resources':
-                    $data = array('action_resources'=>$v);
-                    $result = $db->update('poams',$data,'id = '.$id.'');
-                    break;
-                case 'cmeasure_effectiveness':
-                    $data = array('cmeasure_effectiveness'=>$v,
-                                  'action_status'         =>'NONE');
-                    $result = $db->update('poams',$data,'id = '.$id.'');
-                    break;
-                case 'cmeasure':
-                    $data = array('cmeasure'      =>$v,
-                                  'action_status' =>'NONE');
-                    $result = $db->update('poams',$data,'id = '.$id.'');
-                    break;
-                case 'cmeasure_justification':
-                    $data = array('cmeasure_justification'=>$v,
-                                  'action_status'         =>'NONE');
-                    $result = $db->update('poams',$data,'id = '.$id.'');
-                    break;
-                case 'threat_level':
-                    $data = array('threat_level' =>$v,
-                                  'action_status'=>'NONE');
-                    $result = $db->update('poams',$data,'id = '.$id.'');
-                    break;
-                case 'threat_source':
-                    $data = array('threat_source'=>$v,
-                                  'action_status'=>'NONE');
-                    $result = $db->update('poams',$data,'id = '.$id.'');
-                    break;
-                case 'threat_justification':
-                    $data = array('threat_justification'=>$v,
-                                  'action_status'       =>'NONE');
-                    $result = $db->update('poams',$data,'id = '.$id.'');
-                    break;
-                case 'EV_SSO':
-                    $poams['EV_SSO'] = $poams['decision'];
-                    $data = array('ev_id'=>$ev_id,'eval_id'=>$eval_id,
-                                  'user_id'=>$user_id,'decision'=>$v);
-                    $result = $db->insert('ev_evaluations',$data);
-                    $ev_evaluation_id = $db->lastInsertId();
-                    if('DENIED' == $v ){
-                        $data = array('status'=>'EN','action_actual_date'=>'NULL');
-                        $result = $db->update('poams',$data,'id = '.$id);
-                        $data = array('EV_FSA'=>'EXCLUDED','EV_IVV'=>'EXCLUDED');
-                        $comment_data = array('user_id'=>$user_id,
-                                              'date'=>$now,
-                                              'ev_evaluation_id'=>$ev_evaluation_id,
-                                              'content'=>$comment,
-                                              'topic'=>'SSO_Evaluation:'.$poams[$k].'=>'.$v);
-                        $result = $db->insert('comments',$comment_data);
-                        
-                    }
-                    break;
-                case 'EV_FSA':
-                    $poams['EV_FSA'] = $poams['decision'];
-                    $data = array('ev_id'=>$ev_id,
-                                  'eval_id'=>$eval_id,
-                                  'user_id'=>$user_id,
-                                  'decision'=>$v);
-                    $result = $db->insert('ev_evaluations',$data);
-                    $ev_evaluation_id = $db->lastInsertId();
-                    if('DENIED' == $v ){
-                        $data = array('status'=>'EN','action_actual_date'=>'NULL');
-                        $result = $db->update('poams',$data,'id = '.$id);
-                        $comment_data = array('user_id'=>$user_id,
-                                              'date'=>$now,
-                                              'ev_evaluation_id'=>$ev_evaluation_id,
-                                              'content'=>$comment,
-                                              'topic'=>'FSA_Evaluation:'.$poams[$k].'=>'.$v);
-                        $result = $db->insert('comments',$comment_data);
+        $poam = $req->getPost('poam');
+        if( !empty($poam) ) {
+            $oldpoam = $this->_poam->find($id)->toArray();
+            if( empty($oldpoam) ) {
+                throw new fisma_Exception('incorrect ID specified for poam');
+            }else{
+                $oldpoam = $oldpoam[0];
+            }
 
-                    }
-                    if('APPROVED' == $v){
-                        $data = array('status'=>'ES');
-                        $result = $db->update('poams',$data,'id = '.$id);
-                    }
-                    break;
-                case 'EV_IVV':
-                    $poams['EV_IVV'] = $poams['decision'];
-                    $data = array('ev_id'=>$ev_id,'eval_id'=>$eval_id,
-                                  'user_id'=>$user_id,'decision'=>$v);
-                    $result = $db->insert('ev_evaluations',$data);
-                    $ev_evaluation_id = $db->lastInsertId();
-                    if('APPROVED' == $v){
-                        $data = array('status'=>'CLOSED',
-                                      'close_ts'=>$now);
-                        $result = $db->update('poams',$data,'id = '.$id.'');
-                    }
-                    if('DENIED' == $v){
-                        $data = array('status'=>'EN','action_actual_date'=>'NULL');
-                        $result = $db->update('poams',$data,'id = '.$id.'');
-                        $data = array('user_id'=>$user_id,
-                                      'date'=>$now,
-                                      'ev_evaluation_id'=>$ev_evaluation_id,
-                                      'content'=>$comment,
-                                      'topic'=>'IVV_Evaluation:'.$poams[$k].'=>'.$v);
-                        $result = $db->insert('comments',$data);
-                    }
-                    break;
+            $where = $this->_poam->getAdapter()->quoteInto('id = ?', $id);
+            $log_content = "Changed:";
+            ///@todo sanity check
+            foreach($poam as $k=>$v){
+                if( $k == 'type' && $oldpoam['status'] == 'NEW' ) {
+                    assert(empty($poam['status']));
+                    $poam['status'] = 'OPEN';
+                }
+                ///@todo SSO can only approve the action after all the required info provided
+                $log_content .= "\n$k:$v";
             }
-          }
-        }
-        $data = array('modify_ts'=>$now,
-                      'modified_by'  =>$user_id);
-        $result = $db->update('poams',$data,'id = '.$id);
-        $now = time();
-        foreach($_POST as $k=>$v){
-            if(!in_array($k,array('id','comment_body','ev_id','eval_id')) && !empty($v)){
+            $result = $this->_poam->update($poam,$where);
+            if( $result > 0 ){
                 $data = array('poam_id'=>$id,        
-                              'user_id'=>$user_id,
-                              'timestamp'   =>$now,
+                              'user_id'=>$this->me->id,
+                              'timestamp'=> self::$now->toString('Y-m-d H:m:s'),
                               'event'  =>'MODIFICATION',
-                              'description'=>'Original:'.$poams[$k].' New:'.$v.'');
-                $result = $db->insert('audit_logs',$data);
+                              'description'=>$log_content);
+                $result = $this->_poam->getAdapter()->insert('audit_logs',$data);
             }
         }
-        $this->_helper->actionStack('view','Remediation',null,array('id'=>$id));
+            //throw new fisma_Excpection('POAM not updated for some reason');
+        $this->_forward('view',null,null,array('id'=>$id));
     }
 
     public function uploadevidenceAction(){

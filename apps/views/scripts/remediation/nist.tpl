@@ -7,7 +7,7 @@
         <table border="0" width="95%" align="center" cellpadding="5" class="tipframe">
             <tr>
                 <th align="left" >Security Control
-                <span id="blscr" type="select" name="blscr_id"
+                <span id="blscr" type="select" name="poam[blscr_id]"
                 <?php
                     if(isAllow('remediation','update_control_assignment')){ 
                         echo ' class="editable" href="/zfentry.php/metainfo/list/o/blscr/format/html/"';
@@ -104,7 +104,7 @@
                 <tr>
                     <td>
                     <b>Level:</b>
-                    <span id ="threat" type="select" name="threat_level" 
+                    <span id ="threat" type="select" name="poam[threat_level]" 
                         <?php 
                         if(isAllow('remediation','update_threat')){ 
                             echo ' class="editable" href="/zfentry.php/metainfo/list/o/threat_level/format/html/"';
@@ -117,7 +117,7 @@
                  <tr>
                      <td>
                      <b>Source:</b>
-                     <span type="textarea" name="threat_source" rows="5" cols="160"
+                     <span type="textarea" name="poam[threat_source]" rows="5" cols="160"
                      <?php 
                         if(isAllow('remediation','update_threat')){ 
                             echo 'class="editable"';
@@ -130,7 +130,7 @@
                  <tr>
                     <td>
                     <b>Justification:</b>
-                    <span type="textarea" name="threat_justification" rows="5" cols="160"
+                    <span type="textarea" name="poam[threat_justification]" rows="5" cols="160"
                     <?php 
                        if(isAllow('remediation','update_threat')){ 
                            echo 'class="editable"';
@@ -153,7 +153,7 @@
                     <tr>
                         <td>
                             <b>Effectiveness:</b>
-                            <span type="select" name="cmeasure_effectiveness"
+                            <span type="select" name="poam[cmeasure_effectiveness]"
                             <?php 
                                 if(isAllow('remediation','update_cmeasures')){ 
                                     echo 'class="editable" 
@@ -167,7 +167,7 @@
                     <tr>
                         <td>
                             <b>Countermeasure:</b>
-                            <span type="textarea" name="cmeasure" rows="5" cols="160"
+                            <span type="textarea" name="poam[cmeasure]" rows="5" cols="160"
                             <?php 
                                 if(isAllow('remediation','update_cmeasures')){ 
                                     echo 'class="editable"';
@@ -180,7 +180,7 @@
                      <tr>
                         <td>
                             <b>Justification:</b>
-                            <span type="textarea" name="cmeasure_justification" rows="5" cols="160"
+                            <span type="textarea" name="poam[cmeasure_justification]" rows="5" cols="160"
                             <?php 
                                 if(isAllow('remediation','update_cmeasures')){ 
                                     echo 'class="editable"';
@@ -203,7 +203,7 @@
     <tr>
         <td>
             <b>SSO Approval:</b><!-- Action Approval-->
-            <span type="select" name="action_status"
+            <span type="select" name="poam[action_status]"
             <?php 
                 if(isAllow('remediation','update_mitigation_strategy_approval') &&
                     in_array($this->poam['status'],array('OPEN', 'EN')) ) {
