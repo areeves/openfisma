@@ -3,13 +3,13 @@
 <table border="0" align="center" cellpadding="3" class="tipframe">
     <tr>
         <th colspan="2" align="left">Product Search</th>
-        <th width="190" align="left">Product Select</th>
+        <th width="183" align="left">Product Select</th>
         <th width="249" align="left"><button>Create Product</button></th>
     </tr>
     <tr>
         <td width="161"><b> Product:</b></td>
-        <td width="160"><input type="text" class="product" name="prod_name" value="<?php echo $this->prod_name?>" size="20" /></td>
-        <td colspan="2" rowspan="4"><div>
+        <td width="167"><input type="text" class="product" name="prod_name" value="<?php echo $this->prod_name?>" size="20" /></td>
+        <td colspan="2" rowspan="4"><div style="width:400px">
         				<select name="prod_list" size="8" style="width: 100%;">
 										<?php  foreach( $this->prod_list as $key ) {
                   echo'<option value='.$key['id'].'>'.$key['id'].' | '.$key['name'].' | '.$key['vendor'].' | '.$key['version'].'</option>';
