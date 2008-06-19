@@ -244,14 +244,16 @@ class poam extends Zend_Db_Table
             $ret['network_name'] = $networks['network_name'];
         }
         $query->reset();
-        $query->from(array('pr'=>'products'),array('prod_id'=>'pr.id',
-                                           'prod_vendor'=>'pr.vendor',
-                                           'prod_name'=>'pr.name',
-                                           'prod_version'=>'pr.version'))
-              ->where("pr.id = ?",$ret['prod_id']);
-        $products = $this->_db->fetchRow($query);
-        if( !empty( $product ) ){
-            $ret['product'] = $products;
+        if(!empty($ret['prod_id'])){
+            $query->from(array('pr'=>'products'),array('prod_id'=>'pr.id',
+                                               'prod_vendor'=>'pr.vendor',
+                                               'prod_name'=>'pr.name',
+                                               'prod_version'=>'pr.version'))
+                  ->where("pr.id = ?",$ret['prod_id']);
+            $products = $this->_db->fetchRow($query);
+            if( !empty( $product ) ){
+                $ret['product'] = $products;
+            }
         }
         if( !empty($ret['blscr_id']) ){
             $query->reset();

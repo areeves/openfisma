@@ -121,10 +121,11 @@ class AssetController extends SecurityController
                                                                         'pvendor' =>'p.vendor',
                                                                         'pversion' =>'p.version'));
             $qry->where("a.id = $id");
-            $result=$asset->fetchRow($qry)->toArray();
-            if(!$result) 
-            {
+            $result=$asset->fetchRow($qry);
+            if(!$result){
                 $result=NULL;
+            }else{
+                $result = $result->toArray();
             }
             $this->view->asset = $result;
         }
