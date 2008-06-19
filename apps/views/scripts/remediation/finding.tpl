@@ -37,8 +37,7 @@
                         <b>Responsible System:</b>
                         <span name="poam[system_id]"
     <?php
-        if('OPEN' == $this->poam['status'] && 
-            isAllow('remediation','update_finding_assignment')){
+        if('OPEN' == $this->poam['status'] && isAllow('remediation','update_finding_assignment')){
             echo ' type="select" class="editable" 
                    href="/zfentry.php/metainfo/list/o/system/format/html/"';
         }
@@ -119,7 +118,7 @@
         <td colspan='2'>
             <span name="poam[action_suggested]"
             <?php 
-                if(isAllow('remediation','update_finding_recommendation')){
+                if($this->poam['status'] != 'NEW' && isAllow('remediation','update_finding_recommendation')){
                     echo ' type="textarea" rows="5" cols="160" class="editable" ';
                 }
                 echo '>',$this->poam['action_suggested'];

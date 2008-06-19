@@ -35,7 +35,7 @@ $(document).ready(function(){
         var cur_val = $(this).text();
         var cur_span = $(this);
         if(type == 'text'){
-            cur_span.replaceWith( '<input type="text" value="'+cur_val.trim()+'" />');
+            cur_span.replaceWith( '<input name='+name+' type="text" value="'+cur_val.trim()+'" />');
         }else if( type == 'textarea' ){
             var row = $(this).attr('rows');
             var col = $(this).attr('cols');
@@ -76,80 +76,6 @@ function asset_detail() {
         $("div#asset_info").load(url,null);
     });
 }
-
- function edit( identity ){
-        var obj = $("#"+identity);
-        var modify = obj.find("span.sponsor").html();
-        obj.find("span.sponsor").click(
-            function(){
-                type = obj.attr('type');
-                contenter = obj.find("span.contenter");
-                init_value = contenter.html();
-                if( 'text' == type ){
-                    size = obj.attr('size');
-                    obj.html( '<input type="text" value="'+init_value+'" size="'+size+'" />' );
-                }
-                if( 'textarea' == type ){
-                    rows = obj.attr('rows');
-                    cols = obj.attr('cols');
-                    obj.html( '<textarea rows="'+rows+'" cols="'+cols+'">'+init_value+'</textarea>' );
-                }
-                if( 'select' == type ){
-                    option = obj.attr("option");
-                    option_obj =  eval('(' + option + ')');
-                    str = '<select>';
-                    for ( x in option_obj ){
-                        str += '<option value="'+x+'">'+option_obj[x]+'</option>';
-                    }
-                    str += '</select>';
-                    obj.html( str );
-                }
-                obj.children(':first').focus().blur(
-                    function(){
-                        if( 'text' == type || 'textarea' == type ){
-                            value = $(this).attr("value");
-                            save( identity, value, modify);
-                        }
-                        if( 'select' == type ){
-                            key = $(this).val();
-                            value = option_obj[key];
-                            save( identity, value, modify,key );
-                        }
-                    }
-                );
-            }
-        )
-    };
-    function save( identity, value, modify, key ){
-        obj = $("#"+identity);
-        name = obj.attr('name');
-        data = key ? key : value;
-        $("input[name="+name+"]").val( data );
-        Template = '<span class="sponsor">#{modify}</span>&nbsp;<span class="contenter">#{value}</span>';
-        str = Template.replace(/#\{modify\}/, modify ).replace(/#\{value\}/, value);
-        obj.html( str );
-        edit( identity );
-    }
-
-    $(document).ready(function(){
-        edit( 'system' );
-        edit( 'recommendation' );
-        edit( 'poam_type' );
-        edit( 'description' );
-        edit( 'resources' );
-        edit( 'date_est' );
-        edit( 'blscr' );
-        edit( 'threat' );
-        edit( 'source' );
-        edit( 'justification' );
-        edit( 'effectivness' );
-        edit( 'cmeasure' );
-        edit( 'cmeasure_justification' );
-        edit( 'sso_approval' );
-        edit( 'EV_SSO' );
-        edit( 'EV_FSA' );
-        edit( 'EV_IVV' );
-    });
 
 
 function upload_evidence(){

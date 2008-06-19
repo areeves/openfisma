@@ -18,7 +18,7 @@
 
      <?php 
           echo $this->partialLoop('remediation/evidence.tpl', $this->ev_evals );
-          if( isAllow('remediation','update_evidence') ){
+          if('EN' == $this->poam['status'] && isAllow('remediation','update_evidence') ){
               echo 
               '<button id="up_evidence" onclick ="upload_evidence();">Upload Evidence</button>';
           }

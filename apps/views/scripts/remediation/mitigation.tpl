@@ -11,7 +11,7 @@
                         <b>Type:</b>
                         <span name="poam[type]"
     <?php
-        if('NEW' == $this->poam['status'] && isAllow('remediation','update')){
+        if(('NEW' == $this->poam['status'] || 'OPEN' == $this->poam['status'])&& isAllow('remediation','update')){
             echo ' type="select" class="editable" 
                    href="/zfentry.php/metainfo/list/o/type/format/html/"';
         }
@@ -43,7 +43,7 @@
                     <td>
                         <span name="poam[action_resources]" type="textarea" rows="5" cols="160"
     <?php
-        if( isAllow('remediation','update_finding_resources')){
+        if($this->poam['status'] != 'NEW' && isAllow('remediation','update_finding_resources')){
             echo ' class="editable" ';
         }
         echo '>',$this->poam['action_resources'];
@@ -56,13 +56,14 @@
 
             <div style="width:95%;margin:0 5px"> 
             <b>Estimated Completion Date:</b>
-            <span class="contenter"><?php echo $this->poam['action_est_date'];?></span>
-            <?php if(isAllow('remediation','update_est_completion_date')){
-                if('OPEN' == $this->poam['status']){
-                    //be able to modify
-                } 
-            }?>
-
+            <span name="poam[action_est_date]" type="text"
+    <?php
+        if($this->poam['status'] == 'OPEN' && isAllow('remediation','update_est_completion_date')){
+            echo ' class="editable" ';
+        }
+        echo '>',nullGet($this->poam['action_est_date'],'0000-00-00');
+    ?>
+            </span>
             <b>Actual Completion Date:</b>
             <?php echo nullGet($this->poam['action_actual_date'],'<i>(action not yet completed)</i>');?>
             </div>

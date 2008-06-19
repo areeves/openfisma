@@ -264,6 +264,10 @@ class RemediationController extends PoamBaseController
                 if( $k == 'type' && $oldpoam['status'] == 'NEW' ) {
                     assert(empty($poam['status']));
                     $poam['status'] = 'OPEN';
+                    $poam['modify_ts'] = self::$now->toString('Y-m-d H:i:s');
+                }
+                if( $k == 'action_status' && $v == 'APPROVED'){
+                    $poam['status'] = 'EN';
                 }
                 ///@todo SSO can only approve the action after all the required info provided
                 $log_content .= "\n$k:$v";

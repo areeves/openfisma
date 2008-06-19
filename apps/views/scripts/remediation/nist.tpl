@@ -9,7 +9,7 @@
                 <th align="left" >Security Control
                 <span id="blscr" type="select" name="poam[blscr_id]"
                 <?php
-                    if(isAllow('remediation','update_control_assignment')){ 
+                    if($this->poam['status'] != 'NEW' && isAllow('remediation','update_control_assignment')){ 
                         echo ' class="editable" href="/zfentry.php/metainfo/list/o/blscr/format/html/"';
                     }
                     echo '>',$this->poam['blscr_id'];
@@ -106,7 +106,7 @@
                     <b>Level:</b>
                     <span id ="threat" type="select" name="poam[threat_level]" 
                         <?php 
-                        if(isAllow('remediation','update_threat')){ 
+                        if($this->poam['status'] != 'NEW' && isAllow('remediation','update_threat')){ 
                             echo ' class="editable" href="/zfentry.php/metainfo/list/o/threat_level/format/html/"';
                             echo '>',$this->poam['threat_level'];
                         } 
@@ -119,7 +119,7 @@
                      <b>Source:</b>
                      <span type="textarea" name="poam[threat_source]" rows="5" cols="160"
                      <?php 
-                        if(isAllow('remediation','update_threat')){ 
+                        if($this->poam['status'] != 'NEW' && isAllow('remediation','update_threat')){ 
                             echo 'class="editable"';
                         }
                         echo '>',$this->poam['threat_level'];
@@ -132,7 +132,7 @@
                     <b>Justification:</b>
                     <span type="textarea" name="poam[threat_justification]" rows="5" cols="160"
                     <?php 
-                       if(isAllow('remediation','update_threat')){ 
+                       if($this->poam['status'] != 'NEW' && isAllow('remediation','update_threat')){ 
                            echo 'class="editable"';
                        }
                        echo '>',$this->poam['threat_justification'];
@@ -155,9 +155,9 @@
                             <b>Effectiveness:</b>
                             <span type="select" name="poam[cmeasure_effectiveness]"
                             <?php 
-                                if(isAllow('remediation','update_cmeasures')){ 
-                                    echo 'class="editable" 
-                                    href="/zfentry.php/metainfo/list/o/cmeasure_effectiveness/format/html/';
+                                if($this->poam['status'] != 'NEW' && isAllow('remediation','update_cmeasures')){ 
+                                    echo 'class="editable"
+                                    href="/zfentry.php/metainfo/list/o/cmeasure_effectiveness/format/html/"';
                                 }
                                 echo '>',$this->poam['cmeasure_effectiveness'];
                             ?>
@@ -169,7 +169,7 @@
                             <b>Countermeasure:</b>
                             <span type="textarea" name="poam[cmeasure]" rows="5" cols="160"
                             <?php 
-                                if(isAllow('remediation','update_cmeasures')){ 
+                                if($this->poam['status'] != 'NEW' && isAllow('remediation','update_cmeasures')){ 
                                     echo 'class="editable"';
                                 }
                                 echo '>',$this->poam['cmeasure'];
@@ -182,7 +182,7 @@
                             <b>Justification:</b>
                             <span type="textarea" name="poam[cmeasure_justification]" rows="5" cols="160"
                             <?php 
-                                if(isAllow('remediation','update_cmeasures')){ 
+                                if($this->poam['status'] != 'NEW' && isAllow('remediation','update_cmeasures')){ 
                                     echo 'class="editable"';
                                 }
                                 echo '>',$this->poam['cmeasure_justification'];
@@ -213,15 +213,16 @@
                                'threat_source' =>$this->poam['threat_source'],
                                'threat_justification'=>$this->poam['threat_justification'],
                                'cmeasure_effectiveness'=>$this->poam['cmeasure_effectiveness'],
+                               'cmeasure'=>$this->poam['cmeasure'],
                                'cmeasure_justification'=>$this->poam['cmeasure_justification']);
-                $error = 0;
+                $complete = 0;
                 foreach($array as $value){
                     if($value == ''){
-                        $error++;
+                        $complete++;
                     }
                 }
                 if(isAllow('remediation','update_mitigation_strategy_approval') &&
-                    in_array($this->poam['status'],array('OPEN', 'EN')) && 0 == $error) {
+                    in_array($this->poam['status'],array('OPEN','EN')) && 0 == $complete) {
                     echo 'class="editable" href="/zfentry.php/metainfo/list/o/decision/format/html/"';
                 }
                 echo '>',$this->poam['action_status'];
