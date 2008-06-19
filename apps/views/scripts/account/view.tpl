@@ -46,14 +46,13 @@
 </table>
 <br><br>
 <fieldset style="border:1px solid #BEBEBE; padding:3"><legend><b>Systems</b></legend>
-<?php echo $this->msg;?>
 <table border="0" width="100%">
 <?php 
-    foreach($this->systems as $system ){ 
+    foreach($this->my_systems as $sid){ 
 ?>
 <tr>
     <td>
-       <?php echo $system; ?>
+       <?php echo $this->all_sys[$sid]; ?>
     </td>
 </tr>
 

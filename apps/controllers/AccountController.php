@@ -7,22 +7,15 @@
 * @version $Id$
 */
 
-require_once( CONTROLLERS . DS . 'SecurityController.php');
+require_once( CONTROLLERS . DS . 'PoamBaseController.php');
 require_once( MODELS . DS .'user.php');
 require_once( MODELS . DS .'system.php');
 require_once('Pager.php');
 require_once 'Zend/Date.php';
 
-class AccountController extends SecurityController
+class AccountController extends PoamBaseController
 {
     private $role_array;
-    private $_paging = array(
-            'mode'        =>'Sliding',
-            'append'      =>false,
-            'urlVar'      =>'p',
-            'path'        =>'',
-            'currentPage' => 1,
-            'perPage'=>20);
     private $_user = null;
 
     public function init()
@@ -33,13 +26,10 @@ class AccountController extends SecurityController
 
     public function preDispatch()
     {
+        parent::preDispatch();
         $req = $this->getRequest();
         $this->_paging_base_path = $req->getBaseUrl() .'/panel/account/sub/list';
         $this->_paging['currentPage'] = $req->getParam('p',1);
-        if(!in_array($req->getActionName(),array('login','logout') )){
-            // by pass the authentication when login
-            parent::preDispatch();
-        }
     }
 
     /**
@@ -130,7 +120,6 @@ class AccountController extends SecurityController
         $req = $this->getRequest();
         $id  = $req->getParam('id');
         $v   = $req->getParam('v');
-        $do  = $req->getParam('do');
         assert($id);
         $user = new User();
         $sys = new System();
@@ -151,31 +140,12 @@ class AccountController extends SecurityController
 
         $roles = $user->getRoles($id, array('name'=>'name'));
 
-        /** get user systems */
-        $ids = implode(',',$user->getMySystems($id));
-        $qry->reset();
-        $systems = $db->fetchPairs($qry->from($sys->info(Zend_Db_Table::NAME),
-                               array('id'=>'id','name'=>'name'))
-                      ->where("id IN ( $ids )")
-                      ->order('id ASC'));
         $this->view->assign('id',$id);
         $this->view->assign('user',$user_detail);
         $this->view->assign('roles',$roles);
-        $this->view->assign('systems',$systems);
-        if('edit' == $v){
-            $qry = $db->select()->from(array('s'=>'systems'),array('sid'=>'id',
-                                                                   'sname'=>'name'));
-            $sys = $db->fetchAll($qry);
-            foreach($systems as $k=>$v){
-                $sid[] = $k;
-            }
-            $this->view->assign('sid_arr',$sid);
-            $this->view->assign('sys',$sys);
-            $this->render('edit');
-        }
-        else {
-            $this->render();
-        }
+        $this->view->assign('my_systems',$user->getMySystems($id));
+        $this->view->assign('all_sys',$sys->getList('name') );
+        $this->render($v);
     }
 
     /**
@@ -184,54 +154,31 @@ class AccountController extends SecurityController
     public function updateAction(){
         $req = $this->getRequest();
         $id = $req->getParam('id');
-        $post = $req->getPost();
-        $msg = '';
-        if(!empty($post)){
-            if($post['user_password'] != $post['confirm_password']){
-                $msg = "Password dosen't match confirmation.Please submit password and confirmation";
+        $u_data = $req->getPost('user');
+        $sys_data = $req->getPost('system');
+        $confirm_pwd = $req->getPost('confirm_password');
+        if( isset($u_data['password']) ) {
+            /// @todo validate the password complexity
+            if( $u_data['password'] != $confirm_pwd){
+                throw new fisma_Exception(
+                "Password dosen't match confirmation.Please submit password and confirmation");
             }
-            else {
-                foreach($post as $k=>$v){
-                    if('user_' == substr($k,0,5) ){
-                        if('password' == substr($k,5,8)){
-                            if(!empty($v)){
-                                $field['password'] = md5($v);
-                                //$field['date_password'] = 0;
-                            }
-                        }
-                        else {
-                            $key = substr($k,5);
-                            $field[$key] = $v;
-                        }
-                    }
-                    if('user_is_active' == 0){
-                        $field['termination_ts'] = date("Y-m-d H:m:s");
-                    }
-                    if('user_is_active' == 1){
-                        $field['termination_ts'] = '';
-                    }
-                    if('system' == substr($k,0,6)){
-                        $sys_field[] = $v;
-                    }
-                }
-                $user = $this->_user;
-                $db = $user->getAdapter();
-                $res = $user->update($field,'id = '.$id.'');
-                $res = $db->delete('user_systems','user_id = '.$id.'');
-                foreach($sys_field as $v){
-                    $data = array('user_id'=>$id,'system_id'=>$v);
-                    $res  = $db->insert('user_systems',$data);
-                }
-                if($res){
-                    $msg = '<p>User <b>modified</b> successful!</p>';
-                    $this->_user->log(User::MODIFICATION, $this->me->id, $field['account']);
-                }
-                else {
-                    $msg = '<p>User <b>modified</b> failed!</p>';
-                }
-            }
+            $u_data['password'] = md5($u_data['password']);
         }
-        $this->view->assign('msg',$msg);
+        if(!empty($u_data)){
+            if($u_data['is_active'] == 0){
+                $u_data['termination_ts'] = self::$now->toString("Y-m-d H:m:s");
+            }
+            $my_sys = $this->_user->getMySystems($id);
+            $new_sys = array_diff($sys_data,$my_sys); 
+            $remove_sys = array_diff($my_sys,$sys_data);
+            $n = $this->_user->update($u_data, "id=$id");
+            if( $n > 0) {
+                $this->_user->log(User::MODIFICATION, $this->me->id, $u_data['account']);
+            }
+            $n = $this->_user->associate($id, User::SYS, $new_sys);
+            $n = $this->_user->associate($id, User::SYS, $remove_sys, true);
+        }
         $this->_forward('view');
     }
 

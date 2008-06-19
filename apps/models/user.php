@@ -82,7 +82,7 @@ class User extends Fisma_Model
             $sys = $db->fetchCol('SELECT id from systems where 1 ORDER BY `systems`.`name`');
         }else{
             $qry->reset();
-            $qry = $db->select()->distinct()->from(array('us'=>'user_systems'), 'user_id')
+            $qry = $db->select()->distinct()->from(array('us'=>'user_systems'), 'system_id')
                                 ->join('systems','systems.id = us.system_id',array())
                                 ->where("user_id = $id")->order('systems.name ASC');
             $sys = $db->fetchCol($qry);
@@ -131,8 +131,9 @@ class User extends Fisma_Model
         @param uid int the user id
         @param type type of associated data, one of system, role.
         @param data array|int system or role id or array of them
+        @param reverse bool to associate or delete
     */
-    public function associate($uid, $type, $data)
+    public function associate($uid, $type, $data, $reverse=false)
     {
         assert( !empty($uid) && (is_numeric($data) || is_array( $data )) );
         assert( in_array($type, array(self::SYS, self::ROLE) ) );
@@ -140,11 +141,21 @@ class User extends Fisma_Model
         if(is_numeric($data) ){
             $data = array($data);
         }
+        $ret = 0;
         $ins_data['user_id'] = $uid;
-        foreach($data as $id){
-            $ins_data[$this->_map[$type]['field']] = $id;
-            $this->_db->insert($this->_map[$type]['table'],$ins_data);
+        if( $reverse ) {
+            $where[] = "user_id=$uid";
+            if( !empty($data) ) {
+                $where[] = "{$this->_map[$type]['field']} IN(".makeSqlInStmt($data).")";
+                $ret = $this->_db->delete($this->_map[$type]['table'],$where);
+            }
+        }else{
+            foreach($data as $id){
+                $ins_data[$this->_map[$type]['field']] = $id;
+                $ret += $this->_db->insert($this->_map[$type]['table'],$ins_data);
+            }
         }
+        return $ret;
     }
 
 
