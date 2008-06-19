@@ -17,9 +17,7 @@
 <?php  } else { ?>
                 <td><b>Status:</b> <?php echo $this->finding['status'];?></td>
 <?php } 
-      if($this->finding['status'] == 'NEW') { ?>
-         <td><a style="text-decoration:none;" href="/zfentry.php/finding/convert/id/<?php echo $this->finding['id'];?>"><button>Convert to POAM</button></a></td>
-<?php } ?>
+?>
             </tr>
         </table>
             <!-- End Button Row -->
@@ -28,7 +26,7 @@
     <tr>
         <td>
             <!-- General and Asset Tables -->
-            <table>
+            <table width="900">
                 <tr>
                     <td valign="top">
                         <!-- General Information Table -->

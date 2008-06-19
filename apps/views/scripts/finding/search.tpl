@@ -44,10 +44,6 @@
                     <!--edit right-->
                     <th nowrap>Detail</th>
                     <?php }?>
-                    <?php if(isAllow('finding','update')) {?>
-                    <!--view right-->
-                    <th nowrap>Action</th>
-                    <?php }?>
                 </tr>
                 <?php if(!empty($this->findings)){
                     foreach($this->findings as $row){
@@ -74,14 +70,6 @@
                       <a href="/zfentry.php/panel/finding/sub/edit/id/<?php echo $row['id'];?>" ><img src="/images/view.gif" border="0" ></a>
                     </td>
                     <?php }
-                    if(isAllow('finding','update')){
-                        if('OPEN' == $row['status']){
-                    ?>
-                    <td align="center">
-                        <a style="text-decoration:none;" href="/zfentry.php/finding/convert/id/<?php echo $row['id'];?>"><button>Convert</button></a>
-                    </td>
-                    <?php }
-                    }
                     ?>
                 </tr>
                 <?php }

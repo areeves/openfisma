@@ -274,7 +274,8 @@ class FindingController extends PoamBaseController
                 $data = array();
                 $data['source_id'] = $req->getParam('source');
                 $data['asset_id'] = $req->getParam('asset_list');
-                $data['status'] = 'OPEN';
+                $data['system_id'] = $req->getParam('system');
+                $data['status'] = 'NEW';
                 $data['discover_ts'] = $req->getParam('discovereddate');
                 $data['finding_data'] = $req->getParam('finding_data');
 
@@ -296,36 +297,6 @@ class FindingController extends PoamBaseController
         $this->render();
     }
     
-    /**
-       convert finding to poam
-    **/
-    public function convertAction()
-    {
-        $req = $this->getRequest();
-        $finding = new finding();
-        $id  = $req->getParam('id');
-        $data = array('finding_status'=>'REMEDIATION');
-        $finding->update($data,'finding_id = '.$id);
-        $rows = $finding->getFindingById($id);
-        $system_id = $rows['system_id'];
-        $data = array('finding_id'=>$id,
-                      'poam_created_by'=>$this->me->user_id,
-                      'poam_modified_by'=>$this->me->user_id,
-                      'poam_date_created'=>date('Y-m-d H:i:s'),
-                      'poam_date_modified'=>date('Y-m-d H:i:s'),
-                      'poam_action_date_est'=>'0000-00-00',
-                      'poam_action_owner'=>$system_id);
-        $poam = new poam();
-        $insert_id = $poam->insert($data);
-        $data = array('finding_id'=>$id,
-                      'user_id'   =>$this->me->user_id,
-                      'date'      =>time(),
-                      'event'     =>'CREATE:NEW REMEDIATION CREATE',
-                      'description'=>'A new remediation was created from finding '.$id);
-        $poam->getAdapter()->insert('AUDIT_LOG',$data);
-        $this->_forward('remediation','panel',null,array('sub'=>'view','id'=>$insert_id));
-    }
-
     /**
     delete findings
     **/
@@ -373,10 +344,22 @@ class FindingController extends PoamBaseController
         if (!$row[0] || !$row[1] || !$row[5]) {
             return false;
         }
-        $asset_data = array('name'=>$row[3].':'.$row[4],'create_ts'=>$row[2],'source'=>'SCAN',
-                             'system_id'=>$row[0],'network_id'=>$row[1],'address_ip'=>$row[3],
-                             'address_port'=>$row[4]);
-        $asset_id = $asset->insert($asset_data);
+        $asset_name = ':'.$row[3].':'.$row[4];
+        $query = $asset->select()->from($asset,'id')
+                                 ->where('system_id = ?',$row[0])
+                                 ->where('network_id = ?',$row[1])
+                                 ->where('address_ip = ?',$row[3])
+                                 ->where('address_port = ?',$row[4]);
+        $result = $asset->fetchRow($query);
+        if(!empty($result)){
+            $data = $result->toArray();
+            $asset_id = $data['id'];
+        }else{
+            $asset_data = array('name'=>$asset_name,'create_ts'=>$row[2],'source'=>'SCAN',
+                                'system_id'=>$row[0],'network_id'=>$row[1],'address_ip'=>$row[3],
+                                'address_port'=>$row[4]);
+            $asset_id = $asset->insert($asset_data);
+        }
         $poam_data = array('asset_id'=>$asset_id,'source_id'=>$row[5],'system_id'=>$row[0],
                               'status'=>'NEW','create_ts'=>self::$now->toString('Y-m-d h:i:s') ,
                               'discover_ts'=>$row[2],'finding_data'=>$row[6]);

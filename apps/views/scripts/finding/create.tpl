@@ -22,7 +22,7 @@
                             <td>
                                 <table border="0" cellpadding="0" cellspacing="0">
                                     <tr>
-                                        <td><input type="text" name="discovereddate" size="12" maxlength="10" value="<?php echo $this->discovered_date;?>">&nbsp;</td>
+                                        <td><input type="text" name="discovereddate" size="12" maxlength="10" value="<?php echo date('m/d/Y');?>">&nbsp;</td>
                                         <td><span onclick="javascript:show_calendar('finding.discovereddate');"><img src="/images/picker.gif" width=24 height=22 border=0></span></td>
                                     </tr>
                                 </table>

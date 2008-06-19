@@ -1,11 +1,11 @@
 <?php
-    $status_list = array(   0 =>'--Any--' ,
-                         "NEW"=>'NEW',
+    $status_list = array("NEW"=>'NEW',
                  "REMEDIATION"=>"REMEDIATION",
                         'OPEN'=>'-- OPEN',
                           'EN'=>'-- EN',
                           'EP'=>'-- EP',
-                      "CLOSED"=>'Closed');
+                      "CLOSED"=>'Closed',
+                           0  =>'--Any--');
     $this->source[0] = '--Any--';
     $this->system[0] = '--Any--';
     $this->network[0] = '--Any--';
