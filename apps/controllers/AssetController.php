@@ -121,7 +121,12 @@ class AssetController extends SecurityController
                                                                         'pvendor' =>'p.vendor',
                                                                         'pversion' =>'p.version'));
             $qry->where("a.id = $id");
-            $this->view->asset = $asset->fetchRow($qry)->toArray();
+            $result=$asset->fetchRow($qry)->toArray();
+            if(!$result) 
+            {
+                $result=NULL;
+            }
+            $this->view->asset = $result;
         }
         $this->_helper->layout->setLayout( 'ajax' );
         $this->render('detail');
