@@ -10,6 +10,7 @@
 require_once 'Zend/Controller/Action.php';
 require_once CONTROLLERS . DS . 'SecurityController.php';
 require_once MODELS . DS . 'poam.php';
+require_once MODELS . DS . 'system.php';
 require_once LIBS . DS .  'PoamSummary.class.php';
 
 /**
@@ -18,6 +19,7 @@ require_once LIBS . DS .  'PoamSummary.class.php';
 class DashboardController extends SecurityController
 {
     protected $_poam = null;
+    protected $_all_systems = null;
 
     function init()
     {
@@ -26,6 +28,9 @@ class DashboardController extends SecurityController
         $contextSwitch->addActionContext('totalstatus', 'xml')
                       ->addActionContext('totaltype','xml')
                       ->initContext();
+        $sys = new System();
+        $this->_all_systems = $sys->getList('name');
+        $this->_all_systems = array_keys($this->_all_systems);
     }
 
     function preDispatch()
@@ -39,10 +44,10 @@ class DashboardController extends SecurityController
 
     public function indexAction()
     {
-        $ret = $this->_poam->search($this->me->systems,
+        $ret = $this->_poam->search($this->_all_systems,
                         array('count'=>'status', 'status'),
                         array('status'=>array('OPEN','EN')));
-        $eo_count = $this->_poam->search($this->me->systems, 
+        $eo_count = $this->_poam->search($this->_all_systems, 
                         array('count'=>'count(*)'),
                         array('status'=>'EN',
                               'est_date_end'=> parent::$now ));
@@ -64,9 +69,9 @@ class DashboardController extends SecurityController
         if( !in_array($type, array('3d column','pie')) ) {
             $type = 'pie';
         }
-        $ret = $poam->search($this->me->systems,
+        $ret = $poam->search($this->_all_systems,
                         array('count'=>'status', 'status'));
-        $eo_count = $poam->search($this->me->systems, 
+        $eo_count = $poam->search($this->_all_systems, 
                         array('count'=>'count(*)'),
                         array('status'=>'EN',
                               'est_date_end'=> parent::$now ));
@@ -82,7 +87,7 @@ class DashboardController extends SecurityController
 
     public function totaltypeAction()
     {
-        $ret = $this->_poam->search($this->me->systems, array('count'=>'type', 'type') );
+        $ret = $this->_poam->search($this->_all_systems, array('count'=>'type', 'type') );
         $this->view->summary = array();
         foreach($ret as $s){
             $this->view->summary["{$s['type']}"] = $s['count'];

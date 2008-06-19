@@ -7,6 +7,8 @@
      echo $this->partial('remediation/nist.tpl', array('poam'=>&$this->poam));
 ?>
 </form>
+
+     <?php if($this->poam['status'] != 'NEW' || $this->poam['status'] != 'OPEN' ) { ?>
      <!-- Heading Block -->
      <div class="barleft">
      <div class="barright">
@@ -16,11 +18,12 @@
 
      <?php 
           echo $this->partialLoop('remediation/evidence.tpl', $this->ev_evals );
+          if( isAllow('remediation','update_evidence') ){
+              echo 
+              '<button id="up_evidence" onclick ="upload_evidence();">Upload Evidence</button>';
+          }
+     }
      ?>
-
-     <?php if($this->poam['status'] == 'EN' && isAllow('remediation','update_evidence') ){ ?>
-     <button id="up_evidence" onclick ="upload_evidence();">Upload Evidence</button>
-     <?php } ?>
 
      <!-- Heading Block -->
      <div class="barleft">

@@ -13,7 +13,7 @@
             $ev_path = WEB_ROOT .DS.$evidence['submission'];
             $link = '%filename%';
             if(file_exists($ev_path) ) {
-                 $link = '<a href="javascript:void(0)" onClick="window.open("<?php echo $ev_path;?>", "evidence_window", config="resizable=yes,menubar=no,scrollbars=yes")">%filename%</a>';
+                 $link = "<a href='/{$evidence['submission']}'>%filename%</a>";
             }
             echo str_replace('%filename%',basename($ev_path),$link);
         ?>

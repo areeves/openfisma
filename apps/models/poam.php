@@ -288,7 +288,7 @@ class poam extends Zend_Db_Table
                             array('submitted_by'=>'pu.account'))
                   ->joinLeft(array('u'=>'users'),'u.id=pvv.user_id',
                             array('username'=>'u.account'))
-                  ->join(array('el'=>'evaluations'),'el.id=pvv.eval_id AND el.group = \'EVIDENCE\'',
+                  ->joinLeft(array('el'=>'evaluations'),'el.id=pvv.eval_id AND el.group = \'EVIDENCE\'',
                              array('eval_name'=>'el.name','el.group','level'=>'el.precedence_id'))
                   ->order(array('ev.poam_id','ev.id','level ASC'));
         if( !empty($decision) ){

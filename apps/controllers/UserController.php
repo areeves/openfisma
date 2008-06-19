@@ -73,6 +73,9 @@ class UserController extends SecurityController
                     foreach($nickname as $n ) {
                         $me->role_array[] = $n['nickname'];
                     }
+                    if( empty( $me->role_array ) ) {
+                        $me->role_array[] = $me->account . '_r';
+                    }
                     $me->systems = $this->_user->getMySystems($me->id);
                     $auth->getStorage()->write($me);
                     return $this->_forward('index','Panel');

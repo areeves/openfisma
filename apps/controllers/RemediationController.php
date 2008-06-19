@@ -282,40 +282,48 @@ class RemediationController extends PoamBaseController
         $this->_forward('view',null,null,array('id'=>$id));
     }
 
-    public function uploadevidenceAction(){
+    public function uploadevidenceAction()
+    {
         $req = $this->getRequest();
         $id = $req->getParam('id');
-        $comment = $req->getParam('comment_body');
-        assert($id);
-        $today = date("Ymd",time());
-        $user_id = $this->me->id;
-        $now = date('Y-m-d,h:i:s',time());
-        $db = Zend_Registry::get('db');
         if($_FILES && $id>0){
+            $user_id = $this->me->id;
+            $now_str = self::$now->toString('Y-m-d,h:i:s');
             if(!file_exists(ROOT . DS . 'public/evidence')){
                 mkdir(ROOT . DS . 'public/evidence',0755);
             }
             if(!file_exists(ROOT . DS . 'public/evidence/'.$id)){
                 mkdir(ROOT . DS . 'public/evidence/'.$id,0755);
             }
-            $path = ROOT . DS . 'public/evidence/'.$id.'/'.date('Ymd-His-',time()).$_FILES['evidence']['name'];
-            //$path_data = '../../public/evidence/'.$id.'/'.date('Ymd-His-',time()).$_FILES['evidence']['name'];
-            $result_move = move_uploaded_file($_FILES['evidence']['tmp_name'],$path);
-            if($result_move){
-                chmod($path,0755);
+            $count = 0;
+            $filename = preg_replace('/^([^.]*)\.([^.]*)$/',
+                    'evidence/'.$id.'/$1,'.$now_str.'.$2', 
+                    $_FILES['evidence']['name'],2,$count);
+
+            if( $count > 0 ) {
+                $path = ROOT . DS . "public";
+                $result_move = move_uploaded_file($_FILES['evidence']['tmp_name'],
+                                                $path . DS . $filename);
+
+                if($result_move){
+                    chmod($path . DS . $filename,0755);
+                } else{
+                    throw new fisma_Exception('Move upload file fail.'.$_FILES['evidence']['error']);
+                }
+            }else{
+                throw new fisma_Exception('The filename should be valid');
             }
-            else{
-                die('Move upload file fail.'.$path.'');
-            }
-            $insert_data = array('poam_id'          =>$id,
-                                 'submission'    =>$path,
-                                 'submitted_by'  =>$user_id,
-                                 'submit_ts'=>$today);
-            $result = $db->insert('evidences',$insert_data);
+            $today = substr($now_str,0,10);
+            $data = array('poam_id'          =>$id,
+                          'submission'    =>$filename,
+                          'submitted_by'  =>$user_id,
+                          'submit_ts'=>  $today);
+            $db = Zend_Registry::get('db');
+            $result = $db->insert('evidences',$data);
             $update_data = array('status'             => 'EP',
-                                 'action_actual_date' => $now);
-            $result = $db->update('poams',$update_data,'id = '.$id.'');
+                                 'action_actual_date' => $today);
+            $result = $this->_poam->update($update_data,"id = $id");
         }
-        $this->_helper->actionStack('view','Remediation',null,array('id'=>$id));
+        $this->_forward('view',null,null,array('id'=>$id));
     }
 }

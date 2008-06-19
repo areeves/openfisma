@@ -45,7 +45,7 @@
         if($me->account == "root"){
             return true;
         }
-        $role_array = $me->role_array;
+        $role_array = &$me->role_array;
         $acl = Zend_Registry::get('acl');
         try{
             foreach ($role_array as $role){

@@ -5,7 +5,7 @@
 </style>
 <div id="editorDIV" style="display: none;">
     <form enctype="multipart/form-data" method="POST"
-         action="/zfentry.php/panel/remediation/sub/upload_evidence/id/<?php echo $this->poam['id'];?>">
+         action="/zfentry.php/panel/remediation/sub/upload_evidence/id/<?php echo $this->id;?>">
          <b>Select File :</b> <input type='file' name='evidence' size='40' value=''>
          <input type="submit" id="#upload_ev" value="Upload">
     </form>

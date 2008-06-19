@@ -79,18 +79,15 @@ class User extends Fisma_Model
         $user = $db->fetchOne($qry);
         $db->setFetchMode(Zend_Db::FETCH_OBJ);
         if($user == 'root') {
-            $sys = $db->fetchCol('SELECT id from systems where 1');
+            $sys = $db->fetchCol('SELECT id from systems where 1 ORDER BY `systems`.`name`');
         }else{
             $qry->reset();
-            $qry = $db->select()->distinct()->from('user_systems', 'user_id')
-                                ->where("user_id = $id");
+            $qry = $db->select()->distinct()->from(array('us'=>'user_systems'), 'user_id')
+                                ->join('systems','systems.id = us.system_id',array())
+                                ->where("user_id = $id")->order('systems.name ASC');
             $sys = $db->fetchCol($qry);
         }
         $db->setFetchMode($origin_mode);
-        if( empty($sys) ){
-            throw new fisma_Exception('ATTENTION: No systems found! Please
-                    make sure the fundamental data is injected');
-        }
         return $sys;
     }
 
