@@ -60,7 +60,6 @@ class setting_manager {
             $filepath = (! empty($_SERVER['REQUEST_URI']))
                             ? dirname($_SERVER['REQUEST_URI'])
                             : dirname($_SERVER['SCRIPT_NAME']);
-        
             $filepath = str_replace("\\", "/", $filepath); // "
             $filepath = str_replace("/install", "", $filepath);
             if ( substr($filepath, 0, 1) == "/" ) {
@@ -120,9 +119,9 @@ class setting_manager {
        if($isInitDB=='second'){
            self::$commentNames = array ('host' => _INST_DB_L1,
                                         'port' => _INST_DB_L2,
-                                        'dbname'=> _INST_DB_L5,
                                         'uname'=> _INST_DB_L3,
                                         'upass'=> _INST_DB_L4,
+                                        'dbname'=> _INST_DB_L5,
                                         'rpath'=>_INST_DB_L13);
 
         }
@@ -169,7 +168,7 @@ class setting_manager {
                     </td>
                 </tr>
                 ";
-        $hints = array(_INSTALL_L66, _INSTALL_L67,_INSTALL_L65,_INSTALL_L68,_INSTALL_L64,'','','');
+        $hints = array(_INSTALL_L66, _INSTALL_L67,_INSTALL_L65,_INSTALL_L68,_INSTALL_L64,_INSTALL_L69,_INSTALL_L70,'');
         $this->init_db_val($isInitDB);
         foreach(self::$commentNames as $key=>$comment) {
             $ret .= $this->editform_sub($comment,

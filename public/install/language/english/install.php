@@ -13,21 +13,23 @@ define("_INST_DB_L2","Database Service Port");
 define("_INST_DB_L3","Database Username");
 define("_INST_DB_L4","Database Password");
 define("_INST_DB_L5","Database Name");
-define("_INST_DB_L6","Create User for new Database [optional]");
-define("_INST_DB_L7","Create New User Password [optional]");
-define("_INST_DB_L8","Confirm Password [optional]");
+define("_INST_DB_L6","Create User for new Database ");
+define("_INST_DB_L7","Create New User Password ");
+define("_INST_DB_L8","Confirm Password ");
 define("_INST_DB_L9","Please enter %s");
 define("_INST_DB_L10","Database");
 define("_INST_DB_L11","Choose the database to be used");
 define("_INST_DB_L12","Input password mismatch!");
 define("_INST_DB_L13","Installation physical path");
 
-define("_INSTALL_L66","Hosting database");
-define("_INSTALL_L67","Hostname of the database server. If you are unsure, 'localhost' works in most cases.");
+define("_INSTALL_L66","Hostname of the database server. If you are unsure, 'localhost' works in most cases.");
+define("_INSTALL_L67","Service Port of the database server. MySql default is 3306.");
 define("_INSTALL_L65","Your database user account on the host");
 define("_INSTALL_L64","The name of database on the host. The installer will attempt to create the database if not exist");
 define("_INSTALL_L68","Password for your database user account");
-
+define("_INSTALL_L69","[optional]");
+define("_INSTALL_L70","[optional]");
+define("_INSTALL_L71","[optional]");
 
 //Page 1 init
 define("_INST_INIT_L0","Welcome to the Install Wizard for OpenFISMA");
