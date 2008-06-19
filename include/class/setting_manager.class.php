@@ -168,7 +168,7 @@ class setting_manager {
                     </td>
                 </tr>
                 ";
-        $hints = array(_INSTALL_L66, _INSTALL_L67,_INSTALL_L65,_INSTALL_L68,_INSTALL_L64,_INSTALL_L69,_INSTALL_L70,'');
+        $hints = array(_INSTALL_L66, _INSTALL_L67,_INSTALL_L65,_INSTALL_L68,_INSTALL_L64, '', '' ,'');
         $this->init_db_val($isInitDB);
         foreach(self::$commentNames as $key=>$comment) {
             $ret .= $this->editform_sub($comment,
