@@ -4,8 +4,11 @@
 <title></title>
 <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
 <script LANGUAGE="JavaScript" type="text/javascript" src="/javascripts/jquery/jquery.js"></script>
+<script LANGUAGE="JavaScript" type="text/javascript" src="/javascripts/jquery/jquery.ui.js"></script>
 <script LANGUAGE="JavaScript" type="text/javascript" src="/javascripts/ajax.js"></script>
 <script LANGUAGE="JavaScript" type="text/javascript" src="/javascripts/cal.js"></script>
+
+
 <!--[If lte IE 6]>
 <style type="text/css" >
 @import url("/stylesheets/ie.css");

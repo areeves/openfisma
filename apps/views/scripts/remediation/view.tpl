@@ -6,6 +6,7 @@
      echo $this->partial('remediation/mitigation.tpl',  array('poam'    =>&$this->poam));
      echo $this->partial('remediation/nist.tpl', array('poam'=>&$this->poam));
 ?>
+</form>
      <!-- Heading Block -->
      <div class="barleft">
      <div class="barright">
@@ -37,6 +38,7 @@
 <?php 
      echo $this->partialLoop('remediation/log.tpl', $this->logs);
 ?>
-</table>
-
-</form>
+    </table>
+<?php 
+     echo $this->partial('remediation/uploadev.tpl',array('id'=>$this->poam['id']));
+?>
