@@ -216,7 +216,7 @@ class poam extends Zend_Db_Table
     public function &getDetail($id)
     {
         if( !is_numeric($id) ) {
-            throw new fisma_Expection('Make sure a valid ID is inputed');
+            throw new fisma_Exception('Make sure a valid ID is inputed');
         }
         $poam_detail = $this->search(null, '*', array('id'=>$id ) );
         $ret = array();

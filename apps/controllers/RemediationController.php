@@ -224,7 +224,7 @@ class RemediationController extends PoamBaseController
         $poam_detail = $this->_poam->getDetail($id);
 
         if(empty($poam_detail)){
-            throw new fisma_Expection("POAM($id) is not found, Make sure a valid ID is inputed");
+            throw new fisma_Exception("POAM($id) is not found, Make sure a valid ID is inputed");
         }
 
         $ev_evaluation = $this->_poam->getEvEvaluation($id);
