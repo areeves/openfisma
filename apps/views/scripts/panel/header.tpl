@@ -36,7 +36,7 @@
         echo'<ul><li><a><h2>Reports</h2></a>';
         echo'<ul>';
         if(isAllow('report', 'generate_poam_report' )) {
-            echo'<li><a href="/zfentry.php/panel/report/sub/searchbox/flag/poam">POA&M Report</a></li>';
+            echo'<li><a href="/zfentry.php/panel/report/sub/poam">POA&M Report</a></li>';
         }            
         if(isAllow('report','generate_fisma_report')) {
             echo'<li><a href="/zfentry.php/panel/report/sub/fisma">FISMA POA&M Report</a></li>';

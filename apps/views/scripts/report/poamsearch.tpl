@@ -39,20 +39,20 @@
         <th class="tdc">Corrective Action
         <th class="tdc">ECD
     </tr>
-    <?php foreach($this->rpdata as $row){ ?>
+    <?php foreach($this->poam_list as  $row){ ?>
     <tr>
-        <td class="tdc" align="center"><?php echo $row['system'];?></td>
-        <td class="tdc" align="center"><?php echo $row['poamnum'];?></td>
-        <td class="tdc"><?php echo $row['finding'];?></td>
-        <td class="tdc" align="center"><?php echo $row['ptype'];?></td>
-        <td class="tdc" align="center"><?php echo $row['pstatus'];?></td>
-        <td class="tdc" align="center"><?php echo $row['source'];?></td>
-        <td class="tdc"><?php echo $row['SD'];?></td>
-        <td class="tdc" align="center"><?php echo $row['location'];?></td>
-        <td class="tdc" align="center"><?php echo $row['risklevel'];?></td>
-        <td class="tdc"><?php echo $row['recommendation'];?></td>
-        <td class="tdc"><?php echo $row['correctiveaction'];?></td>
-        <td class="tdc" align="center"><?php echo $row['EstimatedCompletionDate'];?></td>
+        <td class="tdc" align="center"><?php echo $this->system_list[$row['system_id']];?></td>
+        <td class="tdc" align="center"><?php echo $row['id'];?></td>
+        <td class="tdc"><?php echo $row['finding_data'];?></td>
+        <td class="tdc" align="center"><?php echo $row['type'];?></td>
+        <td class="tdc" align="center"><?php echo $row['status'];?></td>
+        <td class="tdc" align="center"><?php echo $this->source_list[$row['source_id']];?></td>
+        <td class="tdc"><?php echo $row['ip'];?></td>
+        <td class="tdc" align="center"><?php echo $this->network_list[$row['network_id']];?></td>
+        <td class="tdc" align="center"><?php echo $row['threat_level'];?></td>
+        <td class="tdc"><?php echo $row['action_suggested'];?></td>
+        <td class="tdc"><?php echo $row['action_planned'];?></td>
+        <td class="tdc" align="center"><?php echo $row['action_est_date'];?></td>
     </tr>
     <?php } ?>
 </table>
