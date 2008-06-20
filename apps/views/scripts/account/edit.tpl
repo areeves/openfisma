@@ -1,3 +1,14 @@
+<script language="javascript">
+    $(function(){
+        $(":button[name=select_all]").click(function(){
+            $(":checkbox").attr( 'checked','checked' );
+        });
+        $(":button[name=select_none]").click(function(){
+            $(":checkbox").attr( 'checked','' );
+        });
+    })
+</script>
+
 <?php echo $this->msg;?>
 <div class="barleft">
 <div class="barright">
@@ -72,6 +83,7 @@
 </table>
 <br><br>
 <fieldset style="border:1px solid #BEBEBE; padding:3"><legend><b>Systems</b></legend>
+<div style="text-align:right"><span style="margin-right:80px;"><input type="button" name="select_all" value="All" />&nbsp;<input type="button" name="select_none" value="None" /></span></div>
 <table border="0" width="100%">
 <tr>
 <?php

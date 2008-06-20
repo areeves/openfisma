@@ -1,3 +1,9 @@
+<script language="javascript">
+    $(function(){
+        $('input[name=startdate]').datepicker( {dateFormat:'yymmdd' } );
+    })
+</script>
+
 <!-- repoart.tpl is decieving it is only for the FISMA Report to OMB ONLY -->
 <br>
 <div class="barleft">
@@ -49,7 +55,6 @@
                     <td>
                         <input type="text" name="startdate" value="<?php echo $this->startdate;?>" size="10" maxlength="10" value="">
                     </td>
-                    <td><span onclick="javascript:show_calendar('finding.discovereddate');"><img src="/images/picker.gif" border="0" height="22" width="24"></span></td>
                     <td>&nbsp;</td>
                     <td>End Date:</td>
                     <td><input type="text" name="enddate" value="<?php echo $this->enddate;?>" size="10" maxlength="10" value=""></td>
