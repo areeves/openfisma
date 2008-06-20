@@ -29,19 +29,19 @@ class AssetController extends SecurityController
         $qry = $asset->select()->from($asset,array('id'=>'id', 'name'=>'name'))
                                ->order('name ASC');
         if(!empty($system_id) && $system_id > 0){
-            $qry->where("system_id = $system_id");
+            $qry->where('system_id = ?',$system_id);
         }
 
         if(!empty($asset_name)){
-            $qry->where("name='$asset_name'");
+            $qry->where('name=?',$asset_name);
         }
 
         if(!empty($ip)){
-            $qry->where("address_ip = ".$ip);
+            $qry->where('address_ip = ?',$ip);
         }
 
         if(!empty($port)){
-            $qry->where("address_port = ".$port);
+            $qry->where('address_port = ?',$port);
         }
 
         $this->view->assets = $asset->fetchAll($qry)->toArray();
