@@ -32,6 +32,12 @@ class poam extends Zend_Db_Table
         if( !empty($system_id) ){
             $query->where("p.system_id = ".$system_id."");
         }
+
+        if( !empty($asset_owner)){
+            $query->join('assets','p.asset_id = assets.id',array())
+                  ->where('assets.system_id = ?',$asset_owner);
+        }
+
         /// @todo sanitize the $ids
         if(!empty($ids)){
             $query->where("p.id IN (".$ids.")");
@@ -237,13 +243,15 @@ class poam extends Zend_Db_Table
             $ret['vuln'] = $vuln;
         }
         $query->reset();
-        $query->from(array('n'=>'networks'),array('network_name'=>'n.name'))
-              ->where('n.id = ?',$ret['network_id']);
-        $networks = $this->_db->fetchRow($query);
-        if(!empty($networks)){
-            $ret['network_name'] = $networks['network_name'];
+        if( !empty($ret['network_id'])){
+            $query->from(array('n'=>'networks'),array('network_name'=>'n.name'))
+                  ->where('n.id = ?',$ret['network_id']);
+            $networks = $this->_db->fetchRow($query);
+            if(!empty($networks)){
+                $ret['network_name'] = $networks['network_name'];
+            }
+            $query->reset();
         }
-        $query->reset();
         if(!empty($ret['prod_id'])){
             $query->from(array('pr'=>'products'),array('prod_id'=>'pr.id',
                                                'prod_vendor'=>'pr.vendor',

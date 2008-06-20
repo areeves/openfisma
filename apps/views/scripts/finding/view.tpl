@@ -93,7 +93,7 @@
                                 <tr>
                                     <td align="right"><b>Network:</b></td>
                                     <td>&nbsp;
-                                        <?php echo $this->finding['network_name'];?>
+                                        <?php echo nullGet($this->finding['network_name'],'');?>
                                     </td>
                                 </tr>
                                 <tr>

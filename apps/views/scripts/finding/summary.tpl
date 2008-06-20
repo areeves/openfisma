@@ -7,7 +7,7 @@
 <table align="center" class="tbframe">
     <tr align="center">
         <th>System</td>
-        <th>Open(Today)</td>
+        <th>New(Today)</td>
         <th>30(Days)</td>
         <th>60(Days)</td>
         <th>More Days</td>
