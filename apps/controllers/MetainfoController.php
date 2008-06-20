@@ -18,7 +18,6 @@ class metainfoController extends PoamBaseController
         $ajaxContext = $this->_helper->getHelper('AjaxContext');
         $ajaxContext->addActionContext('list', 'html')
              ->initContext();
-
     }
 
     public function listAction()

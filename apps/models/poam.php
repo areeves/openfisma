@@ -348,6 +348,11 @@ class poam extends Zend_Db_Table
         return $ret;
     }
 
+    public function reviewEv($eid, $review)
+    {
+        $data = array_merge( array('group_id'=>$eid),$review );
+        return $this->_db->insert('poam_evaluations', $data);
+    }
 
     /** 
         Get audit logs according to poam id

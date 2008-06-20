@@ -198,20 +198,20 @@ class RemediationController extends PoamBaseController
         $this->view->assign('systems',$this->_system_list);
         $this->view->assign('sources',$this->_source_list);
         $this->render();
-         if('search' == $req->getParam('s')){
-            $this->_paging_base_path = $req->getBaseUrl().'/panel/remediation/sub/searchbox/s/search';
-            $this->_paging['currentPage'] = $req->getParam('p',1);
+        if('search' == $req->getParam('s')){
+           $this->_paging_base_path = $req->getBaseUrl().'/panel/remediation/sub/searchbox/s/search';
+           $this->_paging['currentPage'] = $req->getParam('p',1);
 
-            foreach($criteria as $key=>$value){
-                if(!empty($value) ){
-                    if($value instanceof Zend_Date){
-                        $this->_paging_base_path .='/'.$key.'/'.$value->toString('Ymd').'';
-                    }else{
-                        $this->_paging_base_path .='/'.$key.'/'.$value.'';
-                    }
-                }
-            }
-            $this->_search($criteria);
+           foreach($criteria as $key=>$value){
+               if(!empty($value) ){
+                   if($value instanceof Zend_Date){
+                       $this->_paging_base_path .='/'.$key.'/'.$value->toString('Ymd').'';
+                   }else{
+                       $this->_paging_base_path .='/'.$key.'/'.$value.'';
+                   }
+               }
+           }
+           $this->_search($criteria);
         }
     }
 
@@ -236,7 +236,7 @@ class RemediationController extends PoamBaseController
             if( !isset($evs[$evid]['ev']) ){
                 $evs[$evid]['ev'] = array_slice($ev_eval,0,5);
             }
-            $evs[$evid]['eval'][$ev_eval['level']] = array_slice($ev_eval,5);
+            $evs[$evid]['eval'][$ev_eval['eval_name']] = array_slice($ev_eval,5);
         }
         $this->view->assign('poam',$poam_detail);
         $this->view->assign('logs',$this->_poam->getLogs($id));
@@ -329,5 +329,39 @@ class RemediationController extends PoamBaseController
             $result = $this->_poam->update($update_data,"id = $id");
         }
         $this->_forward('view',null,null,array('id'=>$id));
+    }
+
+    public function evidenceAction()
+    {
+        require_once MODELS . DS . 'evidence.php';
+        $req = $this->getRequest();
+        $decision = $req->getParam('decision');
+        $eval_id = $req->getParam('evaluation');
+        $eid = $req->getParam('id');
+        $ev = new Evidence();
+        $ev_detail = $ev->find($eid);
+        if( empty($ev_detail) ) {
+            throw new fisma_Exception('Wrong parameters');
+        }
+        if( $decision == 'APPROVE' ) {
+            $decision = 'APPROVED';
+        }else if( $decision == 'DENY' ) {
+            $decision = 'DENIED';
+        }else{
+            throw new fisma_Exception('Wrong parameters');
+        }
+        $poam_id = $ev_detail->current()->poam_id;
+        
+        if( in_array($decision, array('APPROVED', 'DENIED') ) ){
+            $ret = $this->_poam->reviewEv($eid, array('decision'=>$decision,
+                                               'eval_id' =>$eval_id,
+                                               'user_id' =>$this->me->id,
+                                               'date'    =>self::$now->toString('Y-m-d')));
+            assert($ret>0);
+            if( $decision == 'DENIED' ) {
+                $this->_poam->update(array('status'=>'EN'), 'id='.$poam_id);
+            }
+        }
+        $this->_redirect('/panel/remediation/sub/view/id/'.$poam_id, array('exit'));
     }
 }

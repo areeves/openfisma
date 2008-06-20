@@ -6,6 +6,7 @@
      echo $this->partial('remediation/mitigation.tpl',  array('poam'    =>&$this->poam));
      echo $this->partial('remediation/nist.tpl', array('poam'=>&$this->poam));
 ?>
+<input type='submit' title='Save or Submit' value="Save" style="cursor: pointer;">
 </form>
 
      <?php if($this->poam['status'] != 'NEW' || $this->poam['status'] != 'OPEN' ) { ?>
