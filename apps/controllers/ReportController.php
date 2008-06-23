@@ -14,6 +14,14 @@ class ReportController extends PoamBaseController
     public function preDispatch()
     {
        parent::preDispatch();
+       $this->req = $this->getRequest();
+       $this->_helper->contextSwitch()
+             ->addContext('pdf',array('suffix'=>'pdf',
+                                      'headers'=>array('Content-Type'=>'application/pdf',
+                                                'Content-Disposition'=>'attachement;filename:"export.pdf"')) )
+             ->addActionContext('poam', 'pdf')
+             ->initContext();
+
     }
 
     public function fismaAction()
@@ -36,31 +44,29 @@ class ReportController extends PoamBaseController
         $this->view->assign('system_list',$this->_system_list);
         $this->view->assign('network_list',$this->_network_list);
         $this->view->assign('criteria',$criteria);
-        $this->render();
-        if('search' == $req->getParam('s')){
+        if('search' == $req->getParam('s') || 'pdf' == $req->getParam('format')){
             if(!empty($criteria['year'])){
                 $criteria['created_date_begin'] = new Zend_Date($criteria['year'],Zend_Date::YEAR);
                 $criteria['created_date_end']   = clone $criteria['created_date_begin'];
                 $criteria['created_date_end']->add(1,Zend_Date::YEAR);   
                 unset($criteria['year']);
             }
-            $list = $this->_poam->search($this->me->systems, array('id',
+            $list = &$this->_poam->search($this->me->systems, array('id',
                                                          'finding_data',
                                                          'system_id',
                                                          'network_id',
                                                          'source_id',
-                                                         'action_planned',
+                                                         'asset_id',
                                                          'type',
                                                          'ip',
                                                          'port',
                                                          'status',
                                                          'action_suggested',
-                                                         'cmeasure_effectiveness',
                                                          'action_planned',
                                                          'threat_level',
                                                          'action_est_date') ,$criteria);
             $this->view->assign('poam_list', $list);
-            $this->render('poamsearch');
         }
+        $this->render();
     }
 }
