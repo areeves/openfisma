@@ -44,7 +44,7 @@ class poam extends Zend_Db_Table
         }
 
         if(!empty($est_date_begin)){
-            $query->where("p.action_est_date >= ?",$est_date_begin->toString('Y-m-d'));
+            $query->where("p.action_est_date > ?",$est_date_begin->toString('Y-m-d'));
         }
 
         if(!empty($est_date_end)){

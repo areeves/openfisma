@@ -44,17 +44,19 @@ class DashboardController extends SecurityController
 
     public function indexAction()
     {
-        $ret = $this->_poam->search($this->_all_systems,
-                        array('count'=>'status', 'status'),
-                        array('status'=>array('OPEN','EN')));
+        $open_count = $this->_poam->search($this->_all_systems,
+                        array('count'=>'count(*)'),
+                        array('status'=>array('OPEN')));
+        $en_count = $this->_poam->search($this->_all_systems,
+                        array('count'=>'count(*)'),
+                        array('status'=>'EN','est_date_begin'=> parent::$now ));
         $eo_count = $this->_poam->search($this->_all_systems, 
                         array('count'=>'count(*)'),
                         array('status'=>'EN',
                               'est_date_end'=> parent::$now ));
         $alert = array();
-        foreach($ret as $r) {
-            $alert[$r['status']] = $r['count'];
-        }
+        $alert['OPEN'] = $open_count;
+        $alert['EN'] = $en_count;
         $alert['EO'] = $eo_count;
         $this->view->alert = $alert;
         $this->render();
