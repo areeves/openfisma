@@ -361,6 +361,12 @@ class RemediationController extends PoamBaseController
             if( $decision == 'DENIED' ) {
                 $this->_poam->update(array('status'=>'EN'), 'id='.$poam_id);
             }
+            if( $decision == 'APPROVED' && $eval_id == 2){
+                $this->_poam->update(array('status'=>'ES'), 'id='.$poam_id);
+            }
+            if( $decision == 'APPROVED' && $eval_id == 3){
+                $this->_poam->update(array('status'=>'CLOSED'),'id='.$poam_id);
+            }
         }
         $this->_redirect('/panel/remediation/sub/view/id/'.$poam_id, array('exit'));
     }
