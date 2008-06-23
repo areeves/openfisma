@@ -1,6 +1,6 @@
 <script language="javascript">
     $(function(){
-        $(':text').datepicker({dateFormat:'yymmdd',showOn: 'both', buttonImageOnly: true,
+       $(':text').datepicker({dateFormat:'yymmdd',showOn: 'both', buttonImageOnly: true,
             buttonImage: '/images/calendar.gif', buttonText: 'Calendar'});
         
         date = new Date();
@@ -14,7 +14,7 @@
         }
         var year = $("span[name=year]").html();
         year = Number(year) + Number(step);
-        var url = '/zfentry.php/report/fisma/y/'+year+'/';
+        var url = '/zfentry.php/panel/report/sub/fisma/s/search/y/'+year+'/';
         $("span[name=year]").html( year );
         $("span[name=year]").parent().attr( 'href', url);
         $("span[name=q1]").parent().attr( 'href', url+'q/1/' );
@@ -30,20 +30,20 @@
 </div>
 </div>
 <br>
-<table width="850"  align="center" border="0" cellpadding="3" cellspacing="1" class="tipframe">
 <form name="filter" method="post" action="/zfentry.php/panel/report/sub/fisma/s/search">
+<table width="850"  align="center" border="0" cellpadding="3" cellspacing="1" class="tipframe">
     <tr>
         <td >
             <?php 
                 asort($this->system_list);
                 $this->system_list[0] = 'All Systems';
-                echo $this->formSelect('system',0,null,$this->system_list);
+                echo $this->formSelect('system',nullGet($this->criteria['system_id'],0),null,$this->system_list);
             ?>
         </td>
-        <td>From:<input type="text" class="date" name="startdate" value="<?php echo $this->startdate;?>" size="10" maxlength="10" >
+        <td>From:<input type="text" class="date" name="startdate" value="<?php echo nullGet($this->criteria['startdate'],'');?>" size="10" maxlength="10" >
         </td>
         <td>To:
-        <input type="text" class="date" name="enddate" value="<?php echo $this->enddate;?>" size="10" maxlength="10"></td>
+        <input type="text" class="date" name="enddate" value="<?php echo nullGet($this->criteria['enddate'],'');?>" size="10" maxlength="10"></td>
         <td >
             <input type="submit" value="Generate Report">
         </td>

@@ -24,7 +24,7 @@
 </div>
 </div>
 <br>
-<table width="95%" align="center" border="0" cellpadding="0" cellspacing="0" class="tbframe">
+<table width="95%" align="center" class="tbframe">
     <tr align="center">
         <td colspan="5"  bgcolor="#DFE5ED"><b>FISMA Report to OMB: POA&M Status Report</b></td>
     </tr>

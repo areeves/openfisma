@@ -67,6 +67,14 @@ class poam extends Zend_Db_Table
             $query->where("p.discover_ts <=?",$discovered_date_end->toString('Y-m-d'));
         }
 
+        if(!empty($closed_date_begin) ){
+            $query->where("p.close_ts > ?",$closed_date_begin->toString('Y-m-d'));
+        }
+
+        if(!empty($closed_date_end) ){
+            $query->where("p.close_ts <=?",$closed_date_end->toString('Y-m-d'));
+        }
+
         if( !empty($type) ){
             if(is_array($type)){
                 $query->where("p.type IN (".makeSqlInStmt($type).")");
