@@ -11,6 +11,17 @@ require_once CONTROLLERS . DS . 'PoamBaseController.php';
 
 class ReportController extends PoamBaseController
 {
+    public function preDispatch()
+    {
+       parent::preDispatch();
+    }
+
+    public function fismaAction()
+    {
+        $this->view->assign('system_list', $this->_system_list);
+        $this->render();
+    }
+
     public function poamAction()
     {
         $req = $this->getRequest();
