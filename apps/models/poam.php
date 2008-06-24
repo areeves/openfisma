@@ -253,7 +253,7 @@ class poam extends Zend_Db_Table
         if( !empty( $currentPage ) && !empty( $perPage ) ){
             $query->limitPage($currentPage,$perPage);
         }
-        echo $query;
+        
         $ret = $this->_db->fetchAll($query);
         if( $count_fields && $count ) {
             array_push($ret, $count);
