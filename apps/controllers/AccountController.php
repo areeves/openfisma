@@ -167,7 +167,7 @@ class AccountController extends PoamBaseController
         }
         if(!empty($u_data)){
             if($u_data['is_active'] == 0){
-                $u_data['termination_ts'] = self::$now->toString("Y-m-d H:m:s");
+                $u_data['termination_ts'] = self::$now->toString("Y-m-d H:i:s");
             }
             $my_sys = $this->_user->getMySystems($id);
             $new_sys = array_diff($sys_data,$my_sys); 

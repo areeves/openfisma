@@ -279,7 +279,7 @@ class FindingController extends PoamBaseController
                 $data['discover_ts'] = $req->getParam('discovereddate');
                 $data['finding_data'] = $req->getParam('finding_data');
 
-                $data['create_ts'] = self::$now->toString("Y-m-d H:m:s");
+                $data['create_ts'] = self::$now->toString("Y-m-d H:i:s");
                 $data['created_by'] = $this->me->id;
 
                 $this->_poam->insert($data);

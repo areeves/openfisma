@@ -276,7 +276,7 @@ class RemediationController extends PoamBaseController
             if( $result > 0 ){
                 $data = array('poam_id'=>$id,        
                               'user_id'=>$this->me->id,
-                              'timestamp'=> self::$now->toString('Y-m-d H:m:s'),
+                              'timestamp'=> self::$now->toString('Y-m-d H:i:s'),
                               'event'  =>'MODIFICATION',
                               'description'=>$log_content);
                 $result = $this->_poam->getAdapter()->insert('audit_logs',$data);
