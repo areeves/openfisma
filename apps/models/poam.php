@@ -43,6 +43,42 @@ class poam extends Zend_Db_Table
             $query->where("p.id IN (".$ids.")");
         }
 
+        if(!empty($overdue)){
+            $query->where("status = 'OPEN'");
+            if( $overdue['type'] == 'sso' ){
+                if( isset( $overdue['begin_date'] ) ) {
+                    $query->where( "p.action_actual_date > ?",
+                                    $overdue['begin_date']->toString('Ymd'));
+                }
+                if( isset( $overdue['end_date'] ) ){
+                    $query->where( "p.action_actual_date < ?",
+                                    $overdue['end_date']->toString('Ymd'));
+                }
+            }else if( $overdue['type'] == 'action' ) {
+                if( isset( $overdue['begin_date'] ) ){
+                    $query->where("(p.action_actual_date IS NULL OR p.action_actual_date = 0)
+                                    AND p.action_est_date > ?",
+                                  $overdue['begin_date']->toString('Ymd'));
+                }
+                if( isset( $overdue['end_date'] ) ){
+                    $query->where("(p.action_actual_date IS NULL OR p.action_actual_date = 0)
+                                   AND p.action_est_date < ?", 
+                                  $overdue['end_date']->toString('Ymd'));
+                }
+            }else{
+                throw new fisma_Exception('Parameters wrong in overdue '.
+                                            var_export($overdue,true));
+            }
+        }
+
+        if(!empty($actual_date_begin)){
+            $query->where("p.action_actual_date > ?",$actual_date_begin->toString('Y-m-d'));
+        }
+
+        if(!empty($actual_date_end)){
+            $query->where("p.action_actual_date <= ?",$actual_date_end->toString('Y-m-d'));
+        }
+
         if(!empty($est_date_begin)){
             $query->where("p.action_est_date > ?",$est_date_begin->toString('Y-m-d'));
         }
@@ -214,6 +250,7 @@ class poam extends Zend_Db_Table
         if( !empty( $currentPage ) && !empty( $perPage ) ){
             $query->limitPage($currentPage,$perPage);
         }
+        echo $query;
         $ret = $this->_db->fetchAll($query);
         if( $count_fields && $count ) {
             array_push($ret, $count);

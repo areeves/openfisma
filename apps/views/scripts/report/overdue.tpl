@@ -5,26 +5,26 @@
                        '2007' =>'2007',
                        '2008' =>'2008',
                        '2009' =>'2009');
-    $status_list = array(0        =>'All Status',
-                         'CLOSED' =>'Closed',
-                         'OPEN'   =>'Open');
-    $type_list = array(0      =>'All Type',
-                       'CAP'  =>'CAP',
-                       'FP'   =>'FP',
-                       'AR'   =>'AR');
+    $overdue['type'] = array( 'sso' =>'SSO Approval overdue',
+                         'action'   =>'Course of Action overdue');
+    $overdue['day'] = array('1' => '0-29 days',
+                            '2' => '30-59 days',
+                            '3' => '60-89 days',
+                            '4' => '90-119 days',
+                            '5' => '120 and greater days');
     $this->system_list[0] ='--Any--';
     asort($this->system_list);
     $this->source_list[0] ='--Any--';
     asort($this->source_list);
-    $url = "/zfentry.php/panel/report/sub/poam/s/search";
+    $url = "/zfentry.php/panel/report/sub/overdue/s/search";
 ?>
 <div class="barleft">
 <div class="barright">
-<p><b>Reports : POA&amp;M Reports</b><span><?php echo date('Y-M-D h:i:s:A');?></span>
+<p><b>POA&amp;M Overdue Reports</b>
 </div>
 </div>
 
-<form name="poam_report" method="post" action="/zfentry.php/panel/report/sub/poam/s/search">
+<form name="overdue_report" method="post" action="/zfentry.php/panel/report/sub/overdue/s/search">
 <table width="95%" align="center" border="0" cellpadding="5" cellspacing="1" class="tipframe">
     <tr>
         <td width="6%" height="47"><b>System </b></td>
@@ -59,39 +59,27 @@
         </td>
     </tr>
     <tr>
-        <td height="30"><b>Type</b></td>
-        <td>
-        <?php echo $this->formSelect('type',
-                                    nullGet($this->criteria['type'],0),
-                                    null,$type_list);
-              if( !empty($this->criteria['type']) ) {
-                  $url .= '/type/'.$this->criteria['type'];
+        <td><b>Overdue type</b></td>
+        <td >
+        <?php echo $this->formSelect('overdue[type]',
+                                    nullGet($this->criteria['overdue']['type'],0),
+                                    null,$overdue['type']);
+              if( !empty($this->criteria['overdue']['type']) ) {
+                  $url .= '/overdue[type]/'.$this->criteria['overdue']['type'];
               }
         ?>
         </td>
-        <td><b>Status</b></td>
-        <td colspan="3">
-        <?php echo $this->formSelect('status',
-                                    nullGet($this->criteria['status'],0),
-                                    null,$status_list);
-              if( !empty($this->criteria['status']) ) {
-                  $url .= '/status/'.$this->criteria['status'];
+        <td><b>Overdue </b></td>
+        <td> 
+        <?php echo $this->formSelect('overdue[day]',
+                                    nullGet($this->criteria['overdue']['day'],0),
+                                    null,$overdue['day']);
+              if( !empty($this->criteria['overdue']['day']) ) {
+                  $url .= '/overdue[day]/'.$this->criteria['overdue']['day'];
               }
         ?>
         </td>
     </tr>
-    <?php
-    if('overdue' == $this->flag){ ?>
-    <tr>
-        <td height="26"><b>Status</b></td>
-        <td><?php echo $this->formSelect('status',$this->criteria['status'],null,$this->status_list);?>
-        </td>
-        <td><b>Overdue</b></td>
-        <td colspan="3">
-        <?php echo $this->formSelect('overdue',$this->criteria['overdue'],null,$this->overdue_list);?>
-        </td>
-    </tr>
-    <?php } ?>
     <tr>
         <td height="39" colspan="2"><input type="submit" name="search" value="Generate"></td>
     </tr>

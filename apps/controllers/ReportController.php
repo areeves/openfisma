@@ -8,6 +8,7 @@
 */
 
 require_once CONTROLLERS . DS . 'PoamBaseController.php';
+require_once 'Pager.php';
 
 class ReportController extends PoamBaseController
 {
@@ -20,6 +21,7 @@ class ReportController extends PoamBaseController
                                       'headers'=>array('Content-Type'=>'application/pdf',
                                                 'Content-Disposition'=>'attachement;filename:"export.pdf"')) )
              ->addActionContext('poam', 'pdf')
+             ->addActionContext('overdue', 'pdf')
              ->initContext();
 
     }
@@ -104,18 +106,21 @@ class ReportController extends PoamBaseController
     public function poamAction()
     {
         $req = $this->getRequest();
-        $uid = $this->me->id;
-        $criteria['system_id'] = $req->getParam('system_id');
-        $criteria['source_id'] = $req->getParam('source_id');
-        $criteria['type']   = $req->getParam('type');
-        $criteria['year']     = $req->getParam('year');
-        $criteria['status'] = $req->getParam('status');
+        $params = array( 'system_id'=>'system_id',
+                         'source_id'=>'source_id',
+                         'type'     =>'type',
+                         'year'     =>'year',
+                         'status'   =>'status');
+        $criteria = $this->retrieveParam($req, $params); 
 
         $this->view->assign('source_list',$this->_source_list);
         $this->view->assign('system_list',$this->_system_list);
         $this->view->assign('network_list',$this->_network_list);
         $this->view->assign('criteria',$criteria);
         if('search' == $req->getParam('s') || 'pdf' == $req->getParam('format')){
+            $this->_paging_base_path .= '/panel/report/sub/poam/s/search';
+            $this->makeUrl($criteria);
+
             if(!empty($criteria['year'])){
                 $criteria['created_date_begin'] = new Zend_Date($criteria['year'],Zend_Date::YEAR);
                 $criteria['created_date_end']   = clone $criteria['created_date_begin'];
@@ -135,8 +140,76 @@ class ReportController extends PoamBaseController
                                                          'action_suggested',
                                                          'action_planned',
                                                          'threat_level',
-                                                         'action_est_date') ,$criteria);
+                                                         'action_est_date',
+                                                         'count'=>'count(*)') ,$criteria,
+                                        $this->_paging['currentPage'],
+                                        $this->_paging['perPage']);
+            $total = array_pop($list); 
+            $this->_paging['totalItems'] = $total;
+            $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";
+            $pager = &Pager::factory($this->_paging);
             $this->view->assign('poam_list', $list);
+            $this->view->assign('links', $pager->getLinks());
+        }
+        $this->render();
+    }
+
+    public function overdueAction()
+    {
+        $req = $this->getRequest();
+        $params = array( 'system_id'=>'system_id',
+                         'source_id'=>'source_id',
+                         'overdue'     =>'overdue',  //array(type=>x,day=>x);
+                         'year'     =>'year');
+        $criteria = $this->retrieveParam($req, $params); 
+
+        $this->view->assign('source_list',$this->_source_list);
+        $this->view->assign('system_list',$this->_system_list);
+        $this->view->assign('criteria',$criteria);
+        if('search' == $req->getParam('s') || 'pdf' == $req->getParam('format')){
+            $this->_paging_base_path .= '/panel/report/sub/overdue/s/search';
+            $this->makeUrl($criteria);
+
+            if(!empty($criteria['year'])){
+                $criteria['created_date_begin'] = new Zend_Date($criteria['year'],Zend_Date::YEAR);
+                $criteria['created_date_end']   = clone $criteria['created_date_begin'];
+                $criteria['created_date_end']->add(1,Zend_Date::YEAR);   
+                unset($criteria['year']);
+            }
+
+            if(!empty($criteria['overdue'])){
+                $date = clone self::$now;
+                $date->sub(($criteria['overdue']['day']-1)*30,Zend_Date::DAY);
+                $criteria['overdue']['begin_date'] = clone $date;
+                $date->sub(30,Zend_Date::DAY);
+                $criteria['overdue']['end_date'] = $date;
+                if( $criteria['overdue']['day']==5 ) { ///@todo hardcode greater than 120
+                    unset($criteria['overdue']['begin_date'] );
+                }
+            }
+            $list = &$this->_poam->search($this->me->systems, array('id',
+                                                         'finding_data',
+                                                         'system_id',
+                                                         'network_id',
+                                                         'source_id',
+                                                         'asset_id',
+                                                         'type',
+                                                         'ip',
+                                                         'port',
+                                                         'status',
+                                                         'action_suggested',
+                                                         'action_planned',
+                                                         'threat_level',
+                                                         'action_est_date',
+                                                         'count'=>'count(*)') ,$criteria,
+                                        $this->_paging['currentPage'],
+                                        $this->_paging['perPage']);
+            $total = array_pop($list); 
+            $this->_paging['totalItems'] = $total;
+            $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";
+            $pager = &Pager::factory($this->_paging);
+            $this->view->assign('poam_list', $list);
+            $this->view->assign('links', $pager->getLinks());
         }
         $this->render();
     }

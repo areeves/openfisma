@@ -104,5 +104,16 @@ class SecurityController extends Zend_Controller_Action
         $this->view->model= $model;
         $this->_helper->viewRenderer->renderScript('message.tpl');
     }
+
+
+    public function & retrieveParam($req, $params,$default=null)
+    {
+        assert($req instanceof Zend_Controller_Request_Abstract);
+        $crit = array();
+        foreach($params as $k=>&$v) {
+            $crit[$k] = $req->getParam($v);
+        }
+        return $crit;
+    }
 }
 ?>

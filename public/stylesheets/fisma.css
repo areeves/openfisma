@@ -117,3 +117,7 @@ span.editable {
     padding-left:24px;
     cursor:pointer;
 }
+
+img {
+    border:0;
+}
