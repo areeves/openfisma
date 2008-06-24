@@ -1,4 +1,15 @@
 <?php
+/**
+ * @file database.php
+ *
+ * @description Database Configuration Info
+ *
+ * @author     Jim <jimc@reyosoft.com>
+ * @copyright  (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/mw/index.php?title=License
+ * @version $Id$
+*/
+
    require_once( WEB_ROOT . DS . 'ovms.ini.php');
 
     Zend_Registry::set('legacy_datasource', new Zend_Config(

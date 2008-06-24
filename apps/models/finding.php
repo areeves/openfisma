@@ -1,10 +1,13 @@
 <?php
 /**
-* OpenFISMA
-*
-* MIT LICENSE
-*
-* @version $Id$
+ * @file finding.php
+ *
+ * @description finding model
+ *
+ * @author     Ryan<ryan.yang@reyosoft.com>
+ * @copyright  (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/mw/index.php?title=License
+ * @version $Id$
 */
 
 require_once MODELS . DS . 'poam.php';

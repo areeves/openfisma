@@ -1,10 +1,13 @@
 <?PHP
 /**
-* OpenFISMA
-*
-* MIT LICENSE
-*
-* @version $Id$
+ * @file DashboardController.php
+ *
+ * @description Dashboard Controller
+ *
+ * @author     Jim <jimc@reyosoft.com>
+ * @copyright  (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/mw/index.php?title=License
+ * @version $Id$
 */
 
 require_once 'Zend/Controller/Action.php';
