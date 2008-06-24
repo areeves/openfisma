@@ -73,13 +73,13 @@ class RemediationController extends PoamBaseController
         }
 
         $spsso = $this->_poam->search($this->me->systems,
-                        array('count'=>'system_id','system_id'), array('status'=>'EP','ep'=>0));
+                        array('count'=>'system_id','system_id'), array('ep'=>0));
         foreach($spsso as $sp) {
             $summary[$sp['system_id']]['EP_SSO'] = $sp['count'];
             $total['EP_SSO'] += $sp['count'];
         }
         $spsnp = $this->_poam->search($this->me->systems,
-                        array('count'=>'system_id','system_id'), array('status'=>'EP','ep'=>1));
+                        array('count'=>'system_id','system_id'), array('ep'=>1));
         foreach($spsnp as $sp) {
             $summary[$sp['system_id']]['EP_SNP'] = $sp['count'];
             $total['EP_SNP'] += $sp['count'];
