@@ -293,29 +293,27 @@ class RemediationController extends PoamBaseController
     {
         $req = $this->getRequest();
         $id = $req->getParam('id');
+        define('EVIDENCE_PATH',WEB_ROOT . DS . 'evidence');
         if($_FILES && $id>0){
             $user_id = $this->me->id;
-            $now_str = self::$now->toString('Y-m-d,h:i:s');
-            if(!file_exists(ROOT . DS . 'public/evidence')){
-                mkdir(ROOT . DS . 'public/evidence',0755);
+            $now_str = self::$now->toString('Y-m-d-his');
+            if(!file_exists( EVIDENCE_PATH )){
+                mkdir( EVIDENCE_PATH,0755);
             }
-            if(!file_exists(ROOT . DS . 'public/evidence/'.$id)){
-                mkdir(ROOT . DS . 'public/evidence/'.$id,0755);
+            if(!file_exists( EVIDENCE_PATH . DS . $id)){
+                mkdir(EVIDENCE_PATH . DS . $id,0755);
             }
             $count = 0;
             $filename = preg_replace('/^([^.]*)\.([^.]*)$/',
-                    'evidence/'.$id.'/$1,'.$now_str.'.$2', 
+                    '$1-'.$now_str.'.$2', 
                     $_FILES['evidence']['name'],2,$count);
-
+	    $abs_file = EVIDENCE_PATH . DS .$id . DS . $filename;
             if( $count > 0 ) {
-                $path = ROOT . DS . "public";
-                $result_move = move_uploaded_file($_FILES['evidence']['tmp_name'],
-                                                $path . DS . $filename);
-
+                $result_move = move_uploaded_file($_FILES['evidence']['tmp_name'],$abs_file);
                 if($result_move){
-                    chmod($path . DS . $filename,0755);
+                    chmod($abs_file,0755);
                 } else{
-                    throw new fisma_Exception('Move upload file fail.'.$_FILES['evidence']['error']);
+                    throw new fisma_Exception('Move upload file fail.'.$abs_file.$_FILES['evidence']['error']);
                 }
             }else{
                 throw new fisma_Exception('The filename should be valid');

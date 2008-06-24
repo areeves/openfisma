@@ -11,12 +11,18 @@
     <tr> 
         <td><b>Evidence:</b>
         <?php 
-            $ev_path = WEB_ROOT .DS.$evidence['submission'];
+            $url = $evidence['submission'];
+            $ev_path[] = $evidence['submission'];
+            $ev_path[] ='evidence' . DS . $evidence['poam_id']. DS. $evidence['submission'];
             $link = '%filename%';
-            if(file_exists($ev_path) ) {
-                 $link = "<a href='/{$evidence['submission']}' target='_blank'>%filename%</a>";
+            foreach( $ev_path as $path ) {
+                if(file_exists($path) ) {
+                    $url = str_replace('\\', '/',$path);
+                    $link = "<a href='/{$url}' target='_blank'>%filename%</a>";
+                }
             }
-            echo str_replace('%filename%',basename($ev_path),$link);
+            echo str_replace('%filename%',basename($url),$link);
+
         ?>
         </td>
     </tr>
