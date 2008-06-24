@@ -523,6 +523,7 @@ function finding_conv($db_src, $db_target, $data)
                  'asset_id'=>$data['asset_id'],
                  'source_id'=>$data['source_id'],
                  'system_id'=>$poam_data['poam_action_owner'],
+                 'blscr_id'=>$poam_data['poam_blscr'],
                  'create_ts'=>$data['finding_date_created'],
                  'finding_data'=>$data['finding_data'],
                  'discover_ts'=>$data['finding_date_discovered'],
