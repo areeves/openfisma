@@ -572,6 +572,7 @@ function poam_conv( $db_src, $db_target)
                  'asset_id'=>0,
                  'source_id'=>0,
                  'system_id'=>$poam_data['poam_action_owner'],
+                 'blscr_id'=>$poam_data['poam_blscr'],
                  'create_ts'=>$poam_data['poam_date_created'],
                  'modify_ts'=>$poam_data['poam_date_modified'],
                  'close_ts'=>$poam_data['poam_date_closed'],
