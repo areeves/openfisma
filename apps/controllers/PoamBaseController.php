@@ -44,7 +44,8 @@ class PoamBaseController extends SecurityController
     public function preDispatch()
     {
         parent::preDispatch();
-        $req = $this->getRequest();
+        $this->_req = $this->getRequest();
+        $req = $this->_req;
         $this->_paging_base_path = $req->getBaseUrl();
         $this->_paging['currentPage'] = $req->getParam('p',1);
     }

@@ -371,4 +371,18 @@ class RemediationController extends PoamBaseController
         }
         $this->_redirect('/panel/remediation/sub/view/id/'.$poam_id, array('exit'));
     }
+
+    public function rafAction()
+    {
+        $id = $this->_req->getParam('id');
+        $poam_detail = $this->_poam->getDetail($id);
+        if( empty($poam_detail) ){
+            throw new fisma_Exception('Raf can be generated according to valid poam');
+        }
+        $this->_helper->layout->disableLayout();
+        $this->view->assign('poam',$poam_detail);
+        $this->view->assign('system_list',$this->_system_list);
+        $this->view->assign('source_list',$this->_source_list);
+        $this->render();
+    }
 }

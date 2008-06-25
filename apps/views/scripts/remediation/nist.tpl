@@ -73,24 +73,24 @@
                     </td>
                 </tr>
                 <tr>
-                        <!--RESTRICT BY ROLE -->
-                        <?php if(isAllow('remediation','generate_raf')){ ?>
-                        <!-- CHECK THAT CMEASURE AND THREAT LEVEL ARE SET-->
-                        <?php if(($this->poam['threat_level'] != 'NONE') && 
-                                 ($this->poam['cmeasure_effectiveness'] != 'NONE')){ ?>
-                        <!--<form action='raf.php' method='POST' target='_blank'>
-                        <input type='hidden' name='poam_id'     value='<?php echo $this->poam_id;?>'>
-                    <td colspan='2'>
-                        <input type='hidden' name='form_action' value='Generate RAF'>
-                        <input type='submit' name='form_action' value='Generate RAF'>
-                    </td>
-                        </form>-->
-                        <?php } else { ?>
-                    <td><i>(Threat and Countermeasure information must be completed to generate a RAF)</i></td>
-                        <?php } ?>
-                        <?php } else { ?>
-                    <td colspan='2'>&nbsp;</td>
-                        <?php } ?>
+        <!--RESTRICT BY ROLE -->
+        <!-- CHECK THAT CMEASURE AND THREAT LEVEL ARE SET-->
+        <?php 
+            if( isAllow('remediation','generate_raf') &&
+                $this->poam['threat_level'] != 'NONE' && 
+                $this->poam['cmeasure_effectiveness'] != 'NONE' ){ 
+        ?>
+        <td colspan='2'>
+            <a href="/zfentry.php/remediation/raf/id/<?php echo $this->poam['id'];?>"
+               target='_blank'>
+            <button>Generate RAF</button>
+            </a>
+        </td>
+        <?php } else { ?>
+        <td><i>
+        (Threat and Countermeasure information must be completed to generate a RAF)
+        </i></td>
+        <?php } ?>
                 </tr>
             </table>
 
