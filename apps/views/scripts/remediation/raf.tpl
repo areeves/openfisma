@@ -341,8 +341,7 @@ table.rafImpact td {
   </tr>
   <tr>
     <td align="right" colspan="4">
-      <input type="button" name="Button" value="Print" onclick="javascript:window.print();">
-      <input type="button" name="Button" value="Export to PDF" onclick="javascript:window.location='craf.php?poam_id={$poam_id}';">
+      <button onclick="javascript:window.print();">Print</button>
     </td>
   </tr>
   <tr>
