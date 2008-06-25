@@ -248,7 +248,7 @@ class AccountController extends PoamBaseController
         $data['auto_role'] = $req->getParam('user_account').'_r';
        
         $user_id = $this->_user->insert($data);
-        $role_id = $req->getParam('role_id');
+        $role_id = $req->getParam('user_role_id');
         $this->_user->associate($user_id, User::ROLE, $role_id);
 
         $this->_user->associate($user_id, User::SYS, $systems);
