@@ -122,7 +122,7 @@
                         if($this->poam['status'] != 'NEW' && isAllow('remediation','update_threat')){ 
                             echo 'class="editable"';
                         }
-                        echo '>',$this->poam['threat_level'];
+                        echo '>',$this->poam['threat_source'];
                      ?>
                      </span>
                      </td>
