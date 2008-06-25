@@ -62,7 +62,7 @@
             echo'<li><a href="/zfentry.php/panel/system/sub/list">Systems</a></li>';
         }
         if(isAllow('admin_products','read')) {
-            echo'<li><a href="#">Products</a></li>';
+            echo'<li><a href="/zfentry.php/panel/product/sub/list">Products</a></li>';
         }
         if(isAllow('admin_system_groups','read')) {
             echo'<li><a href="#">System Group</a></li>';
