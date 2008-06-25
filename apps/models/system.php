@@ -2,7 +2,7 @@
 /**
  * @file system.php
  *
- * @description system model
+ * system model
  *
  * @author     Ryan<ryan.yang@reyosoft.com>
  * @copyright  (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)

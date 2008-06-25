@@ -2,7 +2,7 @@
 /**
  * @file PanelController.php
  *
- * @description Panel Controller
+ * Panel Controller
  *
  * @author     Jim <jimc@reyosoft.com>
  * @copyright  (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
@@ -76,6 +76,15 @@ class PanelController extends SecurityController
         $req = $this->getRequest();
         $sub = $req->getParam('sub');
         $this->_helper->actionStack($sub,'Report');
+        $this->_helper->actionStack('header');
+    }
+    
+    public function systemAction()
+    {
+        $req = $this->getRequest();
+        $sub = $req->getParam('sub');
+        $this->_helper->actionStack($sub,'System');
+        $this->_helper->actionStack('searchbox','System');
         $this->_helper->actionStack('header');
     }
 

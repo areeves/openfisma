@@ -59,7 +59,7 @@
             echo'<li><a href="/zfentry.php/panel/account/sub/list">Users</a></li>';
         }
         if(isAllow('admin_systems','read')) {
-            echo'<li><a href="#">Systems</a></li>';
+            echo'<li><a href="/zfentry.php/panel/system/sub/list">Systems</a></li>';
         }
         if(isAllow('admin_products','read')) {
             echo'<li><a href="#">Products</a></li>';
