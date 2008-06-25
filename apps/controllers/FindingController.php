@@ -161,8 +161,7 @@ class FindingController extends PoamBaseController
             $poam = new Poam();
             $detail = $poam->find($id)->current();
             $this->view->finding = $poam->getDetail($id);
-            $this->view->finding['system_name'] = $this->me->systems[$this->view->finding['system_id']];
-            assert($this->view->finding['system_name']);
+            $this->view->finding['system_name'] = $this->_system_list[$this->view->finding['system_id']];
             $this->render();
         } else {
             /// @todo Add a new Excption page to indicate Access denial

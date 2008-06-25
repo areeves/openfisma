@@ -95,8 +95,8 @@
 <p><b>Poam Search Results</b>
     <span>
     <?php echo $this->links['all']; ?>
-    <a target='_blank' href="<?php echo $url.'/format/pdf'; ?>"><img src="/images/pdf.gif"></a>
-    <a href="<?php echo $url.'/format/xls'; ?>"><img src="/images/xls.gif"></a>
+    <a target='_blank' href="<?php echo $url.'/format/pdf'; ?>"><img src="/images/pdf.gif" border="0"></a>
+    <a href="<?php echo $url.'/format/xls'; ?>"><img src="/images/xls.gif" border="0"></a>
     </span>
 </div>
 </div>
