@@ -25,7 +25,7 @@
                     $st = $this->poam['status'];
                     if( 'EN' == $st ) {
                         $date = new Zend_Date($this->poam['action_est_date']);
-                        if( $date->isLater(Zend_Date::now()) ){
+                        if( $date->isEarlier(Zend_Date::now()) ){
                             $st = 'EO';
                         }
                     }
