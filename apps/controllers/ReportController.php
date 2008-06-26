@@ -326,4 +326,48 @@ class ReportController extends PoamBaseController
             $this->render('generalsearch-'.$type);
         }
     }
+
+    public function rafsAction()
+    {
+        $sid = $this->_req->getParam('system_id');
+        $this->view->assign('system_list',$this->_system_list);
+        if( !empty($sid) ) {
+            $this->_helper->layout->setLayout('rafs');
+            $query = $this->_poam->select()->from($this->_poam,array('id') )
+                           ->where('system_id=?',$sid)
+                           ->where('threat_level IS NOT NULL AND threat_level != \'NONE\'')
+                           ->where('cmeasure_effectiveness IS NOT NULL AND 
+                                    cmeasure_effectiveness != \'NONE\'');
+            $poam_ids = $this->_poam->getAdapter()->fetchCol($query);
+            /*
+            $count = count($poam_ids);
+            if( $count > 0 ) {
+                $fname = tempnam(OVMS_WEB_TEMP, "RAF");
+                @unlink($fname);
+                if(class_exists('ZipArchive')) {
+                    $fname .= '.zip';
+                    $flag = 'zip';
+                    $zip = new ZipArchive;
+                    $ret = $zip->open($fname, ZIPARCHIVE::CREATE);
+                    if(!($ret === TRUE) ) {
+                        throw new fisma_Exception('Cannot create file '. $fname);
+                    }
+                }else{
+                    throw new fisma_Exception('ZipAchive required to use this function');
+                    $flag = 'tgz';
+                    $files = array();
+                }
+            }
+            */
+            $this->view->assign('source_list',$this->_source_list);
+            foreach( $poam_ids as $id ) {
+                $poam_detail = &$this->_poam->getDetail($id);
+                $this->view->assign('poam',$poam_detail);
+                $this->render('remediation/raf',null,true);
+            }
+        }else{
+            $this->render();
+        }
+    }
+
 }

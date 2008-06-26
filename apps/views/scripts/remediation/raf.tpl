@@ -1,4 +1,6 @@
 <?php
+require_once( CONTROLLERS . DS . 'components' . DS . 'rafutil.php');
+
     $type_name = array('NONE'=>'None',
                        'CAP'=>'Corrective Action Plan',
                        'AR' =>'Accepted Risk',
@@ -9,78 +11,6 @@
                          'EP' => 'Evidence Provided',
                          'ES' => 'Evidence Submitted',
                          'CLOSED' => 'Closed' );
-    function calSensitivity($arrayOfty)
-    {
-        static $_senseMap = array(1=>'LOW',10=>'MODERATE',100=>'HIGH');
-        $_senseRevMap = array_flip($_senseMap);
-        $value = 0;
-        foreach( $arrayOfty as $a ){
-            if( in_array($a, $_senseMap) ){
-                $value += $_senseRevMap[$a];
-            }else{
-                throw new fisma_Exception('Wrong sensitivity calculation:'.
-                            var_export($arrayOfty,true));
-            }
-        }
-        if( intval($value/100)>0 ) {
-            return 'HIGH';
-        }else if ( intval($value/10)>0 ){
-            return 'MODERATE';
-        }else{
-            return 'LOW';
-        }
-    }
-/*
-** Generate an array of HTML colors to populate table cell backgrounds.
-** Array is meant to be passed to the templates driving the generation
-** of RAF impact/risk tables.
-** Array consists of N-1 default background color values and one
-** highlight value at index M.
-**
-** Input:
-**  num_cells - number of elements in return array
-**  highlight_index - zero-based index of cell to receive highlight_color
-**  default_color - the color of ordinary cells
-**  highlight_color - the color of the highlighted cell
-*/
-
-function cell_background_colors ($num_cells, $highlight_index,
-$default_color='FFFFFF', $highlight_color='CCCCCC') 
-{
-
-  // Initialize array with regular cell color values
-  $colors = array_fill(0, $num_cells, $default_color);
-
-  // Set highlighted cell with highlight color value
-  $colors[$highlight_index] = $highlight_color;
-
-  return $colors;
-}
-
-
-function calcImpact($sense, $criti)
-{
-    $_senseMap = array('LOW'=>1,'MODERATE'=>10,'HIGH'=>100);
-    $ret = min($_senseMap[$sense],$_senseMap[$criti]);
-    $_revMap = array_flip($_senseMap);
-    return $_revMap[$ret];
-}
-
-function calcThreat($threat, $countmeasure)
-{
-    $_senseMap = array('LOW'=>1,'MODERATE'=>10,'HIGH'=>100);
-    $ret = $_senseMap[$threat]-$_senseMap[$countmeasure];
-    if( $ret <= 0 ) {
-        $ret =1;
-    }else if( $ret > 90 ) {
-        $ret =100;
-    }else {
-        $ret =10;
-    }
-    $_revMap = array_flip($_senseMap);
-    return $_revMap[$ret];
-}
-
 
 $cellidx_lookup['HIGH']['LOW']          = 0;
 $cellidx_lookup['HIGH']['MODERATE']     = 1;
@@ -93,62 +23,6 @@ $cellidx_lookup['LOW']['MODERATE']      = 7;
 $cellidx_lookup['LOW']['HIGH']          = 8;
 
 ?>
-<html>
-<head>
-	
-<title>Risk Analysis Form (RAF)</title>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<style>
-p.pageHeader {
-  font-size: 20pt;
-  font-family: sans-serif; 
-  text-align: center;
-  margin: auto auto;
-}
-
-div.raf {
-  text-align: center;
-  margin: auto;
-  width: 900px;
-}
-
-div.rafHeader {
-  padding: 2px;
-  border: 2px solid black;
-  width: 100%;
-  text-align: left;
-  font-family: sans-serif;
-  font-size: 10pt;
-  margin-top: 20px;
-  margin-bottom: 20px;
-}
-
-table.rafContent {
-  width: 100%;
-}
-
-table.rafContent td {
-  vertical-align: top;
-  width: 25%;
-  font-family: sans-serif;
-  font-size: 10pt;
-}
-
-table.rafImpact {
-  margin: auto auto;
-  border: none;
-  border-collapse: collapse;
-  width: 80%;
-  color: black;
-}
-
-table.rafImpact td {
-  padding: 2px;
-  border: 2px solid black;
-}
-
-</style>
-</head>
 
 <div class="raf">
 <table class="rafContent">
@@ -297,7 +171,7 @@ table.rafImpact td {
   </tr>
   <tr>
     <td colspan="4">
-      {$rpdata[0].finding_data}
+      <?php echo $this->poam['finding_data']; ?>
     </td>
   </tr>
   <tr>
@@ -307,7 +181,7 @@ table.rafImpact td {
   </tr>
   <tr>
     <td colspan="4">
-      {$rpdata[0].act_plan}
+      <?php echo $this->poam['action_planned']; ?>
     </td>
   </tr>
   <tr>
@@ -317,7 +191,7 @@ table.rafImpact td {
   </tr>
   <tr>
     <td colspan="4">
-      {$rpdata[0].cm}
+      <?php echo $this->poam['cmeasure_effectiveness']; ?>
     </td>
   </tr>
 <?php } ?>
@@ -340,14 +214,10 @@ table.rafImpact td {
     </td>
   </tr>
   <tr>
-    <td align="right" colspan="4">
-      <button onclick="javascript:window.print();">Print</button>
-    </td>
-  </tr>
-  <tr>
     <td colspan="4">
      WARNING: This report is for internal, official use only.  This report contains sensitive computer security related information. Public disclosure of this information would risk circumvention of the law. Recipients of this report must not, under any circumstances, show or release its contents for purposes other than official action. This report must be safeguarded to prevent improper disclosure. Staff reviewing this document must hold a minimum of Public Trust Level 5C clearance.
     </td>
   </tr>
 </table>
 </div>
+<br>
