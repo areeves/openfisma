@@ -2,7 +2,7 @@
 /**
  * @file SecurityController.php
  *
- * @description Security Controller
+ * Security Controller
  *
  * @author     Jim <jimc@reyosoft.com>
  * @copyright  (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)

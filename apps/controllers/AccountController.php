@@ -2,7 +2,7 @@
 /**
  * @file:AccountController.php
  *
- * @description Account Controller
+ * Account Controller
  *
  * @author     Ryan <ryan.yang@reyosoft.com>
  * @copyright  (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
@@ -141,11 +141,14 @@ class AccountController extends PoamBaseController
             ->where("u.id = $id");
         $user_detail = $user->fetchRow($qry)->toArray();
 
-        $roles = $user->getRoles($id, array('name'=>'name'));
+        $roles = $user->getRoles($id, array('name'=>'name','id'=>'id'));
+        $query = $user->getAdapter()->select()->from('roles',array('id','name'))->order('name ASC');
+        $role_list = $user->getAdapter()->fetchPairs($query);
 
         $this->view->assign('id',$id);
         $this->view->assign('user',$user_detail);
         $this->view->assign('roles',$roles);
+        $this->view->assign('role_list',$role_list);
         $this->view->assign('my_systems',$user->getMySystems($id));
         $this->view->assign('all_sys',$sys->getList('name') );
         $this->render($v);
@@ -158,6 +161,7 @@ class AccountController extends PoamBaseController
         $req = $this->getRequest();
         $id = $req->getParam('id');
         $u_data = $req->getPost('user');
+        $u_role = $req->getPost('user_role');
         $sys_data = $req->getPost('system');
         $confirm_pwd = $req->getPost('confirm_password');
         if( isset($u_data['password']) ) {
@@ -184,6 +188,9 @@ class AccountController extends PoamBaseController
                 $n = $this->_user->associate($id, User::SYS, $new_sys);
                 $n = $this->_user->associate($id, User::SYS, $remove_sys, true);
             }
+        }
+        if(!empty($u_role)){
+            $this->_user->getAdapter()->update('user_roles',array('role_id'=>$u_role),'user_id = '.$id);
         }
         $this->_forward('view');
     }

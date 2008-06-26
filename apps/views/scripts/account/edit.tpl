@@ -24,8 +24,7 @@
 <form name="edit" method="post" action="/zfentry.php/panel/account/sub/update/id/<?php echo $this->id;?>">
     <tr>
         <td align="right" class="thc" width="200">Last Name:</td>
-        <td class="tdc">&nbsp;
-        <input type="text" name="user[name_last]" 
+        <td class="tdc">&nbsp;<input type="text" name="user[name_last]" 
             value="<?php echo $this->user['lastname'];?>" size="90">
         <font color="blue"> *</font></td>
     </tr>
@@ -52,7 +51,7 @@
     </tr>
     <tr>
         <td align="right" class="thc">Role:</td>
-        <td class="tdc">&nbsp;click here to edit role and privileges for this user</td>
+        <td class="tdc">&nbsp;<?php echo $this->formSelect('user_role',$this->roles[0]['id'],null,$this->role_list);?></td>
     </tr>
     <tr>
         <td align="right" class="thc">Title:</td>
