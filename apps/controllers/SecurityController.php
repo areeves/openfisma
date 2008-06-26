@@ -64,10 +64,7 @@ class SecurityController extends Zend_Controller_Action
         if( !Zend_Registry::isRegistered('acl') )  {
             $acl = new Zend_Acl();
             $db = Zend_Registry::get('db');
-            $query = $db->select()->from(array('r'=>'roles'),array('nickname'=>'r.nickname'))
-                                  ->from(array('u'=>'users'),array())
-                                  ->join(array('ur'=>'user_roles'),'ur.user_id = u.id',array())                                 
-                                  ->where('u.id = '.$uid);
+            $query = $db->select()->from(array('r'=>'roles'),array('nickname'=>'r.nickname'));
             $role_array = $db->fetchAll($query);
             foreach($role_array as $row){
                 $acl->addRole(new Zend_Acl_Role($row['nickname']));
@@ -81,12 +78,15 @@ class SecurityController extends Zend_Controller_Action
             }
 
             $query->reset();
-            $query = $db->select()->from(array('u'=>'users'),array())
+            $query = $db->select()->from(array('u'=>'users'),array('account'))
                                   ->join(array('ur'=>'user_roles'),'u.id = ur.user_id',array())
-                                  ->join(array('r'=>'roles'),'ur.role_id = r.id',array('nickname'=>'r.nickname'))
-                                  ->join(array('rf'=>'role_functions'),'r.id = rf.role_id',array())
-                                  ->join(array('f'=>'functions'),'rf.function_id = f.id',array('screen'=>'f.screen',
-                                                                                              'action'=>'f.action'));
+                                  ->join(array('r'=>'roles'),'ur.role_id = r.id',
+                                            array('nickname'=>'r.nickname'))
+                                  ->join(array('rf'=>'role_functions'),'r.id = rf.role_id',
+                                            array())
+                                  ->join(array('f'=>'functions'),'rf.function_id = f.id',
+                                            array('screen'=>'f.screen', 'action'=>'f.action'))
+                                  ->where('u.id=?',$uid);
             $res = $db->fetchAll($query);
             foreach($res as $row){
                 $acl->allow($row['nickname'],$row['screen'],$row['action']);
