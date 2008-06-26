@@ -67,7 +67,7 @@
         if(isAllow('admin_system_groups','read')) {
             echo'<li><a href="/zfentry.php/panel/sysGroup/sub/list">System Group</a></li>';
         }
-        if(isAllow('admin_functions','read')) {
+        if(isAllow('admin_sources','read')) {
             echo'<li><a href="/zfentry.php/panel/source/sub/list">Finding Sources</a></li>';
         }
         echo'<li><a href="/zfentry.php/panel/config">Configeration</a></li>';

@@ -8,7 +8,6 @@
         });
     })
 </script>
-<?php echo $this->msg;?>
 <div class="barleft">
 <div class="barright">
 <p><b>Administration: Users Create</b>

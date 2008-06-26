@@ -172,15 +172,18 @@ class AccountController extends PoamBaseController
             if($u_data['is_active'] == 0){
                 $u_data['termination_ts'] = self::$now->toString("Y-m-d H:i:s");
             }
-            $my_sys = $this->_user->getMySystems($id);
-            $new_sys = array_diff($sys_data,$my_sys); 
-            $remove_sys = array_diff($my_sys,$sys_data);
             $n = $this->_user->update($u_data, "id=$id");
             if( $n > 0) {
                 $this->_user->log(User::MODIFICATION, $this->me->id, $u_data['account']);
             }
-            $n = $this->_user->associate($id, User::SYS, $new_sys);
-            $n = $this->_user->associate($id, User::SYS, $remove_sys, true);
+            if(!empty($sys_data)){
+                $my_sys = $this->_user->getMySystems($id);
+                $new_sys = array_diff($sys_data,$my_sys); 
+                $remove_sys = array_diff($my_sys,$sys_data);
+            
+                $n = $this->_user->associate($id, User::SYS, $new_sys);
+                $n = $this->_user->associate($id, User::SYS, $remove_sys, true);
+            }
         }
         $this->_forward('view');
     }
@@ -250,8 +253,10 @@ class AccountController extends PoamBaseController
         $user_id = $this->_user->insert($data);
         $role_id = $req->getParam('user_role_id');
         $this->_user->associate($user_id, User::ROLE, $role_id);
-
-        $this->_user->associate($user_id, User::SYS, $systems);
+         
+        if(!empty($systems)){
+            $this->_user->associate($user_id, User::SYS, $systems);
+        }
 
         $this->_user->log(User::CREATION ,$this->me->id,'create user('.$data['account'].')');
         $this->message("User({$data['account']}) added", self::M_NOTICE);
