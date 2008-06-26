@@ -1,15 +1,18 @@
     <?php 
+    require_once( MODELS . DS . 'comments.php');
     $evidence = $this->ev;
     $evaluation = $this->eval;
+    $comment = new Comments();
     ?>
-<form action="/zfentry.php/remediation/evidence/id/<?php echo $evidence['id'];?>" method="post">
+<form action="/zfentry.php/remediation/evidence/id/<?php echo $evidence['id'];?>" method="post"
+ name='eval_ev<?php echo $evidence['id'];?>' >
     <table cellpadding='3' cellspacing='1' class='tipframe' >
-    <tr><th align='left'>Evidence Submitted by 
+    <tr><th colspan=2 align='left'>Evidence Submitted by 
     <?php echo $evidence['submitted_by'];?> on <?php echo $evidence['submit_ts'];?>
     </th></tr>
 
     <tr> 
-        <td><b>Evidence:</b>
+        <td colspan=2><b>Evidence:</b>
         <?php 
             $url = $evidence['submission'];
             $ev_path[] = $evidence['submission'];
@@ -33,11 +36,14 @@
     $ev_evallist = $eval_model->getEvEvalList() ;
     foreach($ev_evallist as $k=>$v) { 
         $name = &$v['name'];
-        if(isset($evaluation[$v['name']])) {
-            if( $evaluation[$v['name']]['group'] != 'EVIDENCE' ) {
+        if(isset($evaluation[$name])) {
+            if( $evaluation[$name]['group'] != 'EVIDENCE' ) {
+                var_dump($evaluation[$name]);
                 continue;
             }
             $value = &$evaluation[$v['name']]['decision'];
+            $username = nullGet($evaluation[$name]['username'],'...');
+            $date = nullGet($evaluation[$name]['date'],'');
         }else{
             if($value == 'DENIED' ){
                 $value = 'EXCLUDED';
@@ -47,15 +53,36 @@
         }
         echo  "<tr><td><b>$name:</b>";
         if($value=='NONE' && $editable ){
-            echo '<input type="hidden" name="evaluation" value="'.$k.'">';
-            echo '<input type="submit" name="decision" value="APPROVE">';
-            echo '<input type="submit" name="decision" value="DENY">';
+            echo '<input type="hidden" name="evaluation" value="'.$k.'"/>';
+            echo '<input type="hidden" name="topic" value="" />';
+            echo '<input type="hidden" name="reject" value="" />';
+            echo '<input type="hidden" name="decision" value="APPROVE" />';
+            echo '<input type="submit" value="APPROVE" />';
+            echo '<input type="button" value="DENY" '.
+                    'onclick="comment(document.eval_ev'.$evidence['id'].');" />';
             $editable=false;
         }else{
-            echo "$value";
+            echo "$value </td>";
+            if( $value == 'APPROVED' ) {
+                echo "<td> <i> BY $username ON $date </i></td>";
+            }else if($value == 'DENIED') {
+                $row = $comment->fetchRow('poam_evaluation_id = '.$evaluation[$name]['eval_id']);
+                echo "<td>";
+                if( !empty($row) ) {
+                    echo "<b>{$row->topic}</b>:{$row->content}";
+                }
+                echo "<i>BY $username ON $date </i></td>";
+            }
         }
-        echo "</td></tr>";
+        echo "</tr>";
     }
     ?>
     </table>
 </form>
+
+<div id='comment_dialog' style="display:none">
+Topic:
+<input type="text" name="topic" size=80 value="" />
+Justification:
+<textarea name="reason" rows="3" cols="76" ></textarea>
+</div>

@@ -329,38 +329,46 @@ class RemediationController extends PoamBaseController
                                  'action_actual_date' => $today);
             $result = $this->_poam->update($update_data,"id = $id");
         }
-        $this->_forward('view',null,null,array('id'=>$id));
+        $this->_redirect('/panel/remediation/view/id/'.$id);
     }
 
     public function evidenceAction()
     {
         require_once MODELS . DS . 'evidence.php';
+        require_once MODELS . DS . 'comments.php';
         $req = $this->getRequest();
-        $decision = $req->getParam('decision');
         $eval_id = $req->getParam('evaluation');
+        $decision = $req->getParam('decision');
         $eid = $req->getParam('id');
         $ev = new Evidence();
         $ev_detail = $ev->find($eid);
         if( empty($ev_detail) ) {
-            throw new fisma_Exception('Wrong parameters');
+            throw new fisma_Exception('Wrong evidence id:'.$eid);
         }
         if( $decision == 'APPROVE' ) {
             $decision = 'APPROVED';
         }else if( $decision == 'DENY' ) {
             $decision = 'DENIED';
         }else{
-            throw new fisma_Exception('Wrong parameters');
+            throw new fisma_Exception('Wrong decision:'.$decision);
         }
         $poam_id = $ev_detail->current()->poam_id;
         
         if( in_array($decision, array('APPROVED', 'DENIED') ) ){
-            $ret = $this->_poam->reviewEv($eid, array('decision'=>$decision,
+            $evv_id = $this->_poam->reviewEv($eid, array('decision'=>$decision,
                                                'eval_id' =>$eval_id,
                                                'user_id' =>$this->me->id,
                                                'date'    =>self::$now->toString('Y-m-d')));
-            assert($ret>0);
             if( $decision == 'DENIED' ) {
                 $this->_poam->update(array('status'=>'EN'), 'id='.$poam_id);
+                $topic = $req->getParam('topic');
+                $body = $req->getParam('reject');
+                $comm = new Comments();
+                $comm->insert(array('poam_evaluation_id' => $evv_id,
+                                    'user_id' => $this->me->id,
+                                    'date'    => 'CURDATE()',
+                                    'topic'   => $topic,
+                                    'content' => $body) );
             }
             if( $decision == 'APPROVED' && $eval_id == 2){
                 $this->_poam->update(array('status'=>'ES'), 'id='.$poam_id);

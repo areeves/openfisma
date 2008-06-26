@@ -50,6 +50,7 @@ $(document).ready(function(){
             });
         }
     });
+
 });
 
 function searchAsset( ){
@@ -96,6 +97,35 @@ function upload_evidence(){
     return false;
 }
 
+function comment(formname){
+    var dw = $(document).width();
+    var dh = $(document).height();
+    $('<div id="full"></div>')
+                .width(dw).height(dh)
+                .css({backgroundColor:"#000000", marginTop:-1*dh, opacity:0, zIndex:10})
+                .appendTo("body").fadeTo(1, 0.4);
+    var content = $("#comment_dialog").html();
+    $('<div title="Upload Evidence"></div>').append(content).
+        dialog({position:'top', width: 540, height: 240, resizable: true,modal:true,
+            close:function(){
+                $('#full').remove();
+            },
+            buttons:{
+                'Cancel':function(){
+                    $(this).dialog("close");
+                },
+                'Continue':function(){
+                    var form1 = formname;
+                    var topic = $("input[name=topic]",this).val();
+                    var reason = $("textarea[name=reason]",this).val();
+                    form1.elements['topic'].value = topic;
+                    form1.elements['reject'].value = reason;
+                    form1.elements['decision'].value = 'DENY';
+                    form1.submit();
+                }
+            }
+        });
+}
 
 function getProdId(){
     var trigger= $("select[name='prod_list']");

@@ -411,7 +411,8 @@ class poam extends Zend_Db_Table
     public function reviewEv($eid, $review)
     {
         $data = array_merge( array('group_id'=>$eid),$review );
-        return $this->_db->insert('poam_evaluations', $data);
+        $this->_db->insert('poam_evaluations', $data);
+        return $this->_db->lastInsertId();
     }
 
     /** 

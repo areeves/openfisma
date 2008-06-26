@@ -1,8 +1,3 @@
-<style>
-<!--
-@import url("/stylesheets/jquery-ui-themeroller.css");
--->
-</style>
 <div id="editorDIV" style="display: none;">
     <form enctype="multipart/form-data" method="POST"
          action="/zfentry.php/panel/remediation/sub/upload_evidence/id/<?php echo $this->id;?>">
