@@ -33,7 +33,8 @@
               'FINDING_SOURCES', 
               'SYSTEM_GROUP_SYSTEMS','SYSTEMS',
               'SYSTEM_GROUPS',
-             // 'FUNCTIONS', 'ROLES', 'ROLE_FUNCTIONS',
+              'ROLES',
+              'FUNCTIONS','ROLE_FUNCTIONS',
               'ASSETS',
               'USER_ROLES',
               'USERS',
@@ -49,30 +50,7 @@
 
     $db_target = Zend_DB::factory(Zend_Registry::get('datasource')->default);
     $db_src    = Zend_DB::factory(Zend_Registry::get('legacy_datasource')->default);
-   
-$qry="select role_id,role_nickname from ROLES";
-$oldroles=$db_src->fetchPairs($qry);
-$qry="select nickname,id from roles";
-$newroles=$db_target->fetchPairs($qry);
 
-$role_mapping=array();
-$mismatch = array();
-foreach($oldroles as $key=>$role)
-{
-    if( isset($newroles[$role]) ){
-        $role_mapping[$key]=$newroles[$role];
-    }else{
-        $role_mapping[$key]=$newroles['REVIEWER'];
-        $mismatch[] =  $role;
-    }
-}
-if( !empty($mismatch) ){
-    echo 'Roles has to be contained in new schema';
-    echo "Mismatch roles from legacy database\n";
-    print_r($mismatch);
-    echo "Current roles in new schema\n";
-    print_r($newroles);
-}
     $delta = 1000;
     echo "start to migrate \n";
     $sql = "CREATE TABLE IF NOT EXISTS poam_tmp (
@@ -110,7 +88,7 @@ if( !empty($mismatch) ){
             $rows = $db_src->fetchAll($qry);
             $rc += count($rows);
             foreach($rows as &$data) {
-                convert($db_src, $db_target, $table,$data,$role_mapping);
+                convert($db_src, $db_target, $table,$data);
             }
         }
         echo " ( $rc ) successfully\n";
@@ -129,7 +107,7 @@ if( !empty($mismatch) ){
 
 
 
-function convert($db_src, $db_target, $table,&$data,$role_mapping)
+function convert($db_src, $db_target, $table,&$data)
 {
     switch($table)
     {
@@ -178,7 +156,7 @@ function convert($db_src, $db_target, $table,&$data,$role_mapping)
          break;
 
     case 'USERS':
-         users_conv($db_src, $db_target, $data,$role_mapping);
+         users_conv($db_src, $db_target, $data);
          break;
 
     case 'USER_SYSTEM_ROLES':
@@ -354,8 +332,11 @@ function role_functions_conv($db_src, $db_target, $data)
 {
     $tmparray=array('role_id'=>$data['role_id'] ,
                'function_id'=>$data['function_id']);
-    $db_target->insert('role_functions',$tmparray);
-    unset($tmparray);
+    try{
+        $db_target->insert('role_functions',$tmparray);
+    }catch(Zend_Exception $e){
+        return;
+    }
 }
 
 
@@ -375,7 +356,7 @@ function user_system_conv($db_src, $db_target, $data)
     unset($tmparray);
 }
 
-function users_conv($db_src, $db_target, $data,$role_mapping)
+function users_conv($db_src, $db_target, $data)
 {
     $auto_role=$data['extra_role']?$data['extra_role']:$data['user_name'].'_r';
     
@@ -405,13 +386,6 @@ function users_conv($db_src, $db_target, $data,$role_mapping)
     $db_target->insert('users',$tmparray);
     unset($tmparray);
     try{
-        if(isset($role_mapping[$data['role_id']]))
-        {
-            $data['role_id']=$role_mapping[$data['role_id']];
-        }else{
-            echo "user_id:{$data['user_id']} user_name:{$data['user_name']} has illegal role_id:{$data['role_id']}.\n"; 
-        }
-
         user_roles_conv($db_src, $db_target, $data);
     }catch(Zend_Exception $e){
         return;
