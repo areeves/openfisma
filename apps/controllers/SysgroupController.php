@@ -7,7 +7,7 @@
  * @author     Ryan <ryan.yang@reyosoft.com>
  * @copyright  (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license    http://www.openfisma.org/mw/index.php?title=License
- * @version $$
+ * @version $Id$
 */
 
 require_once CONTROLLERS . DS . 'SecurityController.php';
@@ -33,7 +33,7 @@ class SysgroupController extends SecurityController
     public function preDispatch()
     {
         $req = $this->getRequest();
-        $this->_paging_base_path = $req->getBaseUrl() .'/panel/sys_group/sub/list';
+        $this->_paging_base_path = $req->getBaseUrl() .'/panel/sysgroup/sub/list';
         $this->_paging['currentPage'] = $req->getParam('p',1);
         if(!in_array($req->getActionName(),array('login','logout') )){
             // by pass the authentication when login
@@ -72,8 +72,8 @@ class SysgroupController extends SecurityController
         }
         $query->order('name ASC')
               ->limitPage($this->_paging['currentPage'],$this->_paging['perPage']);
-        $sys_group_list = $this->_sysgroup->fetchAll($query)->toArray();
-        $this->view->assign('sys_group_list',$sys_group_list);
+        $sysgroup_list = $this->_sysgroup->fetchAll($query)->toArray();
+        $this->view->assign('sysgroup_list',$sysgroup_list);
         $this->render();
     }
    

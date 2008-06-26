@@ -17,34 +17,34 @@ function delok(entryname)
 <tr align="center">
     <th>System Group Name</th>
     <th>System Group Nickname</th>
-    <?php if(isAllow('admin_sys_groups','update')){
+    <?php if(isAllow('admin_sysgroups','update')){
               echo'<th>Edit</td>';
           } 
-          if(isAllow('admin_sys_groups','read')){
+          if(isAllow('admin_sysgroups','read')){
               echo'<th>View</td>';
           }
-          if(isAllow('admin_sys_groups','delete')){
+          if(isAllow('admin_sysgroups','delete')){
               echo'<th>Del</td>';
           }
     ?>
 </tr>
-<?php foreach($this->sys_group_list as $sys_group){ ?>
+<?php foreach($this->sysgroup_list as $sysgroup){ ?>
 <tr>
-    <td class="tdc">&nbsp;<?php echo $sys_group['name'];?></td>
-    <td class="tdc">&nbsp;<?php echo $sys_group['nickname'];?></td>
-    <?php if(isAllow('admin_sys_groups','update')){ ?>
+    <td class="tdc">&nbsp;<?php echo $sysgroup['name'];?></td>
+    <td class="tdc">&nbsp;<?php echo $sysgroup['nickname'];?></td>
+    <?php if(isAllow('admin_sysgroups','update')){ ?>
     <td class="thc" align="center">
-        <a href="/zfentry.php/panel/sysgroup/sub/view/v/edit/id/<?php echo $sys_group['id'];?>" title="edit the System Groups">
+        <a href="/zfentry.php/panel/sysgroup/sub/view/v/edit/id/<?php echo $sysgroup['id'];?>" title="edit the System Groups">
         <img src="/images/edit.png" border="0"></a>
     </td>
-    <?php } if(isAllow('admin_sys_groups','read')){ ?>
+    <?php } if(isAllow('admin_sysgroups','read')){ ?>
     <td class="thc" align="center">
-        <a href="/zfentry.php/panel/sysgroup/sub/view/id/<?php echo $sys_group['id'];?>" title="display the System Groups">
+        <a href="/zfentry.php/panel/sysgroup/sub/view/id/<?php echo $sysgroup['id'];?>" title="display the System Groups">
         <img src="/images/view.gif" border="0"></a>
     </td>
-    <?php } if(isAllow('admin_sys_groups','delete')){ ?>
+    <?php } if(isAllow('admin_sysgroups','delete')){ ?>
     <td class="thc" align="center">
-        <a href="/zfentry.php/panel/sysgroup/sub/delete/id/<?php echo $sys_group['id'];?>" title="delete the System Groups, then no restore after deleted" onclick="return delok('System Groups');">
+        <a href="/zfentry.php/panel/sysgroup/sub/delete/id/<?php echo $sysgroup['id'];?>" title="delete the System Groups, then no restore after deleted" onclick="return delok('System Groups');">
         <img src="/images/del.png" border="0"></a>
     </td>
     <?php }?>
