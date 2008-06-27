@@ -3,7 +3,7 @@
 		<td><span id="msgbar"></span></td>
 		<td><ul class="loginfo">
 				<li><b><?php echo $this->identity;  ?></b> is currently logged in </li>
-				<li> <a href="/zfentry.php/user/pwdchange"><button class="action" >Change Password</button></a><a href="/zfentry.php/user/logout"><button class="action" >Logout</button></a></li>
+				<li> <a href="/zfentry.php/panel/user/sub/pwdchange"><button class="action" >Change Password</button></a><a href="/zfentry.php/user/logout"><button class="action" >Logout</button></a></li>
 			</ul></td>
 	</tr>
 </table>

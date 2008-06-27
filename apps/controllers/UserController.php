@@ -129,14 +129,15 @@ class UserController extends SecurityController
                     $msg = 'The old password supplied does not match what we have on file, please try again.';
                 }else{
                     if(!$this->checkPassword($pwds['new'],2)){
-                        $msg = 'This password does not meet the password complexity requirements.<br>
+                        /*$msg = 'This password does not meet the password complexity requirements.<br>
 Please create a password that adheres to these complexity requirements:<br>
 --The password must be at least 8 character long<br>
 --The password must contain at least 1 lower case letter (a-z), 1 upper case letter (A-Z), and 1 digit (0-9)<br>
 --The password can also contain National Characters if desired (Non-Alphanumeric, !,@,#,$,% etc.)<br>
 --The password cannot be the same as your last 3 passwords<br>
---The password cannot contain your first name or last name<br>";';
-                        $msg = 'more error message';
+--The password cannot contain your first name or last name<br>";';*/
+                        $msg = 'The password doesn\'t meet the required complexity!';
+
                     }else{
                         if($newpass == $password){
                             $msg = 'Your new password cannot be the same as your old password.';

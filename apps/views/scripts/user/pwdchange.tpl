@@ -3,7 +3,7 @@
 <p><b>Change Password</b>
 </div>
 </div>
-<form name="edit" method="post" action="/zfentry.php/user/pwdchange/s/save">
+<form name="edit" method="post" action="/zfentry.php/panel/user/sub/pwdchange/s/save">
 <table width="98%" align="center" border="0" cellpadding="0" cellspacing="0" class="tbframe">
     <tr>
         <td align="" colspan="2" style="font-weight:bold;font-family:tahoma;font-size:11px;">
@@ -11,15 +11,15 @@
     </tr>
     <tr>
         <td align="right" class="thc" width="200">Old Password:</td>
-        <td class="tdc">&nbsp;<input type="password" name="pwd[old]"></td>
+        <td >&nbsp;<input type="password" name="pwd[old]"></td>
     </tr>
     <tr>
         <td align="right" class="thc">New Password:</td>
-        <td class="tdc">&nbsp;<input type="password" name="pwd[new]"></td>
+        <td >&nbsp;<input type="password" name="pwd[new]"></td>
     </tr>
     <tr>
         <td align="right" class="thc">Confirm Password:</td>
-        <td class="tdc">&nbsp;<input type="password" name="pwd[confirm]"></td>
+        <td >&nbsp;<input type="password" name="pwd[confirm]"></td>
     </tr>
 </table>
 <br>
