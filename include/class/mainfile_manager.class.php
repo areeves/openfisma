@@ -1,5 +1,15 @@
 <?php
 
+define("_INST_WC_L1","");
+define("_INST_WC_L2","Saving configuration data&hellip;");
+define("_INST_WC_L3","Constant %s is assigned the value \"%s\".");
+define("_INST_WC_L4","Configuration data has been saved successfully to ovms.ini.php.");
+define("_INST_WC_L5",""); // Unnecessary
+define("_INST_WC_L6","File %s overwritten by %s.");
+define("_INST_WC_L7","Could not write to file %s.");
+define("_INST_WC_L8","Please check the file permission and try again.");
+define("_INST_WC_L9","Failed writing constant %s.");
+
 class mainfile_manager {
 
     var $path = '';
