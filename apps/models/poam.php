@@ -122,7 +122,7 @@ class poam extends Zend_Db_Table
             }
         }
         if( isset($ep) ) {
-            $query->where("status='EP'");
+            $query->where("p.status='EP'");
             if($ep > 0){
                 $ep--;
                 $query->join(array('e'=>'evidences'),'e.poam_id=p.id',array())
@@ -140,8 +140,10 @@ class poam extends Zend_Db_Table
                   ->where("ev.level='$ep' AND pvv.decision='APPROVED'");
             }else{ //$ep==0
                 $query->join(array('e'=>'evidences'),'e.poam_id=p.id',array())
-                      ->joinLeft(array('pvv'=>'poam_evaluations'),'e.id=pvv.group_id',array())
-                      ->joinLeft(array('el'=>'evaluations'),'el.id=pvv.eval_id AND el.group=\'EVIDENCE\'',array())
+                      ->joinLeft(array('pvv'=>'poam_evaluations'),null,array())
+                        ->join(array('el'=>'evaluations'),
+                            '(el.id=pvv.eval_id AND el.group=\'EVIDENCE\') 
+                             ON e.id=pvv.group_id',array() )
                       ->where( "ISNULL(pvv.id) ");
             }
         }
