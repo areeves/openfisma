@@ -7,6 +7,8 @@
 </p>
 </div>
 </div>
+
+<div style="text-align:center">
 <form id="findingresult" method="post" action="/zfentry.php/panel/finding/sub/delete">
 <?php if(isAllow('finding','delete')){ ?>
             <!-- Allow Multiple Deletion if the user has the appropriate rights -->
@@ -19,7 +21,7 @@
             <table class="tbframe">
                 <tr align="center">
                     <?php if(isAllow('finding','delete')) {?>
-                    <th></td>
+                    <th></th>
                     <?php } ?>
                     <th>ID<img src="/images/up_arrow.gif" border="0"> 
                           <img src="/images/down_arrow.gif" border="0"></th>
@@ -50,23 +52,23 @@
                 ?>
                 <tr>
                     <?php if(isAllow('finding','delete')){?>
-                    <td align="center" >
+                    <td class="tdc" >
                         <input type="checkbox" name="id_<?php echo $row['id'];?>" value="<?php echo $row['id'];?>">
                     </td>
                     <?php }?>
-                    <td align="center" class="tdc"><?php echo $row['id']; ?></td>
-                    <td><?php echo $row['legacy_finding_id']; ?>&nbsp;</td>
-                    <td><?php echo $row['status']; ?>&nbsp;</td>
-                    <td><?php echo $this->source[$row['source_id']]; ?>&nbsp;</td>
-                    <td><?php echo $this->system[$row['system_id']]; ?>&nbsp;</td>
-                    <td><?php echo $row['ip'];?>&nbsp;</td>
-                    <td><?php echo $row['port'];?>&nbsp;</td>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                    <td align="center"><?php echo date("Y-m-d",strtotime($row['discover_ts']));?>&nbsp;</td>
+                    <td class="tdc"><?php echo $row['id']; ?></td>
+                    <td class="tdc"><?php echo $row['legacy_finding_id']; ?>&nbsp;</td>
+                    <td class="tdc"><?php echo $row['status']; ?>&nbsp;</td>
+                    <td class="tdc"><?php echo $this->source[$row['source_id']]; ?>&nbsp;</td>
+                    <td class="tdc"><?php echo $this->system[$row['system_id']]; ?>&nbsp;</td>
+                    <td class="tdc"><?php echo $row['ip'];?>&nbsp;</td>
+                    <td class="tdc"><?php echo $row['port'];?>&nbsp;</td>
+                    <td class="tdc">&nbsp;</td>
+                    <td class="tdc">&nbsp;</td>
+                    <td class="tdc"><?php echo date("Y-m-d",strtotime($row['discover_ts']));?>&nbsp;</td>
                     <?php if(isAllow('finding','read')){ ?>
                     <!--edit right-->
-                    <td align="center" >
+                    <td  class="tdc">
                       <a href="/zfentry.php/panel/finding/sub/edit/id/<?php echo $row['id'];?>" ><img src="/images/view.gif" border="0" ></a>
                     </td>
                     <?php }
@@ -76,3 +78,4 @@
                 }?>
             </table>
 </form>
+</div>

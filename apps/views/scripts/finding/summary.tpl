@@ -24,30 +24,30 @@ foreach($this->statistic as $sys_id => $row){
             <?php echo $row['NAME']; ?>
         </td>
         <td class="tdc" >&nbsp;
-            <a href='<?php echo "{$search_url_base}/status/NEW/created_date_begin/".
+            <a href='<?php echo "{$search_url_base}/status/NEW/discovered_date_begin/".
                 $this->range['today']['from']->toString('Ymd'). 
-                "/created_date_end/".
+                "/discovered_date_end/".
                 $this->range['today']['to']->toString('Ymd'); ?>'>
             <?php echo $row['NEW']['today']; ?></a>
         </td>
         <td class="tdc" >&nbsp;
-            <a href="<?php echo "{$search_url_base}/status/NEW/created_date_begin/".
+            <a href="<?php echo "{$search_url_base}/status/NEW/discovered_date_begin/".
                 $this->range['last30']['from']->toString('Ymd').
-                "/created_date_end/".
+                "/discovered_date_end/".
                 $this->range['last30']['to']->toString('Ymd'); 
              ?>">
             <?php echo $row['NEW']['last30day']; ?></a>
         </td>
         <td class="tdc" >&nbsp;
-            <a href="<?php echo "{$search_url_base}/status/NEW/created_date_begin/".
+            <a href="<?php echo "{$search_url_base}/status/NEW/discovered_date_begin/".
                 $this->range['last60']['from']->toString('Ymd').
-                "/created_date_end/".
+                "/discovered_date_end/".
                 $this->range['last60']['to']->toString('Ymd'); 
              ?>">
             <?php echo $row['NEW']['last2nd30day']; ?></a>
         </td>
         <td class="tdc" >&nbsp;
-            <a href="<?php echo "{$search_url_base}/status/NEW/created_date_end/".
+            <a href="<?php echo "{$search_url_base}/status/NEW/discovered_date_end/".
                 $this->range['after60']['to']->toString('Ymd'); 
              ?>">
             <?php echo $row['NEW']['before60day']; ?></a>
