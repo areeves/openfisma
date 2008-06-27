@@ -4,7 +4,9 @@
     <tr>
         <th colspan="2" align="left">Product Search</th>
         <th width="183" align="left">Product Select</th>
-        <th width="249" align="left"><button>Create Product</button></th>
+        <?php if(isAllow('admin_products','create')){ ?>
+        <th width="249" align="left"><a href="/zfentry.php/panel/product/sub/create"><button>Create Product</button></a></th>
+        <?php } ?>
     </tr>
     <tr>
         <td width="161"><b> Product:</b></td>
