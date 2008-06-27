@@ -431,6 +431,16 @@ class poam extends Zend_Db_Table
                   ->order("al.timestamp DESC");
         return  $this->_db->fetchAll($query);
     }
+    
+    public function writeLogs($poam_id, $user_id, $timestamp, $event, $log_content  )
+    {   
+        $data = array('poam_id'=>$poam_id,
+                      'user_id'=>$user_id,
+                    'timestamp'=>$timestamp,
+                      'event'  =>$event,
+                  'description'=>$log_content);
+        $result = $this->_db->insert('audit_logs',$data);
+    }
 
    public function fismasearch($agency){
         $flag = substr($agency,0,1);

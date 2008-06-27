@@ -277,12 +277,7 @@ class RemediationController extends PoamBaseController
             }
             $result = $this->_poam->update($poam,$where);
             if( $result > 0 ){
-                $data = array('poam_id'=>$id,        
-                              'user_id'=>$this->me->id,
-                              'timestamp'=> self::$now->toString('Y-m-d H:i:s'),
-                              'event'  =>'MODIFICATION',
-                              'description'=>$log_content);
-                $result = $this->_poam->getAdapter()->insert('audit_logs',$data);
+            	$this->_poam->writeLogs($id, $this->me->id, self::$now->toString('Y-m-d H:i:s'),'MODIFICATION',$log_content);
             }
         }
             //throw new fisma_Excpection('POAM not updated for some reason');
@@ -328,6 +323,10 @@ class RemediationController extends PoamBaseController
             $update_data = array('status'             => 'EP',
                                  'action_actual_date' => $today);
             $result = $this->_poam->update($update_data,"id = $id");
+            if( $result > 0 ){
+            	$log_content="Changed: status: EP . Upload evidence: $filename OK";
+            	$this->_poam->writeLogs($id,$user_id, self::$now->toString('Y-m-d H:i:s'),'MODIFICATION',$log_content);
+            }
         }
         $this->_redirect('/panel/remediation/sub/view/id/'.$id);
     }
@@ -353,12 +352,14 @@ class RemediationController extends PoamBaseController
             throw new fisma_Exception('Wrong decision:'.$decision);
         }
         $poam_id = $ev_detail->current()->poam_id;
-        
+        $log_content="";
         if( in_array($decision, array('APPROVED', 'DENIED') ) ){
+            $log_content="Changed: ";
             $evv_id = $this->_poam->reviewEv($eid, array('decision'=>$decision,
                                                'eval_id' =>$eval_id,
                                                'user_id' =>$this->me->id,
                                                'date'    =>self::$now->toString('Y-m-d')));
+            $log_content.=$decision;
             if( $decision == 'DENIED' ) {
                 $this->_poam->update(array('status'=>'EN'), 'id='.$poam_id);
                 $topic = $req->getParam('topic');
@@ -369,12 +370,18 @@ class RemediationController extends PoamBaseController
                                     'date'    => 'CURDATE()',
                                     'topic'   => $topic,
                                     'content' => $body) );
+            $log_content.=" Status: EN. Topic: $topic. Content: $body.";
             }
             if( $decision == 'APPROVED' && $eval_id == 2){
+                $log_content.=" Status: ES";
                 $this->_poam->update(array('status'=>'ES'), 'id='.$poam_id);
             }
             if( $decision == 'APPROVED' && $eval_id == 3){
+                $log_content.=" Status: CLOSED";
                 $this->_poam->update(array('status'=>'CLOSED'),'id='.$poam_id);
+            }
+            if( strlen($log_content)> 9 ){
+                $this->_poam->writeLogs($poam_id,$this->me->id, self::$now->toString('Y-m-d H:i:s'),'MODIFICATION',$log_content);
             }
         }
         $this->_redirect('/panel/remediation/sub/view/id/'.$poam_id, array('exit'));
