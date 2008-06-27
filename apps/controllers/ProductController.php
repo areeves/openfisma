@@ -73,7 +73,7 @@ class ProductController extends SecurityController
         $qry->limit(100,0);
 
         $this->view->prod_list = $product->fetchAll($qry)->toArray();
-        $this->render();
+        $this->render($tpl_name);
     }
      
     public function searchboxAction()
