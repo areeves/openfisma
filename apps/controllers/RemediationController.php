@@ -329,7 +329,7 @@ class RemediationController extends PoamBaseController
                                  'action_actual_date' => $today);
             $result = $this->_poam->update($update_data,"id = $id");
         }
-        $this->_redirect('/panel/remediation/view/id/'.$id);
+        $this->_redirect('/panel/remediation/sub/view/id/'.$id);
     }
 
     public function evidenceAction()
