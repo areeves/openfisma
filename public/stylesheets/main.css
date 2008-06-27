@@ -66,9 +66,13 @@ td {
 	border-top: 1px solid #BEBEBE;
 }
 
-.tbframe td {
-	border-left: 1px solid #BEBEBE;
-	border-top: 1px solid #BEBEBE;
+.tbframe {
+	font-family: Tahoma,verdana,arial, helvetica;
+	font-size: 12px;
+	font-weight: normal;
+	color: #000000;
+	border: 1px solid #BEBEBE;
+	border-collapse: collapse;
 }
 
 .tipframe {

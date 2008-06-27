@@ -64,14 +64,14 @@
         }else{
             echo "$value </td>";
             if( $value == 'APPROVED' ) {
-                echo "<td> <i> BY $username ON $date </i></td>";
+                echo "<td> -- <i> by $username ON $date </i></td>";
             }else if($value == 'DENIED') {
                 $row = $comment->fetchRow('poam_evaluation_id = '.$evaluation[$name]['eval_id']);
                 echo "<td>";
                 if( !empty($row) ) {
                     echo "<b>{$row->topic}</b>:{$row->content}";
                 }
-                echo "<i>BY $username ON $date </i></td>";
+                echo " -- <i> by $username ON $date </i></td>";
             }
         }
         echo "</tr>";
