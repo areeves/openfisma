@@ -261,7 +261,6 @@ class poam extends Zend_Db_Table
             $count_query->reset(Zend_Db_Select::COLUMNS);
             $count_query->reset(Zend_Db_Select::GROUP);
             $count_query->from( null,array('count'=>'count(*)') );
-            echo $count_query;
             $count = $this->_db->fetchOne($count_query);
             if( empty($p_fields) ) {
                 return $count;
