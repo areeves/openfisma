@@ -14,7 +14,6 @@ require_once MODELS . DS . 'poam.php';
 require_once MODELS . DS . 'system.php';
 require_once MODELS . DS . 'source.php';
 require_once MODELS . DS . 'network.php';
-require_once MODELS . DS . 'user.php';
 require_once CONTROLLERS . DS . 'SecurityController.php';
 
 class PoamBaseController extends SecurityController 
@@ -34,13 +33,11 @@ class PoamBaseController extends SecurityController
     {
         parent::init();
         $this->_poam = new Poam();
-        $this->_user = new User();
         $src = new Source();
         $net = new Network();
         $sys = new System();
         $this->_source_list  = $src->getList('name');
-        $mysystems = $this->_user->getMySystems($this->me->id);
-        $this->_system_list = $sys->getList('name',$mysystems );
+        $this->_system_list = $sys->getList('name',$this->me->systems );
         $this->_network_list = $net->getList('name');
     }
 

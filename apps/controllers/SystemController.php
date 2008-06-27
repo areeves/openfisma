@@ -96,6 +96,9 @@ class SystemController extends SecurityController
                 }
             }
             $id = $this->_system->insert($data);
+            $this->_user = new user();
+            $this->me->systems = $this->_user->getMySystems($this->me->id);
+
             $data = array('name'=>$post['system_name'],
                           'nickname'=>$post['system_nickname'],
                           'is_identity'=>1);
