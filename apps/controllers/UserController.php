@@ -54,8 +54,11 @@ class UserController extends SecurityController
                 }
                 // Authentication failed; print the reasons why
                 $error = "";
-                foreach ($result->getMessages() as $message) {
-                     $error .= $message; 
+                if(-1 == $result->getCode()){
+                    $error = "Username could not be located,please try again";
+                }
+                if(-3 == $result->getCode()){
+                    $error = "Password is false with the Username";
                 }
                 $this->view->assign('error', $error);
             } else {
