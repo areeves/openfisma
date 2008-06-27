@@ -66,14 +66,10 @@
     </tr>
     <tr >
         <td align="right">Date Discovered From: </td>
-        <td align="left"><input type="text" name="discovered_date_begin" size="12" maxlength="10" value="<?php echo nullGet($this->criteria['discovered_date_begin'],''); ?>">             
-            <span onclick="javascript:show_calendar('finding.startdate');">
-            <img src="/images/picker.gif" width=24 height=22 border=0></span>
+        <td align="left"><input type="text" class="date" name="discovered_date_begin" size="12" maxlength="10" value="<?php echo nullGet($this->criteria['discovered_date_begin'],''); ?>" />             
         </td>
         <td align="right">To: </td>
-        <td align="left"><input type="text" name="discovered_date_end" size="12" maxlength="10" value="<?php echo nullGet($this->criteria['discovered_date_end'],''); ?>">
-            <span onclick="javascript:show_calendar('finding.enddate');">
-            <img src="/images/picker.gif" valign="middle" width=24 height=22 border=0></span>
+        <td align="left"><input type="text" class="date" name="discovered_date_end" size="12" maxlength="10" value="<?php echo nullGet($this->criteria['discovered_date_end'],''); ?>" />
         </td>
     </tr>
     <tr >

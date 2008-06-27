@@ -32,15 +32,13 @@ class FindingController extends PoamBaseController
         $criteria['port'] = $req->getParam('port');
         $criteria['vuln'] = $req->getParam('vuln');
         $criteria['product'] = $req->getParam('product');
-        $criteria['created_date_begin'] = $req->getParam('created_date_begin');
-        $criteria['created_date_end']   = $req->getParam('created_date_end');
-        $tmp = $req->getParam('created_date_begin');
+        $tmp = $req->getParam('discovered_date_begin');
         if(!empty($tmp)){
-            $criteria['created_date_begin'] = new Zend_Date($tmp,Zend_Date::DATES);
+            $criteria['discovered_date_begin'] = new Zend_Date($tmp,Zend_Date::DATES);
         }
-        $tmp = $req->getParam('created_date_end');
+        $tmp = $req->getParam('discovered_date_end');
         if(!empty($tmp)){
-            $criteria['created_date_end'] = new Zend_Date($tmp,Zend_Date::DATES);
+            $criteria['discovered_date_end'] = new Zend_Date($tmp,Zend_Date::DATES);
         }
         $criteria['status'] = $req->getParam('status');
 

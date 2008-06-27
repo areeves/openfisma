@@ -80,44 +80,35 @@
         <td colspan='2'>
             <table border="0" cellpadding="3" cellspacing="1" width="98%">
                 <tr>
-                    <td colspan="5"><b>Estimated Completion Date:</b></td>
-                    <td>&nbsp;</td>
-                    <td colspan="5"><b>Date Created: </b></td>
-                    <td>&nbsp;</td>
-                </tr>
-                <tr>
-                    <td width="84"> From:</td>
-                    <td width="133"><input type="text" name="est_date_begin" size="12" maxlength="10" 
+                    <td ><b>Estimated Completion Date:</b></td>
+                    <td > From: <input type="text" class="date" name="est_date_begin" size="12" maxlength="10" 
                     value="<?php $ts = nullGet($this->criteria['est_date_begin'],'');
                                  if($ts instanceof Zend_Date){
                                      $ts = $ts->toString('Ymd');
                                  }
-                             echo $ts; ?>">yyyy-mm-dd</td>
-                    <td width="33"><span onclick="javascript:show_calendar('finding.discovereddate');"><img src="/images/picker.gif" border="0" height="22" width="24"></span></td>
-                    <td width="27">To:</td>
-                    <td width="115"><input type="text" name="est_date_end" size="12" maxlength="10" 
+                             echo $ts; ?>"></td>
+                    <td > To:
+                    <input type="text" class="date" name="est_date_end" size="12" maxlength="10" 
                     value="<?php $ts = nullGet($this->criteria['est_date_end'],'');
                                  if($ts instanceof Zend_Date){
                                      $ts = $ts->toString('Ymd');
                                  }
-                             echo $ts; ?>">yyyy-mm-dd</td>
-                    <td width="56"><span onclick="javascript:show_calendar('finding.discovereddate');"><img src="/images/picker.gif" border="0" height="22" width="24"></span></td>
-                    <td width="47">From:</td>
-                    <td width="96"><input type="text" name="created_date_begin" size="12" maxlength="10" 
-                    value="<?php $ts = nullGet($this->criteria['created_data_begin'],'');
+                             echo $ts; ?>"></td>
+                    <td ><b>Date Created: </b></td>
+                    <td >From:
+                    <input type="text" class="date" name="created_date_begin" size="12" maxlength="10" 
+                    value="<?php $ts = nullGet($this->criteria['created_date_begin'],'');
                                  if($ts instanceof Zend_Date){
                                      $ts = $ts->toString('Ymd');
                                  }
-                             echo $ts; ?>">yyyy-mm-dd</td>
-                    <td width="32"><span onclick="javascript:show_calendar('finding.discovereddate');"><img src="/images/picker.gif" border="0" height="22" width="24"></span></td>
-                    <td width="27">To:</td>
-                    <td width="115"><input type="text" name="created_date_end" size="12" maxlength="10" 
-                    value="<?php $ts = nullGet($this->criteria['created_data_end'],'');
+                             echo $ts; ?>"></td>
+                    <td > To:
+                    <input type="text" class="date" name="created_date_end" size="12" maxlength="10" 
+                    value="<?php $ts = nullGet($this->criteria['created_date_end'],'');
                                  if($ts instanceof Zend_Date){
                                      $ts = $ts->toString('Ymd');
                                  }
-                             echo $ts; ?>">yyyy-mm-dd</td>
-                    <td width="109"><span onclick="javascript:show_calendar('finding.discovereddate');"><img src="/images/picker.gif" border="0" height="22" width="24"></span></td>
+                             echo $ts; ?>"></td>
                 </tr>
             </table>
         </td>

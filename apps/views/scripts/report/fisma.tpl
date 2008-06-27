@@ -1,13 +1,7 @@
 <script language="javascript">
-    $(function(){
-       $(':text').datepicker({dateFormat:'yymmdd',showOn: 'both', buttonImageOnly: true,
-            buttonImage: '/images/calendar.gif', buttonText: 'Calendar'});
-        
-        date = new Date();
-        $("span[name=year]").html( date.getFullYear() );
-        shortcut(0);
-    });
-    
+    date = new Date();
+    $("span[name=year]").html( date.getFullYear() );
+    shortcut(0);
     function shortcut(step){
         if( !isFinite(step) ){
             step = 0;
