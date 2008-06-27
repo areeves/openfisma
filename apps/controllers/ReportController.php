@@ -23,8 +23,9 @@ class ReportController extends PoamBaseController
              ->addContext('pdf',array('suffix'=>'pdf',
                                       'headers'=>array('Content-Type'=>'application/pdf',
                                                 'Content-Disposition'=>'attachement;filename:"export.pdf"')) )
-             ->addActionContext('poam', 'pdf')
-             ->addActionContext('overdue', 'pdf')
+             ->addContext('xls',array('suffix'=>'xls') )
+             ->addActionContext('poam', array('pdf','xls') )
+             ->addActionContext('overdue', array('pdf','xls') )
              ->initContext();
 
     }
@@ -120,7 +121,9 @@ class ReportController extends PoamBaseController
         $this->view->assign('system_list',$this->_system_list);
         $this->view->assign('network_list',$this->_network_list);
         $this->view->assign('criteria',$criteria);
-        if('search' == $req->getParam('s') || 'pdf' == $req->getParam('format')){
+        if('search' == $req->getParam('s') 
+            || 'pdf' == $req->getParam('format')
+            || 'xls' == $req->getParam('format')){
             $this->_paging_base_path .= '/panel/report/sub/poam/s/search';
             $this->makeUrl($criteria);
 
