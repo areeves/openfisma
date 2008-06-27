@@ -125,17 +125,19 @@ class poam extends Zend_Db_Table
             $query->where("p.status='EP'");
             if($ep > 0){
                 $ep--;
-                $query->join(array('e'=>'evidences'),'e.poam_id=p.id',array())
-                      ->joinLeft(array('pvv'=>'poam_evaluations'),'e.id=pvv.group_id',array())
+                $query->join(array('e'=>new Zend_Db_Expr
+                        ("(SELECT MAX(id) as last_eid,poam_id FROM evidences GROUP BY poam_id)") ),
+                        'e.poam_id=p.id',array())
+                      ->joinLeft(array('pvv'=>'poam_evaluations'),'e.last_eid=pvv.group_id',array())
                       ->joinLeft(array('el'=>'evaluations'),'el.id=pvv.eval_id',array())
                       ->join(array('ev'=>
                         new Zend_Db_Expr("(
-                        SELECT e1.poam_id,MAX(eval.precedence_id) level
+                        SELECT e1.id,MAX(eval.precedence_id) level
                         FROM `evidences` AS e1, `poam_evaluations` AS pe, `evaluations` AS eval
                         WHERE ( eval.id = pe.eval_id AND e1.id = pe.group_id 
                                 AND eval.group='EVIDENCE' ) 
-                        GROUP BY e1.poam_id)")), 
-                        "ev.poam_id=e.poam_id AND el.precedence_id=ev.level",
+                        GROUP BY e1.id)")), 
+                        "ev.id=e.last_eid AND el.precedence_id=ev.level",
                          array() )
                   ->where("ev.level='$ep' AND pvv.decision='APPROVED'");
             }else{ //$ep==0
@@ -259,6 +261,7 @@ class poam extends Zend_Db_Table
             $count_query->reset(Zend_Db_Select::COLUMNS);
             $count_query->reset(Zend_Db_Select::GROUP);
             $count_query->from( null,array('count'=>'count(*)') );
+            echo $count_query;
             $count = $this->_db->fetchOne($count_query);
             if( empty($p_fields) ) {
                 return $count;
