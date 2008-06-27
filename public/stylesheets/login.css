@@ -1,8 +1,11 @@
-body,p,td {
+body{
     font-family: Tahoma, verdana, arial, helvetica, sans-serif;
     font-weight: normal;
     font-size: 12px;
     color: #cccccc;
+    background-color: #44627A;
+    margin:0;
+    padding:0;
 }
 
 div#header{
@@ -11,10 +14,10 @@ div#header{
     background-image:url('/images/title_vline.jpg');
 }
 div#container{
-    width:700px;
     text-align:left;
-    margin:0 auto;
     background-color: #44627A;
+    margin:0;
+    padding:0;
 }
 div#headbar{
     background-image:url('/images/login_bg.jpg');
@@ -23,19 +26,21 @@ div#headbar{
     width:100%;
     text-align:right;
 }
-span.message{
-    padding:2em 3em 2em 0em;
+p.message{
+    padding:0 3em 0 3em;
+    margin:2em 3em 0em 3em;
+    height:1.5em;
     color:#FCB907;
     font-size:x-small;
-    text-align:left;
+    text-align:right;
 }
+
 p#warning {
     border:1px solid red;
     font-family: Tahoma,verdana,arial,helvetica,sans-serif;
     width:30em;
-    float:left;
     font-size: 12px;
-    margin:3em 4em;
+    margin:0 auto;
     padding:10px 10px 10px 10px;
     border: 1px solid #738da0;
     background-color: #55758c;
@@ -43,8 +48,8 @@ p#warning {
 
 ul#login{
     text-align:right;
-    margin:2em 0em;
-    float:left;
+    margin:0em 4em;
+    float:right;
     list-style:none;
     padding:0;
 }
@@ -58,5 +63,7 @@ ul#login li.submit input {
 }
 
 div#bottom {
+    margin-top:3em;
+    padding: 0 2em;
     clear:both;
 }

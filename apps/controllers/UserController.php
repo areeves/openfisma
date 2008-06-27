@@ -55,7 +55,7 @@ class UserController extends SecurityController
                 // Authentication failed; print the reasons why
                 $error = "";
                 foreach ($result->getMessages() as $message) {
-                     $error .= "$message<br>"; 
+                     $error .= $message; 
                 }
                 $this->view->assign('error', $error);
             } else {

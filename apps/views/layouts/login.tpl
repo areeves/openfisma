@@ -13,7 +13,7 @@
 			<?php echo $this->layout()->CONTENT; ?>
         <div id='bottom'>
             <table width="100%">
-            <tr><td colspan=2><hr color="#44637A" size="1"></hr></td></tr>
+            <tr><td colspan=2><hr color="#A2B4C2" size="1"></hr></td></tr>
             <tr> <td > Found a Bug? or Have a Suggestion? <a href="https://sourceforge.net/tracker/?group_id=208522" target="_blank">Report it Here</a> </td>
                  <td align="right"> <i>Powered by <a href="http://www.openfisma.org">OpenFISMA</a></i> </td>
             </tr>
