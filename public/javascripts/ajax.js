@@ -4,6 +4,12 @@ String.prototype.trim = function() {
 
 $(document).ready(function(){
 
+    $(function(){
+       $('input.date').datepicker({dateFormat:'yymmdd',showOn: 'both', buttonImageOnly: true,
+            buttonImage: '/images/calendar.gif', buttonText: 'Calendar'});
+        
+    });
+
     $("select[name='system']").change(function(){
         searchAsset();
     });
