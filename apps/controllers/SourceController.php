@@ -102,11 +102,18 @@ class SourceController extends SecurityController
     {
         $req = $this->getRequest();
         $id  = $req->getParam('id');
-        $res = $this->_source->delete('id = '.$id);
-        if(!$res){
-            $msg = "Error for Delete Source";
-        } else {
-            $msg = "Successfully Delete a Source.";
+        $db = $this->_source->getAdapter();
+        $qry = $db->select()->from('poams')->where('source_id = '.$id);
+        $result = $db->fetchCol($qry);
+        if(!empty($result)){
+            $msg = 'This source have been used, You could not to delete it';
+        }else{
+            $res = $this->_source->delete('id = '.$id);
+            if(!$res){
+                $msg = "Error for Delete Source";
+            } else {
+                $msg = "Successfully Delete a Source.";
+            }
         }
         $this->message($msg,self::M_NOTICE);
         $this->_forward('list');

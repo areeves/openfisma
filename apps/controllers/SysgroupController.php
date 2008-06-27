@@ -104,11 +104,18 @@ class SysgroupController extends SecurityController
     {
         $req = $this->getRequest();
         $id  = $req->getParam('id');
-        $res = $this->_sysgroup->delete('id = '.$id);
-        if(!$res){
-            $msg = "Error for Delete System Group";
-        } else {
-            $msg = "Successfully Delete a System Group.";
+        $db = $this->_sysgroup->getAdapter();
+        $qry = $db->select()->from('systemgroup_systems')->where('sysgroup_id = '.$id);
+        $result = $db->fetchCol($qry);
+        if(!empty($result)){
+            $msg = 'This System Group have been used, You could not delete it';
+        }else{
+            //$res = $this->_sysgroup->delete('id = '.$id);
+            if(!$res){
+                $msg = "Error for Delete System Group";
+            } else {
+                $msg = "Successfully Delete a System Group.";
+            }
         }
         $this->message($msg,self::M_NOTICE);
         $this->_forward('list');

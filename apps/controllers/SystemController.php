@@ -137,18 +137,30 @@ class SystemController extends SecurityController
         $errno = 0;
         $req = $this->getRequest();
         $id  = $req->getParam('id');
-        $res = $this->_system->delete('id = '.$id);
-        if(!$res){
-            $errno++;
-        }
-        $res = $this->_system->getAdapter()->delete('systemgroup_systems','system_id = '.$id);
-        if(!$res){
-            $errno++;
-        }
-        if($errno > 0){
-            $msg = "System delete Error";
-        } else {
-            $msg = "System delete Successfully";
+        $db = $this->_system->getAdapter();
+        $qry = $db->select()->from('poams')->where('system_id = '.$id);
+        $result1 = $db->fetchAll($qry);
+        $qry->reset();
+        $qry = $db->select()->from('assets')->where('system_id = '.$id);
+        $result2 = $db->fetchAll($qry);
+        if(!empty($result1) || !empty($result2)){
+            $msg = "This system have been used,You could not to delete it";
+        }else{
+            $res = $this->_system->delete('id = '.$id);
+            if(!$res){
+                $errno++;
+            }
+            $this->_user = new user();
+            $this->me->systems = $this->_user->getMySystems($this->me->id);
+            $res = $this->_system->getAdapter()->delete('systemgroup_systems','system_id = '.$id);
+            if(!$res){
+                $errno++;
+            }
+            if($errno > 0){
+                $msg = "System delete Error";
+            } else {
+                $msg = "System delete Successfully";
+            }
         }
         $this->message($msg,self::M_NOTICE);
         $this->_forward('list');

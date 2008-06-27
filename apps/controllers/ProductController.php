@@ -136,11 +136,18 @@ class ProductController extends SecurityController
     {
         $req = $this->getRequest();
         $id  = $req->getParam('id');
-        $res = $this->_product->delete('id = '.$id);
-        if(!$res){
-            $msg = "Error for Delete Product";
-        } else {
-            $msg = "Successfully Delete a Product.";
+        $db = $this->_product->getAdapter();
+        $qry = $db->select()->from('vuln_products')->where('prod_id = '.$id);
+        $result = $db->fetchCol($qry);
+        if(!empty($result)){
+            $msg = 'This product have been used, You could not to delete';
+        }else{
+            $res = $this->_product->delete('id = '.$id);
+            if(!$res){
+                $msg = "Error for Delete Product";
+            }else {
+                $msg = "Successfully Delete a Product.";
+            }
         }
         $this->message($msg,self::M_NOTICE);
         $this->_forward('list');
