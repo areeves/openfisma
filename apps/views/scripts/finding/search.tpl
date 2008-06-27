@@ -8,14 +8,13 @@
 </div>
 </div>
 
-<div style="text-align:center">
 <form id="findingresult" method="post" action="/zfentry.php/panel/finding/sub/delete">
 <?php if(isAllow('finding','delete')){ ?>
-            <!-- Allow Multiple Deletion if the user has the appropriate rights -->
+<div style="text-align:left;margin:0 0 2px 13em">
                         <input type="button" id="all_finding" value="Select All" style="cursor:pointer;">
                         <input type="button" id="none_finding"  value="Select None" style="cursor:pointer;">
                         <input type="submit" id="button" value="Delete" style="cursor:pointer;">
-            <!-- End Multiple Deletion -->
+</div>
 <?php }?>
             <!-- Finding Search Results --> 
             <table class="tbframe">
@@ -78,4 +77,3 @@
                 }?>
             </table>
 </form>
-</div>
