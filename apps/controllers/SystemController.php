@@ -120,9 +120,9 @@ class SystemController extends SecurityController
                 }
             }
             if($errno > 0){
-                $msg = "Error setting system's system group, please try again";
+                $msg = "Systems added Failed";
             } else {
-                $msg = "Successfully set system group for System.";
+                $msg = "Systems added Successfully.";
             }
             $this->message($msg,self::M_NOTICE);
         }

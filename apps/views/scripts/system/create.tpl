@@ -26,7 +26,7 @@
     <tr>
         <td align="right" class="thc">Confidentiality:</td>
         <td class="tdc">&nbsp;<select name="system_confidentiality">
-            <option value="HIGH">HIGH</option>
+            <option value="HIGH">High</option>
             <option value="MODERATE">Moderate</option>
             <option value="LOW">Low</option></select><font color="blue">*</font>
         </td>            
