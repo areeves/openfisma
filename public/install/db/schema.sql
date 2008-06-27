@@ -29,7 +29,7 @@ CREATE TABLE `audit_logs` (
   `poam_id` int(10) NOT NULL,
   `user_id` int(10) NOT NULL,
   `timestamp` datetime NOT NULL,
-  `event` enum('CREATION','MODIFICATION','CLOSE','') NOT NULL,
+  `event` enum('CREATION','MODIFICATION','CLOSE','','UPLOADE VIDENCE','EVIDENCE EVALUATION') NOT NULL,
   `description` text NOT NULL,
   PRIMARY KEY  (`id`)
 ); 

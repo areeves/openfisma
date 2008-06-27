@@ -325,7 +325,7 @@ class RemediationController extends PoamBaseController
             $result = $this->_poam->update($update_data,"id = $id");
             if( $result > 0 ){
             	$log_content="Changed: status: EP . Upload evidence: $filename OK";
-            	$this->_poam->writeLogs($id,$user_id, self::$now->toString('Y-m-d H:i:s'),'MODIFICATION',$log_content);
+            	$this->_poam->writeLogs($id,$user_id, self::$now->toString('Y-m-d H:i:s'),'UPLOADE VIDENCE',$log_content);
             }
         }
         $this->_redirect('/panel/remediation/sub/view/id/'.$id);
@@ -354,12 +354,12 @@ class RemediationController extends PoamBaseController
         $poam_id = $ev_detail->current()->poam_id;
         $log_content="";
         if( in_array($decision, array('APPROVED', 'DENIED') ) ){
-            $log_content="Changed: ";
+            $log_content="";
             $evv_id = $this->_poam->reviewEv($eid, array('decision'=>$decision,
                                                'eval_id' =>$eval_id,
                                                'user_id' =>$this->me->id,
                                                'date'    =>self::$now->toString('Y-m-d')));
-            $log_content.=$decision;
+            $log_content.=" Decision: $decision.";
             if( $decision == 'DENIED' ) {
                 $this->_poam->update(array('status'=>'EN'), 'id='.$poam_id);
                 $topic = $req->getParam('topic');
@@ -380,8 +380,9 @@ class RemediationController extends PoamBaseController
                 $log_content.=" Status: CLOSED";
                 $this->_poam->update(array('status'=>'CLOSED'),'id='.$poam_id);
             }
-            if( strlen($log_content)> 9 ){
-                $this->_poam->writeLogs($poam_id,$this->me->id, self::$now->toString('Y-m-d H:i:s'),'MODIFICATION',$log_content);
+            if(!empty($log_content)){
+                $log_content="Changed: $log_content";
+                $this->_poam->writeLogs($poam_id,$this->me->id, self::$now->toString('Y-m-d H:i:s'),'EVIDENCE EVALUATION',$log_content);
             }
         }
         $this->_redirect('/panel/remediation/sub/view/id/'.$poam_id, array('exit'));
