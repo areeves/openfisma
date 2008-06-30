@@ -4,11 +4,9 @@ String.prototype.trim = function() {
 
 $(document).ready(function(){
 
-    $(function(){
-       $('input.date').datepicker({dateFormat:'yymmdd',showOn: 'both', buttonImageOnly: true,
-            buttonImage: '/images/calendar.gif', buttonText: 'Calendar'});
+   $('input.date').datepicker({dateFormat:'yymmdd',showOn: 'both', buttonImageOnly: true,
+        buttonImage: '/images/calendar.gif', buttonText: 'Calendar'});
         
-    });
 
     $("select[name='system']").change(function(){
         searchAsset();
@@ -38,10 +36,12 @@ $(document).ready(function(){
         var name = $(this).attr('name');
         var type = $(this).attr('type');
         var url = $(this).attr('href');
+        var class = $(this).attr('class');
+        class = class.replace(/editable/i, '');
         var cur_val = $(this).text();
         var cur_span = $(this);
         if(type == 'text'){
-            cur_span.replaceWith( '<input name='+name+' type="text" value="'+cur_val.trim()+'" />');
+            cur_span.replaceWith( '<input name='+name+' class="'+class+'" type="text" value="'+cur_val.trim()+'" />');
         }else if( type == 'textarea' ){
             var row = $(this).attr('rows');
             var col = $(this).attr('cols');
@@ -55,6 +55,8 @@ $(document).ready(function(){
                 }
             });
         }
+        $('input.date').datepicker({dateFormat:'yymmdd',showOn: 'both', buttonImageOnly: true,
+                buttonImage: '/images/calendar.gif', buttonText: 'Calendar'});
     });
 
 });

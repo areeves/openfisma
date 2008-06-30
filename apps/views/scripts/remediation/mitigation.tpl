@@ -56,14 +56,13 @@
 
             <div style="width:95%;margin:0 5px"> 
             <b>Estimated Completion Date:</b>
-            <span name="poam[action_est_date]" type="text"
-    <?php
-        if($this->poam['status'] == 'OPEN' && isAllow('remediation','update_est_completion_date')){
-            echo ' class="editable" ';
+            <span name="poam[action_est_date]" type="text" <?php
+        if($this->poam['status'] == 'OPEN' && 
+            isAllow('remediation','update_est_completion_date')){
+            echo ' class="date editable" ';
         }
         echo '>',nullGet($this->poam['action_est_date'],'0000-00-00');
-    ?>
-            </span>
+    ?></span>
             <b>Actual Completion Date:</b>
             <?php echo nullGet($this->poam['action_actual_date'],'<i>(action not yet completed)</i>');?>
             </div>
