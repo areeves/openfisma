@@ -17,15 +17,13 @@
     <chart_grid_h alpha='20' color='ffffff' thickness='1' type='solid' />
     
     <chart_rect x='150'    positive_color='ffffff'  positive_alpha='20' negative_color='ff0000' negative_alpha='10' />
-    <chart_type>
-    <?php 
+    <chart_type><?php 
         if( array_sum($this->summary) == 0 ) {
             echo 'bar';
         }else{
             echo 'pie';
         }
-    ?>
-    </chart_type>
+    ?></chart_type>
     
     <chart_value color='ffffff' alpha='90' font='arial' bold='true' size='10' position='inside' prefix='' suffix='' decimals='0' separator='' as_percentage='true'   />
 
