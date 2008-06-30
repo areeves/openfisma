@@ -263,7 +263,7 @@ function sources_conv($db_src, $db_target, &$data)
 {
     $tmparray=array('id'=>$data['source_id'] ,
                   'name'=>$data['source_name'],
-              'nickname'=>$data['source_name'] ,
+              'nickname'=>$data['source_nickname'] ,
                   'desc'=>$data['source_desc'] );
     $db_target->insert('sources',$tmparray);
     unset($tmparray);
