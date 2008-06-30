@@ -3,7 +3,7 @@
                 WIDTH='<?php echo $this->width;?>'
                 HEIGHT='<?php echo $this->height;?>'
                 id='charts' ALIGN=''>
-		<PARAM NAME='movie' VALUE='/flash/charts.swf?license=I1XFXZQRXRQL.NS5T4Q79KLYCK07EK&xml_source=<?php echo $this->source_url; ?>'>
+		<PARAM NAME='movie' VALUE='/flash/charts.swf?timeout=80&license=I1XFXZQRXRQL.NS5T4Q79KLYCK07EK&xml_source=<?php echo $this->source_url; ?>'>
 		<PARAM NAME='quality' VALUE='high'> <PARAM NAME='bgcolor' VALUE='#666666'> 
 		<PARAM NAME='wmode' VALUE='transparent'>
 		<EMBED src='/flash/charts.swf?license=I1XFXZQRXRQL.NS5T4Q79KLYCK07EK&xml_source=<?php echo $this->source_url; ?>'

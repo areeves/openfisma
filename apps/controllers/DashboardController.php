@@ -93,7 +93,7 @@ class DashboardController extends SecurityController
     public function totaltypeAction()
     {
         $ret = $this->_poam->search($this->_all_systems, array('count'=>'type', 'type') );
-        $this->view->summary = array();
+        $this->view->summary = array('NONE'=>0,'CAP'=>0,'FP'=>0,'AR'=>0);
         foreach($ret as $s){
             $this->view->summary["{$s['type']}"] = $s['count'];
         }
