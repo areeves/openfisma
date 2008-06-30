@@ -39,6 +39,9 @@ class PoamBaseController extends SecurityController
         $this->_source_list  = $src->getList('name');
         $this->_system_list = $sys->getList('name',$this->me->systems );
         $this->_network_list = $net->getList('name');
+        asort($this->_source_list);
+        asort($this->_system_list);
+        asort($this->_network_list);
     }
 
     public function preDispatch()
