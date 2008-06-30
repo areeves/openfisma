@@ -2,7 +2,7 @@
 /**
  * @file poam.php
  *
- * @description poam model
+ * poam model
  *
  * @author     Jim<jimc@reyosoft.com>
  * @copyright  (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
@@ -99,7 +99,7 @@ class poam extends Zend_Db_Table
         }
 
         if(!empty($discovered_date_begin) ){
-            $query->where("p.discover_ts > ?",$discovered_date_begin->toString('Y-m-d')); 
+            $query->where("p.discover_ts >=?",$discovered_date_begin->toString('Y-m-d')); 
         }
 
         if(!empty($discovered_date_end) ){
