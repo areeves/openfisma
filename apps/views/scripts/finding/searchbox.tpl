@@ -9,9 +9,7 @@
     $this->source[0] = '--Any--';
     $this->system[0] = '--Any--';
     $this->network[0] = '--Any--';
-    asort($this->source);
-    asort($this->system);
-    asort($this->network);
+
 ?>
 <div class="barleft">
 <div class="barright">

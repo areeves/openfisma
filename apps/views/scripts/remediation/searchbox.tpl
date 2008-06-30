@@ -20,9 +20,7 @@
                     'NOUP-60'   =>'(NOUP-60) 60+ Days Since Last Update',
                     'NOUP-90'   =>'(NOUP-90) 90+ Days Since Last Update');
     $this->systems[0] ='--Any--';
-    asort($this->systems);
     $this->sources[0] ='--Any--';
-    asort($this->sources);
 
 ?>
 <div class="barleft">

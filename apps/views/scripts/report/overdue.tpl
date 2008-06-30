@@ -13,9 +13,7 @@
                             '4' => '90-119 days',
                             '5' => '120 and greater days');
     $this->system_list[0] ='--Any--';
-    asort($this->system_list);
     $this->source_list[0] ='--Any--';
-    asort($this->source_list);
     $url = "/zfentry.php/panel/report/sub/overdue/s/search";
 ?>
 <div class="barleft">

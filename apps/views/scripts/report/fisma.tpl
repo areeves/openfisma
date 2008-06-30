@@ -29,7 +29,6 @@
     <tr>
         <td >
             <?php 
-                asort($this->system_list);
                 $this->system_list[0] = 'All Systems';
                 echo $this->formSelect('system',nullGet($this->criteria['system_id'],0),null,$this->system_list);
             ?>

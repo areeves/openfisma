@@ -36,12 +36,13 @@ class PoamBaseController extends SecurityController
         $src = new Source();
         $net = new Network();
         $sys = new System();
+        
         $this->_source_list  = $src->getList('name');
-        $this->_system_list = $sys->getList('name',$this->me->systems );
+        $tmp_list = $sys->getList(array('name','nickname'),$this->me->systems, 'nickname');
         $this->_network_list = $net->getList('name');
-        asort($this->_source_list);
-        asort($this->_system_list);
-        asort($this->_network_list);
+        foreach($tmp_list as $k => $v){
+            $this->_system_list[$k] = "({$v['nickname']}) {$v['name']}";
+        }
     }
 
     public function preDispatch()
