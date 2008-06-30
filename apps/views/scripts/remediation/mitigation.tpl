@@ -28,7 +28,7 @@
            if('OPEN' == $this->poam['status'] && isAllow('remediation','update_finding_course_of_action')){
                echo ' type="textarea" rows="5" cols="160" class="editable" ';
            }
-           echo '>',$this->poam['action_planned'];
+           echo '>',nl2br($this->poam['action_planned']);
        ?>           
                         </span>
                     </td>
@@ -46,7 +46,7 @@
         if($this->poam['status'] != 'NEW' && isAllow('remediation','update_finding_resources')){
             echo ' class="editable" ';
         }
-        echo '>',$this->poam['action_resources'];
+        echo '>',nl2br($this->poam['action_resources']);
     ?>
                         </span>
                     </td>

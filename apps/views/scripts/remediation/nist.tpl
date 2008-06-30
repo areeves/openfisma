@@ -122,7 +122,7 @@
                         if($this->poam['status'] != 'NEW' && isAllow('remediation','update_threat')){ 
                             echo 'class="editable"';
                         }
-                        echo '>',$this->poam['threat_source'];
+                        echo '>',nl2br($this->poam['threat_source']);
                      ?>
                      </span>
                      </td>
@@ -135,7 +135,7 @@
                        if($this->poam['status'] != 'NEW' && isAllow('remediation','update_threat')){ 
                            echo 'class="editable"';
                        }
-                       echo '>',$this->poam['threat_justification'];
+                       echo '>',nl2br($this->poam['threat_justification']);
                     ?>
                     </span>
                     </td>
@@ -172,7 +172,7 @@
                                 if($this->poam['status'] != 'NEW' && isAllow('remediation','update_cmeasures')){ 
                                     echo 'class="editable"';
                                 }
-                                echo '>',$this->poam['cmeasure'];
+                                echo '>',nl2br($this->poam['cmeasure']);
                             ?>
                             </span>
                         </td>
@@ -185,7 +185,7 @@
                                 if($this->poam['status'] != 'NEW' && isAllow('remediation','update_cmeasures')){ 
                                     echo 'class="editable"';
                                 }
-                                echo '>',$this->poam['cmeasure_justification'];
+                                echo '>',nl2br($this->poam['cmeasure_justification']);
                             ?>
                             </span>
                         </td>

@@ -121,7 +121,7 @@
                 if($this->poam['status'] != 'NEW' && isAllow('remediation','update_finding_recommendation')){
                     echo ' type="textarea" rows="5" cols="160" class="editable" ';
                 }
-                echo '>',$this->poam['action_suggested'];
+                echo '>',nl2br($this->poam['action_suggested']);
             ?>
             </span>
         </td>
