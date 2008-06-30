@@ -15,7 +15,7 @@
     require_once( ROOT . DS . 'paths.php');
     require_once( APPS . DS . 'basic.php');
     include_once( CONFIGS . DS . 'debug.php');
-    import(LIBS, VENDORS, VENDORS.DS.'Pear', ROOT . DS . 'include');
+    import(LIBS, VENDORS, VENDORS.DS.'Pear');
 
     require_once 'Zend/Controller/Front.php';
     require_once 'Zend/Layout.php';
