@@ -28,6 +28,7 @@ class FindingController extends PoamBaseController
         $criteria['system_id'] = $req->getParam('system_id');
         $criteria['source_id'] = $req->getParam('source_id');
         $criteria['network_id'] = $req->getParam('network_id');
+        $criteria['status']    = $req->getParam('status');
         $criteria['ip'] = $req->getParam('ip');
         $criteria['port'] = $req->getParam('port');
         $criteria['vuln'] = $req->getParam('vuln');

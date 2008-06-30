@@ -102,8 +102,10 @@ class UserController extends SecurityController
     
     public function logoutAction()
     {
-        if( !empty($this->me ) ) {
-            $this->_user->log(User::LOGOUT, $this->me->id,$this->me->account.' logout');
+        $auth = Zend_Auth::getInstance();
+        $me = $auth->getIdentity();
+        if( !empty($me) ) {
+            $this->_user->log(User::LOGOUT, $me->id,$me->account.' logout');
             Zend_Auth::getInstance()->clearIdentity();
         }
         $this->_forward('login');
