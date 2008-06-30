@@ -70,7 +70,7 @@
         if(isAllow('admin_sources','read')) {
             echo'<li><a href="/zfentry.php/panel/source/sub/list">Finding Sources</a></li>';
         }
-        echo'<li><a href="/zfentry.php/panel/config">Configeration</a></li>';
+        echo'<li><a href="/zfentry.php/panel/config">Configuration</a></li>';
         echo'</ul></li></ul>';
     }
     /*
