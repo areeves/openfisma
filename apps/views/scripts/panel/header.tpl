@@ -1,9 +1,9 @@
 <table width="100%" border="0" cellpadding="0" cellspacing="0">
 	<tr><td><img id="logo" src="/images/customer_logo.jpg" /></td>
 		<td><span id="msgbar"></span></td>
-		<td><ul class="loginfo">
+		<td align="right"><ul class="loginfo">
+				<li> <a href="/zfentry.php/panel/user/sub/pwdchange"><button class="action" >Change Password</button></a>&nbsp;<a href="/zfentry.php/user/logout"><button class="action" >Logout</button></a></li><br>
 				<li><b><?php echo $this->identity;  ?></b> is currently logged in </li>
-				<li> <a href="/zfentry.php/panel/user/sub/pwdchange"><button class="action" >Change Password</button></a><a href="/zfentry.php/user/logout"><button class="action" >Logout</button></a></li>
 			</ul></td>
 	</tr>
 </table>
