@@ -52,13 +52,13 @@
     $db_target = Zend_DB::factory(Zend_Registry::get('datasource')->default);
     $db_src    = Zend_DB::factory(Zend_Registry::get('legacy_datasource')->default);
 
-//    $clean_table_name=array('ROLES','FUNCTIONS','ROLE_FUNCTIONS');
-//    foreach($clean_table_name as $table)
-//    {
-//      $db_target->delete($table);
-//    }
-//    
-//    die();
+    $clean_table_name=array('roles','functions','role_functions');
+    foreach($clean_table_name as $table)
+    {
+        $db_target->delete($table);
+    }
+    
+    die();
     
     
     $delta = 1000;
