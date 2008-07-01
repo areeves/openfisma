@@ -52,14 +52,7 @@ class UserController extends SecurityController
                         $this->_user->log(User::LOGINFAILURE, $whologin->id,'Password Error');
                     }
                 }
-                // Authentication failed; print the reasons why
-                $error = "";
-                if(-1 == $result->getCode()){
-                    $error = "Username could not be located,please try again";
-                }
-                if(-3 == $result->getCode()){
-                    $error = "Password is false with the Username";
-                }
+                $error = "Incorrect username or password";
                 $this->view->assign('error', $error);
             } else {
                 $me = $authAdapter->getResultRowObject(null,'password');
