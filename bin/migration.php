@@ -873,14 +873,18 @@ function audit_log_conv($db_src, $db_target, $data)
     $qry=$db_target->select()->from('poams','id')
                         ->where('legacy_finding_id=?',$data['finding_id']);
     $poam_id=$db_target->fetchRow($qry);
-    $poam_id=$poam_id['id'];    
-    $tmparray=array('poam_id'=>$poam_id,
-                    'user_id'=>$data['user_id'],
-                  'timestamp'=>date('Y-m-d H:i:s',$data['date']),
-                      'event'=>'MODIFICATION',
-                'description'=>$data['description']);
-    $db_target->insert('audit_logs',$tmparray);
-    unset($tmparray);
+    if(empty($poam_id))
+    {
+        echo "Missing poam_id from finding_id".$data['finding_id']."\n";
+    }else{
+        $poam_id=$poam_id['id'];    
+        $tmparray=array('poam_id'=>$poam_id,
+                        'user_id'=>$data['user_id'],
+                      'timestamp'=>date('Y-m-d H:i:s',$data['date']),
+                          'event'=>'MODIFICATION',
+                    'description'=>$data['description']);
+        $db_target->insert('audit_logs',$tmparray);
+    }
 }
 
 ?>
