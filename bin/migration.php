@@ -45,12 +45,22 @@
               'VULNERABILITIES',
               'FINDING_VULNS',
               'POAM_EVIDENCE', 
-              'POAM_COMMENTS'
+              'POAM_COMMENTS',
+              'AUDIT_LOG'
               );
 
     $db_target = Zend_DB::factory(Zend_Registry::get('datasource')->default);
     $db_src    = Zend_DB::factory(Zend_Registry::get('legacy_datasource')->default);
 
+//    $clean_table_name=array('ROLES','FUNCTIONS','ROLE_FUNCTIONS');
+//    foreach($clean_table_name as $table)
+//    {
+//      $db_target->delete($table);
+//    }
+//    
+//    die();
+    
+    
     $delta = 1000;
     echo "start to migrate \n";
     $sql = "CREATE TABLE IF NOT EXISTS poam_tmp (
@@ -175,7 +185,9 @@ function convert($db_src, $db_target, $table,&$data)
          poam_evidence_conv($db_src, $db_target, $data);
          break;
    
- 
+    case 'AUDIT_LOG':
+         audit_log_conv($db_src, $db_target, $data);
+         break; 
 
 
 
@@ -358,7 +370,12 @@ function user_system_conv($db_src, $db_target, $data)
 
 function users_conv($db_src, $db_target, $data)
 {
-    $auto_role=$data['auto_role']?$data['auto_role']:$data['user_name'].'_r';
+    if(isset($data['extra_role']))
+    {
+        $auto_role=$data['extra_role'];
+    } else {
+        $auto_role=$data['user_name'].'_r';
+    }
     
     if(empty($data['failure_count']))
     {
@@ -853,4 +870,20 @@ function poam_comments_conv($db_src, $db_target, $data)
                 'description'=>$description);
     $db_target->insert('audit_logs',$tmparray);
 }
+
+function audit_log_conv($db_src, $db_target, $data)
+{
+    $qry=$db_target->select()->from('poams','id')
+                        ->where('legacy_finding_id=?',$data['finding_id']);
+    $poam_id=$db_target->fetchRow($qry);
+    $poam_id=$poam_id['id'];    
+    $tmparray=array('poam_id'=>$poam_id,
+                    'user_id'=>$data['user_id'],
+                  'timestamp'=>date('Y-m-d H:i:s',$data['date']),
+                      'event'=>'MODIFICATION',
+                'description'=>$data['description']);
+    $db_target->insert('audit_logs',$tmparray);
+    unset($tmparray);
+}
+
 ?>
