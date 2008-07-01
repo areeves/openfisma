@@ -55,7 +55,6 @@ if(isset($_POST)) {
 }
 
 /* This language stuff needs to be cleaned up */
-include_once OVMS_INSTALL_PATH.'/language/english/install.php';
 $language = 'english';
 setcookie("install_lang", $language);
 

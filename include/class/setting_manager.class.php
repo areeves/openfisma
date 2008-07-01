@@ -225,7 +225,7 @@ define("_INSTALL_L68","Password for your database user account.");
             "<table border='0' cellpadding='0' cellspacing='0' valign='top' width='90%'><tr><td class='bg2'>
                 <table width='100%' border='0' cellpadding='4' cellspacing='1' style=\"TABLE-LAYOUT:fixed;word-break:break-all;word-wrap:break-word;\">
                     <tr>
-                        <td class='bg3'><b>"._INST_DB_L10."</b></td> 
+                        <td class='bg3'><b>Database connection type</b></td> 
                         <td class='bg1'>".$this->dsn['type']."</td>
                     </tr>";
 
