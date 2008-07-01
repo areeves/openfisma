@@ -1,7 +1,7 @@
 <script language="javascript">
 function delok(entryname)
 {
-    var str = "Are you sure that you want to delete this " + entryname + "?";
+    var str = "Are you sure that you want to delete this system group?";
     if(confirm(str) == true){
         return true;
     }
@@ -10,7 +10,7 @@ function delok(entryname)
 </script>
 <div class="barleft">
 <div class="barright">
-<p><b>Administration: System Groups List</b>
+<p><b>System Group List</b>
 </div>
 </div>
 <table width="98%" align="center" border="0" cellpadding="0" cellspacing="0" class="tbframe">

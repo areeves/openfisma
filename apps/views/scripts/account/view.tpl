@@ -1,16 +1,16 @@
 <div class="barleft">
 <div class="barright">
-<p><b>Administration: Users Detail</b>
+<p><b>User Account Information</b>
 </div>
 </div>
 <table width="98%" align="center" >
     <tr>
-        <td align="right" class="thc" width="200">Last Name:</td>
-        <td class="tdc">&nbsp;<?php echo $this->user['lastname'];?></td>
+        <td align="right" class="thc" width="200">First Name:</td>
+        <td class="tdc">&nbsp;<?php echo $this->user['firstname'];?></td>
     </tr>
     <tr>
-        <td align="right" class="thc">First Name:</td>
-        <td class="tdc">&nbsp;<?php echo $this->user['firstname'];?></td></tr>
+        <td align="right" class="thc">Last Name:</td>
+        <td class="tdc">&nbsp;<?php echo $this->user['lastname'];?></td></tr>
     <tr>
         <td align="right" class="thc">Office Phone:</td>
         <td class="tdc">&nbsp;<?php echo $this->user['officephone'];?></td></tr>

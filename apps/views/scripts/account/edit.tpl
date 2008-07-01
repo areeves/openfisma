@@ -12,7 +12,7 @@
 <?php echo $this->msg;?>
 <div class="barleft">
 <div class="barright">
-<p><b>Administration: Users Edit</b>
+<p><b>User Account Information</b>
 </div>
 </div>
 <table border="0" width="95%" align="center">
@@ -23,15 +23,15 @@
 <table width="98%" align="center" border="0" cellpadding="0" cellspacing="0" class="tbframe">
 <form name="edit" method="post" action="/zfentry.php/panel/account/sub/update/id/<?php echo $this->id;?>">
     <tr>
-        <td align="right" class="thc" width="200">Last Name:</td>
-        <td class="tdc">&nbsp;<input type="text" name="user[name_last]" 
-            value="<?php echo $this->user['lastname'];?>" size="90">
+        <td align="right" class="thc" width="200">First Name:</td>
+        <td class="tdc">&nbsp;<input type="text" name="user[name_firs]" 
+            value="<?php echo $this->user['firstname'];?>" size="90">
         <font color="blue"> *</font></td>
     </tr>
     <tr>
-        <td align="right" class="thc">First Name:</td>
-        <td class="tdc">&nbsp;<input type="text" name="user[name_first]" 
-            value="<?php echo $this->user['firstname'];?>" size="90">
+        <td align="right" class="thc">Last Name:</td>
+        <td class="tdc">&nbsp;<input type="text" name="user[name_last]" 
+            value="<?php echo $this->user['lastname'];?>" size="90">
         <font color="blue"> *</font></td>
     </tr>
     <tr>

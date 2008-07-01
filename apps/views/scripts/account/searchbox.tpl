@@ -1,13 +1,14 @@
 <div class="barleft">
 <div class="barright">
-<p><b>Administration:Users Summary</b><span><?php echo date('Y-m-d h:i:s:A');?></span>
+<p><b>User Account Administration</b>
 </div>
 </div>
 <table class="tbframe" align="center"  width="98%">
     <tbody>
         <tr>
-            <th>[<a href="/zfentry.php/panel/account/sub/list">Users list</a>] (total: <?php echo $this->total;?>)</th>
-            <th>[<a href="/zfentry.php/panel/account/sub/create" title="add new Users">Add Users</a>]</th>
+            <th>[<a href="/zfentry.php/panel/account/sub/list">User 
+List</a>] (total: <?php echo $this->total;?>)</th>
+            <th>[<a href="/zfentry.php/panel/account/sub/create" title="add new Users">Add User</a>]</th>
             <th>
                 <table align="center">
                     <tbody>

@@ -3,14 +3,16 @@ $fid_array = array('name'=>'System Group Name','nickname'=>'System Group Nicknam
 ?>
 <div class="barleft">
 <div class="barright">
-<p><b>Administration:System Groups Summary</b><span><?php echo date('Y-m-d h:i:s:A');?></span>
+<p><b>System Group Administration</b><span>
 </div>
 </div>
 <table class="tbframe" align="center"  width="98%">
     <tbody>
         <tr>
-            <th>[<a href="/zfentry.php/panel/sysgroup/sub/list">System Groups list</a>] (total: <?php echo $this->total;?>)</th>
-            <th>[<a href="/zfentry.php/panel/sysgroup/sub/create" title="add new System Groups">Add System Groups</a>]</th>
+            <th>[<a href="/zfentry.php/panel/sysgroup/sub/list">System Group List</a>] (total: <?php echo 
+$this->total;?>)</th>
+            <th>[<a href="/zfentry.php/panel/sysgroup/sub/create" title="add new System Groups">Add 
+System Group</a>]</th>
             <th>
                 <table align="center">
                     <tbody>

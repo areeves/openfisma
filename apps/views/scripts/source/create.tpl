@@ -1,6 +1,6 @@
 <div class="barleft">
 <div class="barright">
-<p><b>Administration: Sources Create</b>
+<p><b>Finding Source Information</b>
 </div>
 </div>
 <table border="0" width="95%" align="center">

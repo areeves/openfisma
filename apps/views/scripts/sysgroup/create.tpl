@@ -1,6 +1,6 @@
 <div class="barleft">
 <div class="barright">
-<p><b>Administration: System Groups Create</b>
+<p><b>System Group Information</b>
 </div>
 </div>
 <table border="0" width="95%" align="center">

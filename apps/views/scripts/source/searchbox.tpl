@@ -3,14 +3,16 @@ $fid_array = array('name'=>'Source Name','nickname'=>'Nickname');
 ?>
 <div class="barleft">
 <div class="barright">
-<p><b>Administration:Sources Summary</b><span><?php echo date('Y-m-d h:i:s:A');?></span>
+<p><b>Finding Source Administration</b>
 </div>
 </div>
 <table class="tbframe" align="center"  width="98%">
     <tbody>
         <tr>
-            <th>[<a href="/zfentry.php/panel/source/sub/list">Sources list</a>] (total: <?php echo $this->total;?>)</th>
-            <th>[<a href="/zfentry.php/panel/source/sub/create" title="add new Sources">Add Sources</a>]</th>
+            <th>[<a href="/zfentry.php/panel/source/sub/list">Finding Source List</a>] (total: <?php echo 
+$this->total;?>)</th>
+            <th>[<a href="/zfentry.php/panel/source/sub/create" title="Add Finding Source">Add 
+Finding Source</a>]</th>
             <th>
                 <table align="center">
                     <tbody>

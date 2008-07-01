@@ -10,7 +10,7 @@
 </script>
 <div class="barleft">
 <div class="barright">
-<p><b>Administration: Users Create</b>
+<p><b>User Account Information</b>
 </div>
 </div>
 <table border="0" width="95%" align="center">
@@ -21,12 +21,14 @@
 <table width="98%" align="center" border="0" cellpadding="0" cellspacing="0" class="tbframe">
 <form name="edit" method="post" action="/zfentry.php/panel/account/sub/save">
     <tr>
-        <td align="right" class="thc" width="200">Last Name:</td>
-        <td class="tdc">&nbsp;<input type="text" name="user_name_last" size="90"><font color="blue"> *</font></td>
+        <td align="right" class="thc" width="200">First Name:</td>
+        <td class="tdc">&nbsp;<input type="text" name="user_name_first" size="90"><font color="blue"> 
+*</font></td>
     </tr>
     <tr>
-        <td align="right" class="thc">First Name:</td>
-        <td class="tdc">&nbsp;<input type="text" name="user_name_first" size="90"><font color="blue"> *</font></td>
+        <td align="right" class="thc">Last Name:</td>
+        <td class="tdc">&nbsp;<input type="text" name="user_name_last" size="90"><font color="blue"> 
+*</font></td>
     </tr>
     <tr>
         <td align="right" class="thc">Office Phone:</td>

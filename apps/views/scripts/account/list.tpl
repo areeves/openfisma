@@ -1,7 +1,7 @@
 <script language="javascript">
 function delok(entryname)
 {
-    var str = "Are you sure that you want to delete this " + entryname + "?";
+    var str = "Are you sure that you want to delete this user?";
     if(confirm(str) == true){
         return true;
     }
@@ -11,13 +11,13 @@ function delok(entryname)
 <?php if(!empty($this->msg)){echo $this->msg;};?>
 <div class="barleft">
 <div class="barright">
-<p><b>Administration: Users List</b>
+<p><b>User Account List</b>
 </div>
 </div>
 <table width="98%" align="center" border="0" cellpadding="0" cellspacing="0" class="tbframe">
 <tr align="center">
-    <th>Last Name</th>
     <th>First Name</th>
+    <th>Last Name</th>
     <th>Office Phone</th>
     <th>Mobile Phone</th>
     <th>Email</th>
@@ -36,8 +36,8 @@ function delok(entryname)
 </tr>
 <?php foreach($this->user_list as $user){ ?>
 <tr>
-    <td class="tdc">&nbsp;<?php echo $user['lastname'];?></td>
     <td class="tdc">&nbsp;<?php echo $user['firstname'];?></td>
+    <td class="tdc">&nbsp;<?php echo $user['lastname'];?></td>
     <td class="tdc">&nbsp;<?php echo $user['officephone'];?></td>
     <td class="tdc">&nbsp;<?php echo $user['mobile'];?></td>
     <td class="tdc">&nbsp;<?php echo $user['email'];?></td>
