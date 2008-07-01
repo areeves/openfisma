@@ -58,9 +58,6 @@
         $db_target->delete($table);
     }
     
-    die();
-    
-    
     $delta = 1000;
     echo "start to migrate \n";
     $sql = "CREATE TABLE IF NOT EXISTS poam_tmp (
