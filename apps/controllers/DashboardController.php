@@ -57,10 +57,13 @@ class DashboardController extends SecurityController
                         array('count'=>'count(*)'),
                         array('status'=>'EN',
                               'est_date_end'=> parent::$now ));
+        $total = $this->_poam->search($this->_all_systems, array('count'=>'count(*)'));
         $alert = array();
+        $alert['TOTAL'] = $total;
         $alert['OPEN'] = $open_count;
         $alert['EN'] = $en_count;
         $alert['EO'] = $eo_count;
+        
         $this->view->alert = $alert;
         $this->render();
     }

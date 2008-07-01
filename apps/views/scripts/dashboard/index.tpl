@@ -18,6 +18,7 @@
 	</tr>
 </table>
 
+<?php if ( !empty( $this->alert['TOTAL'] ) ) { ?>
 <table width="95%" align="center" border="0" cellpadding="0" cellspacing="0" class="tipframe">
 	<tr><td colspan="3"  align="left"><b>&nbsp;&nbsp;&nbsp;Management Overview </b></td></tr>
     <tr>
@@ -50,5 +51,7 @@
       <td width="33%"  align="center">Current Distribution of<br>POA&M Type</td>
     </tr>
 </table>
+
+<?php } ?>
 
 
