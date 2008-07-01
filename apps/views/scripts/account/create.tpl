@@ -51,8 +51,8 @@
     <tr>
         <td align="right" class="thc">Status:</td>
         <td class="tdc">&nbsp;<select name="user_is_active">
-            <option value="1" <?php echo 1 == $this->user['status']?'selected':'';?>>Active</option>
-            <option value="0" <?php echo 0 == $this->user['status']?'selected':'';?>>Suspend</option>
+            <option value="1" selected>Active</option>
+            <option value="0">Suspend</option>
         </select></td>
     </tr>
     <tr>
