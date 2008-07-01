@@ -104,7 +104,7 @@
 
     function nullGet(&$value, $default='')
     {
-        if( isset($value) ) {
+        if( !empty($value) ) {
             return $value;
         }else{
             return $default;
