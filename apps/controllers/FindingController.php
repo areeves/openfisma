@@ -2,7 +2,7 @@
 /**
  * @file FindingController.php
  *
- * @description Finding Controller
+ * Finding Controller
  *
  * @author     Ryan <ryan.yang@reyosoft.com>
  * @copyright  (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
@@ -277,7 +277,8 @@ class FindingController extends PoamBaseController
                 $data['asset_id'] = $req->getParam('asset_list');
                 $data['system_id'] = $req->getParam('system');
                 $data['status'] = 'NEW';
-                $data['discover_ts'] = $req->getParam('discovereddate');
+                $discover_ts = new Zend_Date($req->getParam('discovereddate'),Zend_Date::DATES);
+                $data['discover_ts'] = $discover_ts->toString("Y-m-d");
                 $data['finding_data'] = $req->getParam('finding_data');
 
                 $data['create_ts'] = self::$now->toString("Y-m-d H:i:s");
