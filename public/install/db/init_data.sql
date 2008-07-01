@@ -238,5 +238,5 @@ INSERT INTO `role_functions` (`role_id`, `function_id`) VALUES
 (17, 5);
 
 INSERT INTO `users` (`id`, `account`, `password`, `title`, `name_last`, `name_middle`, `name_first`, `created_ts`, `password_ts`, `history_password`, `last_login_ts`, `termination_ts`, `is_active`, `failure_count`, `phone_office`, `phone_mobile`, `email`, `auto_role`) VALUES 
-(1, 'root', 'e10adc3949ba59abbe56e057f20f883e', 'admin', 'Application', NULL, 'Admin', '', '', '', '', '', 1, 0, '', NULL, '', 'root_r');
+(1, 'root', md5('root'), 'admin', 'Application', NULL, 'Admin', '', '', '', '', '', 1, 0, '', NULL, '', 'root_r');
 
