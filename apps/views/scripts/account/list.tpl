@@ -19,7 +19,7 @@ function delok(entryname)
     <th>Last Name</th>
     <th>First Name</th>
     <th>Office Phone</th>
-    <th>Mobile Phoneh</th>
+    <th>Mobile Phone</th>
     <th>Email</th>
     <th>Role</th>
     <th>Username</th>
