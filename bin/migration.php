@@ -820,7 +820,7 @@ function poam_comments_conv($db_src, $db_target, $data)
         $data['comment_body'] = $data['comment_topic'];
         $data['comment_topic'] = '';
     }else{
-        return;
+       // return;need to insert comment too
     }
 
     if($eval_id == 4 )
@@ -830,7 +830,7 @@ function poam_comments_conv($db_src, $db_target, $data)
     }else if($eval_id == 5){
         $ev_evaluation_id = insert_poam_eval($db_target, $data['poam_id'],$eval_id,'DENIED',$data['comment_date']);
 
-    }else{
+    }else if($eval_id < 4 && $eval_id > 0){
         assert( $data['ev_id']);
         $qry=$db_target->select()->from('poam_evaluations',array('id'))
                                  ->where('group_id=?',$data['ev_id'])
@@ -875,7 +875,7 @@ function audit_log_conv($db_src, $db_target, $data)
     $poam_id=$db_target->fetchRow($qry);
     if(empty($poam_id))
     {
-        echo "Missing poam_id from finding_id".$data['finding_id']."\n";
+        echo "Missing poam_id from finding_id: ".$data['finding_id']."\n";
     }else{
         $poam_id=$poam_id['id'];    
         $tmparray=array('poam_id'=>$poam_id,
