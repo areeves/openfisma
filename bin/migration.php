@@ -358,7 +358,7 @@ function user_system_conv($db_src, $db_target, $data)
 
 function users_conv($db_src, $db_target, $data)
 {
-    $auto_role=$data['extra_role']?$data['extra_role']:$data['user_name'].'_r';
+    $auto_role=$data['auto_role']?$data['auto_role']:$data['user_name'].'_r';
     
     if(empty($data['failure_count']))
     {
