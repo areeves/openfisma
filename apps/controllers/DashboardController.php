@@ -14,7 +14,6 @@ require_once 'Zend/Controller/Action.php';
 require_once CONTROLLERS . DS . 'SecurityController.php';
 require_once MODELS . DS . 'poam.php';
 require_once MODELS . DS . 'system.php';
-require_once LIBS . DS .  'PoamSummary.class.php';
 
 /**
  * DashboardController responsible for all dashboard creation

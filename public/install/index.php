@@ -339,7 +339,7 @@ switch ($op){
                 <p>Make sure to remove this installation directory (/public/install) from the root of
                 your application.</p>
                 <u><b>Application site</b></u>
-                <p>Click <a href='/index2.php'>HERE</a> to see the home page of your site.</p>
+                <p>Click <a href='/index.php'>HERE</a> to see the home page of your site.</p>
                 <u><b>Support</b></u>
                 <p>Visit <a href='http://www.openfisma.org/' target='_blank'>OpenFISMA.org</a></p>
                 </td></tr></table>\n";
