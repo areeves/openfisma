@@ -391,11 +391,20 @@ class RemediationController extends PoamBaseController
     public function rafAction()
     {
         $id = $this->_req->getParam('id');
+        $this->_helper->layout->disableLayout(true);
+        $this->_helper->contextSwitch()
+             ->addContext('pdf',
+                array('suffix'=>'pdf', 'headers'=>
+                       array( 
+                         'Content-Disposition'=>"attachement;filename=\"{$id}_raf.pdf\"",
+                         'Content-Type'=>'application/pdf')
+                       ) )
+             ->addActionContext('raf', array('pdf') )
+             ->initContext();
         $poam_detail = $this->_poam->getDetail($id);
         if( empty($poam_detail) ){
             throw new fisma_Exception('Raf can be generated according to valid poam');
         }
-        $this->_helper->layout->setLayout('rafs');
         $this->view->assign('poam',$poam_detail);
         $this->view->assign('system_list',$this->_system_list);
         $this->view->assign('source_list',$this->_source_list);

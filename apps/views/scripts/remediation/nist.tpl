@@ -85,6 +85,10 @@
                target='_blank'>
             <button>Generate RAF</button>
             </a>
+            <a href="/zfentry.php/remediation/raf/format/pdf/id/<?php echo $this->poam['id'];?>"
+               >
+            <button>Generate PDF RAF</button>
+            </a>
         </td>
         <?php } else { ?>
         <td><i>

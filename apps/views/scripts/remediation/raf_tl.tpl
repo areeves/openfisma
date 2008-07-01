@@ -40,7 +40,7 @@ $cell_colors_tl = cell_background_colors(9, $thread_index);
  </tr>
 </table>
 </td></tr>
-   <tr><td>Specific Countermeasures:</td>
+   <tr><td><b>Specific Countermeasures:</b></td>
    <td colspan=3><?php echo $this->poam['cmeasure'];?></td></tr>
    <tr><td><b>Countermeasure Effectiveness:</b></td>
    <td colspan=3><?php echo $this->poam['cmeasure_effectiveness'];?></td></tr>
