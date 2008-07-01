@@ -64,10 +64,22 @@
     </tr>
     <tr >
         <td align="right">Date Discovered From: </td>
-        <td align="left"><input type="text" class="date" name="discovered_date_begin" size="12" maxlength="10" value="<?php echo nullGet($this->criteria['discovered_date_begin'],''); ?>" />             
+        <td align="left"><input type="text" class="date" name="discovered_date_begin" size="12" maxlength="10"
+        value="<?php $ts = nullGet($this->criteria['discovered_date_begin'],'');
+                     if($ts instanceof Zend_Date){
+                        $ts = $ts->toString('Y-m-d');
+                     }
+                     echo $ts;
+               ?>" />             
         </td>
         <td align="right">To: </td>
-        <td align="left"><input type="text" class="date" name="discovered_date_end" size="12" maxlength="10" value="<?php echo nullGet($this->criteria['discovered_date_end'],''); ?>" />
+        <td align="left"><input type="text" class="date" name="discovered_date_end" size="12" maxlength="10"
+        value="<?php $ts = nullGet($this->criteria['discovered_date_end'],'');
+                     if($ts instanceof Zend_Date){
+                         $ts = $ts->toString('Y-m-d');
+                     }
+                     echo $ts;
+               ?>" />
         </td>
     </tr>
     <tr >
