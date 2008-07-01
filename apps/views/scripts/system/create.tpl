@@ -1,6 +1,6 @@
 <div class="barleft">
 <div class="barright">
-<p><b>Administration: Systems Create</b>
+<p><b>System Information</b>
 </div>
 </div>
 <table border="0" width="95%" align="center">
@@ -15,11 +15,11 @@
         <td class="tdc">&nbsp;<input type="text" name="system_name" size="90"><font color="blue"> *</font></td>
     </tr>
     <tr>
-        <td align="right" class="thc">NickName:</td>
+        <td align="right" class="thc">Acronym:</td>
         <td class="tdc">&nbsp;<input type="text" name="system_nickname" size="8"><font color="blue"> *</font></td>
     </tr>
     <tr>
-        <td align="right" class="thc">Primary Office:</td>
+        <td align="right" class="thc">Organization:</td>
         <td class="tdc">&nbsp;<select name="system_primary_office"><option value="0">FSA</option></select>
             <font color="blue"> *</font> </td>
     </tr>

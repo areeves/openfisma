@@ -1,6 +1,6 @@
 <div class="barleft">
 <div class="barright">
-<p><b>Administration: Systems Detail</b>
+<p><b>System Information</b>
 </div>
 </div>
 <table width="98%" align="center" border="0" cellpadding="0" cellspacing="0" class="tbframe">
@@ -9,11 +9,11 @@
         <td class="tdc"><?php echo $this->system['name'];?></td>
     </tr>
     <tr>
-        <td align="right" class="thc">NickName:</td>
+        <td align="right" class="thc">Acronym:</td>
         <td class="tdc"><?php echo $this->system['nickname'];?></td>
     </tr>
     <tr>
-        <td align="right" class="thc">Primary Office:</td>
+        <td align="right" class="thc">Organization:</td>
         <td class="tdc"><?php echo $this->system['primary_office'];?></td>
     </tr>
     <tr>

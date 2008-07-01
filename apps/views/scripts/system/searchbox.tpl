@@ -7,16 +7,19 @@ $fid_array = array('name'=>'System Name',
                    'availability'=>'Avalilability',
                    'type'=>'type');
 ?>
+
 <div class="barleft">
 <div class="barright">
-<p><b>Administration:Systems Summary</b><span><?php echo date('Y-m-d h:i:s:A');?></span>
+<p><b>System Administration</b>
 </div>
 </div>
+
 <table class="tbframe" align="center"  width="98%">
     <tbody>
         <tr>
-            <th>[<a href="/zfentry.php/panel/system/sub/list">Systems list</a>] (total: <?php echo $this->total;?>)</th>
-            <th>[<a href="/zfentry.php/panel/system/sub/create" title="add new Systems">Add Systems</a>]</th>
+            <th>[<a href="/zfentry.php/panel/system/sub/list">System 
+List</a>] (total: <?php echo $this->total;?>)</th>
+            <th>[<a href="/zfentry.php/panel/system/sub/create" title="add new Systems">Add System</a>]</th>
             <th>
                 <table align="center">
                     <tbody>

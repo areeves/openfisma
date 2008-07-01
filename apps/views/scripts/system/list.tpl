@@ -1,7 +1,7 @@
 <script language="javascript">
 function delok(entryname)
 {
-    var str = "Are you sure that you want to delete this " + entryname + "?";
+    var str = "Are you sure that you want to delete this System?";
     if(confirm(str) == true){
         return true;
     }
@@ -10,14 +10,14 @@ function delok(entryname)
 </script>
 <div class="barleft">
 <div class="barright">
-<p><b>Administration: Systems List</b>
+<p><b>System List</b>
 </div>
 </div>
 <table width="98%" align="center" border="0" cellpadding="0" cellspacing="0" class="tbframe">
 <tr align="center">
     <th>System Name</th>
-    <th>NickName</th>
-    <th>Primary Office</th>
+    <th>Acronym</th>
+    <th>Organization</th>
     <th>Confidentiality</th>
     <th>Integrity</th>
     <th>Availability</th>

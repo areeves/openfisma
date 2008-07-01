@@ -7,7 +7,7 @@
 ?>
 <div class="barleft">
 <div class="barright">
-<p><b>Administration: Systems Edit</b>
+<p><b>System Information</b>
 </div>
 </div>
 <table border="0" width="95%" align="center">
@@ -23,12 +23,12 @@
             value="<?php echo $this->system['name'];?>"><font color="blue"> *</font></td>
     </tr>
     <tr>
-        <td align="right" class="thc">NickName:</td>
+        <td align="right" class="thc">Acronym:</td>
         <td class="tdc">&nbsp;<input type="text" name="system_nickname" size="8"
             value="<?php echo $this->system['nickname'];?>"><font color="blue"> *</font></td>
     </tr>
     <tr>
-        <td align="right" class="thc">Primary Office:</td>
+        <td align="right" class="thc">Organization:</td>
         <td class="tdc">&nbsp;<?php echo $this->formSelect('system_primary_office',$this->system['primary_office'],null,$primary_array);?><font color="blue"> *</font> </td>
     </tr>
     <tr>
