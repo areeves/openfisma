@@ -5,14 +5,16 @@ $fid_array = array('name'=>'Product Name',
 ?>
 <div class="barleft">
 <div class="barright">
-<p><b>Administration:Products Summary</b><span><?php echo date('Y-m-d h:i:s:A');?></span>
+<p><b>Product Administration</b><span>
 </div>
 </div>
 <table class="tbframe" align="center"  width="98%">
     <tbody>
         <tr>
-            <th>[<a href="/zfentry.php/panel/product/sub/list">Products list</a>] (total: <?php echo $this->total;?>)</th>
-            <th>[<a href="/zfentry.php/panel/product/sub/create" title="add new Products">Add Products</a>]</th>
+            <th>[<a href="/zfentry.php/panel/product/sub/list">Products List</a>] (total: <?php echo 
+$this->total;?>)</th>
+            <th>[<a href="/zfentry.php/panel/product/sub/create" title="Add New Product">Add 
+Product</a>]</th>
             <th>
                 <table align="center">
                     <tbody>

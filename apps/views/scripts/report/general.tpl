@@ -18,13 +18,11 @@ function  dosub() {
     }
 }
 </SCRIPT>
-<br>
 <div class="barleft">
 <div class="barright">        
-<p><b>Reports : General Reports</b><span><?php echo date('Y-M-D h:i:s:A');?></span>
+<p><b>General Reports</b></p>
 </div>
 </div>
-<br>
 <form name="filter" method="post" action="/zfentry.php/panel/report/sub/general/s/search">
 <table width="95%" align="center" border="0">
     <tr>

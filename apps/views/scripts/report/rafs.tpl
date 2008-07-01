@@ -1,6 +1,6 @@
 <div class="barleft">
 <div class="barright">
-<p><b>Report: Generate RAFs per system</b>
+<p><b>Generate Risk Analysis Forms (RAFs)</b>
 </div>
 </div>
 <form action="/zfentry.php/report/rafs" target="_rafs" method="post">

@@ -20,10 +20,9 @@
 
 <div class="barleft">
 <div class="barright">
-<p><b>FISMA Report to OMB</b><span><?php echo date('Y-M-D h:i:s:A');?></span>
+<p><b>FISMA Report to OMB</b></p>
 </div>
 </div>
-<br>
 <form name="filter" method="post" action="/zfentry.php/panel/report/sub/fisma/s/search">
 <table width="850"  align="center" border="0" cellpadding="3" cellspacing="1" class="tipframe">
     <tr>

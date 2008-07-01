@@ -1,6 +1,6 @@
 <div class="barleft">
 <div class="barright">
-<p><b>Administration: Products Detail</b>
+<p><b>Product Information</b>
 </div>
 </div>
 <table width="98%" align="center" border="0" cellpadding="0" cellspacing="0" class="tbframe">

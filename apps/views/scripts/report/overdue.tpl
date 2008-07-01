@@ -18,10 +18,9 @@
 ?>
 <div class="barleft">
 <div class="barright">
-<p><b>POA&amp;M Overdue Reports</b>
+<p><b>Overdue Reports</b>
 </div>
 </div>
-
 <form name="overdue_report" method="post" action="/zfentry.php/panel/report/sub/overdue/s/search">
 <table width="95%" align="center" border="0" cellpadding="5" cellspacing="1" class="tipframe">
     <tr>

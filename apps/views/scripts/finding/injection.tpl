@@ -1,15 +1,8 @@
-<br>
-<!-- Heading Block -->
-<table width="98%" align="center" border="0" cellpadding="0" cellspacing="0">
-    <tr>
-        <td width="13"><img src="/images/left_circle.gif" border="0"></td>
-        <td bgcolor="#DFE5ED"><b>Spreadsheet Upload</b></td>
-        <td bgcolor="#DFE5ED" align="right"><?php echo date("Y-M-D h:i:s:A");?></td>
-        <td width="13"><img src="/images/right_circle.gif" border="0"></td>
-    </tr>
-</table>
-<!-- End Heading Block -->
-
+<div class="barleft">
+<div class="barright">
+<p><b>Spreadsheet Upload</b><span></p>
+</div>
+</div>
 <br>
 <table width="95%" align="center" border="0">
     <tr>

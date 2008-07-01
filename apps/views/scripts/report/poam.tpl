@@ -18,7 +18,7 @@
 ?>
 <div class="barleft">
 <div class="barright">
-<p><b>Reports : POA&amp;M Reports</b><span><?php echo date('Y-M-D h:i:s:A');?></span>
+<p><b>Plans of Actions And Milestones Report Administration</b></p>
 </div>
 </div>
 

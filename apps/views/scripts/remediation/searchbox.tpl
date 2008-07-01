@@ -25,7 +25,7 @@
 ?>
 <div class="barleft">
 <div class="barright">
-<p><b>Remediation Search</b><span><?php echo date('Y-M-D h:i:s:A');?></span></p>
+<p><b>Remediation Search</b><span></p>
 </div>
 </div>
 <form name="filters" method="post" action="/zfentry.php/panel/remediation/sub/searchbox/s/search">
