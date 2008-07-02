@@ -27,7 +27,7 @@
                 <input type="button" name="select_none"  value="Select None" style="cursor:pointer;">
                 <input type="submit" id="button" value="Delete" style="cursor:pointer;">
             <?php } if(isAllow('asset','create')){ ?>
-                <a href="/zfentry.php/asset/create"><button class="action">Create an Asset</button></a>
+                <a id="create_asset" href="/zfentry.php/asset/create"><button class="action">Create an Asset</button></a>
             <?php } ?>
         </td>
         <td align="right">

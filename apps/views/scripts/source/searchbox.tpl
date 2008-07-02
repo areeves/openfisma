@@ -9,9 +9,9 @@ $fid_array = array('name'=>'Source Name','nickname'=>'Nickname');
 <table class="tbframe" align="center"  width="98%">
     <tbody>
         <tr>
-            <th>[<a href="/zfentry.php/panel/source/sub/list">Finding Source List</a>] (total: <?php echo 
+            <th>[<a id="finding_source_list" href="/zfentry.php/panel/source/sub/list">Finding Source List</a>] (total: <?php echo 
 $this->total;?>)</th>
-            <th>[<a href="/zfentry.php/panel/source/sub/create" title="Add Finding Source">Add 
+            <th>[<a id="add_finding_source" href="/zfentry.php/panel/source/sub/create" title="Add Finding Source">Add 
 Finding Source</a>]</th>
             <th>
                 <table align="center">

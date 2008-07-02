@@ -17,9 +17,8 @@ $fid_array = array('name'=>'System Name',
 <table class="tbframe" align="center"  width="98%">
     <tbody>
         <tr>
-            <th>[<a href="/zfentry.php/panel/system/sub/list">System 
-List</a>] (total: <?php echo $this->total;?>)</th>
-            <th>[<a href="/zfentry.php/panel/system/sub/create" title="add new Systems">Add System</a>]</th>
+            <th>[<a id="system_list" href="/zfentry.php/panel/system/sub/list">System List</a>] (total: <?php echo $this->total;?>)</th>
+            <th>[<a id="add_system" href="/zfentry.php/panel/system/sub/create" title="add new Systems">Add System</a>]</th>
             <th>
                 <table align="center">
                     <tbody>

@@ -6,9 +6,8 @@
 <table class="tbframe" align="center"  width="98%">
     <tbody>
         <tr>
-            <th>[<a href="/zfentry.php/panel/account/sub/list">User 
-List</a>] (total: <?php echo $this->total;?>)</th>
-            <th>[<a href="/zfentry.php/panel/account/sub/create" title="add new Users">Add User</a>]</th>
+            <th>[<a id="user_list" href="/zfentry.php/panel/account/sub/list">User List</a>] (total: <?php echo $this->total;?>)</th>
+            <th>[<a id="add_user" href="/zfentry.php/panel/account/sub/create" title="add new Users">Add User</a>]</th>
             <th>
                 <table align="center">
                     <tbody>
