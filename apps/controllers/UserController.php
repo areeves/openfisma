@@ -59,7 +59,7 @@ class UserController extends SecurityController
                 $period = readSysConfig('max_absent_time');
                 $deactive_time = clone $now;
                 $deactive_time->sub($period,Zend_Date::DAY);
-                $last_login = new Zend_Date($me->last_login_ts);
+                $last_login = new Zend_Date($me->last_login_ts,'YYYY-MM-DD HH-MI-SS');
 
                 if( !$last_login->equals(new Zend_Date('0000-00-00 00:00:00')) 
                     && $last_login->isEarlier($deactive_time) ){
