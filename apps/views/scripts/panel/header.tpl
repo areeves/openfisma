@@ -64,6 +64,9 @@
         if(isAllow('admin_products','read')) {
             echo'<li><a href="/zfentry.php/panel/product/sub/list">Products</a></li>';
         }
+        if(isAllow('asset','read')) {
+            echo'<li><a href="/zfentry.php/panel/asset/sub/searchbox/s/search">Assets</a></li>';
+        }
         if(isAllow('admin_system_groups','read')) {
             echo'<li><a href="/zfentry.php/panel/sysGroup/sub/list">System Group</a></li>';
         }
