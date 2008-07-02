@@ -19,9 +19,9 @@
             'params' => array(
                 'host' => OVMS_DB_HOST,
                 'port' => '',
-                'username' => 'root',
-                'password' => '3nd3@v0r',
-                'dbname' => 'ovms',
+                'username' => OVMS_DB_USER,
+                'password' => OVMS_DB_PASS,
+                'dbname' => 'legacy_fisma',
                 'profiler' => false
             )
         ))

@@ -63,7 +63,8 @@ class UserController extends SecurityController
 
                 if( !$last_login->equals(new Zend_Date('0000-00-00 00:00:00')) 
                     && $last_login->isEarlier($deactive_time) ){
-                    $error = "Your account was locked due to $period days of inactivity. Please contact an administrator.";
+                    $error = "your account was locked because of your last login date from now is aleady past
+                             ".$period." days";
                     $this->view->assign('error',$error);
                 } else {
                     $this->_user->log(User::LOGIN, $me->id, "Success");
