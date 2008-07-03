@@ -305,12 +305,21 @@ class FindingController extends PoamBaseController
     public function deleteAction(){
         $req = $this->getRequest();
         $post = $req->getPost();
+        $errno = 0;
+        $successno = 0;
         $poam = new poam();
         foreach($post as $key=>$id){
-            if(substr($key,0,4) == 'id_'){
-                $poam->update(array('status'=>'DELETED'),'id = '.$id);
+            if(substr($key,0,3) == 'id_'){
+                $res = $poam->update(array('status'=>'DELETED'),'id = '.$id);
+                if($res){
+                    $successno++;
+                }else{
+                    $errno++;
+                }
             }
         }
+        $msg = 'Delete '.$successno.' Findings Successfully,'.$errno.' Failed!';
+        $this->message($msg,self::M_NOTICE);
         $this->_forward('searchbox','finding',null,array('s'=>'search'));
 
     }
