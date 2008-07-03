@@ -109,7 +109,8 @@ div#editorDIV{
 
 .editable {
     background:url(/images/button_modify.png) no-repeat center right;
-    padding-right:24px;
+    padding-right:20px;
+    margin-right:10px;
     cursor:pointer;
 }
 
