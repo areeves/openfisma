@@ -27,7 +27,7 @@
     require_once ( CONFIGS . DS . 'database.php');
 
     $table_name=  array(
-              'BLSCR', 
+         //     'BLSCR', 
               'NETWORKS', 
               'PRODUCTS',
               'FINDING_SOURCES', 
