@@ -1,6 +1,6 @@
 <div class="barleft">
     <div class="barright">
-    <p><b>Finding Summary</b></p>
+      <p><b>Finding Summary</b></p>
     </div>
 </div>
 
@@ -16,21 +16,21 @@
         <th>Total</td>
     </tr>
 <?php
-foreach($this->statistic as $sys_id => $row){
-    $search_url_base = "/zfentry.php/panel/finding/sub/searchbox/s/search/system_id/$sys_id";
+  foreach($this->statistic as $sys_id => $row){
+  $search_url_base = "/zfentry.php/panel/finding/sub/searchbox/s/search/system_id/$sys_id";
 ?>
     <tr>
         <td class="tdc" align="left">&nbsp;
             <?php echo $row['NAME']; ?>
         </td>
-        <td class="tdc" >&nbsp;
+        <td class="tdc" align="center">
             <a href='<?php echo "{$search_url_base}/status/NEW/discovered_date_begin/".
                 $this->range['today']['from']->toString('Ymd'). 
                 "/discovered_date_end/".
                 $this->range['today']['to']->toString('Ymd'); ?>'>
             <?php echo $row['NEW']['today']; ?></a>
         </td>
-        <td class="tdc" >&nbsp;
+        <td class="tdc" align="center">
             <a href="<?php echo "{$search_url_base}/status/NEW/discovered_date_begin/".
                 $this->range['last30']['from']->toString('Ymd').
                 "/discovered_date_end/".
@@ -38,7 +38,7 @@ foreach($this->statistic as $sys_id => $row){
              ?>">
             <?php echo $row['NEW']['last30day']; ?></a>
         </td>
-        <td class="tdc" >&nbsp;
+        <td class="tdc" align="center">
             <a href="<?php echo "{$search_url_base}/status/NEW/discovered_date_begin/".
                 $this->range['last60']['from']->toString('Ymd').
                 "/discovered_date_end/".
@@ -46,23 +46,23 @@ foreach($this->statistic as $sys_id => $row){
              ?>">
             <?php echo $row['NEW']['last2nd30day']; ?></a>
         </td>
-        <td class="tdc" >&nbsp;
+        <td class="tdc" align="center">
             <a href="<?php echo "{$search_url_base}/status/NEW/discovered_date_end/".
                 $this->range['after60']['to']->toString('Ymd'); 
              ?>">
             <?php echo $row['NEW']['before60day']; ?></a>
         </td>
-        <td class="tdc" >&nbsp;
+        <td class="tdc" align="center">
             <a href="<?php echo "{$search_url_base}/status/REMEDIATION";?>">
                 <?php echo $row['REMEDIATION']; ?>
             </a>
         </td>
-        <td class="tdc" >&nbsp;
+        <td class="tdc" align="center">
             <a href="<?php echo "{$search_url_base}/status/CLOSED";?>">
                 <?php echo $row['CLOSED']; ?>
             </a>
         </td>
-        <td class="tdc" >&nbsp;
+        <td class="tdc" align="center">
             <a href="<?php echo "{$search_url_base}";?>">
                 <?php echo $row['CLOSED']['total']+
                        $row['REMEDIATION']['total']+
@@ -74,4 +74,3 @@ foreach($this->statistic as $sys_id => $row){
 }
 ?>
 </table>
-
