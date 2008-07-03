@@ -1,6 +1,6 @@
-@import url(/stylesheets/fisma.css);
-@import url(/stylesheets/layout.css);
-@import url(/stylesheets/menu.css);
+@import url('/stylesheets/fisma.css');
+@import url('/stylesheets/layout.css');
+@import url('/stylesheets/menu.css');
 
 /* Color
 ===================================*/
@@ -77,13 +77,16 @@ td {
 }
 
 .tipframe {
-	font-family: Tahoma,verdana,arial, helvetica;
-	font-size: 12px;
-	font-weight: normal;
-	color: #000000;
-	border: 1px solid #44637A;
-    width:95%;
-    margin:6px auto;
+    font-family: Tahoma, verdana, arial, helvetica;
+    font-size: 12px;
+    font-weight: normal;
+    color: #000000;
+    border: 1px solid #44637A;
+    width: 95%;
+    margin-top: 0em;
+    margin-right: auto;
+    margin-bottom: 0.5em;
+    margin-left: auto;
 }
 
 .tipframe th {

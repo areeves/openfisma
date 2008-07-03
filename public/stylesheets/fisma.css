@@ -1,7 +1,6 @@
 a.action {
     text-decoration : none;
     line-height : 2em;
-    font-size: 1 em;
 }
 
 ul {
@@ -26,11 +25,11 @@ ul.loginfo {
     border-style: solid;
     border-color: #42637B #888 #42637B #bbb;
 }
+
 #menu a h2 {
     font: bold 12px arial, helvetica, sans-serif;
-    text-transform: uppercase;
-    text-align:center;
-    line-height:1.8em;
+    text-align: center;
+    line-height: 1.8em;
 }
 
 #menu a {
@@ -41,6 +40,7 @@ ul.loginfo {
     text-decoration: none;
     border-bottom:1px solid gray;
 }
+
 #menu ul ul a{
     background: #42637B url(/images/plus.gif) no-repeat 0.6em ;
     border-bottom:1px solid gray;
@@ -51,27 +51,36 @@ ul.loginfo {
     background: #FFFFB5 url(/images/arrow.gif) no-repeat 0.6em ;
     padding:1px 1em 0em 1.8em;
 }
+
 ul.stitle li{
     float:left;
     background-color:#dfe5ed;
 }
+
+/* Start Division Seperator Property for OpenFISMA */
 div.barleft p {
-    background-color:#dfe5ed;
-    height:24px;
-    vertical-align:center;
-    font-size:12px;
-    line-height:24px;
-    color:#42617B;
+    background-color: #dfe5ed;
+    color: #42617B;
+    height: 24px;
+    line-height: 24px;
+    margin-bottom: 1em;
+    margin-top: 1em;
 }
 
 div.barleft{
-    background: url(/images/left_circle.gif) no-repeat left;
-    padding-left:12px;
+    background-image: url(/images/left_circle.gif); 
+    background-repeat: no-repeat;
+    background-position: left;
+    padding-left: 12px;
 }
+
 div.barright {
-    background: url(/images/right_circle.gif) no-repeat right;
-    padding-right:8px;
+    background-image: url(/images/right_circle.gif);
+    background-repeat: no-repeat;
+    background-position: right;
+    padding-right: 12px;
 }
+/* End Division Seperator Properties for OpenFISMA */
 
 #bottom table{
     font-family: 'Verdana','Arial','Helvetica';
@@ -82,8 +91,8 @@ div.barright {
 }
 
 #msgbar {
-    text-height:2.5em;
-    padding:0.5em 1em;
+    line-height: 2.5em;
+    padding: 0.5em 1em;
 }
 
 div#maskDIV{
@@ -94,8 +103,8 @@ div#maskDIV{
     height: 100%;
     background-color: #AAAAAA;
     z-index: 10;
-    filter: alpha(opacity=50);opacity:0.8;
 }
+
 div#editorDIV{
     position: absolute;
     top:2100px;
