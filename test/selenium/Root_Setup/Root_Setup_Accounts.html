@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="" />
+<title>Root_Setup_Accounts</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">Root_Setup_Accounts</td></tr>
+</thead><tbody>
+<!--Create an admin account-->
+<tr>
+	<td>clickAndWait</td>
+	<td>link=Users</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>add_user</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>user_name_first</td>
+	<td>Application</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>user_name_last</td>
+	<td>Administrator</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>user_phone_office</td>
+	<td>123.123.1234</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>user_phone_mobile</td>
+	<td>234.234.2345</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>user_email</td>
+	<td>application.administrator@agency.gov</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>user_role_id</td>
+	<td>label=Application Administrator</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>user_title</td>
+	<td>Example Title</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>user_account</td>
+	<td>application.administrator</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>user_password</td>
+	<td>password</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>confirm_password</td>
+	<td>password</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>system_1</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>system_2</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>system_3</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//input[@value='Create']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>user_list</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>application.administrator@agency.gov</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>application.administrator</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>123.123.1234</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>234.234.2345</td>
+	<td></td>
+</tr>
+
+</tbody></table>
+</body>
+</html>
