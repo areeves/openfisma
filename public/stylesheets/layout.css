@@ -16,3 +16,6 @@ img#logo {
     margin: 0 5px;
 }
 
+.button_link {
+    display:inline;
+}

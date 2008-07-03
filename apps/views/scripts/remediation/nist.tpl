@@ -80,14 +80,16 @@
                 $this->poam['cmeasure_effectiveness'] != 'NONE' ){ 
         ?>
         <td colspan='2'>
-            <a href="/zfentry.php/remediation/raf/id/<?php echo $this->poam['id'];?>"
-               target='_blank'>
-            <button>Generate RAF</button>
-            </a>
-            <a href="/zfentry.php/remediation/raf/format/pdf/id/<?php echo $this->poam['id'];?>"
-               >
-            <button>Generate PDF RAF</button>
-            </a>
+            <button type="button"
+            onclick="window.open('/zfentry.php/remediation/raf/id/<?php echo $this->poam['id'];?>')" >
+            Generate RAF
+            </button>
+
+            <button type="button"
+            onclick="window.open(
+                '/zfentry.php/remediation/raf/format/pdf/id/<?php echo $this->poam['id'];?>')">
+            Generate PDF RAF
+            </button>
         </td>
         <?php } else { ?>
         <td><i>

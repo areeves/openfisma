@@ -54,7 +54,7 @@
                     <table border="0" width="800" cellpadding="5" class="tipframe">
                         <tr><th align="left">Asset Information
                         </th>
-                        <th align="right"><a href="/zfentry.php/asset/create"><button>Create Asset</button></a>
+                        <th align="right"><button type="button" onclick="window.open('/zfentry.php/asset/create','_self')">Create Asset</button>
                         </th>
                         <tr>
                             <td colspan="2">

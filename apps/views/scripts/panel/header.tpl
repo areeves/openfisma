@@ -2,7 +2,7 @@
 	<tr><td><img id="logo" src="/images/customer_logo.jpg" /></td>
 		<td><span id="msgbar"></span></td>
 		<td align="right"><ul class="loginfo">
-				<li> <a href="/zfentry.php/panel/user/sub/pwdchange"><button class="action" >Change Password</button></a>&nbsp;<a id="logout" href="/zfentry.php/user/logout"><button class="action" >Logout</button></a></li><br>
+                <li><form method="link" class="button_link" action="/zfentry.php/panel/user/sub/pwdchange"><input type="submit" value="Change Password" /></FORM>&nbsp;<form method="link" class="button_link" action="/zfentry.php/user/logout"><input type="submit" value="Logout" /></form></li><br>
 				<li><b><?php echo $this->identity;  ?></b> is currently logged in </li>
 			</ul></td>
 	</tr>
