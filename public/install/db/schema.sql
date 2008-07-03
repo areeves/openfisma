@@ -243,7 +243,7 @@ CREATE TABLE `user_roles` (
 
 CREATE TABLE `users` (
   `id` int(10) unsigned NOT NULL auto_increment,
-  `account` varchar(32) default NULL,
+  `account` varchar(32) NOT NULL,
   `password` varchar(32) NOT NULL default '',
   `title` varchar(64) default NULL,
   `name_last` varchar(32) NOT NULL default '',
