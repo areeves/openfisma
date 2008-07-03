@@ -1,6 +1,6 @@
 <div class="barleft">
 <div class="barright">
-<p><b>Asset Edit</b><span><?PHP echo $this->escape($this->Current_time);?></span></p>
+<p><b>Asset Edit</b></p>
 </div>
 </div>
 <form name="assetedit" method="post" action="/zfentry.php/asset/update/id/<?php echo $this->id;?>">

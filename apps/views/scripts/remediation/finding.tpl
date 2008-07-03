@@ -1,10 +1,10 @@
 <!-- Heading Block -->
-
 <div class="barleft">
     <div class="barright">
-        <p><b>Finding Description</b><span><?php echo date('Y-M-D h:i:s:A');?></span> 
+        <p><b>Finding Description</b>
     </div>
 </div>
+
 <!-- FINDING DETAIL TABLE -->
 <table align="center" border="0" cellpadding="3" cellspacing="1" width="95%">
     <!-- finding and asset row -->
