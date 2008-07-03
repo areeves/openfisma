@@ -1,5 +1,9 @@
+<?php
+    $urlNamespace = new Zend_Session_Namespace('urlNamespace');
+?>
 <form action="/zfentry.php/panel/remediation/sub/modify/id/<?php echo $this->poam['id'];?>" method="post">
 <input type='submit' title='Save or Submit' value="Save" style="cursor: pointer;">
+<a href="<?php echo $urlNamespace->lastSearch;?>"><button class="action">Back</button></a>
 <?php 
      echo $this->partial('remediation/finding.tpl',
                           array('poam'=>&$this->poam, 'system_list' =>&$this->system_list));

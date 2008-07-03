@@ -160,6 +160,9 @@ class RemediationController extends PoamBaseController
 
         $this->_paging['totalItems'] = $total;
         $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";
+        $lastSearch_url = str_replace('%d',$this->_paging['currentPage'],$this->_paging['fileName']);
+        $urlNamespace = new Zend_Session_Namespace('urlNamespace');
+        $urlNamespace->lastSearch = $lastSearch_url;
         $pager = &Pager::factory($this->_paging);
         $this->view->assign('list',$list);
         $this->view->assign('systems',$this->_system_list);
