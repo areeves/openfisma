@@ -84,12 +84,9 @@
             onclick="window.open('/zfentry.php/remediation/raf/id/<?php echo $this->poam['id'];?>')" >
             Generate RAF
             </button>
-
-            <button type="button"
-            onclick="window.open(
-                '/zfentry.php/remediation/raf/format/pdf/id/<?php echo $this->poam['id'];?>')">
-            Generate PDF RAF
-            </button>
+            &nbsp;
+            <a target='_blank' 
+            href='/zfentry.php/remediation/raf/format/pdf/id/<?php echo $this->poam['id'];?>')><img src="/images/pdf.gif" border="0"></a>
         </td>
         <?php } else { ?>
         <td><i>
