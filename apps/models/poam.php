@@ -253,6 +253,7 @@ class poam extends Zend_Db_Table
         if( !empty($src_fields) ) {
             $query->joinLeft( array('s'=>'sources'), 's.id = p.source_id',$src_fields);
         }
+        $query->where("p.status != 'DELETED'");
         $query = $this->_parseWhere($query, $criteria);
         
         if( $count_fields ) {
