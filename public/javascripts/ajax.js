@@ -39,31 +39,37 @@ $(document).ready(function(){
         $('input[@type=checkbox]').removeAttr('checked');
     });
 
-    $("span.editable").click(function(){
-        var name = $(this).attr('name');
-        var type = $(this).attr('type');
-        var url = $(this).attr('href');
-        var eclass = $(this).attr('class');
-        eclass = eclass.replace(/editable/i, '');
-        var cur_val = $(this).text();
-        var cur_span = $(this);
-        if(type == 'text'){
-            cur_span.replaceWith( '<input name='+name+' class="'+eclass+'" type="text" value="'+cur_val.trim()+'" />');
-        }else if( type == 'textarea' ){
-            var row = $(this).attr('rows');
-            var col = $(this).attr('cols');
-            cur_span.replaceWith( '<textarea rows="'+row+'" cols="'+col+'" name="'+name+'">'+
-                    cur_val.trim()+ '</textarea>');
-        }else{
-            $.get(url,{value:cur_val.trim()},
-            function(data){
-                if(type == 'select'){
-                    cur_span.replaceWith('<select name="'+name+'">'+data+'</select>');
-                }
-            });
+    $(".editable").click(function(){
+        var t_name = $(this).attr('target');
+        $(this).removeClass('editable');
+        $(this).removeAttr('target');
+        if( t_name ) {
+            var target = $('#'+t_name);
+            var name = target.attr('name');
+            var type = target.attr('type');
+            var url = target.attr('href');
+            var eclass = target.attr('class');
+            eclass = eclass.replace(/editable/i, '');
+            var cur_val = target.text();
+            var cur_span = target;
+            if(type == 'text'){
+                cur_span.replaceWith( '<input name='+name+' class="'+eclass+'" type="text" value="'+cur_val.trim()+'" />');
+            }else if( type == 'textarea' ){
+                var row = target.attr('rows');
+                var col = target.attr('cols');
+                cur_span.replaceWith( '<textarea rows="'+row+'" cols="'+col+'" name="'+name+'">'+
+                        cur_val.trim()+ '</textarea>');
+            }else{
+                $.get(url,{value:cur_val.trim()},
+                function(data){
+                    if(type == 'select'){
+                        cur_span.replaceWith('<select name="'+name+'">'+data+'</select>');
+                    }
+                });
+            }
+            $('input.date').datepicker({dateFormat:'yymmdd',showOn: 'both', buttonImageOnly: true,
+                    buttonImage: '/images/calendar.gif', buttonText: 'Calendar'});
         }
-        $('input.date').datepicker({dateFormat:'yymmdd',showOn: 'both', buttonImageOnly: true,
-                buttonImage: '/images/calendar.gif', buttonText: 'Calendar'});
     });
 
 });

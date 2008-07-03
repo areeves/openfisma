@@ -7,11 +7,8 @@
     </p>
 </div>
 </div>
-</table>
 
-<!-- Remediation Summary Table -->
         <table width="100%" class="tbframe">
-            <form  name="order_by_ID" action='remediation.php' method='POST'>
             <th nowrap>
                 <input type='hidden' name='sort_by' value='remediation_id'> 
                 <input type='hidden' name='sort_order' >ID 
@@ -42,7 +39,6 @@
                 <input type='image'  src='/images/up_arrow.gif'   onClick="order_page(81)"> 
                 <input type='image'  src='/images/down_arrow.gif' onClick="order_page(82)">          
             </th>
-                </form>
             <th nowrap>View</th>
             </tr>
             <!-- REMEDIATION ROWS -->

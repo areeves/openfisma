@@ -37,14 +37,14 @@
                     </td>
                 </tr>
                 <tr>
-                    <td><b>Responsible System:</b> <span name="poam[system_id]"
-    <?php
+                    <td>
+                        <b target="action_owner" <?php
         if('OPEN' == $this->poam['status'] && isAllow('remediation','update_finding_assignment')){
-            echo ' type="select" class="editable" 
-                   href="/zfentry.php/metainfo/list/o/system/format/html/"';
-        }
-        echo '>',$this->system_list[$this->poam['system_id']];
-    ?>
+            echo ' class="editable"';
+     }?> >Responsible System:</b>
+                        <span name="poam[system_id]" id="action_owner" type="select" 
+                   href="/zfentry.php/metainfo/list/o/system/format/html/">
+    <?php echo $this->system_list[$this->poam['system_id']]; ?>
                         </span> </td>
                 </tr>
             </table>
@@ -107,15 +107,18 @@
 </table>
 <?php } ?>
 <table cellpadding="5" width="100%" class="tipframe">
-    <th align='left' colspan='2'>Recommendation</th>
-    <tr>
-        <td colspan='2'><span name="poam[action_suggested]"
-            <?php 
-                if($this->poam['status'] != 'NEW' && isAllow('remediation','update_finding_recommendation')){
-                    echo ' type="textarea" rows="5" cols="160" class="editable" ';
+    <th align='left' ><span target='recommendation' <?php 
+                if($this->poam['status'] != 'NEW' && 
+                    isAllow('remediation','update_finding_recommendation')) {
+                    echo 'class="editable"';
                 }
-                echo '>',nl2br($this->poam['action_suggested']);
-            ?>
-            </span> </td>
+            ?> colspan='2'>Recommendation</span></th>
+    <tr>
+        <td colspan='2'>
+            <span name="poam[action_suggested]" id="recommendation"
+                  type="textarea" rows="3" cols="160"> <?php 
+                      echo nl2br($this->poam['action_suggested']);
+                  ?> </span>
+        </td>
     </tr>
 </table>

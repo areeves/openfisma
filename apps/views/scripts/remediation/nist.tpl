@@ -6,14 +6,13 @@
         <!-- BLSCR TABLE -->
         <table border="0" width="95%" align="center" cellpadding="5" class="tipframe">
             <tr>
-                <th align="left" >Security Control
-                <span id="blscr" type="select" name="poam[blscr_id]"
-                <?php
+                <th align="left" ><span target="blscr" <?php
                     if($this->poam['status'] != 'NEW' && isAllow('remediation','update_control_assignment')){ 
-                        echo ' class="editable" href="/zfentry.php/metainfo/list/o/blscr/format/html/"';
+                        echo ' class="editable"';
                     }
-                    echo '>',$this->poam['blscr_id'];
-                ?>
+                ?> >Security Control</span>
+                <span id="blscr" type="select" name="poam[blscr_id]" href="/zfentry.php/metainfo/list/o/blscr/format/html/"> 
+                <?php echo $this->poam['blscr_id']; ?>
                 </span>
                 </th>
             </tr>
@@ -107,40 +106,35 @@
                 </tr>
                 <tr>
                     <td>
-                    <b>Level:</b>
-                    <span id ="threat" type="select" name="poam[threat_level]" 
-                        <?php 
+                    <b target="threat" <?php 
                         if($this->poam['status'] != 'NEW' && isAllow('remediation','update_threat')){ 
-                            echo ' class="editable" href="/zfentry.php/metainfo/list/o/threat_level/format/html/"';
-                            echo '>',$this->poam['threat_level'];
-                        } 
-                        ?>
+                            echo ' class="editable"';
+                        } ?> >Level:</b>
+                    <span id ="threat" type="select" name="poam[threat_level]" 
+                            href="/zfentry.php/metainfo/list/o/threat_level/format/html/">
+                        <?php echo $this->poam['threat_level']; ?>
                      </span>
                     </td>
                  </tr>
                  <tr>
                      <td>
-                     <b>Source:</b>
-                     <span type="textarea" name="poam[threat_source]" rows="5" cols="160"
-                     <?php 
+                     <b target="threat_source" <?php 
                         if($this->poam['status'] != 'NEW' && isAllow('remediation','update_threat')){ 
                             echo 'class="editable"';
-                        }
-                        echo '>',nl2br($this->poam['threat_source']);
-                     ?>
+                        } ?> >Source:</b>
+                     <span type="textarea" id="threat_source" name="poam[threat_source]" rows="5" cols="160"> 
+                     <?php echo nl2br($this->poam['threat_source']); ?>
                      </span>
                      </td>
                  </tr>
                  <tr>
                     <td>
-                    <b>Justification:</b>
-                    <span type="textarea" name="poam[threat_justification]" rows="5" cols="160"
-                    <?php 
+                    <b target="justification" <?php 
                        if($this->poam['status'] != 'NEW' && isAllow('remediation','update_threat')){ 
                            echo 'class="editable"';
-                       }
-                       echo '>',nl2br($this->poam['threat_justification']);
-                    ?>
+                       }?> >Justification:</b>
+                    <span type="textarea" id="justification" name="poam[threat_justification]" rows="5" cols="160">
+                    <?php echo nl2br($this->poam['threat_justification']); ?>
                     </span>
                     </td>
                   </tr>
@@ -156,41 +150,36 @@
                     </tr>
                     <tr>
                         <td>
-                            <b>Effectiveness:</b>
-                            <span type="select" name="poam[cmeasure_effectiveness]"
-                            <?php 
+                            <b target="effectiveness" <?php 
                                 if($this->poam['status'] != 'NEW' && isAllow('remediation','update_cmeasures')){ 
-                                    echo 'class="editable"
-                                    href="/zfentry.php/metainfo/list/o/cmeasure_effectiveness/format/html/"';
-                                }
-                                echo '>',$this->poam['cmeasure_effectiveness'];
-                            ?>
+                                    echo 'class="editable"';
+                                }?> >Effectiveness:</b>
+                            <span type="select" name="poam[cmeasure_effectiveness]"
+                            id="effectiveness" href="/zfentry.php/metainfo/list/o/cmeasure_effectiveness/format/html/">
+                            <?php echo $this->poam['cmeasure_effectiveness']; ?>
                             </span>
                         </td>
                     </tr>
                     <tr>
                         <td>
-                            <b>Countermeasure:</b>
-                            <span type="textarea" name="poam[cmeasure]" rows="5" cols="160"
-                            <?php 
+                            <b target="cmeasure" <?php 
                                 if($this->poam['status'] != 'NEW' && isAllow('remediation','update_cmeasures')){ 
                                     echo 'class="editable"';
-                                }
-                                echo '>',nl2br($this->poam['cmeasure']);
-                            ?>
+                                } ?> >Countermeasure:</b>
+                            <span type="textarea" id="cmeasure" name="poam[cmeasure]" rows="5" cols="160">
+                            <?php echo nl2br($this->poam['cmeasure']); ?>
                             </span>
                         </td>
                     </tr>
                      <tr>
                         <td>
-                            <b>Justification:</b>
-                            <span type="textarea" name="poam[cmeasure_justification]" rows="5" cols="160"
-                            <?php 
+                            <b target="cm_justification" <?php 
                                 if($this->poam['status'] != 'NEW' && isAllow('remediation','update_cmeasures')){ 
                                     echo 'class="editable"';
                                 }
-                                echo '>',nl2br($this->poam['cmeasure_justification']);
-                            ?>
+                            ?> >Justification:</b>
+                            <span id="cm_justification" type="textarea" name="poam[cmeasure_justification]" rows="5" cols="160">
+                            <?php echo nl2br($this->poam['cmeasure_justification']); ?>
                             </span>
                         </td>
                     </tr>
@@ -206,9 +195,7 @@
     </tr>
     <tr>
         <td>
-            <b>SSO Approval:</b><!-- Action Approval-->
-            <span type="select" name="poam[action_status]"
-            <?php 
+            <b target="sso_approval" <?php 
                 $array = array('recommendation'=>$this->poam['action_suggested'],
                                'desciption'    =>$this->poam['action_planned'],
                                'resources'     =>$this->poam['action_resources'],
@@ -227,11 +214,11 @@
                 }
                 if(isAllow('remediation','update_mitigation_strategy_approval') &&
                     in_array($this->poam['status'],array('OPEN','EN')) && 0 == $complete) {
-                    echo 'class="editable" href="/zfentry.php/metainfo/list/o/decision/format/html/"';
-                }
-                echo '>',$this->poam['action_status'];
-            ?>
-            </span>
+                    echo 'class="editable"';
+                }?> >SSO Approval:</b><!-- Action Approval-->
+            <span type="select" id="sso_approval" name="poam[action_status]"
+                    href="/zfentry.php/metainfo/list/o/decision/format/html/">
+            <?php echo $this->poam['action_status']; ?> </span>
         </td>
     </tr>
 </table>

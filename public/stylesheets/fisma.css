@@ -62,7 +62,6 @@ div.barleft p {
     font-size:12px;
     line-height:24px;
     color:#42617B;
-    position:relative;
 }
 
 div.barleft{
@@ -108,9 +107,9 @@ div#editorDIV{
     z-index: 20;
 }
 
-span.editable {
-    background:url(/images/button_modify.png) no-repeat left;
-    padding-left:24px;
+.editable {
+    background:url(/images/button_modify.png) no-repeat center right;
+    padding-right:24px;
     cursor:pointer;
 }
 

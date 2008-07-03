@@ -244,6 +244,7 @@ class RemediationController extends PoamBaseController
             }
             $evs[$evid]['eval'][$ev_eval['eval_name']] = array_slice($ev_eval,5);
         }
+
         $this->view->assign('poam',$poam_detail);
         $this->view->assign('logs',$this->_poam->getLogs($id));
         $this->view->assign('ev_evals',$evs);
@@ -284,7 +285,7 @@ class RemediationController extends PoamBaseController
             }
         }
             //throw new fisma_Excpection('POAM not updated for some reason');
-        $this->_forward('view',null,null,array('id'=>$id));
+        $this->_redirect('/panel/remediation/sub/view/id/'.$id);
     }
 
     public function uploadevidenceAction()

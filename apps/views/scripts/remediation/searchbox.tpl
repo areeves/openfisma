@@ -112,6 +112,6 @@
         </td>
     </tr>
     <tr>
-        <td align="left"><input type='submit' value='Search' onClick="firstpage();"></td>
+        <td align="left"><input type='submit' value='Search'></td>
     </tr>
 </table>
