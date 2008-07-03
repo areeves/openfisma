@@ -131,7 +131,7 @@ Please create a password that adheres to these complexity requirements:<br>
 --The password can also contain National Characters if desired (Non-Alphanumeric, !,@,#,$,% etc.)<br>
 --The password cannot be the same as your last 3 passwords<br>
 --The password cannot contain your first name or last name<br>";';*/
-                        $msg = 'The password doesn\'t meet the required complexity!';
+                        $msg = "The password doesn\'t meet the required complexity!";
 
                     }else{
                         if($newpass == $password){
