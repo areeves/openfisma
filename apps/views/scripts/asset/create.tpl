@@ -1,4 +1,3 @@
-<script LANGUAGE="JavaScript" type="test/javascript" src="/javascripts/ajax.js"></script>
 <div class="barleft">
 <div class="barright">
 <p><b>Asset Creation</b><span><?PHP echo $this->escape($this->Current_time);?></span></p>
