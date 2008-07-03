@@ -11,7 +11,7 @@
                         <b>Type:</b>
                         <span name="poam[type]"
     <?php
-        if(('NEW' == $this->poam['status'] || 'OPEN' == $this->poam['status'])&& isAllow('remediation','update')){
+        if(('NEW' == $this->poam['status'] || 'OPEN' == $this->poam['status'])&& isAllow('remediation','update_mitigation_strategy_approval')){
             echo ' type="select" class="editable" 
                    href="/zfentry.php/metainfo/list/o/type/format/html/"';
         }
