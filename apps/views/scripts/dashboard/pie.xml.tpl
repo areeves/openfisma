@@ -1,7 +1,7 @@
 	<chart>
 	<chart_data>
 		<row>
-			<string></string>
+            <null />
 			<string>NEW:New Item</string>
 			<string>OT:On-Time</string>
 			<string>OD:OverDue</string>
@@ -10,6 +10,7 @@
 			<string>OC:Officially Closed</string>			
 		</row>
 		<row>
+            <string>count</string>
 			<number><?php echo $this->summary['NEW']; ?></number>
 			<number><?php echo $this->summary['OPEN']+$this->summary['EN']-$this->summary['EO'];?></number>
 			<number><?php echo $this->summary['EO']; ?></number>
@@ -49,6 +50,9 @@
 		<color>5a4b6e</color>
 	</series_color>
 	<series_explode>
+		<number>1</number>
+		<number>0</number>
+		<number>0</number>
 		<number>0</number>
 		<number>0</number>
 		<number>0</number>

@@ -26,18 +26,17 @@ class DashboardController extends SecurityController
     function init()
     {
         parent::init();
-        $contextSwitch = $this->_helper->getHelper('contextSwitch');
-        $contextSwitch->addActionContext('totalstatus', 'xml')
-                      ->addActionContext('totaltype','xml')
-                      ->initContext();
         $sys = new System();
-        $this->_all_systems = $sys->getList('name');
-        $this->_all_systems = array_keys($this->_all_systems);
+        $this->_all_systems = $this->me->systems;
     }
 
     function preDispatch()
     {
         parent::preDispatch();
+        $contextSwitch = $this->_helper->getHelper('contextSwitch');
+        $contextSwitch->addActionContext('totalstatus', 'xml')
+                      ->addActionContext('totaltype','xml')
+                      ->initContext();
         if( !isset($this->_poam) ){
             $this->_poam = new Poam();
         }

@@ -1,12 +1,14 @@
 <chart>
     <chart_data>
         <row>
+            <null />
             <string>NONE</string>
             <string>CAP:Corrective Action Plan</string>
             <string>FP:False Positive</string>
             <string>AR:Accept Risk</string>
         </row>
         <row>
+            <string>count</string>
             <number><?php echo $this->summary['NONE']; ?></number>
             <number><?php echo $this->summary['CAP']; ?></number>
             <number><?php echo $this->summary['FP']; ?></number>
