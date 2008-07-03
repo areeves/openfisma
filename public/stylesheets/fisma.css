@@ -65,10 +65,6 @@ div.barleft p {
     position:relative;
 }
 
-div.barleft .barright span {
-    position:absolute;
-    right:1em;
-}
 div.barleft{
     background: url(/images/left_circle.gif) no-repeat left;
     padding-left:12px;

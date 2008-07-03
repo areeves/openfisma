@@ -4,6 +4,13 @@ String.prototype.trim = function() {
 
 $(document).ready(function(){
 
+   $(":button[name=select_all]").click(function(){
+       $(":checkbox").attr( 'checked','checked' );
+   });
+   $(":button[name=select_none]").click(function(){
+       $(":checkbox").attr( 'checked','' );
+   });
+
    $('input.date').datepicker({dateFormat:'yymmdd',showOn: 'both', buttonImageOnly: true,
         buttonImage: '/images/calendar.gif', buttonText: 'Calendar'});
         
@@ -36,12 +43,12 @@ $(document).ready(function(){
         var name = $(this).attr('name');
         var type = $(this).attr('type');
         var url = $(this).attr('href');
-        var class = $(this).attr('class');
-        class = class.replace(/editable/i, '');
+        var eclass = $(this).attr('class');
+        eclass = eclass.replace(/editable/i, '');
         var cur_val = $(this).text();
         var cur_span = $(this);
         if(type == 'text'){
-            cur_span.replaceWith( '<input name='+name+' class="'+class+'" type="text" value="'+cur_val.trim()+'" />');
+            cur_span.replaceWith( '<input name='+name+' class="'+eclass+'" type="text" value="'+cur_val.trim()+'" />');
         }else if( type == 'textarea' ){
             var row = $(this).attr('rows');
             var col = $(this).attr('cols');
@@ -145,8 +152,7 @@ function getProdId(){
 
 function searchProduct(){
     var trigger = $("input#search_product");
-    var url = trigger.attr('url');
-    url += '/view/list';
+    var url = trigger.attr('url')+= '/view/list';
     $("input.product").each(function(){
         if($(this).attr('value')){
             url += '/' + $(this).attr('name') + '/' + $(this).attr('value');
