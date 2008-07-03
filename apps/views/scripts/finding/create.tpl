@@ -1,19 +1,19 @@
 <script LANGUAGE="JavaScript" type="test/javascript" src="/javascripts/ajax.js"></script>
+
 <div class="barleft">
-<div class="barright">
-<p><b>Finding Creation</b><span><?PHP echo $this->escape($this->Current_time);?></span></p>
+  <div class="barright">
+    <p><b>Finding Creation</b></p>
+  </div>
 </div>
-</div>
-<br>
 
 <form name="finding" method="post" action="/zfentry.php/panel/finding/sub/create/is/new" >
-<table width="810" border="0" align="center" cellpadding="5">
+<table width="810" border="0" align="center" cellpadding="0">
     <tr><td>
         <input name="button" type="submit" id="button" value="Create Finding" >
         <input name="button" type="reset" id="button" value="Reset Form" >
     </td></tr>
     <tr><td>
-        <table border="0" width="800" cellpadding="5" class="tipframe">
+        <table border="0" width="100%" cellpadding="5" class="tipframe">
             <tr> <th align="left">General Information</th> </tr>
             <tr> <td>
                     <table border="0" cellpadding="1" cellspacing="1">
@@ -51,10 +51,10 @@
             </tr>
             <tr>
                 <td>
-                    <table border="0" width="800" cellpadding="5" class="tipframe">
+                    <table border="0" width="100%" cellpadding="5" class="tipframe">
                         <tr><th align="left">Asset Information
                         </th>
-                        <th align="right"><button type="button" onclick="window.open('/zfentry.php/asset/create','_self')">Create Asset</button>
+                        <th align="right"><a id="add_asset" href="/zfentry.php/asset/create" title="Create New Asset">Create New Asset</a>
                         </th>
                         <tr>
                             <td colspan="2">
