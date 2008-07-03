@@ -7,7 +7,8 @@
         <table border="0" width="95%" align="center" cellpadding="5" class="tipframe">
             <tr>
                 <th align="left" ><span target="blscr" <?php
-                    if($this->poam['status'] != 'NEW' && isAllow('remediation','update_control_assignment')){ 
+                    if(in_array($this->poam['status'],array('NEW','OPEN'))
+                         && isAllow('remediation','update_control_assignment')){ 
                         echo ' class="editable"';
                     }
                 ?> >Security Control</span>
@@ -106,7 +107,8 @@
                 <tr>
                     <td>
                     <b target="threat" <?php 
-                        if($this->poam['status'] != 'NEW' && isAllow('remediation','update_threat')){ 
+                        if(in_array($this->poam['status'], array('NEW','OPEN'))
+                             && isAllow('remediation','update_threat')){ 
                             echo ' class="editable"';
                         } ?> >Level:</b>
                     <span id ="threat" type="select" name="poam[threat_level]" 
@@ -118,7 +120,8 @@
                  <tr>
                      <td>
                      <b target="threat_source" <?php 
-                        if($this->poam['status'] != 'NEW' && isAllow('remediation','update_threat')){ 
+                        if(in_array($this->poam['status'],array('NEW','OPEN'))
+                             && isAllow('remediation','update_threat')){ 
                             echo 'class="editable"';
                         } ?> >Source:</b>
                      <span type="textarea" id="threat_source" name="poam[threat_source]" rows="5" cols="160"> 
@@ -129,7 +132,8 @@
                  <tr>
                     <td>
                     <b target="justification" <?php 
-                       if($this->poam['status'] != 'NEW' && isAllow('remediation','update_threat')){ 
+                       if(in_array( $this->poam['status'],array('NEW','OPEN'))
+                            && isAllow('remediation','update_threat')){ 
                            echo 'class="editable"';
                        }?> >Justification:</b>
                     <span type="textarea" id="justification" name="poam[threat_justification]" rows="5" cols="160">
@@ -150,7 +154,8 @@
                     <tr>
                         <td>
                             <b target="effectiveness" <?php 
-                                if($this->poam['status'] != 'NEW' && isAllow('remediation','update_cmeasures')){ 
+                                if(in_array( $this->poam['status'],array('NEW','OPEN'))
+                                    && isAllow('remediation','update_cmeasures')){ 
                                     echo 'class="editable"';
                                 }?> >Effectiveness:</b>
                             <span type="select" name="poam[cmeasure_effectiveness]"
@@ -162,7 +167,8 @@
                     <tr>
                         <td>
                             <b target="cmeasure" <?php 
-                                if($this->poam['status'] != 'NEW' && isAllow('remediation','update_cmeasures')){ 
+                                if(in_array( $this->poam['status'],array('NEW','OPEN'))
+                                 && isAllow('remediation','update_cmeasures')){ 
                                     echo 'class="editable"';
                                 } ?> >Countermeasure:</b>
                             <span type="textarea" id="cmeasure" name="poam[cmeasure]" rows="5" cols="160">
@@ -173,7 +179,8 @@
                      <tr>
                         <td>
                             <b target="cm_justification" <?php 
-                                if($this->poam['status'] != 'NEW' && isAllow('remediation','update_cmeasures')){ 
+                                if(in_array( $this->poam['status'],array('NEW','OPEN'))
+                                 && isAllow('remediation','update_cmeasures')){ 
                                     echo 'class="editable"';
                                 }
                             ?> >Justification:</b>

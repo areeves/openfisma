@@ -21,7 +21,8 @@
                 <tr>
                     <td>
                         <b target="action_planned" <?php 
-           if('OPEN' == $this->poam['status'] && isAllow('remediation','update_finding_course_of_action')){
+           if(in_array($this->poam['status'],array('NEW','OPEN'))
+                && isAllow('remediation','update_finding_course_of_action')){
                echo 'class="editable"';
            }?> >Description:</b>
                         <span name="poam[action_planned]" id="action_planned" 
@@ -37,7 +38,7 @@
             <table width="100%" cellpadding="5" class="tipframe">
                 <th align="left">
                 <span target="action_resources" <?php
-        if($this->poam['status'] != 'NEW' && isAllow('remediation','update_finding_resources')){
+        if(isAllow('remediation','update_finding_resources')){
             echo 'class="editable"';
         } ?> >Resources Required for Course of Action</span></th>
                 <tr>
@@ -52,7 +53,7 @@
 
             <div style="width:95%;margin:0 5px"> 
             <b target="est_date" <?php
-        if($this->poam['status'] == 'OPEN' && 
+        if(in_array($this->poam['status'],array('OPEN','NEW')) && 
             isAllow('remediation','update_est_completion_date')){
             echo ' class="editable" ';
         }?> >Estimated Completion Date:</b>
