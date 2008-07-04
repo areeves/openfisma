@@ -57,9 +57,9 @@
             isAllow('remediation','update_est_completion_date')){
             echo ' class="editable" ';
         }?> >Estimated Completion Date:</b>
-            <span name="poam[action_est_date]" id="est_date" class="date" type="text" <?php
-        echo nullGet($this->poam['action_est_date'],'0000-00-00'); ?>
-            </span>
+            <span name="poam[action_est_date]" id="est_date" class="date" type="text" >
+            <?php echo nullGet($this->poam['action_est_date'],'0000-00-00'); ?>
+            </span>&nbsp;&nbsp;&nbsp;
             <b>Actual Completion Date:</b>
             <?php echo nullGet($this->poam['action_actual_date'],'<i>(action not yet completed)</i>');?>
             </div>
