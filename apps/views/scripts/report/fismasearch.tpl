@@ -1,3 +1,6 @@
+<?php
+    $url = "/zfentry.php/panel/report/sub/fisma/s/search";
+?>
 <SCRIPT LANGUAGE="JavaScript">
     function submit_export(f_val) {
     // open new window if the request is for a pdf
@@ -13,14 +16,11 @@
 </SCRIPT>
 <div class="barleft">
 <div class="barright">
-<p><b>FISMA Report to OMB:<?php echo $this->startdate;?>throw <?php echo $this->enddate;?></b><span>
-    <FORM ACTION="/creport.php" METHOD="POST" NAME="exportform">
-    <INPUT TYPE="HIDDEN" NAME="f"/>
-    <INPUT TYPE="HIDDEN" NAME="t" value="1"/>
-    <td width="40%" align="right" bgcolor="#DFE5ED">Export to: 
-    <a href="javascript:submit_export('p');" ><img src="/images/pdf.gif" border="0"></a>
-    <a href="javascript:submit_export('e');"><img src="/images/xls.gif" border="0"></a>
-    </FORM></span>
+<p><b>FISMA Report to OMB:<?php echo $this->startdate;?>throw <?php echo $this->enddate;?></b>    <span>
+    Export to:
+    <a target='_blank' href="<?php echo $url.'/format/pdf'; ?>"><img src="/images/pdf.gif" border="0"></a>
+    <a href="<?php echo $url.'/format/xls'; ?>"><img src="/images/xls.gif" border="0"></a>
+    </span>
 </div>
 </div>
 <br>
