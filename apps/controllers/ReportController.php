@@ -25,6 +25,7 @@ class ReportController extends PoamBaseController
                                                 'Content-Disposition'=>'attachement;filename:"export.pdf"')) )
              ->addContext('xls',array('suffix'=>'xls') )
              ->addActionContext('poam', array('pdf','xls') )
+             ->addActionContext('fisma', array('pdf','xls') )
              ->addActionContext('overdue', array('pdf','xls') )
              ->initContext();
 
@@ -33,16 +34,17 @@ class ReportController extends PoamBaseController
     public function fismaAction()
     {
         $req = $this->getRequest();
-        $criteria['year']      = $req->get('y');
-        $criteria['quarter']   = $req->get('q');
-        $criteria['system_id'] = $system_id = $req->get('system');
-        $criteria['startdate'] = $req->get('startdate');
-        $criteria['enddate']   = $req->get('enddate');
-        
+        $criteria['year']      = $req->getParam('y');
+        $criteria['quarter']   = $req->getParam('q');
+        $criteria['system_id'] = $system_id = $req->getParam('system');
+        $criteria['startdate'] = $req->getParam('startdate');
+        $criteria['enddate']   = $req->getParam('enddate');
         $this->view->assign('system_list', $this->_system_list);
         $this->view->assign('criteria',$criteria);
         $this->render();
-        if('search' == $req->getParam('s')){
+        if('search' == $req->getParam('s')            
+            || 'pdf' == $req->getParam('format')
+            || 'xls' == $req->getParam('format')){
             if(!empty($criteria['startdate']) && !empty($criteria['enddate'])){
                 $date_begin = new Zend_Date($criteria['startdate'],Zend_Date::DATES);
                 $date_end   = new Zend_Date($criteria['enddate'],Zend_Date::DATES);
@@ -89,22 +91,40 @@ class ReportController extends PoamBaseController
                                   'created_date_end'=>$date_end);
             $faw_array    = array('created_date_end'=>$date_end,
                                   'closed_date_begin'=>$date_end);//or close_ts is null
-
+            
             $criteria_aaw = array_merge($system_array,$aaw_array);
             $criteria_baw = array_merge($system_array,$baw_array);
             $criteria_caw = array_merge($system_array,$caw_array);
             $criteria_daw = array_merge($system_array,$daw_array);
             $criteria_eaw = array_merge($system_array,$eaw_array);
             $criteria_faw = array_merge($system_array,$faw_array);
-
             $this->view->assign('AAW',$this->_poam->search($this->me->systems,array('count'=>'count(*)'),$criteria_aaw));
             $this->view->assign('BAW',$this->_poam->search($this->me->systems,array('count'=>'count(*)'),$criteria_baw));
             $this->view->assign('CAW',$this->_poam->search($this->me->systems,array('count'=>'count(*)'),$criteria_caw));
             $this->view->assign('DAW',$this->_poam->search($this->me->systems,array('count'=>'count(*)'),$criteria_daw));
             $this->view->assign('EAW',$this->_poam->search($this->me->systems,array('count'=>'count(*)'),$criteria_eaw));
             $this->view->assign('FAW',$this->_poam->search($this->me->systems,array('count'=>'count(*)'),$criteria_faw));
+            
+            $url='/zfentry.php/panel/report/sub/fisma/s/search';
+
+            if(isset($criteria['system_id']))
+            {
+                $url.='/system/'.$criteria['system_id'];
+            }
+            
+            if(isset( $criteria['startdate']))
+            {
+                $url.='/startdate/'. $criteria['startdate'];
+            }
+            if(isset($criteria['enddate']))
+            {
+                $url.='/enddate/'.$criteria['enddate'];
+            }
+            
+            $this->view->url=$url;
             $this->render('fismasearch');
         }
+            
     }
 
     public function poamAction()
@@ -116,7 +136,6 @@ class ReportController extends PoamBaseController
                          'year'     =>'year',
                          'status'   =>'status');
         $criteria = $this->retrieveParam($req, $params); 
-
         $this->view->assign('source_list',$this->_source_list);
         $this->view->assign('system_list',$this->_system_list);
         $this->view->assign('network_list',$this->_network_list);
@@ -126,7 +145,6 @@ class ReportController extends PoamBaseController
             || 'xls' == $req->getParam('format')){
             $this->_paging_base_path .= '/panel/report/sub/poam/s/search';
             $this->makeUrl($criteria);
-
             if(!empty($criteria['year'])){
                 $criteria['created_date_begin'] = new Zend_Date($criteria['year'],Zend_Date::YEAR);
                 $criteria['created_date_end']   = clone $criteria['created_date_begin'];
