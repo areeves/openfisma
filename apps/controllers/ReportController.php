@@ -22,7 +22,7 @@ class ReportController extends PoamBaseController
        $this->_helper->contextSwitch()
              ->addContext('pdf',array('suffix'=>'pdf',
                                       'headers'=>array('Content-Type'=>'application/pdf',
-                                                'Content-Disposition'=>'attachement;filename:"export.pdf"')) )
+                                                'Content-Disposition'=>'attachement;filename:export.pdf')) )
              ->addContext('xls',array('suffix'=>'xls') )
              ->addActionContext('poam', array('pdf','xls') )
              ->addActionContext('fisma', array('pdf','xls') )
@@ -107,18 +107,21 @@ class ReportController extends PoamBaseController
             
             $url='/zfentry.php/panel/report/sub/fisma/s/search';
 
-            if(isset($criteria['system_id']))
+            if(!empty($criteria['system_id']))
             {
                 $url.='/system/'.$criteria['system_id'];
+                $this->view->system=$criteria['system_id'];
             }
             
-            if(isset( $criteria['startdate']))
+            if(!empty( $criteria['startdate']))
             {
                 $url.='/startdate/'. $criteria['startdate'];
+                $this->view->startdate=$criteria['startdate'];
             }
-            if(isset($criteria['enddate']))
+            if(!empty($criteria['enddate']))
             {
                 $url.='/enddate/'.$criteria['enddate'];
+                $this->view->enddate=$criteria['enddate'];
             }
             
             $this->view->url=$url;

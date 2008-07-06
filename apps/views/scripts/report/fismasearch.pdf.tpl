@@ -19,12 +19,44 @@ define('PGWIDTH', 'pgwidth');
 define('PGHEIGHT', 'pgheight');
 define('FONTS', VENDORS . DS . 'pdf' . DS . 'fonts');
 
-$poam_config = array( ORIENTATION => 'landscape', PAPERTYPE => 'LETTER', PGWIDTH => 792);
-$pdf =& new Cezpdf($poam_config[PAPERTYPE], $poam_config[ORIENTATION]);
+$page_config = array( ORIENTATION => 'landscape', PAPERTYPE => 'LETTER', PGWIDTH => 792, PGHEIGHT=>612);
+$pdf =& new Cezpdf($page_config[PAPERTYPE], $page_config[ORIENTATION]);
 $pdf->selectFont(FONTS . DS . "Helvetica.afm");
+$top_margin=50;
+$bottom_margin=100;
+$left_margin=50;
+$right_margin=50;
 
-$pdf->ezTable($table, $fields,'FISMA Report to OMB: POA&M Status Report',
-    array('fontSize'=>8,'maxWidth'=>700));
+$page_config[PGWIDTH];
+$page_config[PGHEIGHT];
+$content_width=$page_config[PGWIDTH]-$left_margin-$right_margin;
+$content_height=$page_config[PGHEIGHT]-$top_margin-$bottom_margin=100;
+
+$pdf->ezSetMargins($top_margin, $bottom_margin, $left_margin, $right_margin);
+
+$pdf->addTextWrap($left_margin,$content_height+110,$content_width,8,'Report run time:'.Zend_Date::now()->toString('Y-m-d H:i:s'),'right');
+$pdf->line($left_margin,$content_height+105,$left_margin+$content_width,$content_height+105);
+$pdf->addTextWrap($left_margin,$bottom_margin,$content_width,8,'Report run time:'.Zend_Date::now()->toString('Y-m-d H:i:s'),'left');
+
+$pdf->ezText('FISMA Report to OMB: POA&M Status Report',16,array('justification'=>'centre'));
+$title='';
+if($this->system)
+{
+    $title.=' [System]: '.$this->system;
+}else {
+        $title.=' [System]: All';
+}
+if($this->startdate)
+{
+    $title.=' [Start date]: '.$this->startdate;
+}
+if($this->enddate)
+{
+    $title.=' [End date]: '.$this->enddate;
+}
+
+$pdf->ezTable($table, $fields,$title,
+    array('fontSize'=>8,'maxWidth'=>$content_width,'titleFontSize'=>12));
 $pdf->ezStream();
 
 ?>
