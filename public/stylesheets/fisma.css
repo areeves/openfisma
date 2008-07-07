@@ -3,11 +3,31 @@ a.action {
     line-height : 2em;
 }
 
+a.button:active,
+a.button:visited,
+a.button:link {
+  display: block;
+  text-decoration: none;
+  padding: 2px 6px 2px 6px;
+  color: #00527f;
+  background-color: #cccccc;
+  border: 1px solid #004266;
+}
+a.button:hover {
+  color: red;
+  background-color: #8cbbda;
+}
+
 ul {
     margin:0;
     padding:0;
     border:0;
     list-style:none;
+}
+
+ul.linwise li {
+  float:left;
+  margin:3px 4px;
 }
 
 ul.loginfo {

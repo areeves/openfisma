@@ -65,35 +65,37 @@
 <p><b>Risk Analysis</b><span></span></p>
 </div>
 </div>
-            <table cellpadding="5" cellspacing="1" class="tipframe">
-                <tr><th align="left" >Risk Analysis Form</th></tr>
+            <table class="tipframe">
                 <tr>
-                    <td>
+                <th align="left" > Risk Analysis Form </th>
+                </tr>
+                <tr>
+                    <td >
                         Based on the guidance provided by NIST Special Publication 800-37, to derive an overall likelihood rating that indicates the probability that a potential vulnerability may be exercised, we must first define the threat-source motivation and capability while considering the nature of the vulnerability and the existence and effectiveness of current controls or countermeasures. The following two sections on Threat Information and Countermeasure Information will help us define the iformation required to generate a threat likelihood risk level which will be used to generate the overall risk level of this vulnerability as it pertains to your information system.
                     </td>
                 </tr>
-                <tr>
-        <!--RESTRICT BY ROLE -->
-        <!-- CHECK THAT CMEASURE AND THREAT LEVEL ARE SET-->
+                <tr><td>
         <?php 
             if( isAllow('remediation','generate_raf') &&
                 $this->poam['threat_level'] != 'NONE' && 
                 $this->poam['cmeasure_effectiveness'] != 'NONE' ){ 
         ?>
-        <td colspan='2'>
-            <button type="button"
-            onclick="window.open('/zfentry.php/remediation/raf/id/<?php echo $this->poam['id'];?>')" >
-            Generate RAF
-            </button>
-            &nbsp;
-            <a target='_blank' 
-            href='/zfentry.php/remediation/raf/format/pdf/id/<?php echo $this->poam['id'];?>')><img src="/images/pdf.gif" border="0"></a>
-        </td>
+                <ul class='linwise' >
+                    <li> 
+                    <a class="button" target="_blank" 
+                    href=/zfentry.php/remediation/raf/id/<?php echo $this->poam['id'];?>>
+                    View RAF
+                    </a>
+                    </li>
+                    <li>
+                    <a class='button' target='_blank' 
+                    href='/zfentry.php/remediation/raf/format/pdf/id/<?php echo $this->poam['id'];?>')>Export to PDF</a>
+                    </li>
+                </ul>
         <?php } else { ?>
-        <td><i>
-        (Threat and Countermeasure information must be completed to generate a RAF)
-        </i></td>
+            <i>(Threat and Countermeasure information must be completed to generate a RAF)</i>
         <?php } ?>
+            </td>
                 </tr>
             </table>
 
