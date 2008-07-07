@@ -33,8 +33,7 @@ $format_times =& $workbook->addFormat(array('Size' => 10,
     'Align' => 'center',
     'Color' => 'black',
     'BorderColor '=> 'blue',
-    'Bottom'=>1,'Top'=>1,'Left'=>1,'Right'=>1,
-    //'FgColor' => 'white',
+    'Bottom'=>1,'Top'=>1,'Left'=>1,'Right'=>1
     ));
 $format_times->setFontFamily('Times New Roman');
 

@@ -40,8 +40,7 @@ class ReportController extends PoamBaseController
         $criteria['enddate']   = $req->getParam('enddate');
         $this->view->assign('system_list', $this->_system_list);
         $this->view->assign('criteria',$criteria);
-        $this->render();
-        if('search' == $req->getParam('s')            
+        if('search' == $req->getParam('s')
             || 'pdf' == $req->getParam('format')
             || 'xls' == $req->getParam('format')){
             if(!empty($criteria['startdate']) && !empty($criteria['enddate'])){
@@ -97,36 +96,17 @@ class ReportController extends PoamBaseController
             $criteria_daw = array_merge($system_array,$daw_array);
             $criteria_eaw = array_merge($system_array,$eaw_array);
             $criteria_faw = array_merge($system_array,$faw_array);
-            $this->view->assign('AAW',$this->_poam->search($this->me->systems,array('count'=>'count(*)'),$criteria_aaw));
-            $this->view->assign('BAW',$this->_poam->search($this->me->systems,array('count'=>'count(*)'),$criteria_baw));
-            $this->view->assign('CAW',$this->_poam->search($this->me->systems,array('count'=>'count(*)'),$criteria_caw));
-            $this->view->assign('DAW',$this->_poam->search($this->me->systems,array('count'=>'count(*)'),$criteria_daw));
-            $this->view->assign('EAW',$this->_poam->search($this->me->systems,array('count'=>'count(*)'),$criteria_eaw));
-            $this->view->assign('FAW',$this->_poam->search($this->me->systems,array('count'=>'count(*)'),$criteria_faw));
-            
-            $url='/zfentry.php/panel/report/sub/fisma/s/search';
-
-            if(!empty($criteria['system_id']))
-            {
-                $url.='/system/'.$criteria['system_id'];
-                $this->view->system=$criteria['system_id'];
-            }
-            
-            if(!empty( $criteria['startdate']))
-            {
-                $url.='/startdate/'. $criteria['startdate'];
-                $this->view->startdate=$criteria['startdate'];
-            }
-            if(!empty($criteria['enddate']))
-            {
-                $url.='/enddate/'.$criteria['enddate'];
-                $this->view->enddate=$criteria['enddate'];
-            }
-            
-            $this->view->url=$url;
-            $this->render('fismasearch');
+            $summary = array('AAW'=>0,'AS'=>0,'BAW'=>0,'BS'=>0,'CAW'=>0,'CS'=>0,'DAW'=>0,'DS'=>0,
+                             'EAW'=>0,'ES'=>0,'FAW'=>0,'FS'=>0);
+            $summary['AAW'] = $this->_poam->search($this->me->systems,array('count'=>'count(*)'),$criteria_aaw);
+            $summary['BAW'] = $this->_poam->search($this->me->systems,array('count'=>'count(*)'),$criteria_baw);
+            $summary['CAW'] = $this->_poam->search($this->me->systems,array('count'=>'count(*)'),$criteria_caw);
+            $summary['DAW'] = $this->_poam->search($this->me->systems,array('count'=>'count(*)'),$criteria_daw);
+            $summary['EAW'] = $this->_poam->search($this->me->systems,array('count'=>'count(*)'),$criteria_eaw);
+            $summary['FAW'] = $this->_poam->search($this->me->systems,array('count'=>'count(*)'),$criteria_faw);
+            $this->view->assign('summary',$summary);
         }
-            
+        $this->render();
     }
 
     public function poamAction()

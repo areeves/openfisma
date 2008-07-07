@@ -17,7 +17,24 @@
         $("span[name=q4]").parent().attr( 'href', url+'q/4/' );
     }
 </script>
-
+<?php 
+    $url = "/zfentry.php/panel/report/sub/fisma/s/search";
+    if(! empty($this->criteria['system_id'])) {
+        $url .='/system/'.$this->criteria['system_id'];
+    }
+    if(! empty($this->criteria['year'])) {
+        $url .='/y/'.$this->criteria['year'];
+    }
+    if(! empty($this->criteria['quarter'])) {
+        $url .='/q/'.$this->criteria['quarter'];
+    }
+    if(! empty($this->criteria['startdate'])) {
+        $url .='/startdate/'.$this->criteria['startdate'];
+    }
+    if(! empty($this->criteria['enddate'])) {
+        $url .='/enddate/'.$this->criteria['enddate'];
+    }
+?>
 <div class="barleft">
 <div class="barright">
 <p><b>FISMA Report to OMB</b></p>
@@ -55,3 +72,8 @@
         </span>
     </div>
 </div>
+<?php
+    if(isset($this->summary)){
+        echo $this->partial('report/fismasearch.tpl',array('summary'=>&$this->summary,'url'=>&$url));
+    }
+?>
