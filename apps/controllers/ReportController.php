@@ -334,6 +334,7 @@ class ReportController extends PoamBaseController
 
     public function rafsAction()
     {
+        require_once 'Archive/Tar.php';
         $sid = $this->_req->getParam('system_id');
         $this->view->assign('system_list',$this->_system_list);
         if( !empty($sid) ) {
@@ -344,35 +345,35 @@ class ReportController extends PoamBaseController
                            ->where('cmeasure_effectiveness IS NOT NULL AND 
                                     cmeasure_effectiveness != \'NONE\'');
             $poam_ids = $this->_poam->getAdapter()->fetchCol($query);
-            /*
             $count = count($poam_ids);
             if( $count > 0 ) {
-                $fname = tempnam(OVMS_WEB_TEMP, "RAF");
+                $this->_helper->layout->disableLayout(true);
+                $fname = tempnam('/tmp/', "RAFs");
                 @unlink($fname);
-                if(class_exists('ZipArchive')) {
-                    $fname .= '.zip';
-                    $flag = 'zip';
-                    $zip = new ZipArchive;
-                    $ret = $zip->open($fname, ZIPARCHIVE::CREATE);
-                    if(!($ret === TRUE) ) {
-                        throw new fisma_Exception('Cannot create file '. $fname);
-                    }
-                }else{
-                    throw new fisma_Exception('ZipAchive required to use this function');
-                    $flag = 'tgz';
-                    $files = array();
+                $rafs = new Archive_Tar($fname,true);
+                $this->view->assign('source_list',$this->_source_list);
+                $path = $this->_helper->viewRenderer->getViewScript('raf',
+                        array('controller'=>'remediation',
+                              'suffix'    =>'pdf.tpl') );
+                foreach( $poam_ids as $id ) {
+                    $poam_detail = &$this->_poam->getDetail($id);
+                    $this->view->assign('poam',$poam_detail);
+                    $rafs->addString("raf_{$id}.pdf",$this->view->render($path));
                 }
-            }
-            */
-            $this->view->assign('source_list',$this->_source_list);
-            foreach( $poam_ids as $id ) {
-                $poam_detail = &$this->_poam->getDetail($id);
-                $this->view->assign('poam',$poam_detail);
-                $this->render('remediation/raf',null,true);
+                header("Content-type: application/octetstream");
+                header('Content-Length: '.filesize($fname));
+                header("Content-Disposition: attachment; filename=RAFs.tgz");
+                header("Content-Transfer-Encoding: binary");
+                header("Expires: 0");
+                header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+                header("Pragma: public");
+                echo file_get_contents($fname);
+                @unlink($fname);
+            }else{
+                $this->render();
             }
         }else{
             $this->render();
         }
     }
-
 }
