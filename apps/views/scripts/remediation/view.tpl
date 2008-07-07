@@ -20,7 +20,7 @@
      <!-- Heading Block -->
      <div class="barleft">
      <div class="barright">
-     <p><b>Supporting Evidence</b>(<?php echo count($this->ev_evals);?> total)<span></span></p>
+     <p><b>Supporting Evidence</b> (<?php echo count($this->ev_evals);?> total)<span></span></p>
      </div>
      </div>
 

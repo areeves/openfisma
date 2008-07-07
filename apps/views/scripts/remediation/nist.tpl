@@ -198,7 +198,7 @@
     <th align='left'>Approval</th>
     <tr>
         <td>
-            <i>(All fileds above must be set and saved to make SSO approval field editable.)</i>
+            <i>(All fields above must be set and saved to make SSO approval field editable.)</i>
         </td>
     </tr>
     <tr>
