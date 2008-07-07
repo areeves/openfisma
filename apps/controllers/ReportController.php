@@ -15,19 +15,35 @@ require_once 'Pager.php';
 
 class ReportController extends PoamBaseController
 {
+
+    public function init()
+    {
+        parent::init();
+        $swCtx = $this->_helper->contextSwitch();
+        if(!$swCtx->hasContext('pdf')){
+            $swCtx->addContext('pdf',array('suffix'=>'pdf',
+                    'headers'=>array('Content-Disposition'=>'attachement;filename:"export.pdf"', 
+                    'Content-Type'=>'application/pdf')) );
+        }
+        if(!$swCtx->hasContext('xls')){
+            $swCtx->addContext('xls',array('suffix'=>'xls') );
+        }
+    }
+
     public function preDispatch()
     {
-       parent::preDispatch();
-       $this->req = $this->getRequest();
-       $this->_helper->contextSwitch()
-             ->addContext('pdf',array('suffix'=>'pdf',
-                                 'headers'=>array('Content-Disposition'=>'attachement;filename:"export.pdf"', 'Content-Type'=>'application/pdf')) )
-             ->addContext('xls',array('suffix'=>'xls') )
-             ->addActionContext('poam', array('pdf','xls') )
+        parent::preDispatch();
+        $this->req = $this->getRequest();
+        $swCtx = $this->_helper->contextSwitch();
+        $swCtx->addActionContext('poam', array('pdf','xls') )
              ->addActionContext('fisma', array('pdf','xls') )
+             ->addActionContext('blscr',array('pdf','xls') )
+             ->addActionContext('fips',array('pdf','xls') )
+             ->addActionContext('prods',array('pdf','xls') )
+             ->addActionContext('swdisc',array('pdf','xls') )
+             ->addActionContext('total',array('pdf','xls') )
              ->addActionContext('overdue', array('pdf','xls') )
              ->initContext();
-
     }
 
     public function fismaAction()
@@ -229,107 +245,145 @@ class ReportController extends PoamBaseController
         $type = $req->getParam('type','');
         $this->view->assign('type',$type);
         $this->render();
-        if('search' == $req->getParam('s') && !empty($type) || 'pdf'==$req->getParam('format')){
-            $db = $this->_poam->getAdapter();
-            $system = new system();
-            switch($type){
-                case 1:
-                    $rpdata = array();
-                    $query = $db->select()->from(array('p'=>'poams'),array('num'=>'count(p.id)'))
-                                ->join(array('b'=>'blscrs'),'b.code = p.blscr_id',array('blscr'=>'b.code'))
-                                ->where("b.class = 'MANAGEMENT'")
-                                ->group("b.code");
-                    $rpdata[] = $db->fetchAll($query);
-                    $query->reset();
-                    $query = $db->select()->from(array('p'=>'poams'),array('num'=>'count(p.id)'))
-                                ->join(array('b'=>'blscrs'),'b.code = p.blscr_id',array('blscr'=>'b.code'))
-                                ->where("b.class = 'OPERATIONAL'")
-                                ->group("b.code");
-                    $rpdata[] = $db->fetchAll($query);
-                    $query->reset();
-                    $query = $db->select()->from(array('p'=>'poams'),array('num'=>'count(p.id)'))
-                                ->join(array('b'=>'blscrs'),'b.code = p.blscr_id',array('blscr'=>'b.code'))
-                                ->where("b.class = 'TECHNICAL'")
-                                ->group("b.code");
-                    $rpdata[] = $db->fetchAll($query);
-                    break;
-                case 2:
-                    $systems = $system->getList(array('name'=>'name','type'=>'type','conf'=>'confidentiality',
-                                                      'avail'=>'availability','integ'=>'availability'));
-                    $fips_totals = array();
-                    $fips_totals['LOW'] = 0;
-                    $fips_totals['MODERATE'] = 0;
-                    $fips_totals['HIGH']     = 0;
-                    $fips_totals['n/a'] = 0;
-                    foreach($systems as &$system){
-                        if(strtolower($system['conf']) != 'none'){
-                            $risk_obj = new RiskAssessment($system['conf'],$system['avail'],$system['integ'],null,null,null);
-                            $fips199 = $risk_obj->get_data_sensitivity();
-                        }else{
-                            $fips199 = 'n/a';
-                        }
-                        $system['fips'] = $fips199;
-                        $fips_totals[$fips199] += 1;
-                        $system['crit'] = $system['avail'];
-                    }
-                    $rpdata = array();
-                    $rpdata[] = $systems;
-                    $rpdata[] = $fips_totals;
-                    break;
-                case 3:
-                    $query = $db->select()->from(array('prod'=>'products'),
-                                                 array('Vendor'=>'prod.vendor','Product'=>'prod.name',
-                                                       'Version'=>'prod.version','NumoOV'=>'count(prod.id)'))
-                                ->join(array('p'=>'poams'),'p.status IN ("OPEN","EN","UP","ES")',array())
-                                ->join(array('a'=>'assets'),'a.id = p.asset_id AND a.prod_id = prod.id',array())
-                                ->group("prod.vendor")
-                                ->group("prod.name")
-                                ->group("prod.version");
-                    $rpdata = $db->fetchAll($query);
-                    break;
-                case 4:
-                    $query = $db->select()->from(array('p'=>'products'),
-                                                 array('Vendor'=>'p.vendor','Product'=>'p.name',
-                                                       'Version'=>'p.version'))
-                                ->join(array('a'=>'assets'),'a.source = "SCAN" AND a.prod_id = p.id',array());
-                    $rpdata = $db->fetchAll($query);
-                    break;
-                case 5:
-                    $rpdata = array();
-                    $query = $db->select()->from(array('sys'=>'systems'),array('sysnick'=>'sys.nickname',
-                                                                               'vulncount'=>'count(sys.id)'))
-                                ->join(array('p'=>'poams'),'p.type IN ("CAP","AR","FP") AND
-                                       p.status IN ("OPEN","EN","EP","ES") AND p.system_id = sys.id',array())
-                                ->join(array('a'=>'assets'),'a.id = p.asset_id',array())
-                                ->group("p.system_id");
-                    $sys_vulncounts = $db->fetchAll($query);
-                    $systems = $system->getList(array('system_nickname'=>'nickname'));
-                    $system_totals = array();
-                    foreach($systems as $system_row){
-                        $system_nick = $system_row['system_nickname'];
-                        $system_totals[$system_nick] = 0;
-                    }
-                    $total_open = 0;
-                    foreach((array)$sys_vulncounts as $sv_row){
-                        $system_nick = $sv_row['sysnick'];
-                        $system_totals[$system_nick] = $sv_row['vulncount'];
-                        $total_open++;
-                    }
-                    $system_total_array = array();
-                    foreach(array_keys($system_totals) as $key){
-                        $val = $system_totals[$key];
-                        $this_row = array();
-                        $this_row['nick'] = $key;
-                        $this_row['num'] = $val;
-                        array_push($system_total_array,$this_row);
-                    }
-                    array_push($rpdata,$total_open);
-                    array_push($rpdata,$system_total_array);
-                    break;
+        if(!empty($type) && ('search' == $req->getParam('s'))){
+            $REPORT_GEN_BLSCR  = 1;   // NIST Baseline Security Controls Report
+            $REPORT_GEN_FIPS   = 2;   // FIPS 199 Category Breakdown
+            $REPORT_GEN_PRODS  = 3;   // Products with Open Vulnerabilities
+            $REPORT_GEN_SWDISC = 4;   // Software Discovered Through Vulnerability Assessments
+            $REPORT_GEN_TOTAL  = 5;   // Total # Systems with Open Vulnerabilitie
+            if($REPORT_GEN_BLSCR == $type){
+                $this->_forward('blscr');
             }
-            $this->view->assign('rpdata',$rpdata);
-            $this->render('generalsearch-'.$type);
+            if($REPORT_GEN_FIPS == $type) {
+                $this->_forward('fips');
+            }
+            if($REPORT_GEN_PRODS == $type) {
+                $this->_forward('prods');
+            }
+            if($REPORT_GEN_SWDISC == $type) {
+                $this->_forward('swdisc');
+            }
+            if($REPORT_GEN_TOTAL == $type) {
+                $this->_forward('total');
+            }
         }
+    }
+
+    public function blscrAction()
+    {
+        $req = $this->getRequest();
+        $db = $this->_poam->getAdapter();
+        $system = new system();
+        $rpdata = array();
+        $query = $db->select()->from(array('p'=>'poams'),array('num'=>'count(p.id)'))
+                    ->join(array('b'=>'blscrs'),'b.code = p.blscr_id',array('blscr'=>'b.code'))
+                    ->where("b.class = 'MANAGEMENT'")
+                    ->group("b.code");
+        $rpdata[] = $db->fetchAll($query);
+        $query->reset();
+        $query = $db->select()->from(array('p'=>'poams'),array('num'=>'count(p.id)'))
+                    ->join(array('b'=>'blscrs'),'b.code = p.blscr_id',array('blscr'=>'b.code'))
+                    ->where("b.class = 'OPERATIONAL'")
+                    ->group("b.code");
+        $rpdata[] = $db->fetchAll($query);
+        $query->reset();
+        $query = $db->select()->from(array('p'=>'poams'),array('num'=>'count(p.id)'))
+                    ->join(array('b'=>'blscrs'),'b.code = p.blscr_id',array('blscr'=>'b.code'))
+                    ->where("b.class = 'TECHNICAL'")
+                    ->group("b.code");
+        $rpdata[] = $db->fetchAll($query);
+        $this->view->assign('rpdata',$rpdata);
+        $this->render();
+    }
+
+    public function fipsAction()
+    {
+        $req = $this->getRequest();
+        $system = new system();
+        $systems = $system->getList(array('name'=>'name','type'=>'type','conf'=>'confidentiality',
+                                          'avail'=>'availability','integ'=>'availability'));
+        $fips_totals = array();
+        $fips_totals['LOW'] = 0;
+        $fips_totals['MODERATE'] = 0;
+        $fips_totals['HIGH']     = 0;
+        $fips_totals['n/a'] = 0;
+        foreach($systems as &$system){
+            if(strtolower($system['conf']) != 'none'){
+                $risk_obj = new RiskAssessment($system['conf'],$system['avail'],$system['integ'],null,null,null);
+                $fips199 = $risk_obj->get_data_sensitivity();
+            }else{
+                $fips199 = 'n/a';
+            }
+            $system['fips'] = $fips199;
+            $fips_totals[$fips199] += 1;
+            $system['crit'] = $system['avail'];
+        }
+        $rpdata = array();
+        $rpdata[] = $systems;
+        $rpdata[] = $fips_totals;
+        $this->view->assign('rpdata',$rpdata);
+        $this->render();
+    }
+
+    public function prodsAction()
+    {
+        $db = $this->_poam->getAdapter();
+        $query = $db->select()->from(array('prod'=>'products'),
+                                     array('Vendor'=>'prod.vendor','Product'=>'prod.name',
+                                           'Version'=>'prod.version','NumoOV'=>'count(prod.id)'))
+                    ->join(array('p'=>'poams'),'p.status IN ("OPEN","EN","UP","ES")',array())
+                    ->join(array('a'=>'assets'),'a.id = p.asset_id AND a.prod_id = prod.id',array())
+                    ->group("prod.vendor")
+                    ->group("prod.name")
+                    ->group("prod.version");
+        $rpdata = $db->fetchAll($query);
+        $this->view->assign('rpdata',$rpdata);
+        $this->render();
+    }
+
+    public function swdiscAction()
+    {
+        $db = $this->_poam->getAdapter();                   
+        $query = $db->select()->from(array('p'=>'products'),
+                                   array('Vendor'=>'p.vendor','Product'=>'p.name',
+                                           'Version'=>'p.version'))
+                    ->join(array('a'=>'assets'),'a.source = "SCAN" AND a.prod_id = p.id',array());
+        $rpdata = $db->fetchAll($query);
+        $this->view->assign('rpdata',$rpdata);
+        $this->render();
+    }
+    
+    public function totalAction()
+    {
+        $db = $this->_poam->getAdapter();
+        $rpdata = array();
+        $query = $db->select()->from(array('sys'=>'systems'),array('sysnick'=>'sys.nickname',
+                                                                   'vulncount'=>'count(sys.id)'))
+                    ->join(array('p'=>'poams'),'p.type IN ("CAP","AR","FP") AND
+                           p.status IN ("OPEN","EN","EP","ES") AND p.system_id = sys.id',array())
+                    ->join(array('a'=>'assets'),'a.id = p.asset_id',array())
+                    ->group("p.system_id");
+        $sys_vulncounts = $db->fetchAll($query);
+        $sys_nicks = $system->getList('nickname');
+
+        $total_open = 0;
+        foreach((array)$sys_vulncounts as $sv_row){
+            $system_nick = $sv_row['sysnick'];
+            $system_totals[$system_nick] = $sv_row['vulncount'];
+            $total_open++;
+        }
+        $system_total_array = array();
+        foreach(array_keys($system_totals) as $key){
+            $val = $system_totals[$key];
+            $this_row = array();
+            $this_row['nick'] = $key;
+            $this_row['num'] = $val;
+            array_push($system_total_array,$this_row);
+        }
+        array_push($rpdata,$total_open);
+        array_push($rpdata,$system_total_array);
+        $this->view->assign('rpdata',$rpdata);
+        $this->render();
     }
 
     public function rafsAction()
