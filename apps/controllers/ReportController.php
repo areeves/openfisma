@@ -21,8 +21,7 @@ class ReportController extends PoamBaseController
        $this->req = $this->getRequest();
        $this->_helper->contextSwitch()
              ->addContext('pdf',array('suffix'=>'pdf',
-                                      'headers'=>array('Content-Type'=>'application/pdf',
-                                                'Content-Disposition'=>'attachement;filename:export.pdf')) )
+                                 'headers'=>array('Content-Disposition'=>'attachement;filename:"export.pdf"', 'Content-Type'=>'application/pdf')) )
              ->addContext('xls',array('suffix'=>'xls') )
              ->addActionContext('poam', array('pdf','xls') )
              ->addActionContext('fisma', array('pdf','xls') )

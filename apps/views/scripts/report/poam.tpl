@@ -5,10 +5,10 @@
                        '2007' =>'2007',
                        '2008' =>'2008',
                        '2009' =>'2009');
-    $status_list = array(0        =>'All Status',
+    $status_list = array('0'        =>'All Status',
                          'CLOSED' =>'Closed',
                          'OPEN'   =>'Open');
-    $type_list = array(0      =>'All Type',
+    $type_list = array('0'      =>'All Type',
                        'CAP'  =>'CAP',
                        'FP'   =>'FP',
                        'AR'   =>'AR');
@@ -60,7 +60,7 @@
         <td height="30"><b>Type</b></td>
         <td>
         <?php echo $this->formSelect('type',
-                                    nullGet($this->criteria['type'],0),
+                                    (string)nullGet($this->criteria['type'],0),
                                     null,$type_list);
               if( !empty($this->criteria['type']) ) {
                   $url .= '/type/'.$this->criteria['type'];
@@ -70,7 +70,7 @@
         <td><b>Status</b></td>
         <td colspan="3">
         <?php echo $this->formSelect('status',
-                                    nullGet($this->criteria['status'],0),
+                                    (string)nullGet($this->criteria['status'],0),
                                     null,$status_list);
               if( !empty($this->criteria['status']) ) {
                   $url .= '/status/'.$this->criteria['status'];
