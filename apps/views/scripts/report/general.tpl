@@ -5,7 +5,7 @@ $type_list = array('' =>'Please Select Report',
                    '3'=>'Products with Open Vulnerabilities',
                    '4'=>'Software Discovered Through Vulnerability Assessments',
                    '5'=>'Total # of Systems /w Open Vulnerabilities');
-$action_list = array(1=>'blscrreport',2=>'fipsreport',3=>'prodsreport',4=>'swdiscreport',5=>'totalreport');
+$action_list = array(1=>'blscr',2=>'fips',3=>'prods',4=>'swdisc',5=>'total');
 $url = "/zfentry.php/report/".$action_list[$this->type];
 ?>
 <div class="barleft">
