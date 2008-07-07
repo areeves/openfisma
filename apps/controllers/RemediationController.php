@@ -329,7 +329,7 @@ class RemediationController extends PoamBaseController
             $result = $this->_poam->update($update_data,"id = $id");
             if( $result > 0 ){
             	$log_content="Changed: status: EP . Upload evidence: $filename OK";
-            	$this->_poam->writeLogs($id,$user_id, self::$now->toString('Y-m-d H:i:s'),'UPLOADE VIDENCE',$log_content);
+            	$this->_poam->writeLogs($id,$user_id, self::$now->toString('Y-m-d H:i:s'),'UPLOAD EVIDENCE',$log_content);
             }
         }
         $this->_redirect('/panel/remediation/sub/view/id/'.$id);
