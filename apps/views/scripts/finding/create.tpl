@@ -18,7 +18,7 @@
             <tr> <td>
                     <table border="0" cellpadding="1" cellspacing="1">
                         <tr>
-                            <td align="right"><b>Discovered Date:</b></td>
+                            <td align="right"><b>Discovered Date:&nbsp;</b></td>
                             <td>
                                 <table border="0" cellpadding="0" cellspacing="0">
                                     <tr>
@@ -28,7 +28,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td align="right"><b>Finding Source:</b></td>
+                            <td align="right"><b>Finding Source:&nbsp;</b></td>
                             <td>
                             <?php 
                                 $this->source[0] = '--Any--';

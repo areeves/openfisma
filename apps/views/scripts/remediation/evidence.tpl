@@ -12,7 +12,7 @@
     </th></tr>
 
     <tr> 
-        <td colspan=2><b>Evidence:</b>
+        <td colspan=2><b>Evidence:&nbsp;</b>
         <?php 
             $url = $evidence['submission'];
             $ev_path[] = $evidence['submission'];
@@ -51,7 +51,7 @@
                 $value = 'NONE';
             }
         }
-        echo  "<tr><td><b>$name:</b>";
+        echo  "<tr><td><b>$name:&nbsp;</b>";
         if($value=='NONE' && $editable ){
             echo '<input type="hidden" name="evaluation" value="'.$k.'"/>';
             echo '<input type="hidden" name="topic" value="" />';

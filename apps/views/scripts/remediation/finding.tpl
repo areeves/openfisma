@@ -14,16 +14,16 @@
             <table border="0" cellpadding="5" cellspacing="1" class="tipframe" >
                 <th align="left" colspan="2">Finding Information</th>
                 <tr>
-                    <td><b>POAM ID:</b><?php echo $this->poam['id'];?></td>
+                    <td><b>POAM ID:&nbsp;</b><?php echo $this->poam['id'];?></td>
                 </tr>
                 <tr>
-                    <td><b>Date Opened:</b><?php echo $this->poam['create_ts'];?></td>
+                    <td><b>Date Opened:&nbsp;</b><?php echo $this->poam['create_ts'];?></td>
                 </tr>
                 <tr>
-                    <td><b>Source:</b> (<?php echo $this->poam['source_nickname'];?>) <?php echo $this->poam['source_name'];?></td>
+                    <td><b>Source:&nbsp;</b> (<?php echo $this->poam['source_nickname'];?>) <?php echo $this->poam['source_name'];?></td>
                 </tr>
                 <tr>
-                    <td><b>Status:</b>
+                    <td><b>Status:&nbsp;</b>
                         <?php 
                     $st = $this->poam['status'];
                     if( 'EN' == $st ) {
@@ -41,7 +41,7 @@
                         <b target="action_owner" <?php
         if(isAllow('remediation','update_finding_assignment')){
             echo ' class="editable"';
-     }?> >Responsible System:</b>
+     }?> >Responsible System:&nbsp;</b>
                         <span name="poam[system_id]" id="action_owner" type="select" 
                    href="/zfentry.php/metainfo/list/o/system/format/html/">
     <?php echo $this->system_list[$this->poam['system_id']]; ?>
@@ -55,16 +55,16 @@
             <table border="0" cellpadding="5" cellspacing="1" class="tipframe" width="100%">
                 <th align="left" colspan="2">Asset Information</th>
                 <tr>
-                    <td><b>Asset Owner:</b> <?php echo $this->system_list[$this->poam['asset_owner']];?></td>
+                    <td><b>Asset Owner:&nbsp;</b> <?php echo $this->system_list[$this->poam['asset_owner']];?></td>
                 </tr>
                 <tr>
-                    <td><b>Asset Name:</b> <?php echo nullGet($this->poam['asset_name'],'(none given)');?> </td>
+                    <td><b>Asset Name:&nbsp;</b> <?php echo nullGet($this->poam['asset_name'],'(none given)');?> </td>
                 </tr>
                 <tr>
-                    <td><b>Known Address(es):</b> <i><?php echo $this->network_list[$this->poam['network_id']],$this->poam['ip'],':',$this->poam['port']?> </i> </td>
+                    <td><b>Known Address(es):&nbsp;</b> <i><?php echo $this->network_list[$this->poam['network_id']],$this->poam['ip'],':',$this->poam['port']?> </i> </td>
                 </tr>
                 <tr>
-                    <td><b>Product Information:</b> <i>
+                    <td><b>Product Information:&nbsp;</b> <i>
                         <?php  if( !empty($this->poam['product']) ){
                             echo $this->poam['product']['prod_vendor'].
                                  $this->poam['product']['prod_name'].
@@ -94,10 +94,10 @@
         <td colspan="2"><!-- VULERABILITIES TABLE -->
             <table border="0" cellpadding="5" cellspacing="1" width="100%">
                 <tr>
-                    <td><b>Vulnerability ID:</b><?php echo $row['type'].'-'.$row['seq'];?></td>
+                    <td><b>Vulnerability ID: </b><?php echo $row['type'].'-'.$row['seq'];?></td>
                 </tr>
                 <tr>
-                    <td><b>Description:</b><?php echo $row['description'];?></td>
+                    <td><b>Description: </b><?php echo $row['description'];?></td>
                 </tr>
             </table>
             <!-- END VULERABILITIES TABLE -->

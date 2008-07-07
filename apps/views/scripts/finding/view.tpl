@@ -14,7 +14,7 @@
                         <button>Delete</button>
                         </a> </td>
                     <?php  } else { ?>
-                    <td><b>Status:</b> <?php echo $this->finding['status'];?></td>
+                    <td><b>Status: </b> <?php echo $this->finding['status'];?></td>
                     <?php } 
 ?>
                 </tr>
@@ -34,27 +34,27 @@
                                 <td><table>
                                         <tr>
                                             <td align="right"><b>POAM ID:</b></td>
-                                            <td><?php echo $this->finding['id'];?></td>
+                                            <td>&nbsp;<?php echo $this->finding['id'];?></td>
                                         </tr>
                                         <tr>
                                             <td align="right"><b>Finding Source:</b></td>
-                                            <td><?php echo $this->finding['source_name'];?></td>
+                                            <td>&nbsp;<?php echo $this->finding['source_name'];?></td>
                                         </tr>
                                         <tr>
                                             <td align="right"><b>Date Discovered:</b></td>
-                                            <td><?php echo $this->finding['discover_ts'];?></td>
+                                            <td>&nbsp;<?php echo $this->finding['discover_ts'];?></td>
                                         </tr>
                                         <tr>
                                             <td align="right"><b>Date Opened:</b></td>
-                                            <td><?php echo $this->finding['create_ts'];?></td>
+                                            <td>&nbsp;<?php echo $this->finding['create_ts'];?></td>
                                         </tr>
                                         <tr>
                                             <td align="right"><b>Date Closed:</b></td>
-                                            <td><?php echo $this->finding['close_ts'];?></td>
+                                            <td>&nbsp;<?php echo $this->finding['close_ts'];?></td>
                                         </tr>
                                         <tr>
                                             <td align="right"><b>Date Modified:</b></td>
-                                            <td><?php echo $this->finding['modify_ts'];?></td>
+                                            <td>&nbsp;<?php echo $this->finding['modify_ts'];?></td>
                                         </tr>
                                     </table></td>
                             </tr>
@@ -64,32 +64,32 @@
                     <td valign="top"><!-- Asset Information Table -->
                         <table width="450" class="tipframe">
                             <tr>
-                                <th align="left" >Asset: <?php echo $this->asset['asset_name'];?> </th>
+                                <th align="left" >Asset:&nbsp;<?php echo $this->asset['asset_name'];?> </th>
                             </tr>
                             <tr>
                                 <td><table>
                                         <tr>
-                                            <td align="right"><b>System:</b></td>
+                                            <td align="right"><b>System: </b></td>
                                             <td>&nbsp; <?php echo $this->finding['system_name'];?> </td>
                                         </tr>
                                         <tr>
-                                            <td align="right"><b>IP Address:</b></td>
+                                            <td align="right"><b>IP Address: </b></td>
                                             <td>&nbsp; <?php echo $this->finding['ip'].":".$this->finding['port'];?> </td>
                                         </tr>
                                         <tr>
-                                            <td align="right"><b>Network:</b></td>
+                                            <td align="right"><b>Network: </b></td>
                                             <td>&nbsp; <?php echo nullGet($this->finding['network_name'],'');?> </td>
                                         </tr>
                                         <tr>
-                                            <td align="right"><b>Vendor:</b></td>
+                                            <td align="right"><b>Vendor: </b></td>
                                             <td>&nbsp; <?php echo isset($this->finding['prod_vendor'])?$this->finding['prod_vendor']:'';?> </td>
                                         </tr>
                                         <tr>
-                                            <td align="right"><b>Product:</b></td>
+                                            <td align="right"><b>Product: </b></td>
                                             <td>&nbsp; <?php echo isset($this->finding['prod_name'])?$this->finding['prod_name']:'';?> </td>
                                         </tr>
                                         <tr>
-                                            <td align="right"><b>Version:</b></td>
+                                            <td align="right"><b>Version: </b></td>
                                             <td>&nbsp; <?php echo isset($this->finding['prod_version'])?$this->finding['prod_version']:'';?> </td>
                                         </tr>
                                     </table></td>
@@ -115,7 +115,7 @@
         
         <tr>
             <td></td>
-            <td width="100%"><b>Description:</b> <br>
+            <td width="100%"><b>Description: </b> <br>
                 <table width="770"  class="tbframe" bgcolor="#eeeeee">
                     <tr>
                         <td><?php echo $this->finding['finding_data'];?>&nbsp;</td>
@@ -151,11 +151,11 @@
                         <td><table border="0" width="100%">
                                 <tr>
                                     <td align="right" width="120"><b>Vulnerability
-                                        ID:<b></td>
+                                        ID: <b></td>
                                     <td><?php echo $vobj['vuln_seq'];?></td>
                                 </tr>
                                 <tr>
-                                    <td align="right" width="120"><b>Description:<b></td>
+                                    <td align="right" width="120"><b>Description: <b></td>
                                     <td><table border="0" width="637" cellpadding="3" cellspacing="1" class="tbframe" bgcolor="#eeeeee">
                                             <tr>
                                                 <td><?php echo $vobj['vuln_desc_primary'];
