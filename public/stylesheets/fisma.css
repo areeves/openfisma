@@ -46,7 +46,7 @@ ul.loginfo {
     border-color: #42637B #888 #42637B #bbb;
 }
 
-#menu a h2 {
+#menu h2 a {
     font: bold 12px arial, helvetica, sans-serif;
     text-align: center;
     line-height: 1.8em;

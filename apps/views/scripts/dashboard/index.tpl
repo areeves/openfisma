@@ -1,6 +1,6 @@
 <div class="barleft">
 <div class="barright">
-<p><b>Dashboard</b><span><?PHP echo $this->escape($this->Current_time);?></span>
+<p><b>Dashboard</b>
 </div>
 </div>
 <table width="95%" align="center"  border="0" cellpadding="10" class="tipframe">
@@ -46,9 +46,9 @@
       </td>
     </tr>
     <tr>
-      <td width="33%"  align="center">Current Distribution of<br>POA&M Status</td>
-      <td width="34%"  align="center">Current POA&M Item<br>Totals by Status</td>
-      <td width="33%"  align="center">Current Distribution of<br>POA&M Type</td>
+      <td width="33%"  align="center">Current Distribution of<br>POA&amp;M Status</td>
+      <td width="34%"  align="center">Current POA&amp;M Item<br>Totals by Status</td>
+      <td width="33%"  align="center">Current Distribution of<br>POA&amp;M Type</td>
     </tr>
 </table>
 

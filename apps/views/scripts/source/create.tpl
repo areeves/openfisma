@@ -15,7 +15,7 @@
         <td class="tdc">&nbsp;<input type="text" name="source_name" size="90"><font color="blue"> *</font></td>
     </tr>
     <tr>
-        <td align="right" class="thc">Vendor:</td>
+        <td align="right" class="thc">Nickname:</td>
         <td class="tdc">&nbsp;<input type="text" name="source_nickname" size="90"><font color="blue"> *</font></td>
     </tr>
     <tr>

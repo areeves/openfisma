@@ -10,13 +10,13 @@
 <br>
 <table width="95%" align="center" class="tbframe">
     <tr align="center">
-        <td colspan="5"  bgcolor="#DFE5ED"><b>FISMA Report to OMB: POA&M Status Report</b></td>
+        <td colspan="5"  bgcolor="#DFE5ED"><b>FISMA Report to OMB: POA&amp;M Status Report</b></td>
     </tr>
     <tr align="center">
         <td colspan="5"  bgcolor="#DFE5ED">
             <table width="100%" border="0" cellspacing="0" cellpadding="4">
                 <tr align="center">
-                    <th width="50%">POA&M Status Information
+                    <th width="50%">POA&amp;M Status Information
                     <th width="15%">Agency Wide
                     <th width="15%">System
                     <th width="15%">Total
@@ -59,7 +59,7 @@
                 </tr>
                 <tr>
                     <td width="50%" class="tdc">
-                        E. Number of weaknesses discovered following the last POA&M update and a brief Explanation of how they were identified (e.g., agency review, IG evaluation, etc.)
+                        E. Number of weaknesses discovered following the last POA&amp;M update and a brief Explanation of how they were identified (e.g., agency review, IG evaluation, etc.)
                     </td>
                     <td width="15%" class="tdc"><?php echo $this->summary['EAW'];?></td>
                     <td width="15%" class="tdc"><?php echo $this->summary['ES'];?></td>

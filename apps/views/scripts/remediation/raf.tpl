@@ -117,9 +117,9 @@ table.rafImpact td {
     <td><?php echo $this->poam['is_repeat']?'yes':'no';?></td>
   </tr>
   <tr>
-    <td><b>POA&M Type:</b></td>
+    <td><b>POA&amp;M Type:</b></td>
     <td><?php echo $type_name[$this->poam['type']];?></td>
-    <td><b>POA&M Status:</b></td>
+    <td><b>POA&amp;M Status:</b></td>
     <td><?php echo $status_name[$this->poam['status']];?></td>
   </tr>
   <tr>
