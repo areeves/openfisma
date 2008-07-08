@@ -43,7 +43,7 @@ $total_num=0;
 foreach ($this->rpdata[0] as $row) {
     $worksheet->write($rowi,0,$row['blscr'],$format_times);
     $worksheet->write($rowi,1,$row['num'],$format_times);
-    $total_num=$total_num+$row['n'];
+    $total_num=$total_num+$row['num'];
     $rowi++;
 }
 
@@ -55,7 +55,7 @@ $total_num=0;
 foreach ($this->rpdata[1] as $row) {
     $worksheet->write($rowi,3,$row['blscr'],$format_times);
     $worksheet->write($rowi,4,$row['num'],$format_times);
-    $total_num=$total_num+$row['n'];
+    $total_num=$total_num+$row['num'];
     $rowi++;
 }
 
@@ -67,7 +67,7 @@ $total_num=0;
 foreach ($this->rpdata[2] as $row) {
     $worksheet->write($rowi,6,$row['blscr'],$format_times);
     $worksheet->write($rowi,7,$row['num'],$format_times);
-    $total_num=$total_num+$row['n'];
+    $total_num=$total_num+$row['num'];
     $rowi++;
 }
 

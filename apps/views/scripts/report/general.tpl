@@ -6,7 +6,6 @@ $type_list = array('' =>'Please Select Report',
                    '4'=>'Software Discovered Through Vulnerability Assessments',
                    '5'=>'Total # of Systems /w Open Vulnerabilities');
 $action_list = array(1=>'blscr',2=>'fips',3=>'prods',4=>'swdisc',5=>'total');
-$url = "/zfentry.php/report/".$action_list[$this->type];
 ?>
 <div class="barleft">
 <div class="barright">        
@@ -32,7 +31,10 @@ $url = "/zfentry.php/report/".$action_list[$this->type];
     </tr>
 </table>
 </form>
-<?php if(!empty($this->type)){ ?>
+<?php
+    if(!empty($this->type)){
+        $url = "/zfentry.php/report/".$action_list[$this->type];
+?>
 <div class="barleft">
 <div class="barright">
 <p><b>Report: <?php echo $type_list[$this->type];?></b>
