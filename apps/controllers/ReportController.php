@@ -271,7 +271,6 @@ class ReportController extends PoamBaseController
 
     public function blscrAction()
     {
-        $req = $this->getRequest();
         $db = $this->_poam->getAdapter();
         $system = new system();
         $rpdata = array();
@@ -298,7 +297,6 @@ class ReportController extends PoamBaseController
 
     public function fipsAction()
     {
-        $req = $this->getRequest();
         $system = new system();
         $systems = $system->getList(array('name'=>'name','type'=>'type','conf'=>'confidentiality',
                                           'avail'=>'availability','integ'=>'availability'));
