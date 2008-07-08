@@ -354,6 +354,7 @@ class ReportController extends PoamBaseController
     public function totalAction()
     {
         $db = $this->_poam->getAdapter();
+        $system = new system();
         $rpdata = array();
         $query = $db->select()->from(array('sys'=>'systems'),array('sysnick'=>'sys.nickname',
                                                                    'vulncount'=>'count(sys.id)'))
@@ -363,6 +364,11 @@ class ReportController extends PoamBaseController
                     ->group("p.system_id");
         $sys_vulncounts = $db->fetchAll($query);
         $sys_nicks = $system->getList('nickname');
+        $system_totals = array();
+        foreach($sys_nicks as $nickname){
+            $system_nick = $nickname;
+            $system_totals[$system_nick] = 0;
+        }
 
         $total_open = 0;
         foreach((array)$sys_vulncounts as $sv_row){
