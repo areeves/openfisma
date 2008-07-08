@@ -1,40 +1,37 @@
-This directory is used for run Selenium test cases.
+OpenFISMA Test Cases
 
-./
-	core/			-- Selenium runtime library
-	cases/		
-		ovms/           -- Test cases sort by suites
-		...
-	log/                    -- Log the result if cannot send a email
-        unit/      
-	TestSuite.html		-- Index of all test cases
-	postResults.php		-- Do email or log test result
-	test_dao.php.php	-- Database query interface
-	index.html		-- Provide a directly link to run default test suite
-	README         		-- This file
+Introduction
+============
+The OpenFISMA project has two types of tests built-in: functional tests written 
+in Selenium, and unit tests written to work in PhpUnit. Both types of test are
+designed to be automated and executed frequently, while also providing interactive 
+feedback about the status of test results.
 
-Q: How can I install test database?
-A: Warning: This process will cover your fisma database by sql files, so backup database if it necessary.
-   Step:
-	1.Download database file yyyymmdd_testfismadb.zip from: http://140.239.107.107/publish/testdata/yyyymmdd_testfismadb.zip
-	2.Unzip the *.sql files to directory test/data/
-	3.open brower url: http://servername:port/zfentry.php/test/dbrecover
-and then waiting for database loading finished. 
-You could follow the notes and check out your config if it shows failure.      
+The unit tests are intended to test at a low level, ensuring that class
+implementations provide proper output on a range of possible inputs, handling 
+edge cases and outliers as specified in the design.
 
-Q: How to install these test?
-A: View ../conf/apache/conf.d/openfisma_test.conf. Modify its port and path to suit your local condition. Insert "include /yourfilepath/openfisma_test.conf" into the apache config file and restart apache.
-   Then you can access your test page by url:http://servername:port/test/index.html .
+Functional tests operate at a higher level, ensuring that the application enables
+users to perform their required functions. Using Selenium for this level of testing
+enables testing at a very high level, simulating button clicks and text entry
+and allowing test cases to quickly verify a very broad range of functionality.
 
-Q: How to add a new test case?
-A:	1. Write the new test case through Selenium IDE, see http://wiki.openqa.org/display/SIDE/Recording+a+Test .
-	2. Upload it to fit sub directory in cases/ovms/ with a fit name.
-	3. Update TestSuite.html, add a new line like <tr><td><a href="./cases/ovms/new_test.html">new test name</a></td></tr> before </tbody> tag.
-	4. Run test with url http://servername:port/test/index.html .
+Put another way, unit tests verify correctness at a development level, while
+functional tests verify correctness at a business level. Both types of test are
+equally important for creating a high-quality product.
 
-Q: How to get the test result?
-A: There are two ways. First, if you have a sendmail configuration in you PHP.ini, it will auto send a email to you (modify the email address in postResults.php).
-   Second, if you don't have a sendmail configuration with your PHP.ini, it will just log the test result under directory 'log' as a html file, so please make sure this directory is writable. 
-	
-Enjoy it!
-:)
+Functional Tests
+================
+Selenium test cases are stored under the test/selenium directory. These test cases
+are intended to be run from within a browser that supports JavaScript. To enable 
+these tests, you will need to make the test directory accessibly from a web browser,
+for example:
+
+ln -s /site/root/test /site/root/public/test
+
+You will then be able to acccess the test suite at http://yoursite.com/test. 
+
+Unit Tests
+==========
+PhpUnit test cases are stored under the test/unit directory. <TODO complete 
+information about unit tests.>
