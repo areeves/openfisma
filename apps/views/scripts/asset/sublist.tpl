@@ -2,8 +2,8 @@
 <div class="barright">
 <p><b>Asset Search Results</b>
 <span>
-<a target='_blank' href="<?php echo $url.'/format/pdf'; ?>"><img src="/images/pdf.gif" border="0"></a>
-<a href="<?php echo $url.'/format/xls'; ?>"><img src="/images/xls.gif" border="0"></a>
+<a target='_blank' href="<?php echo $this->url.'/format/pdf'; ?>"><img src="/images/pdf.gif" border="0"></a>
+<a href="<?php echo $this->url.'/format/xls'; ?>"><img src="/images/xls.gif" border="0"></a>
 </span>
 </div>
 </div>

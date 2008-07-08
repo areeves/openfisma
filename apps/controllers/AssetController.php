@@ -25,6 +25,24 @@ class AssetController extends PoamBaseController
     {
         parent::init();
         $this->_asset = new Asset();
+        $swCtx = $this->_helper->contextSwitch();
+        if(!$swCtx->hasContext('pdf')){
+            $swCtx->addContext('pdf',array('suffix'=>'pdf',
+                    'headers'=>array('Content-Disposition'=>'attachement;filename:"export.pdf"', 
+                    'Content-Type'=>'application/pdf')) );
+        }
+        if(!$swCtx->hasContext('xls')){
+            $swCtx->addContext('xls',array('suffix'=>'xls') );
+        }
+    }
+
+    public function preDispatch()
+    {
+        parent::preDispatch();
+        $this->req = $this->getRequest();
+        $swCtx = $this->_helper->contextSwitch();
+        $swCtx->addActionContext('searchbox', array('pdf','xls') )
+              ->initContext();
     }
 
     /**
@@ -148,64 +166,58 @@ class AssetController extends PoamBaseController
         $criteria['port']      = $req->get('port');
         $this->view->assign('system_list',$this->_system_list);
         $this->view->assign('criteria',$criteria);
-        $this->render();
-        if('search' == $req->getParam('s')){
-            $this->_forward('list',null,null,array('criteria'=>$criteria));
-        }
-    }
-    
-    public function listAction()
-    {   
-        $req = $this->getRequest();
-        $criteria = $req->getParam('criteria');
-        if(!empty($criteria)){
-            extract($criteria);
-        }
-        $this->_paging_base_path = $req->getBaseUrl().'/panel/asset/sub/searchbox/s/search';
-        $this->_paging['currentPage'] = $req->getParam('p',1);
-        foreach($criteria as $key=>$value){
-            if(!empty($value) ){
-                $this->_paging_base_path .='/'.$key.'/'.$value.'';
+        if('search' == $req->getParam('s')
+            || 'pdf' == $req->getParam('format')
+            || 'xls' == $req->getParam('format')){
+            if(!empty($criteria)){
+                extract($criteria);
             }
-        }
-        $db = $this->_poam->getAdapter();
-        $query = $db->select()->from(array('a'=>'assets'),array('asset_name'=>'a.name',
-                                                        'address_ip'=>'a.address_ip',
-                                                        'address_port'=>'a.address_port',
-                                                        'aid'=>'a.id'))
-                    ->join(array('s'=>'systems'),'a.system_id = s.id',array('system_name'=>'s.name'))
-                    ->joinleft(array('p'=>'products'),'a.prod_id = p.id',array('prod_name'=>'p.name',
-                                                                               'prod_vendor'=>'p.vendor',
-                                                                               'prod_version'=>'p.version'));
-        if(!empty($system_id)){
-            $query->where('s.id = ?',$system_id);
-        }
-        if(!empty($product)){
-            $query->where('p.name = ?',$product);
-        }
-        if(!empty($vendor)){
-            $query->where('p.vendor = ?',$vendor);
-        }
-        if(!empty($version)){
-            $query->where('p.version = ?',$version);
-        }
-        if(!empty($ip)){
-            $query->where('a.address_ip = ?',$ip);
-        }
-        if(!empty($port)){
-            $query->where('a.address_port = ?',$port);
-        }
-        $res = $db->fetchCol($query);
-        $total = count($res);
-        $query->limitPage($this->_paging['currentPage'],$this->_paging['perPage']);
-        $asset_list = $db->fetchAll($query);
+            $this->_paging_base_path = $req->getBaseUrl().'/panel/asset/sub/searchbox/s/search';
+            $this->_paging['currentPage'] = $req->getParam('p',1);
+            foreach($criteria as $key=>$value){
+                if(!empty($value) ){
+                    $this->_paging_base_path .='/'.$key.'/'.$value.'';
+                }
+            }
+            $db = $this->_poam->getAdapter();
+            $query = $db->select()->from(array('a'=>'assets'),array('asset_name'=>'a.name',
+                                                            'address_ip'=>'a.address_ip',
+                                                            'address_port'=>'a.address_port',
+                                                            'aid'=>'a.id'))
+                        ->join(array('s'=>'systems'),'a.system_id = s.id',array('system_name'=>'s.name'))
+                        ->joinleft(array('p'=>'products'),'a.prod_id = p.id',array('prod_name'=>'p.name',
+                                                                                   'prod_vendor'=>'p.vendor',
+                                                                                   'prod_version'=>'p.version'));
+            if(!empty($system_id)){
+                $query->where('s.id = ?',$system_id);
+            }
+            if(!empty($product)){
+                $query->where('p.name = ?',$product);
+            }
+            if(!empty($vendor)){
+                $query->where('p.vendor = ?',$vendor);
+            }
+            if(!empty($version)){
+                $query->where('p.version = ?',$version);
+            }
+            if(!empty($ip)){
+                $query->where('a.address_ip = ?',$ip);
+            }
+            if(!empty($port)){
+                $query->where('a.address_port = ?',$port);
+            }
+            $res = $db->fetchCol($query);
+            $total = count($res);
+            $query->limitPage($this->_paging['currentPage'],$this->_paging['perPage']);
+            $asset_list = $db->fetchAll($query);
 
-        $this->_paging['totalItems'] = $total;
-        $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";
-        $pager = &Pager::factory($this->_paging);
-        $this->view->assign('asset_list',$asset_list);
-        $this->view->assign('links',$pager->getLinks());
-        $this->render('sublist');
+            $this->_paging['totalItems'] = $total;
+            $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";
+            $pager = &Pager::factory($this->_paging);
+            $this->view->assign('asset_list',$asset_list);
+            $this->view->assign('links',$pager->getLinks());
+        }
+        $this->render();
     }
 
     public function viewAction()

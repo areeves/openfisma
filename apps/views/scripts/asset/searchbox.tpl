@@ -1,5 +1,24 @@
 <?php
     $this->system_list[0] = '--Any--';
+    $url = '/zfentry.php/panel/asset/sub/searchbox/s/search';
+    if(!empty($this->criteria['system_id'])){
+       $url .='/system_id/'.$this->criteria['system_id'];
+    }
+    if(!empty($this->criteria['vendor'])){
+        $url .='/vendor/'.$this->criteria['vendor'];
+    }
+    if(!empty($this->criteria['product'])){
+        $url .='/product/'.$this->criteria['product'];
+    }
+    if(!empty($this->criteria['version'])){
+        $url .='/version/'.$this->criteria['version'];
+    }
+    if(!empty($this->criteria['ip'])){
+        $url .='/ip/'.$this->criteria['ip'];
+    }
+    if(!empty($this->criteria['port'])){
+        $url .='/port/'.$this->criteria['port'];
+    }
 ?>
 <div class="barleft">
 <div class="barright">
@@ -33,3 +52,8 @@
     </tr>
 </table>
 </form>
+<?php 
+    if(!empty($this->asset_list)){
+        echo $this->partial('asset/sublist.tpl',array('asset_list'=>$this->asset_list,'url'=>$url));
+    }
+?>
