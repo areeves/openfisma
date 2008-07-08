@@ -60,7 +60,7 @@ foreach( $this->poam_list as $p ) {
         $p['status'],
         $this->source_list[$p['source_id']],
         $p['asset_id'],
-        $this->network_list[$p['network_id']],
+        !empty($p['network_id'])?$this->network_list[$p['network_id']]:'',
         $p['threat_level'],
         $p['action_suggested'],
         $p['action_planned'],
