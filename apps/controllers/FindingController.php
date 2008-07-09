@@ -183,7 +183,11 @@ class FindingController extends PoamBaseController
                 $data = array();
                 $data['source_id'] = $req->getParam('source');
                 $data['asset_id'] = $req->getParam('asset_list');
-                $data['system_id'] = $req->getParam('system');
+                if(!empty($data['asset_id'])){
+                    $asset = new asset();
+                    $ret = $asset->find($data['asset_id'])->toArray();
+                    $data['system_id'] = $ret[0]['system_id'];
+                }
                 $data['status'] = 'NEW';
                 $discover_ts = new Zend_Date($req->getParam('discovereddate'),Zend_Date::DATES);
                 $data['discover_ts'] = $discover_ts->toString("Y-m-d");
