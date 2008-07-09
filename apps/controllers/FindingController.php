@@ -20,49 +20,6 @@ define('TEMPLATE_NAME', "OpenFISMA_Injection_Template.xls");
 
 class FindingController extends PoamBaseController
 {
-    public function searchboxAction(){
-
-        $req = $this->getRequest();
-        // parse the params of search
-        $this->_paging_base_path .= '/panel/finding/sub/searchbox/s/search';
-        $criteria['system_id'] = $req->getParam('system_id');
-        $criteria['source_id'] = $req->getParam('source_id');
-        $criteria['network_id'] = $req->getParam('network_id');
-        $criteria['status']    = $req->getParam('status');
-        $criteria['ip'] = $req->getParam('ip');
-        $criteria['port'] = $req->getParam('port');
-        $criteria['vuln'] = $req->getParam('vuln');
-        $criteria['product'] = $req->getParam('product');
-        $tmp = $req->getParam('discovered_date_begin');
-        if(!empty($tmp)){
-            $criteria['discovered_date_begin'] = new Zend_Date($tmp,Zend_Date::DATES);
-        }
-        $tmp = $req->getParam('discovered_date_end');
-        if(!empty($tmp)){
-            $criteria['discovered_date_end'] = new Zend_Date($tmp,Zend_Date::DATES);
-        }
-        $criteria['status'] = $req->getParam('status');
-
-        $this->view->source = $this->_source_list;
-        $this->view->network = $this->_network_list;
-        $this->view->system = $this->_system_list;
-        $this->view->criteria = $criteria;
-        $this->render();
-        if( 'search' == $req->getParam('s') ) {
-            foreach($criteria as $key=>$value){
-                if(!empty($value) ){
-                    if($value instanceof Zend_Date){
-                        $this->_paging_base_path .='/'.$key.'/'.$value->toString('Ymd').'';
-                    }else{
-                        $this->_paging_base_path .='/'.$key.'/'.$value.'';
-                    }
-                }
-            }
-            $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";
-            $this->_search($criteria) ;
-        }
-    }
-
     /**
         Provide searching capability of findings
         Data is limited in legal systems.
@@ -93,55 +50,6 @@ class FindingController extends PoamBaseController
         $this->view->assign('findings',$result);
         $this->view->assign('links',$pager->getLinks());
         $this->render('search');
-    }
-
-    /**
-        Create finding summary
-        Data is limited in legal systems.
-     */
-    public function summaryAction() {
-        require_once 'Zend/Date.php';
-        $finding = new Finding();
-        $from = new Zend_Date();
-        $to = clone $from;
-        //count time range
-        $to->add(1,Zend_Date::DAY);
-        $range['today']  = array('from'=>clone $from, 'to'=>clone $to);
-        $from->sub(30,Zend_Date::DAY);
-        $to->sub(1,Zend_Date::DAY);
-        $range['last30'] = array('from'=>clone $from, 'to'=>clone $to);
-        $from->sub(30,Zend_Date::DAY);
-        $to->sub(30,Zend_Date::DAY);
-        $range['last60'] = array('from'=>clone $from, 'to'=>clone $to);
-        $to->sub(30,Zend_Date::DAY);
-        $range['after60'] = array( 'to'=>$to);
-
-        $statistic = $this->_system_list;
-        foreach($statistic as $k => $row){
-            $data = $finding->getStatusCount(array($k) );
-            $statistic[$k] = array(
-                        'NAME'=>$row,
-                        'NEW'=>array('total'=>$data['NEW'],
-                                      'today'=>0,
-                                      'last30day'=>0,
-                                      'last2nd30day'=>0,
-                                      'before60day'=>0),
-                        'REMEDIATION'=>$data['OPEN']+$data['ES']+$data['EN']+$data['EP'],
-                        'CLOSED'=>$data['CLOSED']);
-            
-            $data = $finding->getStatusCount(array($k),$range['today'],'NEW');
-            $statistic[$k]['NEW']['today'] = $data['NEW'];
-            $data = $finding->getStatusCount(array($k),$range['last30'],'NEW');
-            $statistic[$k]['NEW']['last30day'] = $data['NEW'];
-            $data = $finding->getStatusCount(array($k),$range['last60'],'NEW');
-            $statistic[$k]['NEW']['last2nd30day'] = $data['NEW'];
-            $data = $finding->getStatusCount(array($k),$range['after60'],'NEW');
-            $statistic[$k]['NEW']['before60day'] = $data['NEW'];
-        }
-        
-        $this->view->assign('range',$range);
-        $this->view->assign('statistic',$statistic);
-        $this->render();
     }
 
     /**

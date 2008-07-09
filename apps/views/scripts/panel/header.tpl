@@ -20,9 +20,7 @@
     if(isAllow('finding','read')) {
         echo '<ul ><li > 
              <h2><a>Finding</a></h2>';
-        echo '<ul>
-             <li><a href="/zfentry.php/panel/finding/sub/summary">Finding Summary</a>
-             <li><a href="/zfentry.php/panel/finding/sub/searchbox">Finding Search</a>';
+        echo '<ul>';
         if(isAllow('finding','create')) {
             echo "\n",'<li><a href="/zfentry.php/panel/finding/sub/create">New Finding</a>
                 <li><a href="/zfentry.php/finding/injection">Spreadsheet Upload</a>';
