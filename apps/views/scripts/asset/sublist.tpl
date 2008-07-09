@@ -21,7 +21,7 @@
             <?php } ?>
         </td>
         <td align="right">
-            <?php echo $this->links['all'];?>
+            <b>Page:&nbsp;</b><?php echo $this->links['all'];?>
         </td>
     </tr>
 </table>

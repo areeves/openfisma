@@ -54,6 +54,6 @@
 </form>
 <?php 
     if(!empty($this->asset_list)){
-        echo $this->partial('asset/sublist.tpl',array('asset_list'=>$this->asset_list,'url'=>$url));
+        echo $this->partial('asset/sublist.tpl',array('asset_list'=>$this->asset_list,'url'=>$url,'links'=>$this->links));
     }
 ?>
