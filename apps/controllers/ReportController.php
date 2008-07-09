@@ -184,24 +184,27 @@ class ReportController extends PoamBaseController
         $req = $this->getRequest();
         $params = array( 'system_id'=>'system_id',
                          'source_id'=>'source_id',
-                         'overdue'  =>'overdue',  //array(type=>x,day=>x);
+                         'overdue_type'  =>'overdue_type', 
+                         'overdue_day'  =>'overdue_day',  
                          'year'     =>'year');
         $criteria = $this->retrieveParam($req, $params); 
-        if( empty($criteria['overdue'])) {
-            $criteria['overdue']['type'] = $req->getParam('overdue[type]','sso');
-            $criteria['overdue']['day'] = $req->getParam('overdue[day]',1);
-        }
         $this->view->assign('source_list',$this->_source_list);
         $this->view->assign('system_list',$this->_system_list);
         $this->view->assign('criteria',$criteria);
         $is_export = $req->getParam('format');
-        if('search' == $req->getParam('s') || $is_export ){
+        if('search' == $req->getParam('s') || isset($is_export) ){
             $this->_paging_base_path .= '/panel/report/sub/overdue/s/search';
-            if( $is_export ) {
+            if( isset($is_export) ) {
                 $this->_paging['currentPage']= $this->_paging['perPage'] = null;
             }
             $this->makeUrl($criteria);
-
+            $this->view->assign('url',$this->_paging_base_path); 
+            if( isset($criteria['overdue_type'] ))  {
+                $criteria['overdue']['type'] = $criteria['overdue_type'];
+            }
+            if( isset($criteria['overdue_day'] )) {
+                $criteria['overdue']['day'] = $criteria['overdue_day'];
+            }
             if(!empty($criteria['year'])){
                 $criteria['created_date_begin'] = new Zend_Date($criteria['year'],Zend_Date::YEAR);
                 $criteria['created_date_end']   = clone $criteria['created_date_begin'];
@@ -236,7 +239,6 @@ class ReportController extends PoamBaseController
                                                          'count'=>'count(*)') ,$criteria,
                                         $this->_paging['currentPage'],
                                         $this->_paging['perPage']);
-
             $total = array_pop($list); 
             $this->_paging['totalItems'] = $total;
             $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";

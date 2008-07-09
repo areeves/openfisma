@@ -58,22 +58,16 @@
     <tr>
         <td><b>Overdue type</b></td>
         <td >
-        <?php echo $this->formSelect('overdue[type]',
-                                    nullGet($this->criteria['overdue']['type'],0),
+        <?php echo $this->formSelect('overdue_type',
+                                    nullGet($this->criteria['overdue_type'],0),
                                     null,$overdue['type']);
-              if( !empty($this->criteria['overdue']['type']) ) {
-                  $url .= '/overdue[type]/'.$this->criteria['overdue']['type'];
-              }
         ?>
         </td>
         <td><b>Overdue </b></td>
         <td> 
-        <?php echo $this->formSelect('overdue[day]',
-                                    nullGet($this->criteria['overdue']['day'],0),
+        <?php echo $this->formSelect('overdue_day',
+                                    nullGet($this->criteria['overdue_day'],0),
                                     null,$overdue['day']);
-              if( !empty($this->criteria['overdue']['day']) ) {
-                  $url .= '/overdue[day]/'.$this->criteria['overdue']['day'];
-              }
         ?>
         </td>
     </tr>
@@ -92,8 +86,8 @@
 <p><b>Poam Search Results</b>
     <span>
     <?php echo $this->links['all']; ?>
-    <a target='_blank' href="<?php echo $url.'/format/pdf'; ?>"><img src="/images/pdf.gif" border="0"></a>
-    <a href="<?php echo $url.'/format/xls'; ?>"><img src="/images/xls.gif" border="0"></a>
+    <a target='_blank' href="<?php echo $this->url.'/format/pdf'; ?>"><img src="/images/pdf.gif" border="0"></a>
+    <a href="<?php echo $this->url.'/format/xls'; ?>"><img src="/images/xls.gif" border="0"></a>
     </span>
 </div>
 </div>
