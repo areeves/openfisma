@@ -184,15 +184,22 @@ class ReportController extends PoamBaseController
         $req = $this->getRequest();
         $params = array( 'system_id'=>'system_id',
                          'source_id'=>'source_id',
-                         'overdue'     =>'overdue',  //array(type=>x,day=>x);
+                         'overdue'  =>'overdue',  //array(type=>x,day=>x);
                          'year'     =>'year');
         $criteria = $this->retrieveParam($req, $params); 
-
+        if( empty($criteria['overdue'])) {
+            $criteria['overdue']['type'] = $req->getParam('overdue[type]','sso');
+            $criteria['overdue']['day'] = $req->getParam('overdue[day]',1);
+        }
         $this->view->assign('source_list',$this->_source_list);
         $this->view->assign('system_list',$this->_system_list);
         $this->view->assign('criteria',$criteria);
-        if('search' == $req->getParam('s') || 'pdf' == $req->getParam('format')){
+        $is_export = $req->getParam('format');
+        if('search' == $req->getParam('s') || $is_export ){
             $this->_paging_base_path .= '/panel/report/sub/overdue/s/search';
+            if( $is_export ) {
+                $this->_paging['currentPage']= $this->_paging['perPage'] = null;
+            }
             $this->makeUrl($criteria);
 
             if(!empty($criteria['year'])){
@@ -205,9 +212,9 @@ class ReportController extends PoamBaseController
             if(!empty($criteria['overdue'])){
                 $date = clone self::$now;
                 $date->sub(($criteria['overdue']['day']-1)*30,Zend_Date::DAY);
-                $criteria['overdue']['begin_date'] = clone $date;
+                $criteria['overdue']['end_date'] = clone $date;
                 $date->sub(30,Zend_Date::DAY);
-                $criteria['overdue']['end_date'] = $date;
+                $criteria['overdue']['begin_date'] = $date;
                 if( $criteria['overdue']['day']==5 ) { ///@todo hardcode greater than 120
                     unset($criteria['overdue']['begin_date'] );
                 }
@@ -229,6 +236,7 @@ class ReportController extends PoamBaseController
                                                          'count'=>'count(*)') ,$criteria,
                                         $this->_paging['currentPage'],
                                         $this->_paging['perPage']);
+
             $total = array_pop($list); 
             $this->_paging['totalItems'] = $total;
             $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";
