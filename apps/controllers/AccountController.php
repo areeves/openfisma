@@ -239,34 +239,52 @@ class AccountController extends PoamBaseController
     {
         require_once(MODELS . DS . 'role.php');
         $req = $this->getRequest();
+        $account = $req->getParam('user_account');
+        $first_name = $req->getParam('user_name_first');
+        $last_name = $req->getParam('user_name_last');
+        $office_phone = $req->getParam('user_phone_office');
+        $user_email = $req->getParam('user_email');
+        $password = $req->getParam('user_password');
+        $confirm_password = $req->getParam('user_password_confirm');
+        $system_num = 0;
         foreach($req->getPost() as $k=>$v){
-            if(substr($k,0,6) != 'system' ){
-                if( !in_array($k,array('user_role_id','confirm_password','user_password'))){
-                    $key = substr($k,5);
-                    $data[$key] = $v;
-                }else{
-                    ///< @todo compare the password
-                    if($k == 'user_password'){
-                        $data['password'] = md5($v);
-                    }
-                }
-            }else{
-                $systems[] = $v;
+            if(substr($k,0,6) == 'system'){
+                $system_num++;
             }
         }
-        $data['created_ts'] = date('Y-m-d H:i:s');
-        $data['auto_role'] = $req->getParam('user_account').'_r';
+        if(!empty($account) && !empty($first_name) && !empty($last_name) && !empty($office_phone)
+            && !empty($user_email) && !empty($password) && !empty($confirm_password) && $system_num != 0){
+            foreach($req->getPost() as $k=>$v){
+                if(substr($k,0,6) != 'system' ){
+                    if( !in_array($k,array('user_role_id','user_password','user_password_confirm','p_checkhead','p_checktip'))){
+                        $key = substr($k,5);
+                        $data[$key] = $v;
+                    }else{
+                        ///< @todo compare the password
+                        if($k == 'user_password'){
+                            $data['password'] = md5($v);
+                        }
+                    }
+                }else{
+                    $systems[] = $v;
+                }
+            }
+            $data['created_ts'] = date('Y-m-d H:i:s');
+            $data['auto_role'] = $req->getParam('user_account').'_r';
        
-        $user_id = $this->_user->insert($data);
-        $role_id = $req->getParam('user_role_id');
-        $this->_user->associate($user_id, User::ROLE, $role_id);
+            $user_id = $this->_user->insert($data);
+            $role_id = $req->getParam('user_role_id');
+            $this->_user->associate($user_id, User::ROLE, $role_id);
          
-        if(!empty($systems)){
-            $this->_user->associate($user_id, User::SYS, $systems);
-        }
+            if(!empty($systems)){
+                $this->_user->associate($user_id, User::SYS, $systems);
+            }
 
-        $this->_user->log(User::CREATION ,$this->me->id,'create user('.$data['account'].')');
-        $this->message("User({$data['account']}) added", self::M_NOTICE);
+            $this->_user->log(User::CREATION ,$this->me->id,'create user('.$data['account'].')');
+            $this->message("User({$data['account']}) added", self::M_NOTICE);
+        }else{
+            $this->message("Please input the blank which mark * denotation",self::M_NOTICE);
+        }
         $this->_forward('create');
     }
 
