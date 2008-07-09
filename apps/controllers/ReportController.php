@@ -2,7 +2,7 @@
 /**
  * @file ReportController.php
  *
- * @description Report Controller
+ * Report Controller
  *
  * @author     Ryan<ryan.yang@reyosoft.com>
  * @copyright  (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
@@ -11,6 +11,7 @@
 */
 
 require_once CONTROLLERS . DS . 'PoamBaseController.php';
+require_once CONTROLLERS . DS . 'RiskAssessment.class.php';
 require_once 'Pager.php';
 
 class ReportController extends PoamBaseController
@@ -240,7 +241,6 @@ class ReportController extends PoamBaseController
 
     public function generalAction()
     {
-        require_once CONTROLLERS . DS . 'RiskAssessment.class.php';
         $req = $this->getRequest();
         $type = $req->getParam('type','');
         $this->view->assign('type',$type);
