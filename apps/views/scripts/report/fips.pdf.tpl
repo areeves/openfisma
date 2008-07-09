@@ -6,11 +6,8 @@ $table_count=array(array('fips'=>"Total Systems",
                     'LOW'=>$this->rpdata[1]['LOW'],
                'MODERATE'=>$this->rpdata[1]['MODERATE'],
                    'HIGH'=>$this->rpdata[1]['HIGH']));
-$fields=array('name'=>'System Name','type'=>'System Type','crit'=>'Mission Criticality','fips'=>'FIPS 199 Category','conf'=>'Confidentiality','integ'=>'Integrity','avail'=>'Availability');
-//,'n/a'=>'Last Inventory Update');              
+$fields=array('name'=>'System Name','type'=>'System Type','crit'=>'Mission Criticality','fips'=>'FIPS 199 Category','conf'=>'Confidentiality','integ'=>'Integrity','avail'=>'Availability','last_update'=>'Last Inventory Update');              
 $table=$this->rpdata[0];
-
-//var_dump($this->rpdata[0]);die();
 
 define('REPORT_FOOTER_WARNING', "WARNING: This report is for internal, official use only.  This report contains sensitive computer security related information. Public disclosure of this information would risk circumvention of the law. Recipients of this report must not, under any circumstances, show or release its contents for purposes other than official action. This report must be safeguarded to prevent improper disclosure. Staff reviewing this document must hold a minimum of Public Trust Level 5C clearance.");
 

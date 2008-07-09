@@ -305,12 +305,19 @@ class ReportController extends PoamBaseController
         $fips_totals['MODERATE'] = 0;
         $fips_totals['HIGH']     = 0;
         $fips_totals['n/a'] = 0;
-        foreach($systems as &$system){
+        foreach($systems as $sid=>&$system){
             if(strtolower($system['conf']) != 'none'){
                 $risk_obj = new RiskAssessment($system['conf'],$system['avail'],$system['integ'],null,null,null);
                 $fips199 = $risk_obj->get_data_sensitivity();
             }else{
                 $fips199 = 'n/a';
+            }
+            $qry = $this->_poam->select()->from('poams',array('last_update'=>'MAX(modify_ts)'))
+                                         ->where('poams.system_id = ?',$sid);
+            $result = $this->_poam->fetchRow($qry);
+            if(!empty($result)){
+                $ret = $result->toArray();
+                $system['last_update'] = $ret['last_update'];
             }
             $system['fips'] = $fips199;
             $fips_totals[$fips199] += 1;

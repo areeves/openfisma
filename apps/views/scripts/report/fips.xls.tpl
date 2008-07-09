@@ -61,7 +61,7 @@ foreach ($this->rpdata[0] as $row) {
     $worksheet->write($rowi,4,$row['conf'],$format_times);
     $worksheet->write($rowi,5,$row['integ'],$format_times);
     $worksheet->write($rowi,6,$row['avail'],$format_times);
-    $worksheet->write($rowi,7,'n/a',$format_times);
+    $worksheet->write($rowi,7,$row['last_update'],$format_times);
     $rowi++;
 }
 $worksheet->setColumn(0,0,50);

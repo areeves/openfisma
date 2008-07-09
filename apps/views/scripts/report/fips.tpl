@@ -54,7 +54,7 @@
         <td class="tdc"><?php echo $item['conf'];?></td>
         <td class="tdc"><?php echo $item['integ'];?></td>
         <td class="tdc"><?php echo $item['avail'];?></td>
-        <td class="tdc">n/a</td>
+        <td class="tdc"><?php echo $item['last_update'];?></td>
     </tr>
     <?php } ?>
 </table>
