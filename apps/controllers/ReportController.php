@@ -170,6 +170,10 @@ class ReportController extends PoamBaseController
                                         $this->_paging['currentPage'],
                                         $this->_paging['perPage']);
             $total = array_pop($list); 
+            foreach($list as &$row)
+            {
+                $row['system_name']=$this->_system_list[$row['system_id']];
+            }
             $this->_paging['totalItems'] = $total;
             $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";
             $pager = &Pager::factory($this->_paging);

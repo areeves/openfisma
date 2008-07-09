@@ -1,6 +1,6 @@
 <?php
 $cols = array (
-    'system_id'=>'System',
+    'system_name'=>'System',
     'id'=>"ID#",
     'finding_data'=>"Description",
     'type'=>"Type",
@@ -12,19 +12,6 @@ $cols = array (
     'action_suggested'=>"Recommendation",
     'action_planned'=>"Corrective Action",
     'action_est_date' => "ECD");
-$cols_opt = array(
-    'system_id'=>array('width'=>38),
-    'id'=> array('width'=>25),
-    'finding_data'=> array('width'=>100),
-    'type'=> array('width'=>20),
-    'status'=> array('width'=>20),
-    'source_id'=> array('width'=>38),
-    'asset_id'=> array('width'=>20),
-    'network_id'=> array('width'=>38),
-    'threat_level'=> array('width'=>20),
-    'action_suggested'=> array('width'=>200),
-    'action_planned'=> array('width'=>200),
-    'action_est_date' =>array('width'=>20));
 
 define('REPORT_FOOTER_WARNING', "WARNING: This report is for internal, official use only.  This report contains sensitive computer security related information. Public disclosure of this information would risk circumvention of the law. Recipients of this report must not, under any circumstances, show or release its contents for purposes other than official action. This report must be safeguarded to prevent improper disclosure. Staff reviewing this document must hold a minimum of Public Trust Level 5C clearance.");
 
@@ -97,7 +84,7 @@ if( isset($this->criteria['source_id']) ) {
 
 $pdf->ezText($title,14,array('justification'=>'center'));
 $pdf->ezTable($this->poam_list,$cols," ",
-    array('fontSize'=>8,'maxWidth'=>690, 'cols'=>&$cols_opt) );
+    array('fontSize'=>8,'maxWidth'=>690 ));
 $pdf->ezStream();
 
 
