@@ -19,6 +19,9 @@
     if(!empty($this->criteria['port'])){
         $url .='/port/'.$this->criteria['port'];
     }
+    if(!empty($this->criteria['p'])){
+        $url .='/p/'.$this->criteria['p'];
+    }
 ?>
 <div class="barleft">
 <div class="barright">

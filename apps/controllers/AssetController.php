@@ -164,6 +164,7 @@ class AssetController extends PoamBaseController
         $criteria['version']   = $req->get('version');
         $criteria['ip']        = $req->get('ip');
         $criteria['port']      = $req->get('port');
+        $criteria['p']         = $req->get('p');
         $this->view->assign('system_list',$this->_system_list);
         $this->view->assign('criteria',$criteria);
         if('search' == $req->getParam('s')
