@@ -85,8 +85,6 @@ if( isset($this->criteria['source_id']) ) {
 $pdf->ezText($title,14,array('justification'=>'center'));
 $pdf->ezTable($this->poam_list,$cols," ",
     array('fontSize'=>8,'maxWidth'=>690 ));
-$pdf->ezStream();
 
-
-
+echo $pdf->ezOutput();
 ?>

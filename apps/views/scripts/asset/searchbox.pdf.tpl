@@ -24,8 +24,6 @@ $fields=array('asset_name'=>'Asset Name','system_name'=>'System','address_ip'=>'
 
 $table=$this->asset_list;
 
-//var_dump($table);die();
-
 define('REPORT_FOOTER_WARNING', "WARNING: This report is for internal, official use only.  This report contains sensitive computer security related information. Public disclosure of this information would risk circumvention of the law. Recipients of this report must not, under any circumstances, show or release its contents for purposes other than official action. This report must be safeguarded to prevent improper disclosure. Staff reviewing this document must hold a minimum of Public Trust Level 5C clearance.");
 
 define('ORIENTATION', 'orient');
@@ -72,6 +70,6 @@ $pdf->ezText('Asset Search Results',16,array('justification'=>'centre'));
 
 $pdf->ezTable($table, $fields,$title,
     array('fontSize'=>8,'width'=>$content_width,'titleFontSize'=>12));
-    
-$pdf->ezStream();
+
+echo $pdf->ezOutput();
 ?>

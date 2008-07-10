@@ -28,7 +28,7 @@ class AssetController extends PoamBaseController
         $swCtx = $this->_helper->contextSwitch();
         if(!$swCtx->hasContext('pdf')){
             $swCtx->addContext('pdf',array('suffix'=>'pdf',
-                    'headers'=>array('Content-Disposition'=>'attachement;filename:"export.pdf"', 
+                    'headers'=>array('Content-Disposition'=>'attachement;filename="export.pdf"', 
                     'Content-Type'=>'application/pdf')) );
         }
         if(!$swCtx->hasContext('xls')){

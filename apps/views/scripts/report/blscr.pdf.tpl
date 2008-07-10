@@ -66,5 +66,6 @@ for($i=0; $i<count($table); $i++)
 	$pdf->ezTable( $table[$i] , $fields , $title[$i] ,
     array('fontSize'=>8,'maxWidth'=>$content_width,'titleFontSize'=>16));
 }
-$pdf->ezStream();
+
+echo $pdf->ezOutput();
 ?>

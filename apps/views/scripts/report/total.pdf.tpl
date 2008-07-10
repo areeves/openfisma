@@ -5,6 +5,11 @@ $fields=array('nick'=>'Systems','num'=>"Open Vulnerabilities");
 $table=$this->rpdata[1];
 $count=$this->rpdata[0];
 
+$total_v = 0;
+foreach($this->rpdata[1] as $row){
+    $total_v += $row['num'];
+}
+
 define('REPORT_FOOTER_WARNING', "WARNING: This report is for internal, official use only.  This report contains sensitive computer security related information. Public disclosure of this information would risk circumvention of the law. Recipients of this report must not, under any circumstances, show or release its contents for purposes other than official action. This report must be safeguarded to prevent improper disclosure. Staff reviewing this document must hold a minimum of Public Trust Level 5C clearance.");
 
 define('ORIENTATION', 'orient');
@@ -47,10 +52,12 @@ $pdf->closeObject();
 
 $pdf->addObject($all,'all');
 
-$title="Total # of Systems /w Open Vulnerabilities (total : $count)";
+$pdf->ezText('Total # of Systems /w Open Vulnerabilities',16,array('justification'=>'center'));
+
+$title="[Total System] : $count  [Total Vulnerablities] : $total_v";
 
 $pdf->ezTable($table, $fields,$title,
-    array('fontSize'=>8,'maxWidth'=>$content_width,'titleFontSize'=>16));
+    array('fontSize'=>8,'maxWidth'=>$content_width,'titleFontSize'=>12));
 
-$pdf->ezStream();
+echo $pdf->ezOutput();
 ?>

@@ -64,6 +64,6 @@ if($this->criteria['enddate'])
 
 $pdf->ezTable($table, $fields,$title,
     array('fontSize'=>8,'maxWidth'=>$content_width,'titleFontSize'=>12));
-$pdf->ezStream();
 
+echo $pdf->ezOutput();
 ?>
