@@ -7,58 +7,40 @@
     </p>
 </div>
 </div>
-
-        <table width="100%" class="tbframe">
-            <th nowrap>
-                <input type='hidden' name='sort_by' value='remediation_id'> 
-                <input type='hidden' name='sort_order' >ID 
-                <input type='image'  src='/images/up_arrow.gif'   onClick="order_page(11)"> 
-                <input type='image'  src='/images/down_arrow.gif' onClick="order_page(12)">          
-            </th>
-            <th nowrap>Source 
-                <input type='image'  src='/images/up_arrow.gif'   onClick="order_page(21)"> 
-                <input type='image'  src='/images/down_arrow.gif' onClick="order_page(22)">          
-            </th>
-            <th nowrap>System 
-                <input type='image'  src='/images/up_arrow.gif'   onClick="order_page(41)"> 
-                <input type='image'  src='/images/down_arrow.gif' onClick="order_page(42)">          
-            </th>
-            <th nowrap>Type 
-                <input type='image'  src='/images/up_arrow.gif'   onClick="order_page(51)"> 
-                <input type='image'  src='/images/down_arrow.gif' onClick="order_page(52)">          
-            </th>
-            <th nowrap>Status 
-                <input type='image'  src='/images/up_arrow.gif'   onClick="order_page(61)"> 
-                <input type='image'  src='/images/down_arrow.gif' onClick="order_page(62)">
-            </th>
-            <th nowrap>Finding
-                <input type='image'  src='/images/up_arrow.gif'   onClick="order_page(71)">
-                <input type='image'  src='/images/down_arrow.gif' onClick="order_page(72)">
-            </th>
-            <th nowrap>ECD 
-                <input type='image'  src='/images/up_arrow.gif'   onClick="order_page(81)"> 
-                <input type='image'  src='/images/down_arrow.gif' onClick="order_page(82)">          
-            </th>
-            <th nowrap>View</th>
-            </tr>
-            <!-- REMEDIATION ROWS -->
-            <?php foreach($this->list as $row){
-                $today = date('Y-m-d',time());
-                $finding_data = strlen($row['finding_data'])>120?substr($row['finding_data'],0,120)."...":$row['finding_data'];
+    <table width="100%" class="tbframe">
+        <th nowrap>ID 
+            <a href="<?php echo $this->url;?>/sortby/id/order/ASC"><img src="/images/up_arrow.gif" border="0"></a>
+            <a href="<?php echo $this->url;?>/sortby/id/order/DESC"><img src="/images/down_arrow.gif" border="0"></a>
+        </th>
+        <th nowrap>Source </th>
+        <th nowrap>System </th>
+        <th nowrap>Type </th>
+        <th nowrap>Status </th>
+        <th nowrap>Finding </th>
+        <th nowrap>ECD 
+           <a href="<?php echo $this->url;?>/sortby/action_est_date/order/ASC"><img src="/images/up_arrow.gif" border="0"></a>
+           <a href="<?php echo $this->url;?>/sortby/action_est_date/order/DESC"><img src="/images/down_arrow.gif" border="0"></a>
+        </th>
+        <th nowrap>View</th>
+        </tr>
+        <!-- REMEDIATION ROWS -->
+        <?php foreach($this->list as $row){
+            $today = date('Y-m-d',time());
+            $finding_data = strlen($row['finding_data'])>120?substr($row['finding_data'],0,120)."...":$row['finding_data'];
+        ?>
+        <tr>
+            <td align='center' class='tdc'><?php echo $row['id'];?></td>
+            <td align='center' class='tdc' nowrap>
+            <?php 
+                    echoDefault($this->sources[$row['source_id']],'Missing Source id');
             ?>
-            <tr>
-                <td align='center' class='tdc'><?php echo $row['id'];?></td>
-                <td align='center' class='tdc' nowrap>
-                <?php 
-                        echoDefault($this->sources[$row['source_id']],'Missing Source id');
-                ?>
-                </td>
-                <td align='center' class='tdc'><?php echo $this->systems[$row['system_id']];?></td>
-                <td align='center' class='tdc' nowrap><?php echo $row['type'];?></td>
-                <td align='center' class='tdc' nowrap><?php echo $row['status']=='EN' && $row['action_est_date']<$today?'EO':$row['status'];?></td>
-                <td align='left'   class='tdc'><?php echo $finding_data;?></td>
-                <td align='center' class='tdc' nowrap><?php echo $row['action_est_date'];?></td> 
-                <td align="center" valign='middle' class='tdc'><a href='/zfentry.php/panel/remediation/sub/view/id/<?php echo $row['id'];?>'><img src='/images/view.gif' border="0"></a></td>
-            </tr>
-            <?php } ?>
-        </table>
+            </td>
+            <td align='center' class='tdc'><?php echo $this->systems[$row['system_id']];?></td>
+            <td align='center' class='tdc' nowrap><?php echo $row['type'];?></td>
+            <td align='center' class='tdc' nowrap><?php echo $row['status']=='EN' && $row['action_est_date']<$today?'EO':$row['status'];?></td>
+            <td align='left'   class='tdc'><?php echo $finding_data;?></td>
+            <td align='center' class='tdc' nowrap><?php echo $row['action_est_date'];?></td> 
+            <td align="center" valign='middle' class='tdc'><a href='/zfentry.php/panel/remediation/sub/view/id/<?php echo $row['id'];?>'><img src='/images/view.gif' border="0"></a></td>
+        </tr>
+        <?php } ?>
+    </table>

@@ -183,6 +183,12 @@ class RemediationController extends PoamBaseController
         $criteria['status'] = $req->getParam('status');
         $criteria['ids'] = $req->getParam('ids');
         $criteria['asset_owner'] = $req->getParam('asset_owner',0);
+        $criteria['order'] = array();
+        if($req->getParam('sortby') != null && $req->getParam('order') != null){
+            array_push($criteria['order'], $req->getParam('sortby'));
+            array_push($criteria['order'], $req->getParam('order'));
+        }
+
         $tmp = $req->getParam('est_date_begin');
         if(!empty($tmp)) {
             $criteria['est_date_begin'] = new Zend_Date($tmp,Zend_Date::DATES);
@@ -199,7 +205,8 @@ class RemediationController extends PoamBaseController
         if(!empty($tmp)) {
             $criteria['created_date_end'] = new Zend_Date($tmp,Zend_Date::DATES);
         }
-
+        $this->makeUrl($criteria);
+        $this->view->assign('url',$this->_paging_base_path);
         $this->view->assign('criteria',$criteria);
         $this->view->assign('systems',$this->_system_list);
         $this->view->assign('sources',$this->_source_list);

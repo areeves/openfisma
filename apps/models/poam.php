@@ -256,6 +256,11 @@ class poam extends Zend_Db_Table
         $query->where("p.status != 'DELETED'");
         $query = $this->_parseWhere($query, $criteria);
         
+        if(!empty($criteria['order']) && is_array($criteria['order']) ){
+            ///@todo check if all the order by have been in the search fields
+            $query->order(implode(' ',$criteria['order']));
+        }
+
         if( $count_fields ) {
             $count_query = clone $query;
             $from = $count_query->getPart(Zend_Db_Select::FROM);
