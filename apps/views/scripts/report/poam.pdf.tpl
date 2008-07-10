@@ -5,13 +5,19 @@ $cols = array (
     'finding_data'=>"Description",
     'type'=>"Type",
     'status'=>"Status",
-    'source_id'=>"Source",
-    'asset_id'=>"Asset",
+    'source_name'=>"Source",
+//    'asset_id'=>"Asset",
     'network_id'=>"Location",
     'threat_level'=>"Risk Level",
     'action_suggested'=>"Recommendation",
     'action_planned'=>"Corrective Action",
     'action_est_date' => "ECD");
+
+foreach($this->poam_list as &$row)
+{
+    $row['system_name']=empty($row['system_id'])? 'N/A':$this->system_list[$row['system_id']];
+    $row['source_name']=empty($row['source_id'])? 'N/A':$this->source_list[$row['source_id']];
+}
 
 define('REPORT_FOOTER_WARNING', "WARNING: This report is for internal, official use only.  This report contains sensitive computer security related information. Public disclosure of this information would risk circumvention of the law. Recipients of this report must not, under any circumstances, show or release its contents for purposes other than official action. This report must be safeguarded to prevent improper disclosure. Staff reviewing this document must hold a minimum of Public Trust Level 5C clearance.");
 
@@ -69,22 +75,20 @@ $pdf->addObject($all,'all');
 $pdf->ezSetMargins($top_margin,$bottom_margin,$horiz_margin,$horiz_margin);
 
 //Add title
-$title =  "This POA&M report is generated for "; 
+$title = '[System] : ';
 if( isset($this->criteria['system_id']) ) {
-    $title .= $this->criteria['system_id'];
+    $title .= $this->system_list[$this->criteria['system_id']];
 }else{
-    $title .= 'all systems';
+    $title .= 'All systems';
 }
 
 if( isset($this->criteria['source_id']) ) {
-    $title .= " based on the reporting of source {$this->criteria['source_id']}";
-}else{
-    $title .= " based on the reporting of source "; 
+    $title .= " [Source] : {$this->source_list[$this->criteria['source_id']]}";
 }
 
-$pdf->ezText($title,14,array('justification'=>'center'));
-$pdf->ezTable($this->poam_list,$cols," ",
-    array('fontSize'=>8,'maxWidth'=>690 ));
+$pdf->ezText('Plans of Actions And Milestones Report Administration',16,array('justification'=>'center'));
+$pdf->ezTable($this->poam_list,$cols,$title,
+    array('fontSize'=>8,'maxWidth'=>690, 'titleFontSize'=>'12' ));
 
 echo $pdf->ezOutput();
 ?>

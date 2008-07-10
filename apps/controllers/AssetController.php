@@ -167,9 +167,8 @@ class AssetController extends PoamBaseController
         $criteria['p']         = $req->get('p');
         $this->view->assign('system_list',$this->_system_list);
         $this->view->assign('criteria',$criteria);
-        if('search' == $req->getParam('s')
-            || 'pdf' == $req->getParam('format')
-            || 'xls' == $req->getParam('format')){
+        $is_export = $req->getParam('format');
+        if('search' == $req->getParam('s') || isset($is_export)){
             if(!empty($criteria)){
                 extract($criteria);
             }
@@ -209,7 +208,10 @@ class AssetController extends PoamBaseController
             }
             $res = $db->fetchCol($query);
             $total = count($res);
+            if(!isset($is_export))
+            {
             $query->limitPage($this->_paging['currentPage'],$this->_paging['perPage']);
+            }
             $asset_list = $db->fetchAll($query);
 
             $this->_paging['totalItems'] = $total;

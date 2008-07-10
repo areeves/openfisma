@@ -141,10 +141,12 @@ class ReportController extends PoamBaseController
         $this->view->assign('system_list',$this->_system_list);
         $this->view->assign('network_list',$this->_network_list);
         $this->view->assign('criteria',$criteria);
-        if('search' == $req->getParam('s') 
-            || 'pdf' == $req->getParam('format')
-            || 'xls' == $req->getParam('format')){
+        $is_export = $req->getParam('format');
+        if('search' == $req->getParam('s') || isset($is_export)){
             $this->_paging_base_path .= '/panel/report/sub/poam/s/search';
+            if(isset($is_export)){
+                $this->_paging['currentPage']=$this->_pagging['perPage']=null;
+            }
             $this->makeUrl($criteria);
             if(!empty($criteria['year'])){
                 $criteria['created_date_begin'] = new Zend_Date($criteria['year'],Zend_Date::YEAR);
@@ -170,10 +172,6 @@ class ReportController extends PoamBaseController
                                         $this->_paging['currentPage'],
                                         $this->_paging['perPage']);
             $total = array_pop($list); 
-            foreach($list as &$row)
-            {
-                $row['system_name']=$this->_system_list[$row['system_id']];
-            }
             $this->_paging['totalItems'] = $total;
             $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";
             $pager = &Pager::factory($this->_paging);
@@ -244,10 +242,6 @@ class ReportController extends PoamBaseController
                                         $this->_paging['currentPage'],
                                         $this->_paging['perPage']);
             $total = array_pop($list); 
-            foreach($list as &$row)
-            {
-                $row['system_name']=$this->_system_list[$row['system_id']];
-            }
             $this->_paging['totalItems'] = $total;
             $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";
             $pager = &Pager::factory($this->_paging);
