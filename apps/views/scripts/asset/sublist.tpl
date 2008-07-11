@@ -1,29 +1,24 @@
 <div class="barleft">
 <div class="barright">
 <p><b>Asset Search Results</b>
-<span>
-<a target='_blank' href="<?php echo $this->url.'/format/pdf'; ?>"><img src="/images/pdf.gif" border="0"></a>
-<a href="<?php echo $this->url.'/format/xls'; ?>"><img src="/images/xls.gif" border="0"></a>
-</span>
 </div>
 </div>
 <form id="assetresult" method="post" action="/zfentry.php/asset/delete">
-<table width="98%" align="center" border="0">
-    <tr>
-        <td>
-            <div style="text-align:left;margin:0 0 2px">
+<table width="98%" align="center" border="0"><tr><td>
+            <div id="asset_buttons" class="button_container">
+            <a class="button" target='_blank' href="<?php echo $this->url.'/format/pdf'; ?>"><img src="/images/pdf.gif" height="16" width="16" align="top" border="0"></a>
+            <a class="button" href="<?php echo $this->url.'/format/xls'; ?>"><img src="/images/xls.gif" height="16" width="16" border="0" align="top"></a>
             <?php if(isAllow('asset','delete')){ ?>
-                <input type="button" name="select_all" value="Select All" style="cursor:pointer;">
-                <input type="button" name="select_none"  value="Select None" style="cursor:pointer;">
-                <input type="submit" id="button" value="Delete" style="cursor:pointer;">
+                <a class="button" href="#" name="select_all">Select All</a>
+                <a class="button" href="#" name="select_none">Select None</a>
+                <a class="button" href="#" name="delete_selected" onclick="document.forms.assetresult.submit();">Delete</a>
             <?php } if(isAllow('asset','create')){ ?>
-                <a id="create_asset" href="/zfentry.php/asset/create"><button class="action">Create an Asset</button></a>
+                <a class="button" href="/zfentry.php/asset/create" name="create_asset" >Create an Asset</a>
             <?php } ?>
-        </td>
-        <td align="right">
+            </div>
+        </td><td align="right">
             <b>Page:&nbsp;</b><?php echo $this->links['all'];?>
-        </td>
-    </tr>
+        </td></tr>
 </table>
 <table width="98%" align="center" border="0" class="tbframe">
     <tr align="center">

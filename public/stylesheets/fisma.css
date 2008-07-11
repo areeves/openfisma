@@ -3,20 +3,52 @@ a.action {
     line-height : 2em;
 }
 
-a.button:active,
-a.button:visited,
-a.button:link {
-  display: block;
-  text-decoration: none;
-  padding: 2px 6px 2px 6px;
-  color: #00527f;
-  background-color: #cccccc;
-  border: 1px solid #004266;
+/* Button links
+ *
+ * These links are styled to look like clickable buttons. Use this style of link
+ * when you are creating links that are not in-line with a body of text. Typically
+ * these should appear in header or footer areas, and not mid-paragraph.
+ */
+a.button {
+    display: block;
+    float: left;
+    text-decoration: none;
+    padding: 2px 5px;
+    color: #000000;
+    background-color: #cccccc;
+    border: 2px outset #cccccc;
+    margin-right: 5px;
+    margin-top: auto;
+    margin-bottom: auto;
 }
-a.button:hover {
-  color: red;
-  background-color: #8cbbda;
+
+a.button:active {
+    border-style: inset;
 }
+
+/* If you have multiple a.buttons next to each other, put them into a
+ * div.button_container and they will float next to each other.
+ */
+div.button_container {
+    /* empty for now, see pseudo class below */
+}
+
+/* This :after pseudo class puts an empty block element at the end of a
+ * div.button_container. This forces the button_container to expand vertically
+ * to enclose all floated divs inside of it.
+ */
+div.button_container:after {
+    content: ".";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
+}
+
+/* This is hack to make the div.button_container auto clear in IE.
+ * http://positioniseverything.net/easyclearing.html
+ */
+* html div.button_container {height: 1%;}
 
 ul {
     margin:0;

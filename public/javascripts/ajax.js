@@ -4,10 +4,10 @@ String.prototype.trim = function() {
 
 $(document).ready(function(){
 
-   $(":button[name=select_all]").click(function(){
+   $("a[@name=select_all]").click(function(){
        $(":checkbox").attr( 'checked','checked' );
    });
-   $(":button[name=select_none]").click(function(){
+   $("a[@name=select_none]").click(function(){
        $(":checkbox").attr( 'checked','' );
    });
 

@@ -25,7 +25,7 @@
 ?>
 <div class="barleft">
 <div class="barright">
-<p><b>Asset Search</b><span><?php echo date('Y-m-d h:i:s:A');?></span>
+<p><b>Asset Search</b>
 </div>
 </div>
 <form action="/zfentry.php/panel/asset/sub/searchbox/s/search" method="post">
@@ -56,7 +56,5 @@
 </table>
 </form>
 <?php 
-    if(!empty($this->asset_list)){
-        echo $this->partial('asset/sublist.tpl',array('asset_list'=>$this->asset_list,'url'=>$url,'links'=>$this->links));
-    }
+    echo $this->partial('asset/sublist.tpl',array('asset_list'=>$this->asset_list,'url'=>$url,'links'=>$this->links));
 ?>
