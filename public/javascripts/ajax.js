@@ -11,8 +11,11 @@ $(document).ready(function(){
        $(":checkbox").attr( 'checked','' );
    });
 
-   $('input.date').datepicker({dateFormat:'yymmdd',showOn: 'both', buttonImageOnly: true,
-        buttonImage: '/images/calendar.gif', buttonText: 'Calendar'});
+   $('input.date').datepicker({dateFormat:'yymmdd',
+                showOn: 'both', 
+                buttonImageOnly: true,
+                buttonImage: '/images/calendar.gif'
+                });
         
 
     $("select[name='system']").change(function(){
@@ -49,11 +52,16 @@ $(document).ready(function(){
             var type = target.attr('type');
             var url = target.attr('href');
             var eclass = target.attr('class');
-            eclass = eclass.replace(/editable/i, '');
             var cur_val = target.text();
             var cur_span = target;
             if(type == 'text'){
                 cur_span.replaceWith( '<input name='+name+' class="'+eclass+'" type="text" value="'+cur_val.trim()+'" />');
+                $('input.date').datepicker({
+                        dateFormat:'yymmdd',
+                        showOn: 'both', 
+                        buttonImageOnly: true,
+                        buttonImage: '/images/calendar.gif',
+                        buttonText: 'Calendar'});
             }else if( type == 'textarea' ){
                 var row = target.attr('rows');
                 var col = target.attr('cols');
@@ -67,12 +75,28 @@ $(document).ready(function(){
                     }
                 });
             }
-            $('input.date').datepicker({dateFormat:'yymmdd',showOn: 'both', buttonImageOnly: true,
-                    buttonImage: '/images/calendar.gif', buttonText: 'Calendar'});
         }
     });
+    date = new Date();
+    $("span[name=year]").html( date.getFullYear() );
+    shortcut(0);
 
 });
+
+function shortcut(step){
+    if( !isFinite(step) ){
+        step = 0;
+    }
+    var year = $("span[name=year]").html();
+    year = Number(year) + Number(step);
+    var url = '/zfentry.php/panel/report/sub/fisma/s/search/y/'+year+'/';
+    $("span[name=year]").html( year );
+    $("span[name=year]").parent().attr( 'href', url);
+    $("span[name=q1]").parent().attr( 'href', url+'q/1/' );
+    $("span[name=q2]").parent().attr( 'href', url+'q/2/' );
+    $("span[name=q3]").parent().attr( 'href', url+'q/3/' );
+    $("span[name=q4]").parent().attr( 'href', url+'q/4/' );
+}
 
 function searchAsset( ){
     var trigger = $("select[name='system']");

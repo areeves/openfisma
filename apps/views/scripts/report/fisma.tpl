@@ -1,22 +1,3 @@
-<script language="javascript">
-    date = new Date();
-    $("span[name=year]").html( date.getFullYear() );
-    shortcut(0);
-    function shortcut(step){
-        if( !isFinite(step) ){
-            step = 0;
-        }
-        var year = $("span[name=year]").html();
-        year = Number(year) + Number(step);
-        var url = '/zfentry.php/panel/report/sub/fisma/s/search/y/'+year+'/';
-        $("span[name=year]").html( year );
-        $("span[name=year]").parent().attr( 'href', url);
-        $("span[name=q1]").parent().attr( 'href', url+'q/1/' );
-        $("span[name=q2]").parent().attr( 'href', url+'q/2/' );
-        $("span[name=q3]").parent().attr( 'href', url+'q/3/' );
-        $("span[name=q4]").parent().attr( 'href', url+'q/4/' );
-    }
-</script>
 <?php 
     $url = "/zfentry.php/panel/report/sub/fisma/s/search";
     if(! empty($this->criteria['system_id'])) {
