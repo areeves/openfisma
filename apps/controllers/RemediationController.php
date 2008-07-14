@@ -55,7 +55,7 @@ class RemediationController extends PoamBaseController
             $summary[$id]['CLOSED'] = nullGet($s['CLOSED'],0);
             $summary[$id]['TOTAL'] = array_sum($s);
             $total['NEW'] += $summary[$id]['NEW'];
-            $total['EN'] += $summary[$id]['EN'];
+            //$total['EN'] += $summary[$id]['EN'];
             $total['CLOSED'] += $summary[$id]['CLOSED'];
             $total['OPEN'] += $summary[$id]['OPEN'];
             $total['ES'] += $summary[$id]['ES'];
@@ -70,6 +70,16 @@ class RemediationController extends PoamBaseController
         foreach($eo_count as $eo ) {
             $summary[$eo['system_id']]['EO'] = $eo['count'];
             $total['EO'] += $summary[$eo['system_id']]['EO'];
+        }
+        
+        $en_count = $this->_poam->search($this->me->systems,
+                        array('count'        => 'system_id','system_id'),
+                        array('status'       => 'EN',
+                              'est_date_begin' => parent::$now )
+                        );                  
+        foreach($en_count as $en ) {
+            $summary[$en['system_id']]['EN'] = $en['count'];
+            $total['EN'] += $summary[$en['system_id']]['EN'];
         }
 
         $spsso = $this->_poam->search($this->me->systems,
@@ -88,6 +98,7 @@ class RemediationController extends PoamBaseController
         $this->view->assign('total',$total);
         $this->view->assign('systems',$this->_system_list);
         $this->view->assign('summary',$summary );
+                               
         $this->render('summary');
     }
 
@@ -107,7 +118,7 @@ class RemediationController extends PoamBaseController
                 case 'EN':
                     $internal_crit['status'] = 'EN';
                     //Should we include EO status in?
-                    //$internal_crit['est_date_begin'] = $now;
+                    $internal_crit['est_date_begin'] = $now;
                     break;
                 case 'EO':
                     $internal_crit['status'] = 'EN';

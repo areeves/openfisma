@@ -8,11 +8,11 @@
 		<td  align="left"><b>Alerts </b>
 			<ul>
 			<!-- Awaiting Mitigation Strategy -->
-			<li>There are <b><?PHP echo $this->alert['OPEN'];?></b> finding(s) awaiting a mitigation strategy and approval.</li>
+			<li>There are <b><a href="<?php echo $this->url ?>OPEN"><?PHP echo $this->alert['OPEN'];?></a></b> finding(s) awaiting a mitigation strategy and approval.</li>
 			<!-- Awaiting Evidence -->
-			<li>There are <b><?PHP echo $this->alert['EN'];?></b> finding(s) awaiting evidence.
+			<li>There are <b><a href="<?php echo $this->url ?>EN"><?PHP echo $this->alert['EN'];?></a></b> finding(s) awaiting evidence.
             <!-- Overdue Awaiting Evidence -->
-			<li>There are <b><?PHP echo $this->alert['EO'];?></b> overdue finding(s) awaiting evidence.
+			<li>There are <b><a href="<?php echo $this->url ?>EO"><?PHP echo $this->alert['EO'];?></a></b> overdue finding(s) awaiting evidence.
             </ul>
 		</td>
 	</tr>

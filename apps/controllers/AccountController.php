@@ -164,6 +164,13 @@ class AccountController extends PoamBaseController
         $u_role = $req->getPost('user_role');
         $sys_data = $req->getPost('system');
         $confirm_pwd = $req->getPost('confirm_password');
+        if(empty($u_data['account']))
+        {
+            $msg = "Account could not be null.";
+            $this->message($msg,self::M_WARNING);
+            $this->_forward('view',null,null,array('v'=>'edit'));
+            return ;
+        }
         if( isset($u_data['password']) ) {
             /// @todo validate the password complexity
             if( $u_data['password'] != $confirm_pwd){

@@ -9,7 +9,6 @@
     })
 </script>
 
-<?php echo $this->msg;?>
 <div class="barleft">
 <div class="barright">
 <p><b>User Account Information</b>
