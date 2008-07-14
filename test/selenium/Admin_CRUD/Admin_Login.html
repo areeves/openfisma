@@ -4,22 +4,37 @@
 <head profile="http://selenium-ide.openqa.org/profiles/test-case">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <link rel="selenium.base" href="" />
-<title>Root Logout</title>
+<title>Admin_Login</title>
 </head>
 <body>
 <table cellpadding="1" cellspacing="1" border="1">
 <thead>
-<tr><td rowspan="1" colspan="3">Root Logout</td></tr>
+<tr><td rowspan="1" colspan="3">Admin_Login</td></tr>
 </thead><tbody>
-<!--Log out-->
+<!--Log in as the admin-->
 <tr>
-	<td>clickAndWait</td>
-	<td>//input[@value=&quot;Logout&quot;]</td>
+	<td>open</td>
+	<td>/index.php</td>
 	<td></td>
 </tr>
 <tr>
-	<td>verifyTitle</td>
-	<td>Login</td>
+	<td>type</td>
+	<td>username</td>
+	<td>application.administrator</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>userpass</td>
+	<td>password</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//input[@value='Login']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>application.administrator is currently logged in</td>
 	<td></td>
 </tr>
 
