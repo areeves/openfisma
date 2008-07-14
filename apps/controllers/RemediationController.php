@@ -50,7 +50,7 @@ class RemediationController extends PoamBaseController
             $summary[$id]['NEW'] = nullGet($s['NEW'],0);
             $summary[$id]['OPEN'] = nullGet($s['OPEN'],0);
             $summary[$id]['ES'] = nullGet($s['ES'],0);
-            $summary[$id]['EN'] = nullGet($s['EN'],0);
+            //$summary[$id]['EN'] = nullGet($s['EN'],0);
             $summary[$id]['EP'] = nullGet($s['EP'],0); //temp placeholder
             $summary[$id]['CLOSED'] = nullGet($s['CLOSED'],0);
             $summary[$id]['TOTAL'] = array_sum($s);
