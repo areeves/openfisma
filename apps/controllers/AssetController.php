@@ -137,13 +137,14 @@ class AssetController extends PoamBaseController
         if(!empty($id)) {
             $qry = $this->_asset->select()->setIntegrityCheck(false)
                                    ->from(array('a'=>'assets'),array('ip'=>'address_ip'))
-                                   ->join(array('s'=>'systems'),'a.system_id=s.id',array('sname'=>'s.name'))
-                                   ->join(array('p'=>'products'),'p.id = a.prod_id',
+                                   ->joinleft(array('s'=>'systems'),'a.system_id=s.id',array('sname'=>'s.name'))
+                                   ->joinleft(array('p'=>'products'),'p.id = a.prod_id',
                                                                 array('pname' =>'p.name',
                                                                       'pvendor' =>'p.vendor',
                                                                       'pversion' =>'p.version'));
             $qry->where("a.id = $id");
             $result=$this->_asset->fetchRow($qry);
+           
             if(!$result){
                 $result=NULL;
             }else{
@@ -184,7 +185,7 @@ class AssetController extends PoamBaseController
                                                             'address_ip'=>'a.address_ip',
                                                             'address_port'=>'a.address_port',
                                                             'aid'=>'a.id'))
-                        ->join(array('s'=>'systems'),'a.system_id = s.id',array('system_name'=>'s.name'))
+                        ->joinleft(array('s'=>'systems'),'a.system_id = s.id',array('system_name'=>'s.name'))
                         ->joinleft(array('p'=>'products'),'a.prod_id = p.id',array('prod_name'=>'p.name',
                                                                                    'prod_vendor'=>'p.vendor',
                                                                                    'prod_version'=>'p.version'));

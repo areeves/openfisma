@@ -45,9 +45,11 @@ class metainfoController extends PoamBaseController
             $list = array("APPROVED"=>"APPROVED","DENIED"=>"DENIED");
         }
         if( $module == 'type' ) {
+   
             $list = array("CAP"=>"(CAP) Corrective Action Plan",
                            "AR"=>"(AR) Accepted Risk",
                            "FP"=>"(FP) False Positive");
+            $this->view->selected = nullGet($list[$this->view->selected],'CAP');   
         }
         $this->view->list = $list;
         $this->render();
