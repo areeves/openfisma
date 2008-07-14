@@ -157,7 +157,7 @@
                         <td>
                             <b target="effectiveness" <?php 
                                 if(in_array( $this->poam['status'],array('NEW','OPEN'))
-                                    && isAllow('remediation','update_cmeasures')){ 
+                                    && isAllow('remediation','update_countermeasures')){
                                     echo 'class="editable"';
                                 }?> >Effectiveness:&nbsp;</b>
                             <span type="select" name="poam[cmeasure_effectiveness]"
@@ -170,7 +170,7 @@
                         <td>
                             <b target="cmeasure" <?php 
                                 if(in_array( $this->poam['status'],array('NEW','OPEN'))
-                                 && isAllow('remediation','update_cmeasures')){ 
+                                 && isAllow('remediation','update_countermeasures')){
                                     echo 'class="editable"';
                                 } ?> >Countermeasure:&nbsp;</b>
                             <span type="textarea" id="cmeasure" name="poam[cmeasure]" rows="5" cols="160">
@@ -182,7 +182,7 @@
                         <td>
                             <b target="cm_justification" <?php 
                                 if(in_array( $this->poam['status'],array('NEW','OPEN'))
-                                 && isAllow('remediation','update_cmeasures')){ 
+                                 && isAllow('remediation','update_countermeasures')){
                                     echo 'class="editable"';
                                 }
                             ?> >Justification:&nbsp;</b>

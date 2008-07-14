@@ -9,7 +9,7 @@
                 <tr>
                     <td align="left">
                         <b target="type" <?php
-        if(('NEW' == $this->poam['status'] || 'OPEN' == $this->poam['status'])&& isAllow('remediation','update_mitigation_strategy_approval')){
+        if(('NEW' == $this->poam['status'] || 'OPEN' == $this->poam['status'])&& isAllow('remediation','update_finding_course_of_action')){
             echo 'class="editable"';
         }?> >Type:&nbsp;</b>
                     <span name="poam[type]" id="type" type="select" 
