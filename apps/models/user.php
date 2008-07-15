@@ -82,12 +82,12 @@ class User extends Fisma_Model
         $user = $db->fetchOne($qry);
         $db->setFetchMode(Zend_Db::FETCH_OBJ);
         if($user == 'root') {
-            $sys = $db->fetchCol('SELECT id from systems where 1 ORDER BY `systems`.`name`');
+            $sys = $db->fetchCol('SELECT id from systems where 1 ORDER BY `systems`.`nickname`');
         }else{
             $qry->reset();
             $qry = $db->select()->distinct()->from(array('us'=>'user_systems'), 'system_id')
                                 ->join('systems','systems.id = us.system_id',array())
-                                ->where("user_id = $id")->order('systems.name ASC');
+                                ->where("user_id = $id")->order('systems.nickname ASC');
             $sys = $db->fetchCol($qry);
         }
         $db->setFetchMode($origin_mode);

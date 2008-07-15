@@ -84,7 +84,7 @@
 <div style="text-align:right"><span style="margin-right:80px;"><input type="button" name="select_all" value="All" />&nbsp;<input type="button" name="select_none" value="None" /></span></div>
 <table border="0" width="100%">
 <tr>
-<?php
+<?php /*
     $row = 4;
     $num = 0;
     foreach($this->all_sys as $sid=>$system ){
@@ -101,10 +101,47 @@
         }
 ?>
     <td>
-       <input type="checkbox" name="system[]" value="<?php echo $sid;?>" <?php echo $checked;?>>&nbsp;<?php echo $system; ?>
+       <input type="checkbox" name="system[]" value="<?php echo $sid;?>" <?php echo $checked;?>>&nbsp;<?php echo $system['name']; ?>
     </td>
 <?php echo $flag;
-    } 
+    } */
+?>
+</table>
+<table border="0" width="100%">
+<?php
+    /* Convert the associative array of systems into a linear array */
+    $system_array = array();
+    foreach ($this->all_sys as $id => $system) {
+        $system_array[] = array('id'=>$id, 'name'=>$system['name']);
+    }
+//print('<pre>'.print_r($system_array,true).'</pre>');
+    /* Now display the system list in 4 columns. This is tricky since tables are
+     * laid out left to right but we want to list systems top to bottom.
+     * Look at the "create user" page to see this in effect.
+     */
+    $column_count = 4;
+    $system_count = count($this->all_sys);
+    $row_count = ceil($system_count / $column_count);
+
+    for ($current_row = 0; $current_row < $row_count; $current_row++) {
+        print "<tr>";
+        for ($current_column = 0; $current_column < $column_count; $current_column++) {
+            print "<td width=\"25%\">";
+            $current_system_index = $current_column * $row_count + $current_row;
+            if ($current_system_index < $system_count) {
+                $system = $system_array[$current_system_index];
+                if(in_array($system['id'], $this->my_systems)){
+                    $checked = 'checked="checked"';
+                } else {
+                    $checked = '';
+                }
+                print "<input type='checkbox' name='system[]' $checked
+                       value='{$system['id']}'>{$system['name']}\n";
+            }
+            print "&nbsp;</td>";
+        }
+        print "</tr>";
+    }
 ?>
 </table>
 </fieldset>

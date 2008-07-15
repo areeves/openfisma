@@ -150,7 +150,7 @@ class AccountController extends PoamBaseController
         $this->view->assign('roles',$roles);
         $this->view->assign('role_list',$role_list);
         $this->view->assign('my_systems',$user->getMySystems($id));
-        $this->view->assign('all_sys',$sys->getList('name') );
+        $this->view->assign('all_sys',$sys->getList() );
         $this->render($v);
     }
 
@@ -235,7 +235,7 @@ class AccountController extends PoamBaseController
         $system = new system();
 
         $this->view->roles = $r->getList('name');
-        $this->view->systems = $system->getList(array('id'=>'id','name'=>'name'));
+        $this->view->systems = $system->getList();
         $this->render();
     }
 
