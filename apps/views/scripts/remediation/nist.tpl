@@ -216,7 +216,7 @@
                                'cmeasure_justification'=>$this->poam['cmeasure_justification']);
                 $complete = 0;
                 foreach($array as $value){
-                    if($value == ''){
+                    if($value == '' || $value == 'NONE'){
                         $complete++;
                     }
                 }
