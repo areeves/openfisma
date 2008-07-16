@@ -1,42 +1,40 @@
 <script LANGUAGE="JavaScript" type="test/javascript" src="/javascripts/ajax.js"></script>
-<div class="barleft">
-<div class="barright">
-<p><b>Finding Creation</b><span><?PHP echo $this->escape($this->Current_time);?></span></p>
-</div>
-</div>
-<br>
 
-<form name="finding" method="post" action="/zfentry.php/finding/create/is/new" >
-<table width="810" border="0" align="center" cellpadding="5">
+<div class="barleft">
+  <div class="barright">
+    <p><b>Finding Creation</b></p>
+  </div>
+</div>
+
+<form name="finding" method="post" action="/zfentry.php/panel/finding/sub/create/is/new" >
+<table width="810" border="0" align="center" cellpadding="0">
     <tr><td>
         <input name="button" type="submit" id="button" value="Create Finding" >
         <input name="button" type="reset" id="button" value="Reset Form" >
     </td></tr>
     <tr><td>
-        <table border="0" width="800" cellpadding="5" class="tipframe">
+        <table border="0" width="100%" cellpadding="5" class="tipframe">
             <tr> <th align="left">General Information</th> </tr>
             <tr> <td>
                     <table border="0" cellpadding="1" cellspacing="1">
                         <tr>
-                            <td align="right"><b>Discovered Date:</b></td>
+                            <td align="right"><b>Discovered Date:&nbsp;</b></td>
                             <td>
                                 <table border="0" cellpadding="0" cellspacing="0">
                                     <tr>
-                                        <td><input type="text" name="discovereddate" size="12" maxlength="10" value="<?php echo $this->discovered_date;?>">&nbsp;</td>
-                                        <td><span onclick="javascript:show_calendar('finding.discovereddate');"><img src="/images/picker.gif" width=24 height=22 border=0></span></td>
+                                        <td><input type="text" class="date" name="discovereddate" size="12" maxlength="10" value="<?php echo date('Ymd');?>"></td>
                                     </tr>
                                 </table>
                             </td>
                         </tr>
                         <tr>
-                            <td align="right"><b>Finding Source:</b></td>
+                            <td align="right"><b>Finding Source:&nbsp;</b></td>
                             <td>
-                                <select name="source">
-                                <?php foreach($this->source_list as $sid=>$sname){
-                                          echo'<option value='.$sid.'>'.$sname.'</option>';
-                                      }
-                                ?>
-                                </select>
+                            <?php 
+                                $this->source[0] = '--Any--';
+                                echo $this->formSelect('source', 0, null, $this->source); 
+                            ?>
+                                
                             </td>
                         </tr>
                     </table>
@@ -53,10 +51,10 @@
             </tr>
             <tr>
                 <td>
-                    <table border="0" width="800" cellpadding="5" class="tipframe">
+                    <table border="0" width="100%" cellpadding="5" class="tipframe">
                         <tr><th align="left">Asset Information
                         </th>
-                        <th align="right"><a href="/zfentry.php/asset/create">Create Asset</a>
+                        <th align="right"><a id="add_asset" href="/zfentry.php/asset/create" title="Create New Asset">Create New Asset</a>
                         </th>
                         <tr>
                             <td colspan="2">
@@ -64,17 +62,13 @@
                                     <tr>
                                         <td><b>System:</b></td>
                                         <td>
-                                            <select name="system" url="/zfentry.php/asset/search">
-                                            <option value="">--Any--</option>
-                                            <?php foreach($this->system_list as $sid=>$sname){
-                                                     if($this->system == $sid){
-                                                        echo'<option value='.$sid.' selected>'.$sname.'</option>';
-                                                     }else {
-                                                        echo'<option value='.$sid.'>'.$sname.'</option>';
-                                                     }
-                                                  }
-                                            ?>
-                                            </select>&nbsp;                                        </td>
+                            <?php 
+                                $this->system[0] = '--Any--';
+                                echo $this->formSelect('system', 0, 
+                                array('url'=>"/zfentry.php/asset/search"), 
+                                $this->system); 
+                            ?>
+                                        </td>
                                         <td><b>Asset Name:</b></td>
                                         <td><input class='assets' type="text" name="name" value="<?php echo $this->param['port']; ?>" size="10" />                                          &nbsp;                                        </td>
                                       </tr>
@@ -95,10 +89,6 @@
                         <tr>
                             <td width="200" align="center"><b>Asset Name:</b><div>
                                 <select id="asset_list" name="asset_list" size="8" style="width: 190px;">
-                                <?php foreach($this->asset_list as $aid=>$aname){
-                                          echo'<option value='.$aid.'>'.$aname.'</option>';
-                                      }
-                                ?>
                                 </select></div>                            </td>
                             <td width="600" align="center" valign="top">
                                 <fieldset style="height:115; border:1px solid #44637A; padding:5">

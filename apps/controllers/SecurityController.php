@@ -1,13 +1,17 @@
 <?php
 /**
-* OpenFISMA
-*
-* MIT LICENSE
-*
-* @version $Id$
+ * @file SecurityController.php
+ *
+ * Security Controller
+ *
+ * @author     Jim <jimc@reyosoft.com>
+ * @copyright  (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/mw/index.php?title=License
+ * @version $Id$
 */
 
 require_once 'Zend/Controller/Action.php';
+require_once 'Zend/Date.php';
 require_once 'Zend/Auth.php';
 require_once 'Zend/Db.php';
 require_once MODELS . DS . 'user.php';
@@ -27,19 +31,32 @@ class SecurityController extends Zend_Controller_Action
     const M_NOTICE = 'notice';
     const M_WARNING= 'warning';
 
+    public static $now = null;
+    protected $_auth = null;
+    
     /**
      * Authentication check and ACL initialization
      * @todo cache the acl
      */
+    public function init()
+    {
+        if( empty(self::$now) ) {
+            self::$now = Zend_Date::now();
+        }
+        $this->_auth = Zend_Auth::getInstance();
+        if($this->_auth->hasIdentity()){
+            if( empty($this->me) ){
+                $this->me = $this->_auth->getIdentity();
+                $this->initializeAcl($this->me->id);
+            }
+            $this->view->identity = $this->me->account;
+        }
+    }
+
     public function preDispatch()
     {
-        $auth = Zend_Auth::getInstance();
-        if($auth->hasIdentity()){
-            $this->me = $auth->getIdentity();
-            $this->view->identity = $this->me->user_name;
-            $this->initializeAcl($this->me->user_id);
-        }else{
-            $this->_forward('login','user');
+        if( empty($this->me ) ) {
+            $this->_forward('login','User');
         }
     }
 
@@ -47,25 +64,32 @@ class SecurityController extends Zend_Controller_Action
         if( !Zend_Registry::isRegistered('acl') )  {
             $acl = new Zend_Acl();
             $db = Zend_Registry::get('db');
-            $role_array = $db->fetchAll("SELECT role_nickname FROM `ROLES` r,`USER_ROLES` ur
-                                       WHERE ur.user_id = $uid
-                                       AND r.role_id = ur.role_id");
-            foreach($role_array as $result){
-                $acl->addRole(new Zend_Acl_Role($result['role_nickname']));
+            $query = $db->select()->from(array('r'=>'roles'),array('nickname'=>'r.nickname'));
+            $role_array = $db->fetchAll($query);
+            foreach($role_array as $row){
+                $acl->addRole(new Zend_Acl_Role($row['nickname']));
             }
 
-            $resource = $db->fetchAll("SELECT distinct function_screen FROM `FUNCTIONS`");
-            foreach($resource as $result){
-                $acl->add(new Zend_Acl_Resource($result['function_screen']));
+            $query->reset();
+            $query = $db->select()->distinct()->from(array('f'=>'functions'),array('screen'=>'screen'));
+            $resource = $db->fetchAll($query);
+            foreach($resource as $row){
+                $acl->add(new Zend_Acl_Resource($row['screen']));
             }
-            $res = $db->fetchAll("SELECT  r.role_nickname,f.function_screen,f.function_action
-                                  FROM `ROLES` r,`ROLE_FUNCTIONS` rf,`FUNCTIONS` f,`USER_ROLES` ur
-                                  WHERE ur.user_id = $uid
-                                  AND ur.role_id = r.role_id
-                                  AND r.role_id = rf.role_id
-                                  AND rf.function_id = f.function_id");
-            foreach($res as $result){
-                $acl->allow($result['role_nickname'],$result['function_screen'],$result['function_action']);
+
+            $query->reset();
+            $query = $db->select()->from(array('u'=>'users'),array('account'))
+                                  ->join(array('ur'=>'user_roles'),'u.id = ur.user_id',array())
+                                  ->join(array('r'=>'roles'),'ur.role_id = r.id',
+                                            array('nickname'=>'r.nickname'))
+                                  ->join(array('rf'=>'role_functions'),'r.id = rf.role_id',
+                                            array())
+                                  ->join(array('f'=>'functions'),'rf.function_id = f.id',
+                                            array('screen'=>'f.screen', 'action'=>'f.action'))
+                                  ->where('u.id=?',$uid);
+            $res = $db->fetchAll($query);
+            foreach($res as $row){
+                $acl->allow($row['nickname'],$row['screen'],$row['action']);
             }
             Zend_Registry::set('acl',$acl);
         }else{
@@ -82,6 +106,17 @@ class SecurityController extends Zend_Controller_Action
         $this->view->msg = $msg;
         $this->view->model= $model;
         $this->_helper->viewRenderer->renderScript('message.tpl');
+    }
+
+
+    public function & retrieveParam($req, $params,$default=null)
+    {
+        assert($req instanceof Zend_Controller_Request_Abstract);
+        $crit = array();
+        foreach($params as $k=>&$v) {
+            $crit[$k] = $req->getParam($v);
+        }
+        return $crit;
     }
 }
 ?>

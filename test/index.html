@@ -1,45 +1,32 @@
-<html>
-<head>
-<style type="text/css">
-<!--
-.STYLE1 {color: #FF0000}
-
-li span {
-    font-weight:bold;
-}
--->
-</style>
-</head>
-
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head><title>OpenFISMA Testing</title></head>
 <body>
 
-<h2>Refer to <a href="README" >README</a> for more information and setup FAQ</h2>
-<p>
+<h1>OpenFISMA Testing</h1>
 <ul>
-<li>
-<a href="core/TestRunner.html?test=../cases/TestSuite0.html&amp;auto=on&amp;resultsUrl=../postResults.php">
-    Install(automatically) Openfisma.<br/>								
-</a>
-    <p>Please make sure following settings have no conflict with testing envirement.</p>
-    <ul style="">
-        <li>database admin account: <span> test_dba </span></li>
-        <li>database admin password: <span> test_dbapasswd</span></li>
-        <li>target database name: 
-            <span class="STYLE1">test_fisma</span>, which should not exist before this.
-        </li>
-        <li>dedicated db account for test_fisma:<span> fisma_user</span></li>
-        <li>password for the user: 123456</li>
+<li>Introduction:
+    <ul>
+    <li>Read the <a href="./README">README</a> document for OpenFISMA testing
+    <li>OpenFISMA <a href="http://www.openfisma.org/mw/index.php?title=Requirements_Documents">requirements</a>
     </ul>
-</li><br/>
-
-<li><a href="core/TestRunner.html?test=..%2Fcases/TestSuite1.html&auto=on&resultsUrl=..%2FpostResults.php">Import testing data(TestSuit1)<br/>
-</a>
-<span class="STYLE1">Warning:This process will purge your original database if existed!!</span></li>
-
-
-<li><a href="core/TestRunner.html?test=..%2Fcases/TestSuite2.html&amp;auto=on&amp;resultsUrl=..%2FpostResults.php">TestSuite2.</a></li>
+<li> Functional Tests:
+    <ul>
+    <li>Notice: functional tests are generally designed to be run <em>in-order</em>, and <em>will delete or modify</em> existing data.
+    <li><a href="core/TestRunner.html?test=../selenium/Install_OpenFISMA/index.html">Install_OpenFISMA</a>
+    (Exercise the installer. Will <em>delete all</em> schema data.)
+    <li><a href="core/TestRunner.html?test=../selenium/Root_Setup/index.html">Root_Setup</a>
+    (Test functionality as the root user. Creates some sample data.)
+    <li><a href="core/TestRunner.html?test=../selenium/Admin_CRUD/index.html">Admin_CRUD</a>
+    (Exercise the admin's ability to create, read, update, and delete administrative metadata. Deletes all the data that it creates.)
+    <li><a href="core/TestRunner.html?test=../selenium/Remediation_CAP_No_Denials/index.html">Remediation_CAP_No_Denials</a>
+    (An end-to-end remediation of a CAP POA&amp;M that has no denials. Deletes all the data that it creates.)
+    <li>...
+    </ul>
+<li>Unit Tests:
+    <ul>
+    <li>TODO: fill in unit tests
+    </ul>
 </ul>
-</p>
 
 </body>
 </html>

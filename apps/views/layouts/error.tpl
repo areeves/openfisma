@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
 <title></title>
@@ -16,9 +16,7 @@
         <div id='bottom'>
             <table width="100%">
             <tr><td colspan=2><hr color="#44637A" size="1"></hr></td></tr>
-            <tr> <td > Found a Bug? or Have a Suggestion? <a href="https://sourceforge.net/tracker/?group_id=208522" target="_blank">Report it Here</a> </td>
-                 <td align="right"> <i>Powered by <a href="http://www.openfisma.org">OpenFISMA</a></i> </td>
-            </tr>
+            <tr> <td align="right"> <i>Powered by <a href="http://www.openfisma.org">OpenFISMA</a></i> </td> </tr>
             </table>
         </div>
     </div>

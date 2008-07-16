@@ -1,732 +1,435 @@
 <?PHP
 /**
-* OpenFISMA
-*
-* MIT LICENSE
-*
-* @version $Id$
+ * @file RemediationController.php
+ *
+ * @description Remediation Controller
+ *
+ * @author     Jim <jimc@reyosoft.com>
+ * @copyright  (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/mw/index.php?title=License
+ * @version $Id$
 */
 
-require_once CONTROLLERS . DS . 'SecurityController.php';
+require_once CONTROLLERS . DS . 'PoamBaseController.php';
 require_once MODELS . DS . 'user.php';
-require_once MODELS . DS . 'poam.php';
+require_once MODELS . DS . 'evaluation.php';
+require_once APPS . DS . 'Exception.php';
 require_once 'Pager.php';
 
-class RemediationController extends SecurityController
+class RemediationController extends PoamBaseController
 {
-    private $_paging = array('mode'        =>'Sliding',
-                             'append'      =>false,
-                             'urlVar'      =>'p',
-                             'path'        =>'',
-                             'currentPage' =>1,
-                             'perPage'     =>20);
-    public function preDispatch()
-    {
-        parent::preDispatch();
-        $req = $this->getRequest();
-        $uid = $this->me->user_id;
-        $this->_paging_base_path = $req->getBaseUrl() .'/panel/remediation/sub/searchbox/s/search';
-        $this->_paging['currentPage'] = $req->getParam('p',1);
+
+    public function indexAction(){
+        $this->_helper->actionStack('searchbox','Remediation');
+        $this->_helper->actionStack('summary','Remediation');
     }
 
     public function summaryAction(){
         require_once MODELS . DS . 'system.php';
         $req = $this->getRequest();
-        $user = new user();
-        $uid = $this->me->user_id;
-        $system_list = $user->getMySystems($uid);
-        $system_ids = implode(',',$system_list);
-        $poam = new poam();
-        $system = new System();
-        $today = date('Ymd',time());
-        $total = array('NEW'=>0,'OPEN'=>0,'EN'=>0,'EO'=>0,'EP_SNP'=>0,'EP_SSO'=>0,'ES'=>0,'CLOSED'=>0,'TOTAL'=>0);
-        foreach($system_list as $id) {
-            $remediations = $poam->search(array($id));
-            if(!empty($remediations)){
-                $sum = array('NEW'=>0,'OPEN'=>0,'EN'=>0,'EO'=>0,'EP_SNP'=>0,'EP_SSO'=>0,'ES'=>0,'CLOSED'=>0,'TOTAL'=>0);
-                foreach($remediations as $row){
-                    switch($row['status']) {
-                    case 'OPEN':
-                        if( $row['type'] == 'NONE' ) {
-                            $sum['NEW'] ++;//count the NEW items
-                            $total['NEW'] ++;
-                        }else{ 
-                            $sum['OPEN'] ++;//count the OPEN items
-                            $total['OPEN'] ++;
-                        }
-                        break;
-                    case 'EN':
-                        $est = implode(split('-',$row['action_date_est']));
-                        if($est < $today){
-                            $sum['EO'] ++;                    //update the display to show it as EN in the list
-                            $total['EO']++;
-                        } else {//still on time,just count it
-                            $sum['EN'] ++;
-                            $total['EN'] ++;
-                        }
-                        break;
-                    case 'EP':
-                        //if the SSO has approved it,then tag it as S&P
-                        $db = Zend_Registry::get('db');
-                        $query = $db->select()
-                              ->from(array('pe'=>'POAM_EVIDENCE'),array('evaluation'=>'pe.ev_sso_evaluation'))
-                              ->where("poam_id = ".$row['id']."")
-                              ->order("ev_id DESC")
-                              ->limit(1);
-                        $approval = $db->fetchRow($query);
-                        if(isset($approval['evaluation']) && $approval['evaluation'] == 'APPROVED'){
-                            $sum['EP_SNP']++;
-                            $total['EP_SNP'] ++;
-                        } else {//else tag it SSO
-                            $sum['EP_SSO']++;
-                            $total['EP_SSO']++;
-                        }
-                        break;
-                    case 'ES':
-                        $sum['ES']++;
-                        $total['ES']++;
-                        break;
-                    case 'CLOSED':
-                        $sum['CLOSED']++;
-                        $total['CLOSED']++;
-                        break;
-                    }
-                    $sum['TOTAL']++;
-                    $total['TOTAL']++;
-                }
-                $summary[$id] = $sum;
-            }
+
+        $today = parent::$now->toString('Ymd');
+
+        $summary_tmp = array('NEW'=>0,'OPEN'=>0,'EN'=>0,'EO'=>0,'EP'=>0,'EP_SNP'=>0,'EP_SSO'=>0,'ES'=>0,'CLOSED'=>0,'TOTAL'=>0);
+
+        // mock array_fill_key in 5.2.0
+        $count = count($this->me->systems);
+        $sum = array_fill(0,$count,$summary_tmp);
+        $summary = array_combine($this->me->systems, $sum);
+
+        $total = $summary_tmp;
+        $ret = $this->_poam->search($this->me->systems,
+                       array('count'=>array('status','system_id'), 'status','type','system_id'));
+        $sum =array();
+
+        foreach($ret as $s) {
+                $sum[$s['system_id']][$s['status']] = $s['count'];
         }
- 	//$poam->search($id, 'count', array('ep'=>array('sso'=>'APPROVAL') ) );
-        $systems = $system->find($system_list);
-        foreach( $systems as $s ) {
-            $sys_list[$s->system_id] = $s->toArray();
+        foreach($sum as $id=>&$s) {
+            $summary[$id] = $summary_tmp;
+            $summary[$id]['NEW'] = nullGet($s['NEW'],0);
+            $summary[$id]['OPEN'] = nullGet($s['OPEN'],0);
+            $summary[$id]['ES'] = nullGet($s['ES'],0);
+            //$summary[$id]['EN'] = nullGet($s['EN'],0);
+            $summary[$id]['EP'] = nullGet($s['EP'],0); //temp placeholder
+            $summary[$id]['CLOSED'] = nullGet($s['CLOSED'],0);
+            $summary[$id]['TOTAL'] = array_sum($s);
+            $total['NEW'] += $summary[$id]['NEW'];
+            //$total['EN'] += $summary[$id]['EN'];
+            $total['CLOSED'] += $summary[$id]['CLOSED'];
+            $total['OPEN'] += $summary[$id]['OPEN'];
+            $total['ES'] += $summary[$id]['ES'];
+            $total['TOTAL'] += $summary[$id]['TOTAL'];
         }
+
+        $eo_count = $this->_poam->search($this->me->systems,
+                        array('count'        => 'system_id','system_id'),
+                        array('status'       => 'EN',
+                              'est_date_end' => parent::$now )
+                        );
+        foreach($eo_count as $eo ) {
+            $summary[$eo['system_id']]['EO'] = $eo['count'];
+            $total['EO'] += $summary[$eo['system_id']]['EO'];
+        }
+        
+        $en_count = $this->_poam->search($this->me->systems,
+                        array('count'        => 'system_id','system_id'),
+                        array('status'       => 'EN',
+                              'est_date_begin' => parent::$now )
+                        );                  
+        foreach($en_count as $en ) {
+            $summary[$en['system_id']]['EN'] = $en['count'];
+            $total['EN'] += $summary[$en['system_id']]['EN'];
+        }
+
+        $spsso = $this->_poam->search($this->me->systems,
+                        array('count'=>'system_id','system_id'), array('ep'=>0));
+        foreach($spsso as $sp) {
+            $summary[$sp['system_id']]['EP_SSO'] = $sp['count'];
+            $total['EP_SSO'] += $sp['count'];
+        }
+        $spsnp = $this->_poam->search($this->me->systems,
+                        array('count'=>'system_id','system_id'), array('ep'=>1));
+        foreach($spsnp as $sp) {
+            $summary[$sp['system_id']]['EP_SNP'] = $sp['count'];
+            $total['EP_SNP'] += $sp['count'];
+        }
+
         $this->view->assign('total',$total);
-        $this->view->assign('systems',$sys_list);
+        $this->view->assign('systems',$this->_system_list);
         $this->view->assign('summary',$summary );
+                               
         $this->render('summary');
     }
 
-    public function searchAction(){
-        $req = $this->getRequest();
-        $this->_paging_base_path = $req->getBaseUrl().'/panel/remediation/sub/searchbox/s/search';
-        $this->_paging['currentPage'] = $req->getParam('p',1);
-       
-        $user = new user();
-        $uid = $this->me->user_id;
-        $system_list = $user->getMySystems($uid);
-        $criteria = $req->getParam('criteria');
-        foreach($criteria as $key=>$value){
-            if(!empty($value) && $value!='any'){
-                $this->_paging_base_path .='/'.$key.'/'.$value.'';
+    protected function _search($criteria){
+        //refer to searchbox.tpl for a complete status list
+        $internal_crit = &$criteria;
+        if( !empty($criteria['status']) ){
+            $now = clone parent::$now;
+            switch($criteria['status']){
+                case 'NEW':
+                    $internal_crit['status'] = 'NEW';
+                    break;
+                case 'OPEN':
+                    $internal_crit['status'] = 'OPEN';
+                    $internal_crit['type']   = array('CAP','FP','AR');
+                    break;
+                case 'EN':
+                    $internal_crit['status'] = 'EN';
+                    //Should we include EO status in?
+                    $internal_crit['est_date_begin'] = $now;
+                    break;
+                case 'EO':
+                    $internal_crit['status'] = 'EN';
+                    $internal_crit['est_date_end'] = $now;
+                    break;
+                case 'EP-SSO':
+                ///@todo EP searching needed
+                    $internal_crit['status'] = 'EP';
+                    $internal_crit['ep']     = 0;//level
+                    break;
+                case 'EP-SNP':
+                    $internal_crit['status'] = 'EP';
+                    $internal_crit['ep']     = 1;//level
+                    break;
+                case 'ES':
+                    $internal_crit['status'] = 'ES';
+                    break;
+                case 'CLOSED':
+                    $internal_crit['status'] = 'CLOSED';
+                    break;
+                case 'NOT-CLOSED':
+                    $internal_crit['status'] = array('OPEN','EN','EP','ES');
+                    break;
+                case 'NOUP-30':
+                    $internal_crit['status'] = array('OPEN','EN','EP','ES');
+                    $internal_crit['modify_ts'] = $now->sub(30, Zend_Date::DAY);
+                    break;
+                case 'NOUP-60':
+                    $internal_crit['status'] = array('OPEN','EN','EP','ES');
+                    $internal_crit['modify_ts'] = $now->sub(60, Zend_Date::DAY);
+                    break;
+                case 'NOUP-90':
+                    $internal_crit['status'] = array('OPEN','EN','EP','ES');
+                    $internal_crit['modify_ts'] = $now->sub(90, Zend_Date::DAY);
+                    break;
             }
         }
-
-        $this->_paging_base_path .= $req->getParam('path');
         
-        $poam = new poam();
-        $totals = $poam->search($system_list,array('count'=>array()),$criteria);
-        $list = $poam->search($system_list,'*',$criteria,$this->_paging['currentPage'],$this->_paging['perPage']);
-        $this->_paging['totalItems'] = $total = $totals[0]['count'];
+        $list = $this->_poam->search($this->me->systems, array('id',
+                                                         'source_id',
+                                                         'system_id',
+                                                         'type',
+                                                         'status',
+                                                         'finding_data',
+                                                         'action_est_date',
+                                                         'count'=>'count(*)'),
+                                     $internal_crit,$this->_paging['currentPage'],
+                                     $this->_paging['perPage']);
+        $total = array_pop($list);
+
+        $this->_paging['totalItems'] = $total;
         $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";
+        $lastSearch_url = str_replace('%d',$this->_paging['currentPage'],$this->_paging['fileName']);
+        $urlNamespace = new Zend_Session_Namespace('urlNamespace');
+        $urlNamespace->lastSearch = $lastSearch_url;
         $pager = &Pager::factory($this->_paging);
-        $this->view->assign('summary_list',$list);
+        $this->view->assign('list',$list);
+        $this->view->assign('systems',$this->_system_list);
+        $this->view->assign('sources',$this->_source_list);
         $this->view->assign('total_pages',$total);
         $this->view->assign('links',$pager->getLinks());
         $this->render('search');
     }
-
+    
     public function searchboxAction()
     {
-        require_once MODELS . DS . 'system.php';
-        require_once MODELS . DS . 'source.php';
-        require_once MODELS . DS . 'network.php';
-
-        $db = Zend_Registry::get('db');
-        $user = new User();
-        $src = new Source();
-        $net = new Network();
-        $sys = new System();
-        
         $req = $this->getRequest();
-        $uid = $this->me->user_id;
+        $this->_paging_base_path .= '/panel/remediation/sub/searchbox/s/search';
         // parse the params of search
-        $criteria['system'] = $req->getParam('system','any');
-        $criteria['source'] = $req->getParam('source','any');
-        $criteria['type'] = $req->getParam('type','any');
-        $criteria['status'] = $req->getParam('status','any');
-        $criteria['ids'] = $req->getParam('ids','');
-        $criteria['asset_owner'] = $req->getParam('asset_owner','any');
-        $criteria['action_owner'] = $req->getParam('action_owner','any');
-        $criteria['startdate'] = $req->getParam('startdate','');
-        $criteria['enddate'] = $req->getParam('enddate','');
-        $criteria['startcreatedate'] = $req->getParam('startcreatedate','');
-        $criteria['endcreatedate'] = $req->getParam('endcreatedate');
-
-        $internal_crit = $criteria;
-
-        $qry = $db->select();
-        $source_list  = $db->fetchPairs($qry->from($src->info(Zend_Db_Table::NAME),
-                                    array('id'=>'source_id','name'=>'source_name'))
-                                    ->order(array('id ASC')) );
-        $qry->reset();
-        $network_list = $db->fetchPairs($qry->from($net->info(Zend_Db_Table::NAME),
-                                    array('id'=>'network_id','name'=>'network_name'))
-                                    ->order(array('id ASC')) );
-        $qry->reset();
-        $ids = implode(',', $user->getMySystems($uid));
-        $system_list = $db->fetchPairs($qry->from($sys->info(Zend_Db_Table::NAME),
-                                    array('id'=>'system_id','name'=>'system_name'))
-                                    ->where("system_id IN ( $ids )")
-                                    ->order('id ASC'));
-        $system_list['any'] = '--Any--';
-        $source_list['any'] = '--Any--';
-        $network_list['any'] = '--Any--';
-        
-        $filter_type = array('any'  =>'--- Any Type ---',
-                        'NONE' =>'(NONE) Unclassified',
-                        'CAP'  =>'(CAP) Corrective Action Plan',
-                        'AR'   =>'(AR) Accepted Risk',
-                        'FP'   =>'(FP) False Positive');
-
-        $filter_status = array('any'   =>'--- Any Status ---',
-                        'NEW'       =>'(NEW) Awaiting Mitigation Type and Approval',
-                        'OPEN'      =>'(OPEN) Awaiting Mitigation Approval',
-                        'EN'        =>'(EN) Evidence Needed',
-                        'EO'        =>'(EO) Evidence Overdue',
-                        'EP'        =>'(EP) Evidence Provided',
-                        'EP-SSO'    =>'(EP-SSO) Evidence Provided to SSO',
-                        'EP-SNP'    =>'(EP-S&P) Evidence Provided to S&P',
-                        'ES'        =>'(ES) Evidence Submitted to IV&V',
-                        'CLOSED'    =>'(CLOSED) Officially Closed',
-                        'NOT-CLOSED'=>'(NOT-CLOSED) Not Closed',
-                        'NOUP-30'   =>'(NOUP-30) 30+ Days Since Last Update',
-                        'NOUP-60'   =>'(NOUP-60) 60+ Days Since Last Update',
-                        'NOUP-90'   =>'(NOUP-90) 90+ Days Since Last Update');
-        if('search' == $req->getParam('s')){
-            foreach($criteria as $key=>$value){
-                if(!empty($value) && $value!= 'any'){
-                    $this->_paging_base_path .= '/'.$key.'/'.$value.'';
-                }
-            }    
-            if(isset($criteria['status']) && $criteria['status'] != 'any'){
-                $current_date = date('Y-m-d',time());
-                switch($criteria['status']){
-                    case 'NEW':
-                        $internal_crit['status'] = 'OPEN';
-                        $internal_crit['type']   = 'NONE';
-                        break;
-                    case 'OPEN':
-                        $internal_crit['status'] = 'OPEN';
-                        $internal_crit['type']   = array("'NONE'","'CAP'","'FP'","'AR'");
-                        break;
-                    case 'EN':
-                        $internal_crit['status'] = 'EN';
-                        $internal_crit['startdate'] = date('Y-m-d',time());
-                        break;
-                    case 'EO':
-                        $internal_crit['status'] = 'EN';                        
-                        $internal_crit['enddate'] = date('Y-m-d',time());
-                        break;
-                    case 'EP-SSO':
-                        $internal_crit['status'] = 'EP';
-                        $internal_crit['ep']     = array('sso'=>'APPROVED',
-                                                    'fsa'=>'NONE',
-                                                    'ivv'=>'NONE');
-                        break;
-                    case 'EP-SNP':
-                        $internal_crit['status'] = 'EP';
-                        $internal_crit['ep']     = array('sso'=>'APPROVED',
-                                                    'fsa'=>'NONE',
-                                                    'ivv'=>'NONE');
-                        break;
-                    case 'ES':
-                        $internal_crit['status'] = 'ES';
-                        break;
-                    case 'CLOSED':
-                        $internal_crit['status'] = 'CLOSED';
-                        break;
-                    case 'NOT-CLOSED':
-                        $internal_crit['status'] = array("'OPEN'","'EN'","'EP'","'ES'");
-                        break;
-                    case 'NOUP-30':
-                        $internal_crit['status'] = array("'OPEN'","'EN'","'EP'","'ES'");
-                        $internal_crit['poam_date_modified'] = 'SUBDATE("'.$current_date.'",30)';
-                        break;
-                    case 'NOUP-60':
-                        $internal_crit['status'] = array("'OPEN'","'EN'","'EP'","'ES'");
-                        $internal_crit['poam_date_modified'] = 'SUBDATE("'.$current_date.'",60)';
-                        break;
-                    case 'NOUP-90':
-                        $internal_crit['status'] = array("'OPEN'","'EN'","'EP'","'ES'");
-                        $internal_crit['poam_date_modified'] = 'SUBDATE("'.$current_date.'",90)';
-                        break;
-                }
-            }
-            $this->_helper->actionStack('search','Remediation',null,array('criteria'=>$internal_crit));
+        $criteria['system_id'] = $req->getParam('system_id');
+        $criteria['source_id'] = $req->getParam('source_id');
+        $criteria['type'] = $req->getParam('type');
+        $criteria['status'] = $req->getParam('status');
+        $criteria['ids'] = $req->getParam('ids');
+        $criteria['asset_owner'] = $req->getParam('asset_owner',0);
+        $criteria['order'] = array();
+        if($req->getParam('sortby') != null && $req->getParam('order') != null){
+            array_push($criteria['order'], $req->getParam('sortby'));
+            array_push($criteria['order'], $req->getParam('order'));
         }
+
+        $tmp = $req->getParam('est_date_begin');
+        if(!empty($tmp)) {
+            $criteria['est_date_begin'] = new Zend_Date($tmp,Zend_Date::DATES);
+        }
+        $tmp = $req->getParam('est_date_end');
+        if(!empty($tmp)) {
+            $criteria['est_date_end'] = new Zend_Date($tmp,Zend_Date::DATES);
+        }
+        $tmp = $req->getParam('created_date_begin');
+        if(!empty($tmp)) {
+            $criteria['created_date_begin'] = new Zend_Date($tmp,Zend_Date::DATES);
+        }
+        $tmp = $req->getParam('created_date_end');
+        if(!empty($tmp)) {
+            $criteria['created_date_end'] = new Zend_Date($tmp,Zend_Date::DATES);
+        }
+        $this->makeUrl($criteria);
+        $this->view->assign('url',$this->_paging_base_path);
         $this->view->assign('criteria',$criteria);
-        $this->view->assign('system_list',$system_list);
-        $this->view->assign('source_list',$source_list);
-        $this->view->assign('filter_type',$filter_type);
-        $this->view->assign('filter_status',$filter_status);
+        $this->view->assign('systems',$this->_system_list);
+        $this->view->assign('sources',$this->_source_list);
         $this->render();
+        if('search' == $req->getParam('s')){
+           $this->_paging_base_path = $req->getBaseUrl().'/panel/remediation/sub/searchbox/s/search';
+           $this->_paging['currentPage'] = $req->getParam('p',1);
+
+           foreach($criteria as $key=>$value){
+               if(!empty($value) ){
+                   if($value instanceof Zend_Date){
+                       $this->_paging_base_path .='/'.$key.'/'.$value->toString('Ymd').'';
+                   }else{
+                       $this->_paging_base_path .='/'.$key.'/'.$value.'';
+                   }
+               }
+           }
+           $this->_search($criteria);
+        }
     }
 
     /**
-    Get remediation detail info
-    */
+        Get remediation detail info
+    **/
     public function viewAction(){
         $req = $this->getRequest();
         $id = $req->getParam('id');
-        $today = date("Ymd",time());
-        $poam = new poam();
-        $db = $poam->getAdapter();
-        $query = $poam->select()->setIntegrityCheck(false);
-        // Finding Information Query
-        $query->from(array('p'=>'POAMS'),array());
-        $query->join(array('f'=>'FINDINGS'),'p.finding_id = f.finding_id',array('f_id'=>'f.finding_id',
-                                                                                'f_status'=>'f.finding_status',
-                                                                                'f_discovered'=>'f.finding_date_discovered',
-                                                                                'f_created'=>'f.finding_date_created',
-                                                                                'f_data'=>'f.finding_data'));
-        $query->join(array('fs'=>'FINDING_SOURCES'),'fs.source_id = f.source_id',array('fs_nickname'=>'fs.source_nickname',
-                                                                                      'fs_name'=>'fs.source_name'));
-        $query->join(array('a'=>'ASSETS'),'a.asset_id = f.asset_id',array('asset_id'=>'a.asset_id',
-                                                                         'asset_name'=>'a.asset_name'));
-        $query->join(array('sa'=>'SYSTEM_ASSETS'),'sa.asset_id = a.asset_id',array());
-        $query->join(array('s'=>'SYSTEMS'),'sa.system_id = s.system_id',array('system_nickname'=>'s.system_nickname',
-                                                                             'system_name'=>'s.system_name'));
-        $query->where("sa.system_is_owner = 1");
-        $query->where("p.poam_id = ".$id."");
-        $finding = $poam->fetchRow($query)->toArray();
-        $this->view->assign('finding',$finding);
-        
-        //Asset Network And Addresses Query
+        $poam_detail = $this->_poam->getDetail($id);
 
-        $query->reset();
-        $query->from(array('n'=>'NETWORKS'),array('network_nickname'=>'n.network_nickname'));
-        $query->join(array('aa'=>'ASSET_ADDRESSES'),'n.network_id = aa.network_id',array('ip'=>'aa.address_ip',
-                                                                                         'port'=>'aa.address_port'));
-        $query->where("aa.asset_id = ".$finding['asset_id']."");
-        $asset_address = $poam->fetchAll($query)->toArray();
-        $this->view->assign('asset_address',$asset_address); 
-        // Finding Vulnerabilities Query
+        if(empty($poam_detail)){
+            throw new fisma_Exception("POAM($id) is not found, Make sure a valid ID is inputed");
+        }
 
-        $query->reset();
-        $query->from(array('p'=>'POAMS'),array());
-        $query->join(array('f'=>'FINDINGS'),'p.finding_id = f.finding_id',array());
-        $query->join(array('fv'=>'FINDING_VULNS'),'fv.finding_id = f.finding_id',array());
-        $query->join(array('v'=>'VULNERABILITIES'),'v.vuln_type = fv.vuln_type AND v.vuln_seq = fv.vuln_seq',
-                          array('type'=>'v.vuln_type',
-                                'seq'=>'v.vuln_seq',
-                                'primary'=>'v.vuln_desc_primary',
-                                'secondary'=>'v.vuln_desc_secondary'));
-        $query->where("p.poam_id = ".$id."");
-        $vulnerabilities = $poam->fetchAll($query)->toArray();
-
-        // Remediation Query
-
-        $query->reset();
-        $query->from(array('p'=>'POAMS'),'*');
-        $query->join(array('s'=>'SYSTEMS'),'s.system_id = p.poam_action_owner',array('system_nickname'=>'s.system_nickname',
-                                                                                     'system_name'=>'s.system_name'));
-        $query->join(array('u1'=>'USERS'),'u1.user_id = p.poam_created_by',array('created_by'=>'u1.user_name'));
-        $query->join(array('u2'=>'USERS'),'u2.user_id = p.poam_modified_by',array('modified_by'=>'u2.user_name'));
-        $query->where("p.poam_id = ".$id."");
-        $data = $poam->fetchRow($query);
-        if(!empty($data)){
-            $remediation = $data->toArray();
-            $this->view->assign('remediation',$remediation);
-
-            $est = implode(split('-',$remediation['poam_action_date_est']));
-            if(($est < $today) && ($remediation['poam_status']=='EN')){
-                $remediation['poam_status'] = 'EO';
+        $ev_evaluation = $this->_poam->getEvEvaluation($id);
+        // currently we don't need to support the comments for est_date change
+        //$act_evaluation = $this->_poam->getActEvaluation($id);
+        $evs = array();
+        foreach($ev_evaluation as $ev_eval){
+            $evid = &$ev_eval['id'];
+            if( !isset($evs[$evid]['ev']) ){
+                $evs[$evid]['ev'] = array_slice($ev_eval,0,5);
             }
-            $this->view->assign('remediation_status',$remediation['poam_status']);
-            $this->view->assign('remediation_type',$remediation['poam_type']);
-            $this->view->assign('threat_level',$remediation['poam_threat_level']);
-            $this->view->assign('cmeasure_effectiveness',$remediation['poam_cmeasure_effectiveness']);
-      
-           // Product Query
-            $query->reset();
-            $query->from(array('p'=>'PRODUCTS'),array('prod_id'=>'p.prod_id',
-                                               'prod_vendor'=>'p.prod_vendor',
-                                               'prod_name'=>'p.prod_name',
-                                               'prod_version'=>'p.prod_version'));
-            $query->join(array('a'=>'ASSETS'),'a.prod_id = p.prod_id',array());
-            $query->join(array('f'=>'FINDINGS'),'a.asset_id = f.asset_id',array());
-            $query->where("f.finding_id = ".$remediation['finding_id']."");
-            $products = $poam->fetchRow($query);
-            $this->view->assign('products',$products);
+            $evs[$evid]['eval'][$ev_eval['eval_name']] = array_slice($ev_eval,5);
         }
-        
-        //Blscr Query
-        $query->reset();
-        $query->from(array('b'=>'BLSCR'),'*');
-        $query->join(array('p'=>'POAMS'),'p.poam_blscr = b.blscr_number',array());
-        $query->where("p.poam_id = ".$id."");
-        $data = $poam->fetchRow($query);
-        if(!empty($data)){
-            $blscr = $poam->fetchRow($query)->toArray();
-        }
-        else {
-            $blscr = array();
-        }
-        $query->reset();
-        $query->distinct()->from(array('b'=>'BLSCR'),array('value'=>'b.blscr_number'))
-                          ->order("b.blscr_number ASC");
-        $this->view->assign('all_values',$db->fetchCol($query));
 
-        // Comments Query
-        $query->reset();
-        $query->from(array('pc'=>'POAM_COMMENTS','*'));
-        $query->join(array('u'=>'USERS'),'u.user_id = pc.user_id',array('user_name'=>'u.user_name'));
-        $query->where("pc.poam_id = ".$id."");
-        $query->order("pc.comment_date DESC");
-        $comments = $poam->fetchAll($query)->toArray();
-        $comments_est = $comments_sso = $comments_ev = array();
-        if(count($comments) >0 ){
-            foreach($comments as &$comment){
-                $comment['comment_topic'] = stripslashes($comment['comment_topic']);
-                $comment['comment_body'] = nl2br($comment['comment_body']);
-                $comment['comment_log'] = nl2br($comment['comment_log']);
-                if($comment['comment_type'] == 'EST'){
-                    $comments_est[] = $comment;
-                }
-                elseif($comment['comment_type'] == 'SSO'){
-                    $comments_sso[] = $comment;
-                }
-                elseif(isset($comment['ev_id']) && ($comment['ev_id']>0)){
-                    $comments_ev[$comment['ev_id']][$comment['comment_type']] = $comment;
-                }
-            }
-        }
-        $this->view->assign('comments_ev',$comments_ev);
-        $this->view->assign('comments_est',$comments_est);
-        $this->view->assign('comments_sso',$comments_sso);
-        $this->view->assign('num_comments_est',count($comments_est));
-        $this->view->assign('num_comments_sso',count($comments_sso));
-
-        // Evidence Query
-        $query->reset();
-        $query->from(array('pe'=>'POAM_EVIDENCE'),'*');
-        $query->join(array('u'=>'USERS'),'u.user_id = pe.ev_submitted_by',array('submitted_by'=>'u.user_name'));
-        $query->where("pe.poam_id = ".$id."");
-        $query->order("pe.ev_date_submitted ASC");
-        $all_evidence = $poam->fetchAll($query)->toArray();
-        $num_evidence = count($all_evidence);
-        if($num_evidence){
-            foreach($all_evidence as &$evidence){
-                if($comments_ev != null && !empty($comments_ev[$evidence['ev_id']])){
-                    $evidence['comments'] = $comments_ev[$evidence['ev_id']];
-                }
-                $evidence['fileName'] = basename($evidence['ev_submission']);
-                if(file_exists($evidence['ev_submission'])){
-                    $evidence['fileExists'] = 1;
-                }
-                else {
-                    $evidence['fileExists'] = 0;
-                }
-            }
-        }
-        $this->view->assign('all_evidence',$all_evidence);
-        $this->view->assign('num_evidence',$num_evidence);
-
-        //Audit Log
-        $query->reset();
-        $query->from(array('al'=>'AUDIT_LOG'),array('*','time'=>'al.date'));
-        $query->join(array('p'=>'POAMS'),'p.finding_id = al.finding_id',array());
-        $query->join(array('u'=>'USERS'),'al.user_id = u.user_id',array('user_name'=>'u.user_name'));
-        $query->where("p.poam_id = ".$id."");
-        $query->order("al.date DESC");
-        $logs = $poam->fetchAll($query)->toArray();
-        foreach($logs as $k=>$v){
-            //$date_default_timezone_set('America/New_York');
-            $logs[$k]['time'] = date('Y-m-d H:i:s',$logs[$k]['time']);
-        }
-        $this->view->assign('logs',$logs);
-        $this->view->assign('num_logs',count($logs));
-
-        //Root Comment
-        $query->reset();
-        $query->from(array('pc'=>'POAM_COMMENTS'),array('comment_id'=>'pc.comment_id'));
-        $query->where("pc.poam_id = ".$id."");
-        $query->where("pc.comment_parent is null");
-        $root_comment = $poam->fetchRow($query);
-        $this->view->assign('root_comment',$root_comment);
-
-        //All Fields Ok?
-        if(!empty($remediation)){
-            $r = $remediation;
-            $r_fields_null = array($r['poam_threat_source'], $r['poam_threat_justification'],
-            $r['poam_cmeasure'], $r['poam_cmeasure_justification'], $r['poam_action_suggested'],
-            $r['poam_action_planned'], $r['poam_action_resources'], $r['poam_blscr']);
-            $r_fields_zero = array($r['poam_action_date_est']);
-            $r_fields_none = array($r['poam_cmeasure_effectiveness'], $r['poam_threat_level']);
-            $is_completed = (in_array(null, $r_fields_null) || in_array('NONE', $r_fields_none) || in_array('0000-00-00', $r_fields_zero))?'no':'yes';
-            $this->view->assign('is_completed', $is_completed);
-        }
-        
-        
-        $user = new user();
-        $uid = $this->me->user_id;
-        $ids = implode(',', $user->getMySystems($uid));
-        $qry = $db->select()->from(array('s'=>'SYSTEMS'), array('id'=>'system_id',
-                                                              'name'=>'system_name',
-                                                              'nickname'=>'system_nickname'))
-                                    ->where("system_id IN ( $ids )")
-                                    ->order('id ASC');
-        $system_list = $db->fetchAll($qry);
-        $this->view->assign('system_list',$system_list);
-        $this->view->assign('vulner',$vulnerabilities);
-        $this->view->assign('blscr',$blscr);
-        $this->view->assign('remediation_id',$id);
+        $this->view->assign('poam',$poam_detail);
+        $this->view->assign('logs',$this->_poam->getLogs($id));
+        $this->view->assign('ev_evals',$evs);
+        $this->view->assign('system_list',$this->_system_list);
         $this->render();
     }
 
     public function modifyAction(){
         $req = $this->getRequest();
         $id = $req->getParam('id');
-        $comment = $req->getParam('comment_body');
-        $ev_id   = $req->getParam('ev_id');
-        assert($id);
-        $today = date("Ymd",time());
-        $user_id = $this->me->user_id;
-        $now = date('Y-m-d,h:i:s',time());
-        $poam = new poam();
-        $db = $poam->getAdapter();
-        foreach($_POST as $k=>$v){
-            if(!in_array($k,array('id','comment_body','ev_id')) && !empty($v)){
-                $fields[$k] = $k;
+        $poam = $req->getPost('poam');
+        if( !empty($poam) ) {
+            $oldpoam = $this->_poam->find($id)->toArray();
+            if( empty($oldpoam) ) {
+                throw new fisma_Exception('incorrect ID specified for poam');
+            }else{
+                $oldpoam = $oldpoam[0];
+            }
+
+            $where = $this->_poam->getAdapter()->quoteInto('id = ?', $id);
+            $log_content = "Changed:";
+            ///@todo sanity check
+            foreach($poam as $k=>$v){
+                if( $k == 'type' && $oldpoam['status'] == 'NEW' ) {
+                    assert(empty($poam['status']));
+                    $poam['status'] = 'OPEN';
+                    $poam['modify_ts'] = self::$now->toString('Y-m-d H:i:s');
+                }
+                if( $k == 'action_status' && $v == 'APPROVED'){
+                    $poam['status'] = 'EN';
+                }
+                ///@todo SSO can only approve the action after all the required info provided
+                $log_content .= "\n$k:$v";
+            }
+            $result = $this->_poam->update($poam,$where);
+            if( $result > 0 ){
+            	$this->_poam->writeLogs($id, $this->me->id, self::$now->toString('Y-m-d H:i:s'),'MODIFICATION',$log_content);
             }
         }
-        $fields['finding_id'] = 'finding_id';
-        $query = $db->select()->from(array(),$fields)
-                              ->from(array('p'=>'POAMS'),array())
-                              ->joinleft(array('pe'=>'POAM_EVIDENCE'),'p.poam_id = pe.poam_id',array())
-                              ->where("p.poam_id = $id");
-        $poams = $db->fetchRow($query);
-        foreach($_POST as $k=>$v){
-          if(!empty($v)){
-            switch($k){
-                case 'poam_blscr':
-                    $data = array('poam_blscr'=>''.$v.'');
-                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                    break;
-                case 'poam_type':
-                    $data = array('poam_type'=>''.$v.'',
-                                  'poam_status'=>'OPEN',
-                                  'poam_date_modified'=>''.$now.'',
-                                  'poam_action_planned'=>'null',
-                                  'poam_action_date_est'=>'null',
-                                  'poam_action_date_actual'=>'null',
-                                  'poam_action_resources'=>'null',
-                                  'poam_action_status'=>'NONE');
-                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                    $data = array('ev_sso_evaluation'=>'EXCLUEDE');
-                    $result = $db->update('POAM_EVIDENCE',$data,array('poam_id = '.$id.'','ev_sso_evaluation="NONE"'));
-                    $data = array('ev_fsa_evaluation'=>'EXCLUDED');
-                    $result = $db->update('POAM_EVIDENCE',$data,array('poam_id = '.$id.'','ev_fsa_evaluation="NONE"'));
-                    $data = array('ev_ivv_evaluation'=>'EXCLUDED');
-                    $result = $db->update('POAM_EVIDENCE',$data,array('poam_id = '.$id.'','ev_ivv_evaluation="NONE"'));
-                    break;
-                case 'poam_action_planned':
-                    $data = array('poam_action_planned'=>''.$v.'',
-                                  'poam_action_status'=>'NONE');
-                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                    break;
-                case 'poam_action_date_est':
-                    $data = array('poam_action_date_est'=>''.$v.'',
-                                  'poam_action_status'  =>'NONE');
-                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                    break;
-                case 'poam_action_status':
-                    $data = array('poam_action_status' =>''.$v.'');
-                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                    if('APPROVED' == $v){
-                        $db->update('POAMS',array('poam_status'=>'EN'),'poam_id = '.$id.'');
-                    } else {
-                        $db->update('POAMS',array('poam_status'=>'OPEN'),'poam_id = '.$id.'');
-                    }
-                    break;
-                case 'poam_action_suggested':
-                    $data = array('poam_action_suggested'=>''.$v.'',
-                                  'poam_action_status'   =>'NONE');
-                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                    break;
-                case 'poam_action_owner':
-                    $data = array('poam_action_owner'=>''.$v.'');
-                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                    break;                                                               
-                case 'poam_action_resources':
-                    $data = array('poam_action_resources'=>''.$v.'');
-                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                    break;
-                case 'poam_cmeasure_effectiveness':
-                    $data = array('poam_cmeasure_effectiveness'=>''.$v.'',
-                                  'poam_action_status'         =>'NONE');
-                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                    break;
-                case 'poam_cmeasure':
-                    $data = array('poam_cmeasure'      =>''.$v.'',
-                                  'poam_action_status' =>'NONE');
-                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                    break;
-                case 'poam_cmeasure_justification':
-                    $data = array('poam_cmeasure_justification'=>''.$v.'',
-                                  'poam_action_status'         =>'NONE');
-                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                    break;
-                case 'poam_threat_level':
-                    $data = array('poam_threat_level' =>''.$v.'',
-                                  'poam_action_status'=>'NONE');
-                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                    break;
-                case 'poam_threat_source':
-                    $data = array('poam_threat_source'=>''.$v.'',
-                                  'poam_action_status'=>'NONE');
-                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                    break;
-                case 'poam_threat_justification':
-                    $data = array('poam_threat_justification'=>''.$v.'',
-                                  'poam_action_status'       =>'NONE');
-                    $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                    break;
-                case 'ev_sso_evaluation':
-                    $data['ev_sso_evaluation'] = $v;
-                    $data['ev_date_sso_evaluation'] = $now;
-                    if('DENIED' == $v ){
-                        $data['ev_fsa_evaluation'] = 'EXCLUDED';
-                        $data['ev_ivv_evaluation'] = 'EXCLUDED';
-                        $comment_data = array('poam_id'=>$id,'user_id'=>$user_id,'comment_date'=>$now,
-                                              'ev_id'=>$ev_id,
-                                              'comment_topic'=>'UPDATE:','comment_body'=>$comment,
-                                              'comment_log'=>'SSO_Evaluation:'.$poams[$k].'=>'.$v,
-                                              'comment_type'=>'EV_SSO');
-                        $result = $db->insert('POAM_COMMENTS',$comment_data);
-
-                    }
-                    $result = $db->update('POAM_EVIDENCE',$data,'poam_id = '.$id.'');
-                    break;
-                case 'ev_fsa_evaluation':
-                    $data['ev_fsa_evaluation'] = $v;
-                    $data['ev_date_fsa_evaluation'] = $now;
-                    if('DENIED' == $v ){
-                        $data['ev_ivv_evaluation'] = 'EXCLUDED';
-                        $comment_data = array('poam_id'=>$id,'user_id'=>$user_id,'comment_date'=>$now,
-                                              'ev_id'=>$ev_id,
-                                              'comment_topic'=>'UPDATE:','comment_body'=>$comment,
-                                              'comment_log'=>'FSA_Evaluation:'.$poams[$k].'=>'.$v,
-                                              'comment_type'=>'EV_FSA');
-                        $result = $db->insert('POAM_COMMENTS',$comment_data);
-
-                    }
-                    $result = $db->update('POAM_EVIDENCE',$data,'poam_id = '.$id.'');
-                    if('APPROVED' == $v){
-                        $data = array('poam_status'=>'ES');
-                        $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                    }
-                    break;
-                case 'ev_ivv_evaluation':
-                    $data = array('ev_ivv_evaluation'=>''.$v.'',
-                                  'ev_date_ivv_evaluation'=>''.$now.'');
-                    $result = $db->update('POAM_EVIDENCE',$data,'poam_id = '.$id.'');
-                    if('APPROVED' == $v){
-                        $data = array('poam_status'=>'CLOSED',
-                                      'poam_date_closed'=>''.$now.'');
-                        $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                        $data = array('FINDINGS.finding_status'=>'CLOSED',
-                                      'FINDINGS.finding_date_closed'=>''.$now.'');
-                        $result = $db->update('FINDINGS',$data,'POAMS.finding_id = FINDINGS.finding_id' AND
-                                              'poam_id = '.$id.'');
-                    }
-                    if('DENIED' == $v){
-                        $data = array('poam_status'=>'EN','poam_action_date_actual'=>'NULL');
-                        $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                        $data = array('poam_id'=>$id,'user_id'=>$user_id,'comment_date'=>$now,
-                                      'ev_id'=>$ev_id,
-                                      'comment_topic'=>'UPDATE:','comment_body'=>$comment,
-                                      'comment_log'=>'IVV_Evaluation:'.$poams[$k].'=>'.$v,
-                                      'comment_type'=>'EV_IVV');
-                        $result = $db->insert('POAM_COMMENTS',$data);
-                    }
-                    break;
-            }
-          }
-            }
-            $data = array('poam_date_modified'=>$now,
-                          'poam_modified_by'  =>$user_id);
-            $result = $db->update('POAMS',$data,'poam_id = '.$id.'');
-                        $now = time();
-            $eventArray = array('poam_action_owner'=>'UPDATE: responsible system',
-                  'poam_type'=>'UPDATE: remediation type',
-                  'poam_status'=>'UPDATE: remediation status',
-                  'poam_blscr'=>'UPDATE: BLSCR number',
-                  'poam_action_date_est'=>'UPDATE: course of action estimated completion date',
-                  'poam_action_status'=>'UPDATE: course of action evaluation',
-                  'poam_cmeasure_effectiveness'=>'UPDATE: countermeasure effectiveness',
-                  'poam_action_suggested'=>'UPDATE: recommended course of action',
-                  'poam_action_planned'=>'UPDATE: course of action',
-                  'poam_action_resources'=>'UPDATE: course of action resources',
-                  'poam_cmeasure'=>'UPDATE: countermeasure',
-                  'poam_cmeasure_justification'=>'UPDATE: countermeasure justification',
-                  'poam_threat_source'=>'UPDATE: threat source',
-                  'poam_threat_justification'=>'UPDATE: threat justification',
-                  'poam_previous_audits'=>'UPDATE: previous audits',
-                  'poam_threat_level'=>'UPDATE: threat level',
-                  'ev_sso_evaluation'=>'UPDATE: SSO evidence evaluation',
-                  'ev_fsa_evaluation'=>'UPDATE: FSA evidence evaluation',
-                  'ev_ivv_evaluation'=>'UPDATE: IV&V evidence evaluation'
-                  );
-            foreach($_POST as $k=>$v){
-                if(!in_array($k,array('id','comment_body','ev_id')) && !empty($v)){
-                    $data = array('finding_id'=>''.$poams['finding_id'].'',        
-                                  'user_id'   =>$user_id,
-                                  'date'      =>$now,
-                                  'event'     =>''.$eventArray[$k].'',
-                                  'description'=>'Original:'.$poams[$k].' New:'.$v.'');
-                    $result = $db->insert('AUDIT_LOG',$data);
-                }
-            }
-            $this->_helper->actionStack('view','Remediation',null,array('id'=>$id));
+            //throw new fisma_Excpection('POAM not updated for some reason');
+        $this->_redirect('/panel/remediation/sub/view/id/'.$id);
     }
 
-    public function uploadevidenceAction(){
+    public function uploadevidenceAction()
+    {
         $req = $this->getRequest();
         $id = $req->getParam('id');
-        $comment = $req->getParam('comment_body');
-        assert($id);
-        $today = date("Ymd",time());
-        $user_id = $this->me->user_id;
-        $now = date('Y-m-d,h:i:s',time());
-        $db = Zend_Registry::get('db');
+        define('EVIDENCE_PATH',WEB_ROOT . DS . 'evidence');
         if($_FILES && $id>0){
-            if(!file_exists(ROOT . DS . 'public/evidence')){
-                mkdir(ROOT . DS . 'public/evidence',0755);
+            $user_id = $this->me->id;
+            $now_str = self::$now->toString('Y-m-d-his');
+            if(!file_exists( EVIDENCE_PATH )){
+                mkdir( EVIDENCE_PATH,0755);
             }
-            if(!file_exists(ROOT . DS . 'public/evidence/'.$id)){
-                mkdir(ROOT . DS . 'public/evidence/'.$id,0755);
+            if(!file_exists( EVIDENCE_PATH . DS . $id)){
+                mkdir(EVIDENCE_PATH . DS . $id,0755);
             }
-            $path = ROOT . DS . 'public/evidence/'.$id.'/'.date('Ymd-His-',time()).$_FILES['evidence']['name'];
-            //$path_data = '../../public/evidence/'.$id.'/'.date('Ymd-His-',time()).$_FILES['evidence']['name'];
-            $result_move = move_uploaded_file($_FILES['evidence']['tmp_name'],$path);
-            if($result_move){
-                chmod($path,0755);
+            $count = 0;
+            $filename = preg_replace('/^([^.]*)\.([^.]*)$/',
+                    '$1-'.$now_str.'.$2', 
+                    $_FILES['evidence']['name'],2,$count);
+	    $abs_file = EVIDENCE_PATH . DS .$id . DS . $filename;
+            if( $count > 0 ) {
+                $result_move = move_uploaded_file($_FILES['evidence']['tmp_name'],$abs_file);
+                if($result_move){
+                    chmod($abs_file,0755);
+                } else{
+                    throw new fisma_Exception('Move upload file fail.'.$abs_file.$_FILES['evidence']['error']);
+                }
+            }else{
+                throw new fisma_Exception('The filename should be valid');
             }
-            else{
-                die('Move upload file fail.'.$path.'');
+            $today = substr($now_str,0,10);
+            $data = array('poam_id'          =>$id,
+                          'submission'    =>$filename,
+                          'submitted_by'  =>$user_id,
+                          'submit_ts'=>  $today);
+            $db = Zend_Registry::get('db');
+            $result = $db->insert('evidences',$data);
+            $update_data = array('status'             => 'EP',
+                                 'action_actual_date' => $today);
+            $result = $this->_poam->update($update_data,"id = $id");
+            if( $result > 0 ){
+            	$log_content="Changed: status: EP . Upload evidence: $filename OK";
+            	$this->_poam->writeLogs($id,$user_id, self::$now->toString('Y-m-d H:i:s'),'UPLOAD EVIDENCE',$log_content);
             }
-            $insert_data = array('poam_id'          =>$id,
-                                 'ev_submission'    =>$path,
-                                 'ev_submitted_by'  =>$user_id,
-                                 'ev_date_submitted'=>$today);
-            $result = $db->insert('POAM_EVIDENCE',$insert_data);
-            $update_data = array('poam_status'             => 'EP',
-                                 'poam_action_date_actual' => $now);
-            $result = $db->update('POAMS',$update_data,'poam_id = '.$id.'');
         }
-        $this->_helper->actionStack('view','Remediation',null,array('id'=>$id));
+        $this->_redirect('/panel/remediation/sub/view/id/'.$id);
+    }
+
+    public function evidenceAction()
+    {
+        require_once MODELS . DS . 'evidence.php';
+        require_once MODELS . DS . 'comments.php';
+        $req = $this->getRequest();
+        $eval_id = $req->getParam('evaluation');
+        $decision = $req->getParam('decision');
+        $eid = $req->getParam('id');
+        $ev = new Evidence();
+        $ev_detail = $ev->find($eid);
+        if( empty($ev_detail) ) {
+            throw new fisma_Exception('Wrong evidence id:'.$eid);
+        }
+        if( $decision == 'APPROVE' ) {
+            $decision = 'APPROVED';
+        }else if( $decision == 'DENY' ) {
+            $decision = 'DENIED';
+        }else{
+            throw new fisma_Exception('Wrong decision:'.$decision);
+        }
+        $poam_id = $ev_detail->current()->poam_id;
+        $log_content="";
+        if( in_array($decision, array('APPROVED', 'DENIED') ) ){
+            $log_content="";
+            $evv_id = $this->_poam->reviewEv($eid, array('decision'=>$decision,
+                                               'eval_id' =>$eval_id,
+                                               'user_id' =>$this->me->id,
+                                               'date'    =>self::$now->toString('Y-m-d')));
+            $log_content.=" Decision: $decision.";
+            if( $decision == 'DENIED' ) {
+                $this->_poam->update(array('status'=>'EN'), 'id='.$poam_id);
+                $topic = $req->getParam('topic');
+                $body = $req->getParam('reject');
+                $comm = new Comments();
+                $comm->insert(array('poam_evaluation_id' => $evv_id,
+                                    'user_id' => $this->me->id,
+                                    'date'    => 'CURDATE()',
+                                    'topic'   => $topic,
+                                    'content' => $body) );
+            $log_content.=" Status: EN. Topic: $topic. Content: $body.";
+            }
+            if( $decision == 'APPROVED' && $eval_id == 2){
+                $log_content.=" Status: ES";
+                $this->_poam->update(array('status'=>'ES'), 'id='.$poam_id);
+            }
+            if( $decision == 'APPROVED' && $eval_id == 3){
+                $log_content.=" Status: CLOSED";
+                $this->_poam->update(array('status'=>'CLOSED'),'id='.$poam_id);
+            }
+            if(!empty($log_content)){
+                $log_content="Changed: $log_content";
+                $this->_poam->writeLogs($poam_id,$this->me->id, self::$now->toString('Y-m-d H:i:s'),'EVIDENCE EVALUATION',$log_content);
+            }
+        }
+        $this->_redirect('/panel/remediation/sub/view/id/'.$poam_id, array('exit'));
+    }
+
+    public function rafAction()
+    {
+        $id = $this->_req->getParam('id');
+        $this->_helper->layout->disableLayout(true);
+        $this->_helper->contextSwitch()
+             ->addContext('pdf',
+                array('suffix'=>'pdf', 'headers'=>
+                       array( 
+                         'Content-Disposition'=>"attachement;filename=\"{$id}_raf.pdf\"",
+                         'Content-Type'=>'application/pdf')
+                       ) )
+             ->addActionContext('raf', array('pdf') )
+             ->initContext();
+        $poam_detail = $this->_poam->getDetail($id);
+        if( empty($poam_detail) ){
+            throw new fisma_Exception('Raf can be generated according to valid poam');
+        }
+        $this->view->assign('poam',$poam_detail);
+        $this->view->assign('system_list',$this->_system_list);
+        $this->view->assign('source_list',$this->_source_list);
+        $this->render();
     }
 }

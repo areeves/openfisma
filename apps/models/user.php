@@ -1,10 +1,13 @@
 <?php
 /**
-* OpenFISMA
-*
-* MIT LICENSE
-*
-* @version $Id$
+ * @file user.php
+ *
+ * @description user model
+ *
+ * @author     Jim<jimc@reyosoft.com>
+ * @copyright  (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/mw/index.php?title=License
+ * @version $Id$
 */
 
 require_once 'Zend/Db/Table.php';
@@ -14,16 +17,16 @@ require_once('Zend/Log.php');
 
 class User extends Fisma_Model
 {
-    protected $_name = 'USERS';
-    protected $_primary = 'user_id';
-    protected $_log_name = 'account_log';
+    protected $_name = 'users';
+    protected $_primary = 'id';
+    protected $_log_name = 'account_logs';
     protected $_logger = null;
     protected $_log_map = array('priority'=>'priority','timestamp'=>'timestamp',
-                                'user_id' => 'uid', 'event_type' => 'type',
+                                'user_id' => 'uid', 'event' => 'type',
                                 'message'=>'message','priority_name' => 'priorityName');
 
-    protected $_map = array(self::SYS=>array('table'=>'USER_SYSTEM_ROLES','field'=>'system_id'),
-                            self::ROLE=>array('table'=>'USER_ROLES','field'=>'role_id') );
+    protected $_map = array(self::SYS=>array('table'=>'user_systems','field'=>'system_id'),
+                            self::ROLE=>array('table'=>'user_roles','field'=>'role_id') );
 
     const SYS = 'system';
     const ROLE = 'role';
@@ -50,15 +53,15 @@ class User extends Fisma_Model
         @param $id the user id
         @return array of role nickname
     */
-    public function getRoles($id, $fields=array('nickname'=>'role_nickname')) {
+    public function getRoles($id, $fields=array('nickname'=>'nickname')) {
         $role_array = array();
         $db = $this->_db;
 
         $qry = $db->select()
-                  ->from(array('u'=>'USERS'),array())
-                  ->join(array('ur'=>'USER_ROLES'),'u.user_id = ur.user_id',array())
-                  ->join(array('r'=>'ROLES'),'r.role_id = ur.role_id',$fields)
-                  ->where("u.user_id = $id and r.role_name != 'none'");
+                  ->from(array('u'=>'users'),array())
+                  ->join(array('ur'=>'user_roles'),'u.id = ur.user_id',array())
+                  ->join(array('r'=>'roles'),'r.id = ur.role_id',$fields)
+                  ->where("u.id = $id and r.name != 'none'");
 
         return  $db->fetchAll($qry);
     }
@@ -72,23 +75,22 @@ class User extends Fisma_Model
     */
     public function getMySystems($id)
     {
-        assert($id);
-        $db = Zend_Registry::get('db');
+        assert(!empty($id));
+        $db = $this->_db;
         $origin_mode = $db->getFetchMode();
-        $qry = $db->select()->from($this->_name, 'user_name')->where('user_id = ?', $id);
-        $user = $db->fetchOne($qry); 
-
-        $qry = $db->select()->distinct()->from('USER_SYSTEM_ROLES', 'system_id');
-        if($user != 'root') {
-            $qry->where("user_id = $id");
-        }
+        $qry = $db->select()->from($this->_name, 'account')->where('id = ?', $id);
+        $user = $db->fetchOne($qry);
         $db->setFetchMode(Zend_Db::FETCH_OBJ);
-        $sys = $db->fetchCol($qry);
-        $db->setFetchMode($origin_mode);
-        if( empty($sys) ){
-            throw new fisma_Exception('ATTENTION: No systems found! Please
-                    make sure the fundamental data is injected');
+        if($user == 'root') {
+            $sys = $db->fetchCol('SELECT id from systems where 1 ORDER BY `systems`.`nickname`');
+        }else{
+            $qry->reset();
+            $qry = $db->select()->distinct()->from(array('us'=>'user_systems'), 'system_id')
+                                ->join('systems','systems.id = us.system_id',array())
+                                ->where("user_id = $id")->order('systems.nickname ASC');
+            $sys = $db->fetchCol($qry);
         }
+        $db->setFetchMode($origin_mode);
         return $sys;
     }
 
@@ -117,7 +119,7 @@ class User extends Fisma_Model
         }
         if( $type == self::LOGIN ) {
             $row->failure_count=0;
-            $row->user_date_last_login = date("YmdHis");
+            $row->last_login_ts = date("YmdHis");
             $row->save();
         }
 
@@ -132,8 +134,9 @@ class User extends Fisma_Model
         @param uid int the user id
         @param type type of associated data, one of system, role.
         @param data array|int system or role id or array of them
+        @param reverse bool to associate or delete
     */
-    public function associate($uid, $type, $data)
+    public function associate($uid, $type, $data, $reverse=false)
     {
         assert( !empty($uid) && (is_numeric($data) || is_array( $data )) );
         assert( in_array($type, array(self::SYS, self::ROLE) ) );
@@ -141,11 +144,21 @@ class User extends Fisma_Model
         if(is_numeric($data) ){
             $data = array($data);
         }
+        $ret = 0;
         $ins_data['user_id'] = $uid;
-        foreach($data as $id){
-            $ins_data[$this->_map[$type]['field']] = $id;
-            $this->_db->insert($this->_map[$type]['table'],$ins_data);
+        if( $reverse ) {
+            $where[] = "user_id=$uid";
+            if( !empty($data) ) {
+                $where[] = "{$this->_map[$type]['field']} IN(".makeSqlInStmt($data).")";
+                $ret = $this->_db->delete($this->_map[$type]['table'],$where);
+            }
+        }else{
+            foreach($data as $id){
+                $ins_data[$this->_map[$type]['field']] = $id;
+                $ret += $this->_db->insert($this->_map[$type]['table'],$ins_data);
+            }
         }
+        return $ret;
     }
 
 

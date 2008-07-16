@@ -1,10 +1,13 @@
 <?php
 /**
-* OpenFISMA
-*
-* MIT LICENSE
-*
-* @version $Id$
+ * @file basic.php
+ *
+ * @description System Supporting Functions
+ *
+ * @author     Jim <jimc@reyosoft.com>
+ * @copyright  (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/mw/index.php?title=License
+ * @version $Id$
 */
 
     require_once(APPS . DS .'Exception.php');
@@ -23,7 +26,7 @@
             if( is_dir($dir) ) {
                 $target_path .= $dir . PATH_SEPARATOR ;
             }else{
-                throw new Sws_Exception();
+                throw new fisma_Exception($dir . ' is missing or not a directory');
             }
         }
         if(! empty($target_path) ){
@@ -42,10 +45,10 @@
     function isAllow($resource, $action) {
         $auth = Zend_Auth::getInstance();
         $me = $auth->getIdentity();
-        if($me->user_name == "root"){
+        if($me->account == "root"){
             return true;
         }
-        $role_array = $me->role_array;
+        $role_array = &$me->role_array;
         $acl = Zend_Registry::get('acl');
         try{
             foreach ($role_array as $role){
@@ -86,5 +89,25 @@
             throw new fisma_Exception("$key does not exist in system configuration");
         }
         return Zend_Registry::get(SYSCONFIG)->$key;
+    }
+
+    function makeSqlInStmt($array)
+    {
+        assert( is_array($array) );
+        return "'" . implode("','", $array). "'"; 
+    }
+
+    function echoDefault(&$value, $default='')
+    {
+        echo nullGet($value, $default);
+    }
+
+    function nullGet(&$value, $default='')
+    {
+        if( !empty($value) ) {
+            return $value;
+        }else{
+            return $default;
+        }
     }
  

@@ -1,151 +1,105 @@
 <?PHP
 /**
-* OpenFISMA
-*
-* MIT LICENSE
-*
-* @version $Id$
+ * @file DashboardController.php
+ *
+ * @description Dashboard Controller
+ *
+ * @author     Jim <jimc@reyosoft.com>
+ * @copyright  (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/mw/index.php?title=License
+ * @version $Id$
 */
 
 require_once 'Zend/Controller/Action.php';
-require_once MODELS . DS . 'user.php';
 require_once CONTROLLERS . DS . 'SecurityController.php';
-require_once LIBS . DS .  'dashboard_chart/Dashboard_Chart.php';
-require_once LIBS . DS .  'dashboard_chart/create_xml.php';
-require_once LIBS . DS .  'PoamSummary.class.php';
+require_once MODELS . DS . 'poam.php';
+require_once MODELS . DS . 'system.php';
 
 /**
  * DashboardController responsible for all dashboard creation
  */
 class DashboardController extends SecurityController
 {
+    protected $_poam = null;
+    protected $_all_systems = null;
 
-    /**
-     * @Desc : IndexAction for the use of create the datasource for the front flash that war create as a xml file.
-       Using $view to show the data layer that will replace the smarty template function.
-     */
+    function init()
+    {
+        parent::init();
+        $sys = new System();
+        $this->_all_systems = $this->me->systems;
+    }
+
+    function preDispatch()
+    {
+        parent::preDispatch();
+        $contextSwitch = $this->_helper->getHelper('contextSwitch');
+        $contextSwitch->addActionContext('totalstatus', 'xml')
+                      ->addActionContext('totaltype','xml')
+                      ->initContext();
+        if( !isset($this->_poam) ){
+            $this->_poam = new Poam();
+        }
+    }
+
+
     public function indexAction()
     {
-
-          $total_open   = 0;
-          $total_en     = 0;
-          $total_eo     = 0;
-          $total_ep     = 0;
-          $total_es     = 0;
-          $total_closed = 0;
-          $total_none   = 0;
-          $total_cap    = 0;
-          $total_fp     = 0;
-          $total_ar     = 0;
-          $total_items  = 0;
-
-          $auth = Zend_Auth::getInstance();
-          $userID = $this->me->user_id;
-          $user = new User;
-          $arrays = $user->getMySystems($userID);
-          while ($array = array_pop($arrays))
-          {
-              $system_id   = $array;
-              $total_none += $this->totalCount('NONE', NULL,$system_id);
-              $total_cap  += $this->totalCount('CAP',  NULL,$system_id);
-              $total_fp   += $this->totalCount('FP',   NULL,$system_id);
-              $total_ar   += $this->totalCount('AR',   NULL,$system_id);
-              $total_open += $this->totalCount(NULL, 'OPEN',$system_id);
-              $total_en   += $this->totalCount(NULL, 'EN',$system_id);
-              $total_eo   += $this->totalCount(NULL, 'EO',$system_id);
-              $total_ep   += $this->totalCount(NULL, 'EP',$system_id);
-              $total_es   += $this->totalCount(NULL, 'ES',$system_id);
-              $total_closed += $this->totalCount(NULL, 'CLOSED',$system_id);
-          }
-
-          $total_items = $total_none + $total_cap + $total_fp + $total_ar;
-          $summary =  Array('total_items'  => $total_items,
-               'total_none'   => $total_none,
-               'total_cap'    => $total_cap,
-               'total_fp'     => $total_fp,
-               'total_ar'     => $total_ar,
-               'total_open'   => $total_open,
-               'total_en'     => $total_en,
-               'total_eo'     => $total_eo,
-               'total_ep'     => $total_ep,
-               'total_es'     => $total_es,
-               'total_closed' => $total_closed
-               );
-          create_xml_1($summary['total_open'],
-                       $summary['total_en'],
-                       $summary['total_eo'],
-                       $summary['total_ep'],
-                       $summary['total_es'],
-                       $summary['total_closed']);
-
-          create_xml_2($summary['total_open'],
-                       $summary['total_en'],
-                       $summary['total_eo'],
-                       $summary['total_ep'],
-                       $summary['total_es'],
-                       $summary['total_closed']);
-
-          create_xml_3($summary['total_none'],
-                       $summary['total_cap'],
-                       $summary['total_fp'],
-                       $summary['total_ar']);
-
-
-        $date = date('Y-M-D h:i:s:A');
-        $dash_board = new Dashboard_Chart();
-        $chart_one = $dash_board->InsertChart('/temp/dashboard1.xml', "380" , "220");
-        $chart_two = $dash_board->InsertChart('/temp/dashboard2.xml' , "200" , "220");
-        $chart_three = $dash_board->InsertChart('/temp/dashboard3.xml' , "380" , "220");
-        $view = $this->view;
-        $view->assign('open',$summary['total_open']);
-        $view->assign('need_ev_ot',$summary['total_en']);
-        $view->assign('need_ev_od',$summary['total_eo']);
-        $view->assign('OneChart',$chart_one);
-        $view->assign('TwoChart',$chart_two);
-        $view->assign('ThreeChart',$chart_three);
-        $view->assign('Current_time',$date);
+        $open_count = $this->_poam->search($this->_all_systems,
+                        array('count'=>'count(*)'),
+                        array('status'=>array('OPEN')));
+        $en_count = $this->_poam->search($this->_all_systems,
+                        array('count'=>'count(*)'),
+                        array('status'=>'EN','est_date_begin'=> parent::$now ));
+        $eo_count = $this->_poam->search($this->_all_systems, 
+                        array('count'=>'count(*)'),
+                        array('status'=>'EN',
+                              'est_date_end'=> parent::$now ));
+        $total = $this->_poam->search($this->_all_systems, array('count'=>'count(*)'));
+        $alert = array();
+        $alert['TOTAL'] = $total;
+        $alert['OPEN'] = $open_count;
+        $alert['EN'] = $en_count;
+        $alert['EO'] = $eo_count;
+        $url='/zfentry.php/panel/remediation/sub/searchbox/s/search/status/';
+        $this->view->url=$url;
+        $this->view->alert = $alert;
         $this->render();
     }
 
-    /**
-     *  Select poams table's count  by the supply parameers.
-     *  @param $tyle is an variable such as  NONE, CAP, FP,AR or NULL.
-                    var $status is an variable  such as  OPEN, EN,CLOSED etc..
-     *  @return int.
-     */
-    private function totalCount($type = NULL, $status = NULL , $system_id)
+    public function totalstatusAction()
     {
-        require_once MODELS . DS . 'poam.php';
-        $db = Zend_Registry::get('db');
-        $poamsModel = new poam($db);
-        $poam =  $poamsModel->select();
-        $poam->from($poamsModel,'count(*)');
-        $poam->where('poam_action_owner = ? ',$system_id);
-        if ($type or $status) {
-            if ($type) {
-                $poam->where('poam_type = ? ', $type);
-            }
-            if ($status) {
-                switch ($status) {
-                    case "EN" :
-                    $poam->where('poam_status = ? and poam_action_date_est > NOW()', $status);
-                    break;
-                    case "EO" :
-                    $poam->where('poam_status = ? and poam_action_date_est <= NOW() ','EN');
-                    $poam->orwhere('poam_action_date_est = ? ','NULL');
-                    break;
-                    default   :
-                    $poam->where('poam_status = ? ', $status);
-                }
-            }
+        $poam = $this->_poam;
+        $req = $this->getRequest();
+        $type = $req->getParam('type','pie');
+
+        if( !in_array($type, array('3d column','pie')) ) {
+            $type = 'pie';
         }
-        $result = $db->fetchAll($poam);
-        if ($result) {
-            $row = $result[0];
-            return $row['count(*)'];
-        } else {
-            return 0;
+        $ret = $poam->search($this->_all_systems,
+                        array('count'=>'status', 'status'));
+        $eo_count = $poam->search($this->_all_systems, 
+                        array('count'=>'count(*)'),
+                        array('status'=>'EN',
+                              'est_date_end'=> parent::$now ));
+        $this->view->summary = array( 'NEW'=>0,'OPEN'=>0,'EN'=>0,'EP'=>0,
+                                      'ES'=>0,'CLOSED'=>0) ;
+        foreach($ret as $s){
+            $this->view->summary["{$s['status']}"] = $s['count'];
         }
+        $this->view->summary["EO"] = $eo_count;
+        $this->view->chart_type = $type;
+        $this->render($type);
+    }
+
+    public function totaltypeAction()
+    {
+        $ret = $this->_poam->search($this->_all_systems, array('count'=>'type', 'type') );
+        $this->view->summary = array('NONE'=>0,'CAP'=>0,'FP'=>0,'AR'=>0);
+        foreach($ret as $s){
+            $this->view->summary["{$s['type']}"] = $s['count'];
+        }
+        $this->render();
     }
 
 }

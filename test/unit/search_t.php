@@ -3,144 +3,160 @@
 * Test function search in poam model
 */
 
+require_once MODELS . DS . 'system.php';
+require_once MODELS . DS . 'source.php';
+require_once MODELS . DS . 'network.php';
+require_once MODELS . DS . 'poam.php';
 class TestRemediationOfSearch extends UnitTestCase{
-    function testSearch(){
-        require_once MODELS . DS . 'system.php';
-        require_once MODELS . DS . 'source.php';
-        require_once MODELS . DS . 'network.php';
-        require_once MODELS . DS . 'poam.php';
-        //$db_initialize;
-        $db = Zend_Registry::get('db');
-        $this->db = $db;
+
+    public $systems = null;
+    function setUp()
+    {
         $system = new system();
-        $source = new source();
-        $network = new network();
-        $net = $network->getList();
-        $system_list = $system->getList();
-        foreach($system_list as $id=>$row){
-            $system_ids[] = $id;
-        }
-        $this->system_ids = $system_ids;
-        
-        $source_list = $source->getList();
-        foreach($source_list as $id=>$row){
-            $source_ids[] = $id;
-        }
-
-        $this->source_ids = $source_ids;
-        
-        /**
-        * Test system nickname and count
-        **/
-        foreach($system_ids as $id){
-            $this->__testCount($id);
-        }
-        
-        /**
-        * Test source count
-        **/
-        foreach($source_ids as $id){
-            $this->__testCriteria($id,'source');
-        }
-
-        /**
-        *Test type count
-        **/
-        $poam_types = array('CAP','AR','FP');
-        foreach($poam_types as $type){
-            $this->__testCriteria($type,'type');
-        }
-
-        /**
-        * Test poam status count
-        **/
-        $poam_status = array('OPEN','EN','EP','ES','CLOSED');
-        foreach($poam_status as $status){
-            $this->__testCriteria($status,'status');
-        }
-        
-        /**
-        *Test colligate conditions search results count
-        **/
-        $this->__testCriteriaArray(array('asset_owner'=>29,'source'=>1,'type'=>'CAP','status'=>'OPEN',
-                                         'startdate'=>'2007/01/01','enddate'=>'2008/06/01',
-                                         'startcreatedate'=>'2006/01/01','end_date_cr'=>'2008/06/01'));
-        
+        $this->systems = $system->getList('name');
+        $this->db = Zend_Registry::get('db');
+        $this->system_ids = array_keys($this->systems);
+        $this->poam = new poam($this->db);
     }
 
-    private function __testCount($id){
+    function testSourceCount()
+    {
         $db = $this->db;
-        $query = $db->select()->from(array('p'=>'POAMS'),array('num'=>'count(poam_id)'))
-                              ->join(array('f'=>'FINDINGS'),'p.finding_id = f.finding_id',array())
-                              ->where("poam_action_owner = $id ");
-        $result = $db->fetchRow($query);
-        $count = $result['num'];
+        $query = $db->select()->from(array('p'=>'poams'),array('count'=>'count(p.id)','source_id'))
+                              ->where('p.system_id IN ('.makeSqlInStmt($this->system_ids).')')
+                              ->where('p.source_id != 0')
+                              ->group('source_id')->order('count DESC');
+        $ret = $db->fetchRow($query);
+        $srcid = $ret['source_id'];
 
-        $poam = new poam($db);
-        $result = $poam->search(array($id),array('count'=>array()));
-        foreach($result as $row){
-            $this->assertTrue($count == $row['count']);
-            if($count != $row['count']){
-                echo 'faild id is'.$id.' ';
+        $s1 = $this->poam->search($this->system_ids, array('count'=>'source_id','source_id'));
+        foreach( $s1 as $s ){
+            if($srcid == $s['source_id']){
+                $this->assertTrue($ret == $s);
             }
         }
+        $s2 = $this->poam->search($this->system_ids, array('count'=>'count(*)'),
+                                  array('source_id'=>$srcid) );
+        $this->assertTrue($ret['count'] == $s2);
     }
 
-    private function __testCriteria($value,$flag = null){
+    function testSystemCount()
+    {
         $db = $this->db;
-        $ids = implode(',',$this->system_ids);
-        switch($flag){
-            case 'source':
-                $query = $db->select()->from(array('p'=>'POAMS'),array('num'=>'count(p.poam_id)'))
-                                      ->where("f.source_id = $value ");
-                break;
-            case 'type':
-                $query = $db->select()->from(array('p'=>'POAMS'),array('num'=>'count(p.poam_id)'))
-                                      ->where("p.poam_type = '$value'");
-                break;
-            case 'status':
-                $query = $db->select()->from(array('p'=>'POAMS'),array('num'=>'count(p.poam_id)'))
-                                      ->where("p.poam_status = '$value'");
-                break;
-        }
-        $query->join(array('f'=>'FINDINGS'),'p.finding_id = f.finding_id',array())
-              ->where("p.poam_action_owner IN ($ids)");
-        $result = $db->fetchRow($query);
-        $count = $result['num'];
-        $poam = new poam($db);
-        $result = $poam->search($this->system_ids,array('count'=>array()),array($flag=>$value));
-        foreach($result as $row){
-            $this->assertTrue($count == $row['count']);
-            if($count != $row['count']){echo $count.' '.$row['count'].'@';
-                echo 'faild id/value is '.$value;
-            }
+        $system_ids = array_keys($this->systems);
+        foreach( $system_ids as $id ) {
+            $query = $db->select()->from(array('p'=>'poams'),array('num'=>'count(*)'))
+                                  ->where("system_id = $id ");
+            $result = $db->fetchRow($query);
+            $count = $result['num'];
+
+            $poam = new poam($db);
+            $result = $poam->search(array($id),'count');
+            $this->assertTrue($count == $result);
         }
     }
+    
+    function testJoinCount()
+    {
+        $fields = array('count'=>'ip','ip');
+        $query = $this->db->select()->from(array('p'=>'poams'),array('count'=>'count(*)'))
+                                    ->where('p.system_id IN ('.makeSqlInStmt($this->system_ids).')')
+                                    ->group('a.address_ip')
+                                    ->join(array('a'=>'assets'),'p.asset_id = a.id',array('ip'=>'a.address_ip'));
+        $result = $this->db->fetchAll($query);
+        $poams = $this->poam->search($this->system_ids,$fields);
+        $this->assertTrue($result == $poams);
 
-    private function __testCriteriaArray($criteria){
+
+    }
+
+    function testGroupCount()
+    {
+        $fields = array('count'=>'type','type');
+        $query = $this->db->select()->from(array('p'=>'poams'),array('count'=>'count(*)','type'))
+                                    ->where('p.system_id IN ('.makeSqlInStmt($this->system_ids).')')
+                                    ->group('type');
+        $result = $this->db->fetchAll($query);
+        $poams = $this->poam->search($this->system_ids,$fields);
+
+        $this->assertTrue($result == $poams);
+    }
+        
+    public function testCountFields()
+    {
+        $fields = 'status';
+        $poam = new poam();
+        $query = $this->db->select()->from(array('p'=>'poams'),array('count'=>'count(status)'))
+                          ->where('p.system_id IN ('.makeSqlInStmt($this->system_ids).')')
+                          ->group('status');
+        $result = $this->db->fetchAll($query);
+        $poams = $poam->search($this->system_ids,array('count'=>$fields));
+        $this->assertTrue($result == $poams);
+    }
+
+    public function testCriteria()
+    {
+        $criteria = array('source_id'=>2,'type'=>'CAP','status'=>'OPEN',
+                          'est_date_begin'=>new Zend_Date('20070101'),
+                          'est_date_end'=>new Zend_Date('20080601'),
+                          'created_date_begin'=>new Zend_Date('20060101'),
+                          'created_date_end'=>new Zend_Date('20090601'));
         $db = $this->db;
         $poam = new poam();
         extract($criteria);
-        $startdate = date("Y-m-d",strtotime($startdate));
-        $enddate   = date("Y-m-d",strtotime($enddate));
-        $startcreatedate = date("Y-m-d",strtotime($startcreatedate));
-        $end_date_cr = date("Y-m-d",strtotime($end_date_cr));
         $ids = implode(',',$this->system_ids);
-        $query = $db->select()->from(array('p'=>'POAMS'),array('num'=>'count(p.poam_id)'))
-                              ->join(array('f'=>'FINDINGS'),'p.finding_id = f.finding_id',array())
-                              ->where("p.poam_action_owner = $asset_owner")
-                              ->where("f.source_id = $source")
-                              ->where("p.poam_type = '$type'")
-                              ->where("p.poam_status = '$status'")
-                              ->where("p.poam_action_date_est >=?",$startdate)
-                              ->where("p.poam_action_date_est <=?",$enddate)
-                              ->where("p.poam_date_created >=?",$startcreatedate)
-                              ->where("p.poam_date_created <=?",$end_date_cr);
+        $query = $db->select()->from(array('p'=>'poams'),array('num'=>'count(p.id)'))
+                              ->where("p.system_id IN (". $ids .")")
+                              ->where("p.source_id = $source_id")
+                              ->where("p.type = '$type'")
+                              ->where("p.status = '$status'")
+                              ->where("p.action_est_date >?",$est_date_begin->toString('Ymd'))
+                              ->where("p.action_est_date <=?",$est_date_end->toString('Ymd'))
+                              ->where("p.create_ts >?",$created_date_begin->toString('Ymd'))
+                              ->where("p.create_ts <=?",$created_date_end->toString('Ymd'));
         $result = $db->fetchRow($query);
         $count = $result['num'];
-        $result = $poam->search($this->system_ids,array('count'=>array()),$criteria);
-        foreach($result as $row){//echo $count.' '.$row['count'];
-            $this->assertTrue($count == $row['count']);
+        $result = $poam->search($this->system_ids,'count',$criteria);
+        $this->assertTrue($count == $result);
+    }
+
+    function testCountOnly()
+    {
+        $poam = new poam();
+        $fields = array('count'=>'count(*)');
+        $query = $this->db->select()->from(array('p'=>'poams'),$fields)
+                                    ->where("p.system_id IN (". makeSqlInStmt($this->system_ids)." )");
+        $result = $this->db->fetchOne($query);
+        $poams = $poam->search($this->system_ids,$fields);
+        $this->assertTrue($result == $poams);
+    }
+
+    function testCountWithFields()
+    {
+        $poam = new poam();
+        $fields = array('type'=>'type','status'=>'status');
+        $query = $this->db->select()->from(array('p'=>'poams'),$fields)
+                                    ->where("p.system_id IN (". makeSqlInStmt($this->system_ids).")" );
+        $result = $this->db->fetchAll($query);
+
+        $fields = array('count'=>'count(*)','type'=>'type','status'=>'status');
+        $poams = $poam->search($this->system_ids,$fields);
+        $count2=array_pop($poams);
+        $this->assertTrue(count($result) == $count2);
+        $this->assertTrue($result == $poams);
+    }
+        
+    public function testCountGroups()
+    {
+        $field = 'status';
+        $poam = new poam();
+        $query = $this->db->select()->from(array('p'=>'poams'),array('status','count'=>'count(status)'))->group('status');
+        $result = $this->db->fetchAll($query);
+        $poams = $poam->search($this->system_ids,array('status',
+                                                       'count'=>"$field"));
+        foreach($query as $row ){
+            $this->assertTrue( $row['count'] == $poams);
         }
+    
     }
 }

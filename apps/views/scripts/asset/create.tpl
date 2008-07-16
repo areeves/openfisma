@@ -1,16 +1,10 @@
-<script LANGUAGE="JavaScript" type="test/javascript" src="/javascripts/ajax.js"></script>
-<br/>
-<div style="clear:both">
-<table width="98%" align="center" border="0" cellpadding="0" cellspacing="0">
-	<tr>
-		<td width="13"><img src="/images/left_circle.gif" border="0"></td>
-		<td bgcolor="#DFE5ED"><b>Asset Creation</b></td>
-		<td bgcolor="#DFE5ED" align="right"><?PHP echo date('Y-M-D h:i:s:A');?></td>
-		<td width="13"><img src="/images/right_circle.gif" border="0"></td>
-	</tr>
-</table>
+<div class="barleft">
+<div class="barright">
+<p><b>Asset Creation</b><span><?PHP echo $this->escape($this->Current_time);?></span></p>
+</div>
+</div>
 <form name="assetcreate" method="post" action="">
-<table border="0" align="center">
+<table width="810" border="0" align="center">
 <tr>
     <td><input type="hidden" name="prod_id" />
 	    <input name="input" type="submit" value="Create Asset"/>
@@ -19,7 +13,7 @@
 </tr>
 	<tr>
     	<td>
-            <table border="0" width="810" cellpadding="5" class="tipframe">
+            <table border="0" width="800" cellpadding="5" class="tipframe">
 			    <tr><th colspan="2" align="left"> General Information</th>
                 <tr>
 					<td valign="center" ><b>Asset Name </b></td>
@@ -50,4 +44,4 @@
         </td>
 	</tr>
 </table>
-</form></div>
+</form>

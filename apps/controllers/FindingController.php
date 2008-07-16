@@ -1,187 +1,62 @@
 <?PHP
 /**
-* OpenFISMA
-*
-* MIT LICENSE
-*
-* @version $Id$
+ * @file FindingController.php
+ *
+ * Finding Controller
+ *
+ * @author     Ryan <ryan.yang@reyosoft.com>
+ * @copyright  (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/mw/index.php?title=License
+ * @version $Id$
 */
 
-require_once(CONTROLLERS . DS . 'SecurityController.php');
+require_once(CONTROLLERS . DS . 'PoamBaseController.php');
 require_once(MODELS . DS . 'finding.php');
-require_once(MODELS. DS . 'system.php');
-require_once(MODELS. DS . 'source.php');
-require_once(MODELS. DS . 'network.php');
-require_once MODELS . DS . 'poam.php';
 require_once MODELS . DS . 'asset.php';
+require_once MODELS . DS . 'source.php';
+require_once MODELS . DS . 'poam.php';
 require_once('Pager.php');
 define('TEMPLATE_NAME', "OpenFISMA_Injection_Template.xls"); 
 
-class FindingController extends SecurityController
+class FindingController extends PoamBaseController
 {
-    private $_systems = array();
-    private $_poam = null;
-    private $_paging = array('mode'    =>'Sliding',
-                             'append'  =>false,
-                             'urlVar'  =>'p',
-                             'path'    =>'',
-                             'currentPage'=>1,
-                             'perPage'=>20);                             
-
-    public function init()
-    {
-        $this->_poam = new Poam();
-    }
-   
-    public function preDispatch()
-    {
-        parent::preDispatch();
-        require_once MODELS . DS . 'system.php';
-        $req = $this->getRequest();
-        $this->_paging_base_path = $req->getBaseUrl().'/panel/finding/sub/searchbox/s/search';
-        $this->_paging['currentPage'] = $req->getParam('p',1);
-        $sys = new System();
-        $user = new User();
-        $uid = $this->me->id;
-        $this->_systems = $sys->getList('name',$user->getMySystems($uid));
-    }
-
-
-    public function searchboxAction(){
-        require_once MODELS . DS . 'source.php';
-        require_once MODELS . DS . 'network.php';
-
-        $db = Zend_Registry::get('db');
-        $user = new User();
-        $src = new Source();
-        $net = new Network();
-        $sys = new System();
-        $poam = new Poam();
-
-        $req = $this->getRequest();
-        // parse the params of search
-        $criteria['system'] = $req->getParam('system');
-        $criteria['source'] = $req->getParam('source');
-        $criteria['network'] = $req->getParam('network');
-        $criteria['ip'] = $req->getParam('ip');
-        $criteria['port'] = $req->getParam('port');
-        $criteria['vuln'] = $req->getParam('vuln');
-        $criteria['product'] = $req->getParam('product');
-        $criteria['discovered_date_begin'] = $req->getParam('from');
-        $criteria['discovered_date_end'] = $req->getParam('to');
-        $criteria['status'] = $req->getParam('status');
-        if( $criteria['status'] == 'REMEDIATION' ) {
-            $criteria['status'] = array('OPEN','EN','EP','ES');
-        }
-
-        // fetch data for lists
-        $source_list  = $src->getList('name');
-        $network_list = $net->getList('name');
-        $system_list = $this->_systems;
-
-        if( 'search' == $req->getParam('s') ) {
-            $this->_helper->actionStack('search','Finding',null,
-                    array('criteria'=>$criteria) );
-        }
-        $system_list[0] = '--Any--';
-        $source_list[0] = '--Any--';
-        $network_list[0] = '--Any--';
-        $status_list = array( 0 =>'--Any--' ,
-                              "OPEN"=>'Open',
-                              "REMEDIATION"=>'Remediation',
-                              "CLOSED"=>'Closed');
-        $this->view->source = $source_list;
-        $this->view->network = $network_list;
-        $this->view->system = $system_list;
-        $this->view->status = $status_list;
-        $this->view->criteria = $criteria;
-        $this->render();
-    }
-
     /**
         Provide searching capability of findings
         Data is limited in legal systems.
      */
-    public function searchAction()
+    protected function _search($criteria)
     {
-        $req = $this->getRequest();
-        $criteria = $req->getParam('criteria');
-        $fields = array('id' => 'id',
-                       'status'=>'status',
-                       'source_id' => 'source_id',
-                       'system_id' => 'system_id',
-                       'discovered' => 'discover_ts',
-                       'count' => 'count(*)');
-        $result = $this->_poam->search(array_keys($this->_systems), $fields, $criteria, 
+        //$req = $this->getRequest();
+        //$criteria = $req->getParam('criteria');
+        $fields = array('id',
+                       'legacy_finding_id',
+                       'ip',
+                       'port',
+                       'status',
+                       'source_id',
+                       'system_id',
+                       'discover_ts',
+                       'count'=>'count(*)');
+        if( $criteria['status'] == 'REMEDIATION' ) {
+            $criteria['status'] = array('OPEN','EN','EP','ES');
+        }
+        $result = $this->_poam->search($this->me->systems, $fields, $criteria, 
                     $this->_paging['currentPage'],$this->_paging['perPage']);
         $total = array_pop($result);
 
-        foreach($criteria as $key=>$value){
-            if(!empty($value) && $value!='any'){
-                $this->_paging_base_path .='/'.$key.'/'.$value.'';
-            }
-        }
         $this->_paging['totalItems'] = $total ;
-        $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";
         $pager = &Pager::factory($this->_paging);
+
         $this->view->assign('findings',$result);
         $this->view->assign('links',$pager->getLinks());
-        $this->render();
-    }
-
-    /**
-        Create finding summary
-        Data is limited in legal systems.
-     */
-    public function summaryAction() {
-        require_once 'Zend/Date.php';
-        $finding = new Finding();
-        $from = new Zend_Date();
-        $to = clone $from;
-        //count time range
-        $to->add(1,Zend_Date::DAY);
-        $range['today']  = array('from'=>clone $from, 'to'=>clone $to);
-        $from->sub(30,Zend_Date::DAY);
-        $to->sub(1,Zend_Date::DAY);
-        $range['last30'] = array('from'=>clone $from, 'to'=>clone $to);
-        $from->sub(30,Zend_Date::DAY);
-        $to->sub(30,Zend_Date::DAY);
-        $range['last60'] = array('from'=>clone $from, 'to'=>clone $to);
-        $to->sub(30,Zend_Date::DAY);
-        $range['after60'] = array( 'to'=>$to);
-
-        $statistic = $this->_systems;
-        foreach($statistic as $k => $row){
-            $data = $finding->getStatusCount(array($k) );
-            $statistic[$k] = array(
-                        'NAME'=>$row,
-                        'NEW'=>array('total'=>$data['NEW'],
-                                      'today'=>0,
-                                      'last30day'=>0,
-                                      'last2nd30day'=>0,
-                                      'before60day'=>0),
-                        'REMEDIATION'=>$data['OPEN']+$data['ES']+$data['EN']+$data['EP'],
-                        'CLOSED'=>$data['CLOSED']);
-
-            $data = $finding->getStatusCount(array($k),$range['today'],'NEW');
-            $statistic[$k]['NEW']['today'] = $data['NEW'];
-            $data = $finding->getStatusCount(array($k),$range['last30'],'NEW');
-            $statistic[$k]['NEW']['last30day'] = $data['NEW'];
-            $data = $finding->getStatusCount(array($k),$range['last60'],'NEW');
-            $statistic[$k]['NEW']['last2nd30day'] = $data['NEW'];
-            $data = $finding->getStatusCount(array($k),$range['after60'],'NEW');
-            $statistic[$k]['NEW']['before60day'] = $data['NEW'];
-        }
-
-        $this->view->assign('range',$range);
-        $this->view->assign('statistic',$statistic);
-        $this->render();
+        $this->render('search');
     }
 
     /**
        Get finding detail infomation
     */
-    public function viewAction(){
+    public function viewAction()
+    {
         $req = $this->getRequest();
         $id = $req->getParam('id',0);
         assert($id);
@@ -193,9 +68,7 @@ class FindingController extends SecurityController
             $poam = new Poam();
             $detail = $poam->find($id)->current();
             $this->view->finding = $poam->getDetail($id);
-            $this->view->finding['system_name'] = 
-                $this->me->systems[$this->view->finding['system_id']];
-            assert($this->view->finding['system_name']);
+            $this->view->finding['system_name'] = $this->_system_list[$this->view->finding['system_id']];
             $this->render();
         } else {
             /// @todo Add a new Excption page to indicate Access denial
@@ -260,23 +133,18 @@ class FindingController extends SecurityController
                 $fileSize = $csvFile['size'];
 
                 $failedArray = $succeedArray = array();
-                $row = -2;
                 $handle = fopen($tempFile,'r');
+                $data = fgetcsv($handle,1000,",",'"'); //skip the first line
+                $data = fgetcsv($handle,1000,",",'"'); //skip the second line
+                $row = 0;
                 while($data = fgetcsv($handle,1000,",",'"')) {
                     if(implode('',$data)!=''){
                         $row++;
-                        if($row>0){
-                            $sql = $this->csvQueryBuild($data);
-                            if(!$sql){
-                                $failedArray[] = $data;
-                            }
-                            else {
-                                foreach($sql as $query){
-                                    $db = Zend_Registry::get('db');
-                                    $db->query($query);
-                                }
-                                $succeedArray[] = $data;
-                            }
+                        $ret = $this->insertCsvRow($data);
+                        if(empty($ret) ){
+                            $failedArray[] = $data;
+                        }else{
+                            $succeedArray[] = $data;
                         }
                     }
                 }
@@ -311,93 +179,66 @@ class FindingController extends SecurityController
         $req = $this->getRequest();
         $do = $req->getParam('is','view');
         if("new" == $do){
-            $source = $req->getParam('source');
-            $asset_id = $req->getParam('asset_list');
-            $status = 'OPEN';
-            $discovereddate = $req->getParam('discovereddate');
-            $finding_data = $req->getParam('finding_data');
+            try{
+                $data = array();
+                $data['source_id'] = $req->getParam('source');
+                $data['asset_id'] = $req->getParam('asset_list');
+                if(!empty($data['asset_id'])){
+                    $asset = new asset();
+                    $ret = $asset->find($data['asset_id'])->toArray();
+                    $data['system_id'] = $ret[0]['system_id'];
+                }
+                $data['status'] = 'NEW';
+                $discover_ts = new Zend_Date($req->getParam('discovereddate'),Zend_Date::DATES);
+                $data['discover_ts'] = $discover_ts->toString("Y-m-d");
+                $data['finding_data'] = $req->getParam('finding_data');
 
-            $now = date("Y-m-d H:m:s");
-            $m = substr($discovereddate, 0, 2);
-            $d = substr($discovereddate, 3, 2);
-            $y = substr($discovereddate, 6, 4);
-            $disdate = strftime("%Y-%m-%d", (mktime(0, 0, 0, $m, $d, $y)));
+                $data['create_ts'] = self::$now->toString("Y-m-d H:i:s");
+                $data['created_by'] = $this->me->id;
 
-            $sql = "INSERT INTO `FINDINGS`
-                  (source_id, asset_id, finding_status, finding_date_created,finding_date_discovered,finding_data)
-                  VALUES ('$source', '$asset_id', '$status', '$now', '$disdate', '$finding_data')";
-            $res = $db->query($sql);
-            if($res){
+                $this->_poam->insert($data);
                 $message="Finding created successfully";
                 $model=self::M_NOTICE;
-            }
-            else {
-                $message="Finding creation failed";
+            }catch(Zend_Exception $e){
+                $message= "Error in creating";//htmlspecialchars($e->getMessage());
                 $model=self::M_WARNING;
             }
             $this->message($message,$model);
         }
 
-        $user = new User();
-        $src = new Source();
-        $net = new Network();
-        $sys = new System();
-        $asset = new Asset();
-        $source_list = $src->getList('name');
-        $this->view->assign('system',$this->_systems);
-        $this->view->assign('source',$source_list);
+        $this->view->assign('system',$this->_system_list);
+        $this->view->assign('source',$this->_source_list);
         $this->render();
     }
     
-    /**
-       convert finding to poam
-    **/
-    public function convertAction()
-    {
-        $req = $this->getRequest();
-        $finding = new finding();
-        $id  = $req->getParam('id');
-        $data = array('finding_status'=>'REMEDIATION');
-        $finding->update($data,'finding_id = '.$id);
-        $rows = $finding->getFindingById($id);
-        $system_id = $rows['system_id'];
-        $data = array('finding_id'=>$id,
-                      'poam_created_by'=>$this->me->user_id,
-                      'poam_modified_by'=>$this->me->user_id,
-                      'poam_date_created'=>date('Y-m-d H:i:s'),
-                      'poam_date_modified'=>date('Y-m-d H:i:s'),
-                      'poam_action_date_est'=>'0000-00-00',
-                      'poam_action_owner'=>$system_id);
-        $poam = new poam();
-        $insert_id = $poam->insert($data);
-        $data = array('finding_id'=>$id,
-                      'user_id'   =>$this->me->user_id,
-                      'date'      =>time(),
-                      'event'     =>'CREATE:NEW REMEDIATION CREATE',
-                      'description'=>'A new remediation was created from finding '.$id);
-        $poam->getAdapter()->insert('AUDIT_LOG',$data);
-        $this->_forward('remediation','panel',null,array('sub'=>'view','id'=>$insert_id));
-    }
-
     /**
     delete findings
     **/
     public function deleteAction(){
         $req = $this->getRequest();
         $post = $req->getPost();
-        $finding = new finding();
+        $errno = 0;
+        $successno = 0;
         $poam = new poam();
         foreach($post as $key=>$id){
-            if(substr($key,0,4) == 'id_'){
-                $finding->update(array('finding_status'=>'deleted'),'finding_id = '.$id);
-                $poam->delete('finding_id = '.$id);
+            if(substr($key,0,3) == 'id_'){
+                $res = $poam->update(array('status'=>'DELETED'),'id = '.$id);
+                if($res){
+                    $successno++;
+                }else{
+                    $errno++;
+                }
             }
         }
+        $msg = 'Delete '.$successno.' Findings Successfully,'.$errno.' Failed!';
+        $this->message($msg,self::M_NOTICE);
         $this->_forward('searchbox','finding',null,array('s'=>'search'));
 
     }
 
-    public function csvQueryBuild($row){
+    public function insertCsvRow($row){
+        $asset = new asset();
+        $poam = new poam();
         if (!is_array($row) || (count($row)<7)){
             return false;
         }
@@ -412,25 +253,41 @@ class FindingController extends SecurityController
             return false;
         }
         $db = Zend_Registry::get('db');
-        $result = $db->fetchRow("SELECT system_id FROM `SYSTEMS` WHERE system_nickname = '$row[0]'");
-        $row[0] = is_array($result)?array_pop($result):false;
-        $result = $db->fetchRow("SELECT network_id FROM `NETWORKS` WHERE network_nickname = '$row[1]'");
-        $row[1] = is_array($result)?array_pop($result):false;
-        $result = $db->fetchRow("SELECT source_id FROM `FINDING_SOURCES` WHERE source_nickname = '$row[5]'");
-        $row[5] = is_array($result)?array_pop($result):false;
+        $query = $db->select()->from('systems','id')->where('nickname = ?',$row[0]);
+        $result = $db->fetchRow($query);
+        $row[0] = !empty($result)?$result['id']:false;
+        $query->reset();
+        $query = $db->select()->from('networks','id')->where('nickname = ?',$row[1]);
+        $result = $db->fetchRow($query);
+        $row[1] = !empty($result)?$result['id']:false;
+        $query->reset();
+        $query = $db->select()->from('sources','id')->where('nickname = ?',$row[5]);
+        $result = $db->fetchRow($query);        
+        $row[5] = !empty($result)?$result['id']:false;
         if (!$row[0] || !$row[1] || !$row[5]) {
             return false;
         }
-        $sql[] = "INSERT INTO `ASSETS`(asset_name, asset_date_created, asset_source)
-                  VALUES(':$row[3]:$row[4]', '$row[2]', 'SCAN')";
-        $sql[] = "INSERT INTO `SYSTEM_ASSETS` (system_id, asset_id, system_is_owner)
-                  VALUES($row[0], LAST_INSERT_ID(), 1)";
-        $sql[] = "INSERT INTO `ASSET_ADDRESSES` (asset_id,network_id,address_date_created,address_ip,address_port)
-                  VALUES(LAST_INSERT_ID(), $row[1], '$row[2]', '$row[3]', '$row[4]')";
-        $sql[] = "INSERT INTO `FINDINGS` (source_id,asset_id,finding_status,finding_date_created,
-                  finding_date_discovered,finding_data)
-                  VALUES($row[5], LAST_INSERT_ID(), 'OPEN', '$current_time_string', '$row[2]', '$row[6]')";
-        return $sql;
+        $asset_name = ':'.$row[3].':'.$row[4];
+        $query = $asset->select()->from($asset,'id')
+                                 ->where('system_id = ?',$row[0])
+                                 ->where('network_id = ?',$row[1])
+                                 ->where('address_ip = ?',$row[3])
+                                 ->where('address_port = ?',$row[4]);
+        $result = $asset->fetchRow($query);
+        if(!empty($result)){
+            $data = $result->toArray();
+            $asset_id = $data['id'];
+        }else{
+            $asset_data = array('name'=>$asset_name,'create_ts'=>$row[2],'source'=>'SCAN',
+                                'system_id'=>$row[0],'network_id'=>$row[1],'address_ip'=>$row[3],
+                                'address_port'=>$row[4]);
+            $asset_id = $asset->insert($asset_data);
+        }
+        $poam_data = array('asset_id'=>$asset_id,'source_id'=>$row[5],'system_id'=>$row[0],
+                              'status'=>'NEW','create_ts'=>self::$now->toString('Y-m-d h:i:s') ,
+                              'discover_ts'=>$row[2],'finding_data'=>$row[6]);
+        $ret =  $poam->insert($poam_data);
+        return $ret;
     }
 
     /** 
@@ -450,11 +307,11 @@ class FindingController extends SecurityController
         $resp = $this->getResponse();
 
         $src = new System();
-        $this->view->systems = $src->getList('system_nickname') ;
+        $this->view->systems = $src->getList('nickname') ;
         $src = new Network();
-        $this->view->networks = $src->getList('network_nickname');
+        $this->view->networks = $src->getList('nickname');
         $src = new Source();
-        $this->view->sources = $src->getList('source_nickname');
+        $this->view->sources = $src->getList('nickname');
         $this->render();
     }
 }

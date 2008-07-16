@@ -1,6 +1,6 @@
 <div class="barleft">
 <div class="barright">
-<p><b>Administration:disable Users Configeration</b>
+<p><b>Account Policies</b>
 </div>
 </div>
 <b><?php echo $this->msg;?></b>

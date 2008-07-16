@@ -1,10 +1,13 @@
 <?php
 /**
-* OpenFISMA
-*
-* MIT LICENSE
-*
-* @version $Id$
+ * @file PanelController.php
+ *
+ * Panel Controller
+ *
+ * @author     Jim <jimc@reyosoft.com>
+ * @copyright  (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/mw/index.php?title=License
+ * @version $Id$
 */
 
 require_once CONTROLLERS . DS . 'SecurityController.php';
@@ -20,10 +23,8 @@ class PanelController extends SecurityController
 
     public function headerAction()
     {   
-        $this->_helper->layout->assign('header',
-            $this->view->render($this->_helper->viewRenderer->getViewScript()));
+        $this->_helper->layout->assign('header',$this->view->render($this->_helper->viewRenderer->getViewScript()));
         $this->_helper->layout->setLayout('default');
-
     }
 
     public function dashboardAction()
@@ -37,17 +38,17 @@ class PanelController extends SecurityController
     public function findingAction()
     {
         $req = $this->getRequest();
-        $sub = $req->getParam('sub');
+        $sub = $req->getParam('sub','searchbox');
         $this->_helper->actionStack($sub,'Finding');
         $this->_helper->actionStack('header');
     }
     
-    public function userAction()
+    public function accountAction()
     {
         $req = $this->getRequest();
         $sub = $req->getParam('sub');
-        $this->_helper->actionStack($sub,'User');
-        $this->_helper->actionStack('searchbox','User');
+        $this->_helper->actionStack($sub,'Account');
+        $this->_helper->actionStack('searchbox','Account');
         $this->_helper->actionStack('header');
     }
 
@@ -77,11 +78,63 @@ class PanelController extends SecurityController
         $this->_helper->actionStack($sub,'Report');
         $this->_helper->actionStack('header');
     }
+    
+    public function systemAction()
+    {
+        $req = $this->getRequest();
+        $sub = $req->getParam('sub');
+        $this->_helper->actionStack($sub,'System');
+        $this->_helper->actionStack('searchbox','System');
+        $this->_helper->actionStack('header');
+    }
+
+    public function productAction()
+    {
+        $req = $this->getRequest();
+        $sub = $req->getParam('sub');
+        $this->_helper->actionStack($sub,'Product');
+        $this->_helper->actionStack('searchbox','Product');
+        $this->_helper->actionStack('header');
+    }
+
+    public function sysgroupAction()
+    {
+        $req = $this->getRequest();
+        $sub = $req->getParam('sub');
+        $this->_helper->actionStack($sub,'Sysgroup');
+        $this->_helper->actionStack('searchbox','Sysgroup');
+        $this->_helper->actionStack('header');
+    }
+
+    public function sourceAction()
+    {
+        $req = $this->getRequest();
+        $sub = $req->getParam('sub');
+        $this->_helper->actionStack($sub,'Source');
+        $this->_helper->actionStack('searchbox','Source');
+        $this->_helper->actionStack('header');
+    }
 
     public function configAction()
     {
         $req = $this->getRequest();
         $this->_helper->actionStack('view','Config');
+        $this->_helper->actionStack('header');
+    }
+
+    public function userAction()
+    {
+        $req = $this->getRequest();
+        $sub = $req->getParam('sub');
+        $this->_helper->actionStack($sub,'User');
+        $this->_helper->actionStack('header');
+    }
+
+    public function assetAction()
+    {
+        $req = $this->getRequest();
+        $sub = $req->getParam('sub');
+        $this->_helper->actionStack($sub,'Asset');
         $this->_helper->actionStack('header');
     }
 

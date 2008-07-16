@@ -1,10 +1,13 @@
 <?php 
 /**
-* OpenFISMA
-*
-* MIT LICENSE
-*
-* @version $Id$
+ * @file UserController.php
+ *
+ * @description User Controller
+ *
+ * @author     Jim <jimc@reyosoft.com>
+ * @copyright  (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/mw/index.php?title=License
+ * @version $Id$
 */
 
 require_once 'Zend/Controller/Action.php';
@@ -13,19 +16,10 @@ require_once 'Zend/Auth/Adapter/DbTable.php';
 require_once( CONTROLLERS . DS . 'SecurityController.php');
 require_once( MODELS . DS .'user.php');
 require_once( MODELS . DS .'system.php');
-require_once('Pager.php');
 require_once 'Zend/Date.php';
 
 class UserController extends SecurityController
 {
-    private $role_array;
-    private $_paging = array(
-            'mode'        =>'Sliding',
-            'append'      =>false,
-            'urlVar'      =>'p',
-            'path'        =>'',
-            'currentPage' => 1,
-            'perPage'=>20);
     private $_user = null;
 
     public function init()
@@ -35,13 +29,6 @@ class UserController extends SecurityController
 
     public function preDispatch()
     {
-        $req = $this->getRequest();
-        $this->_paging_base_path = $req->getBaseUrl() .'/panel/user/sub/list';
-        $this->_paging['currentPage'] = $req->getParam('p',1);
-        if($req->getActionName() != 'login'){
-            // by pass the authentication when login
-            parent::preDispatch();
-        }
     }
 
     public function loginAction()
@@ -49,7 +36,7 @@ class UserController extends SecurityController
         //We may need to findout user auth configuration and using properly method
         $now = new Zend_Date();
         $db = Zend_Registry::get('db'); 
-        $authAdapter = new Zend_Auth_Adapter_DbTable($db, 'USERS', 'user_name', 'user_password');
+        $authAdapter = new Zend_Auth_Adapter_DbTable($db, 'users', 'account', 'password');
         $auth = Zend_Auth::getInstance();
         $req = $this->getRequest();
         $username = $req->getPost('username');
@@ -60,21 +47,19 @@ class UserController extends SecurityController
             $result = $auth->authenticate($authAdapter);
             if (!$result->isValid()) {
                 if(Zend_Auth_Result::FAILURE_CREDENTIAL_INVALID == $result->getCode()){
-                    $whologin = $this->_user->fetchRow("user_name = '$username'");
-                    $this->_user->log(User::LOGINFAILURE, $whologin->user_id,'Password Error');
+                    $whologin = $this->_user->fetchRow("account = '$username'");
+                    if( !empty($whologin) ){
+                        $this->_user->log(User::LOGINFAILURE, $whologin->id,'Password Error');
+                    }
                 }
-                // Authentication failed; print the reasons why
-                $error = "";
-                foreach ($result->getMessages() as $message) {
-                     $error .= "$message<br>"; 
-                }
+                $error = "Incorrect username or password";
                 $this->view->assign('error', $error);
             } else {
-                $me = $authAdapter->getResultRowObject(null, 'user_password');
+                $me = $authAdapter->getResultRowObject(null,'password');
                 $period = readSysConfig('max_absent_time');
                 $deactive_time = clone $now;
                 $deactive_time->sub($period,Zend_Date::DAY);
-                $last_login = new Zend_Date($me->user_date_last_login);
+                $last_login = new Zend_Date($me->last_login_ts,'YYYY-MM-DD HH-MI-SS');
 
                 if( !$last_login->equals(new Zend_Date('0000-00-00 00:00:00')) 
                     && $last_login->isEarlier($deactive_time) ){
@@ -82,12 +67,15 @@ class UserController extends SecurityController
                              ".$period." days";
                     $this->view->assign('error',$error);
                 } else {
-                    $this->_user->log(User::LOGIN, $me->user_id, "Success");
-                    $nickname = $this->_user->getRoles($me->user_id);
+                    $this->_user->log(User::LOGIN, $me->id, "Success");
+                    $nickname = $this->_user->getRoles($me->id);
                     foreach($nickname as $n ) {
-                        $me->role_array[] = $n;
+                        $me->role_array[] = $n['nickname'];
                     }
-                    $me->systems = $this->_user->getMySystems($me->user_id);
+                    if( empty( $me->role_array ) ) {
+                        $me->role_array[] = $me->account . '_r';
+                    }
+                    $me->systems = $this->_user->getMySystems($me->id);
                     $auth->getStorage()->write($me);
                     return $this->_forward('index','Panel');
                 }
@@ -107,271 +95,131 @@ class UserController extends SecurityController
     
     public function logoutAction()
     {
-        $this->_user->log(User::LOGOUT, $this->me->user_id,$this->me->user_name.' logout');
-        Zend_Auth::getInstance()->clearIdentity();
+        $auth = Zend_Auth::getInstance();
+        $me = $auth->getIdentity();
+        if( !empty($me) ) {
+            $this->_user->log(User::LOGOUT, $me->id,$me->account.' logout');
+            Zend_Auth::getInstance()->clearIdentity();
+        }
         $this->_forward('login');
     }
 
-    /**
-    Search user
-    */
-    public function searchboxAction()
-    {
-        $db = Zend_Registry::get('db');
-        $fid_array = array('lastname'=>'Last Name',
-                     'firstname'=>'First Name',
-                     'officephone'=>'Office Phone',
-                     'mobile'=>'Mobile Phone',
-                     'email'=>'Email',
-                     'role'=>'Role',
-                     'title'=>'Title',
-                     'status'=>'Status',
-                     'username'=>'Username');
-        $this->view->assign('fid_array',$fid_array);
-        $req = $this->getRequest();
-        $this->_paging_base_path = $req->getBaseUrl().'/panel/user/sub/list';
-        $this->_paging['currentPage'] = $req->getParam('p',1);
-        $fid = $req->getParam('fid');
-        $qv = $req->getParam('qv');
-        $res = $db->fetchRow("SELECT COUNT(*) AS count FROM `USERS` u,`ROLES` r WHERE u.role_id = r.role_id");
-        $count = $res['count'];
-        $this->_paging['totalItems'] = $count;
-        $this->_paging['fileName'] = "{$this->_paging_base_path}/p/%d";
-        $pager = &Pager::factory($this->_paging);
-        $this->view->assign('fid',$fid);
-        $this->view->assign('qv',$qv);
-        $this->view->assign('total',$count);
-        $this->view->assign('links',$pager->getLinks());
-        $this->render();
-    }
-
-    /**
-      Get User acount infomation
-    */
-    public function listAction()
-    {
-        $user = new user();
-        $db = Zend_Registry::get('db');
-        $req = $this->getRequest();
-        $qv = $req->getParam('qv');
-        $fid = $req->getParam('fid');
-        $qry = $user->select()->setIntegrityCheck(false)
-                    ->from(array('u'=>'USERS'),array('id'=>'user_id',
-                                                     'username'=>'user_name',
-                                                     'lastname'=>'user_name_last',
-                                                     'firstname'=>'user_name_first',
-                                                     'officephone'=>'user_phone_office',
-                                                     'mobile'=>'user_phone_mobile',
-                                                     'email'=>'user_email',
-                                                     'roleid'=>'role_id'));
-        $qry->join(array('r'=>'ROLES'),'u.role_id = r.role_id',array('rolename'=>'role_name'));
-        if(!empty($qv)){
-            $fid_array = array('user_name_last'=>'lastname',
-                               'user_name_first'=>'firstname',
-                               'user_phone_office'=>'officephone',
-                               'user_phone_mobile'=>'mobile',
-                               'user_email'=>'email',
-                               'r.role_name'=>'role',
-                               'user_title'=>'title',
-                               'user_is_active'=>'status',
-                               'user_name'=>'username');
-            foreach($fid_array as $k=>$v){
-                if($v == $fid){
-                    $qry->where("$k = '$qv'");
-                }
-            }
-        }
-        $qry->order("user_name_last ASC");
-        $qry->limitPage($this->_paging['currentPage'],$this->_paging['perPage']);
-        $data = $user->fetchAll($qry);
-        $user_list = $data->toArray();
-        $this->view->assign('user_list',$user_list);
-        $this->render();
-    }
-
-    /**
-     User detail
-    */
-    public function viewAction()
+    public function pwdchangeAction()
     {
         $req = $this->getRequest();
-        $id  = $req->getParam('id');
-        $v   = $req->getParam('v');
-        $do  = $req->getParam('do');
-        assert($id);
-        $user = new User();
-        $sys = new System();
-        $db = $user->getAdapter();
-        $qry = $user->select()->setIntegrityCheck(false);
-        /** get user detail */
-        $qry->from(array('u'=>'USERS'),array('lastname'=>'user_name_last',
-                                           'firstname'=>'user_name_first',
-                                           'officephone'=>'user_phone_office',
-                                           'mobilephone'=>'user_phone_mobile',
-                                           'email'=>'user_email',
-                                           'title'=>'user_title',
-                                           'status'=>'user_is_active',
-                                           'username'=>'user_name',
-                                           'password'=>'user_password'))
-            ->where("u.user_id = $id");
-        $user_detail = $user->fetchRow($qry)->toArray();
+        if('save' == $req->getParam('s')){
+            $auth = Zend_Auth::getInstance();
+            $me = $auth->getIdentity();
+            $id   = $me->id;
+            $pwds = $req->getPost('pwd');
+            $oldpass = md5($pwds['old']);
+            $newpass = md5($pwds['new']);
+            $res = $this->_user->find($id)->toArray();
+            $password = $res[0]['password'];
+            $history_pass = $res[0]['history_password'];
+            if($pwds['new'] != $pwds['confirm']){
+                $msg = 'the new password does not match the confirm password, please try again.';
+            }else{
+                if($oldpass != $password){
+                    $msg = 'The old password supplied does not match what we have on file, please try again.';
+                }else{
+                    if(!$this->checkPassword($pwds['new'],2)){
+                        /*$msg = 'This password does not meet the password complexity requirements.<br>
+Please create a password that adheres to these complexity requirements:<br>
+--The password must be at least 8 character long<br>
+--The password must contain at least 1 lower case letter (a-z), 1 upper case letter (A-Z), and 1 digit (0-9)<br>
+--The password can also contain National Characters if desired (Non-Alphanumeric, !,@,#,$,% etc.)<br>
+--The password cannot be the same as your last 3 passwords<br>
+--The password cannot contain your first name or last name<br>";';*/
+                        $msg = "The password doesn\'t meet the required complexity!";
 
-        $roles = $user->getRoles($id, array('name'=>'role_name'));
-
-        /** get user systems */
-        $ids = implode(',',$user->getMySystems($id));
-        $qry->reset();
-        $systems = $db->fetchPairs($qry->from($sys->info(Zend_Db_Table::NAME),
-                               array('id'=>'system_id','name'=>'system_name'))
-                      ->where("system_id IN ( $ids )")
-                      ->order('id ASC'));
-        $this->view->assign('id',$id);
-        $this->view->assign('user',$user_detail);
-        $this->view->assign('roles',$roles);
-        $this->view->assign('systems',$systems);
-        if('edit' == $v){
-            $qry = $db->select()->from(array('s'=>'SYSTEMS'),array('sid'=>'system_id',
-                                                                        'sname'=>'system_name'));
-            $sys = $db->fetchAll($qry);
-            foreach($systems as $k=>$v){
-                $sid[] = $k;
-            }
-            $this->view->assign('sid_arr',$sid);
-            $this->view->assign('sys',$sys);
-            $this->render('edit');
-        }
-        else {
-            $this->render();
-        }
-    }
-
-    /**
-      update user 
-    */
-    public function updateAction(){
-        $req = $this->getRequest();
-        $id = $req->getParam('id');
-        $post = $req->getPost();
-        $msg = '';
-        if(!empty($post)){
-            if($post['user_password'] != $post['confirm_password']){
-                $msg = "Password dosen't match confirmation.Please submit password and confirmation";
-            }
-            else {
-                foreach($post as $k=>$v){
-                    if('user_' == substr($k,0,5) ){
-                        if('password' == substr($k,5,8)){
-                            if(!empty($v)){
-                                $field[$k] = md5($v);
-                                $field['user_date_password'] = 0;
+                    }else{
+                        if($newpass == $password){
+                            $msg = 'Your new password cannot be the same as your old password.';
+                        }else{
+                            if(strpos($history_pass,$newpass) > 0 ){
+                                $msg = 'Your password must be different from the last three passwords you have used. Please pick a different password.';
+                            }else{
+                                if(strpos($history_pass,$password) > 0){
+                                    $history_pass = ':'.$newpass.$history_pass;
+                                }else{
+                                    $history_pass = ':'.$newpass.':'.$password.$history_pass;
+                                }
+                                $history_pass = substr($history_pass,0,99);
+                                $now = date('Y-m-d H:i:s');
+                                $data = array('password'=>$newpass,
+                                              'history_password'=>$history_pass,
+                                              'password_ts'=>$now);
+                                $result = $this->_user->update($data,'id = '.$id);
+                                if(!$result){
+                                    $msg = 'Password Changed Failed';
+                                }else{
+                                    $msg = 'Password Changed Successfully';
+                                }
                             }
                         }
-                        else {
-                            $field[$k] = $v;
-                        }
-                    }
-                    if('user_is_active' == 0){
-                        $field['user_date_deleted'] = date("Y-m-d H:m:s");
-                    }
-                    if('user_is_active' == 1){
-                        $field['user_date_deleted'] = '';
-                    }
-                    if('system' == substr($k,0,6)){
-                        $sys_field[] = $v;
-                    }
-                }
-                $user = $this->_user;
-                $db = $user->getAdapter();
-                $res = $db->update('USERS',$field,'user_id = '.$id.'');
-                $res .=$db->delete('USER_SYSTEM_ROLES','user_id = '.$id.'');
-                foreach($sys_field as $v){
-                    $data = array('user_id'=>$id,'system_id'=>$v);
-                    $res .=$db->insert('USER_SYSTEM_ROLES',$data);
-                }
-                if($res){
-                    $msg = '<p>User <b>modified</b> successful!</p>';
-                    $this->_user->log(User::MODIFICATION, $this->me->user_id, $field['user_name']);
-                }
-                else {
-                    $msg = '<p>User <b>modified</b> failed!</p>';
+                    }   
                 }
             }
+            $this->message($msg,self::M_NOTICE);
         }
-        $this->view->assign('msg',$msg);
-        $this->_forward('view');
-    }
-
-    /**
-     Delete user
-    */
-    public function deleteAction(){
-        $req = $this->getRequest();
-        $id = $req->getParam('id');
-        assert($id);
-        $msg ="";
-        $user = $this->_user;
-        $db = $user->getAdapter();
-        $res = $db->delete('USERS','user_id = '.$id);
-        $res = $db->delete('USER_SYSTEM_ROLES','user_id = '.$id);
-        $res = $db->delete('USER_ROLES','user_id = '.$id);
-        if($res){
-            $msg ="<p><b>User Deleted successfully</b></p>";
-        }
-        else {
-            $msg ="<p><b>User Deleted failed</b></p>";
-        }
-        $this->view->assign('msg',$msg);
-        $this->_forward('list');
-    }
-    /**
-       Create user
-    **/
-    public function createAction()
-    {
-        require_once(MODELS . DS . 'role.php');
-        $r = new Role();
-        $system = new system();
-
-        $this->view->roles = $r->getList('role_name');
-        $this->view->systems = $system->getList(array('id'=>'system_id','name'=>'system_name'));
+        $this->_helper->actionStack('header','Panel');
         $this->render();
     }
 
-    /**
-       Save new user
-    **/
-    public function saveAction()
-    {
-        require_once(MODELS . DS . 'role.php');
-        $req = $this->getRequest();
-        foreach($req->getPost() as $k=>$v){
-            if(substr($k,0,6) != 'system' ){
-                if( !in_array($k,array('role','confirm_password','user_password'))){
-                    $data[$k] = $v;
-                }else{
-                    ///< @todo compare the password
-                    if($k == 'user_password'){
-                        $data[$k] = md5($v);
-                    }
-                }
-            }else{
-                $systems[] = $v;
+    function checkPassword($pass, $level = 1) {
+        if($level > 1) {
+
+            $nameincluded = true;
+            // check last name
+            if(empty($this->user_name_last) || strpos($pass, $this->user_name_last) === false) {
+                $nameincluded = false;
             }
+            if(!$nameincluded) {
+                // check first name
+                if(empty($this->user_name_first) || strpos($pass, $this->user_name_first) === false)
+                    $nameincluded = false;
+                else
+                    $nameincluded = true;
+            }
+            if($nameincluded)
+                return false; // include first name or last name
+
+            // high level
+            if(strlen($pass) < 8)
+                return false;
+            // must be include three style among upper case letter, lower case letter, symbol, digit.
+            // following rule: at least three type in four type, or symbol and any of other three types
+            $num = 0;
+            if(preg_match("/[0-9]+/", $pass)) // all are digit
+                $num++;
+            if(preg_match("/[a-z]+/", $pass)) // all are digit
+                $num++;
+            if(preg_match("/[A-Z]+/", $pass)) // all are digit
+                $num++;
+            if(preg_match("/[^0-9a-zA-Z]+/", $pass)) // all are digit
+                $num += 2;
+
+            if($num < 3)
+                return false;
         }
-        $data['user_date_created'] = date('Y-m-d H:i:s');
-        $data['extra_role'] = $req->getParam('user_name').'_r';
+        else if($level == 1) {
+            // low level
+            if(strlen($pass) < 3)
+                return false;
+            // must include three style among upper case letter, lower case letter, symbol, digit.
+            // following rule: at least two type in four type
+            if(preg_match("/^[0-9]+$/", $pass)) // all are digit
+                return false;
 
-        $user_id = $this->_user->insert($data);
-        $role_id = $req->getParam('role_id');
-        $this->_user->associate($user_id, User::ROLE, $role_id);
+            if(preg_match("/^[a-z]+$/", $pass)) // all are lower case letter
+                return false;
 
-        $this->_user->associate($user_id, User::SYS, $systems);
+            if(preg_match("/^[A-Z]+$/", $pass)) // all are upper case letter
+                return false;
+        }
 
-        $this->_user->log(User::CREATION ,$this->me->user_id,'create user('.$data['user_name'].')');
-        $this->message("User({$data['user_name']}) added", self::M_NOTICE);
-        $this->_forward('create');
+        return true;
     }
 
-
 }
-?>

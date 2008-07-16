@@ -1,6 +1,6 @@
-@import url(/stylesheets/fisma.css);
-@import url(/stylesheets/layout.css);
-@import url(/stylesheets/menu.css);
+@import url('/stylesheets/fisma.css');
+@import url('/stylesheets/layout.css');
+@import url('/stylesheets/menu.css');
 
 /* Color
 ===================================*/
@@ -48,8 +48,9 @@ th {
 	height: 23px;
 	font-weight: bold;
 	font-size: 12px;
-	background-image: url(../images/td_bg.gif);
-	/* padding-left:inherit */	
+        background-color: #DDDDDD;
+        padding-left: 5px;
+        padding-right: 5px;
 }
 
 /* Table Cell Style Sheet for all td cells */
@@ -66,17 +67,29 @@ td {
 	border-top: 1px solid #BEBEBE;
 }
 
-.tbframe td {
-	border-left: 1px solid #BEBEBE;
-	border-top: 1px solid #BEBEBE;
-}
-
-.tipframe {
+.tbframe {
 	font-family: Tahoma,verdana,arial, helvetica;
 	font-size: 12px;
 	font-weight: normal;
 	color: #000000;
-	border: 1px solid #44637A;
-    border-collapse: collapse;
+        border: 1px solid #BEBEBE;
+        border-collapse: collapse;
+        margin: 0em auto;
 }
 
+.tipframe {
+    font-family: Tahoma, verdana, arial, helvetica;
+    font-size: 12px;
+    font-weight: normal;
+    color: #000000;
+    border: 1px solid #44637A;
+    width: 95%;
+    margin-top: 0em;
+    margin-right: auto;
+    margin-bottom: 0.5em;
+    margin-left: auto;
+}
+
+.tipframe th {
+	height: auto;
+}

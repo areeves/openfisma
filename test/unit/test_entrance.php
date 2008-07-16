@@ -33,10 +33,12 @@ Zend_Db_Table::setDefaultAdapter($db);
 
 
 $test = new TestSuite('All classes tests');
-$test->addTestFile('acl_t.php');
-$test->addTestFile('fismamodel_t.php');
-$test->addTestFile('search_t.php');
-$test->addTestFile('log_t.php');
+//$test->addTestFile('acl_t.php');
+//$test->addTestFile('fismamodel_t.php');
+//$test->addTestFile('search_t.php');
+//$test->addTestFile('log_t.php');
+
+$test->addTestFile('migration_t.php');
 
 $test->run(new TextReporter());
 
