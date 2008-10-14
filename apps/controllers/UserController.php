@@ -20,7 +20,7 @@
  * @author    Jim Chen <xhorse@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: UserController.php 940 2008-09-27 13:40:22Z ryanyang $
+ * @version   $Id: UserController.php 987 2008-10-14 19:12:32Z mehaase $
  */
 
 /**
@@ -86,7 +86,7 @@ class UserController extends MessageController
 
             // If the account is locked...
             // (due to manual lock, expired account, password errors, etc.)
-            if ( ! $whologin->is_active ) {
+            if ( ! $whologin->is_active && 'database' == readSysConfig('auth_type')) {
                 $unlockEnabled = readSysConfig('unlock_enabled');
                 if (1 == intval($unlockEnabled)) {
                     $unlockDuration = readSysConfig('unlock_duration');
@@ -293,6 +293,50 @@ class UserController extends MessageController
         $form->setDefaults($userProfile);
         $this->view->assign('form', Form_Manager::prepareForm($form));
 
+        $this->render();
+    }
+
+    /**
+     * passwordAction() - Display the change password page
+     */
+    public function passwordAction()
+    {
+        // Load the change password file
+        $passwordForm = Form_Manager::loadForm('change_password');
+        $passwordForm = Form_Manager::prepareForm($passwordForm);
+
+        // Prepare the password requirements explanation:
+        $requirements[] = "Length must be between "
+                        . readSysConfig('pass_min')
+                        . " and "
+                        . readSysConfig('pass_max')
+                        . " characters long.";
+        if (readSysConfig('pass_uppercase') == 1) {
+            $requirements[] = "Must contain at least 1 upper case character (A-Z)";
+        }
+        if (readSysConfig('pass_lowercase') == 1) {
+            $requirements[] = "Must contain at least 1 lower case character (a-z)";
+        }
+        if (readSysConfig('pass_numerical') == 1) {
+            $requirements[] = "Must contain at least 1 numeric digit (0-9)";
+        }
+        if (readSysConfig('pass_special') == 1) {
+            $requirements[] = htmlentities("Must contain at least 1 special character (!@#$%^&*-=+~`_)");
+        }
+
+        $this->view->assign('requirements', $requirements);
+        $this->view->assign('form', $passwordForm);
+        
+        $this->render();
+    }
+
+    /**
+     * notificationsAction() - Display the user's "Edit Profile" page.
+     *
+     * @todo Cleanup this method: comments and formatting
+     */
+    public function notificationsAction()
+    {
         // assign notification events
         $event = new Event();
 
@@ -301,7 +345,7 @@ class UserController extends MessageController
         $this->view->notify_email = $ret->current()->notify_email;
         $allEvent = $event->getUserAllEvents($this->_me->id);
         $enabledEvent = $event->getEnabledEvents($this->_me->id);
-        
+
         $this->view->availableList = array_diff($allEvent, $enabledEvent);
         $this->view->enableList = array_intersect($allEvent, $enabledEvent);
 
@@ -418,7 +462,7 @@ class UserController extends MessageController
 
         $this->view->setScriptPath(VIEWS . DS . 'scripts');
         $this->message($msg, $model);
-        $this->_forward('profile');
+        $this->_forward('notifications');
     }
 
         
@@ -435,44 +479,30 @@ class UserController extends MessageController
             $auth = Zend_Auth::getInstance();
             $_me = $auth->getIdentity();
             $id = $_me->id;
-            $pwds = $req->getPost('pwd');
-            $oldpass = md5($pwds['old']);
-            $newpass = md5($pwds['new']);
+            $oldpass = md5($req->old_password);
+            $newpass = md5($req->new_password);
             $res = $this->_user->find($id)->toArray();
             $password = $res[0]['password'];
             $historyPass = $res[0]['history_password'];
-            if ($pwds['new'] != $pwds['confirm']) {
-                $msg = 'The new password does not match the confirm password,'
-                       .' please try again.';
+            if ($req->new_password != $req->confirm_password) {
+                $msg = 'The new password does not match the confirm password, please try again.';
                 $model = self::M_WARNING;
             } else {
                 if ($oldpass != $password) {
-                    $msg = 'The old password supplied is incorrect,'
-                           .' please try again.';
+                    $msg = 'The old password supplied is incorrect, please try again.';
                     $model = self::M_WARNING;
                 } else {
-                    if (!$this->checkPassword($pwds['new'], 2)) {
-                        $msg = 'This password does not meet the password
-                               complexity requirements.<br>
-Please create a password that adheres to these complexity requirements:<br>
---The password must be at least 8 character long<br>
---The password must contain at least 1 lower case letter (a-z),
- 1 upper case letter (A-Z), and 1 digit (0-9)<br>
---The password can also contain National Characters if desired 
-(Non-Alphanumeric, !,@,#,$,% etc.)<br>
---The password cannot be the same as your last 3 passwords<br>
---The password cannot contain your first name or last name<br>";';
-                        throw new FismaException($msg);
+                    $result = $this->checkPassword($req->new_password);
+                    if (false == $result['check']) {
+                        $msg = $result['reason'];
+                        $model = self::M_WARNING;
                     } else {
                         if ($newpass == $password) {
-                            $msg = 'Your new password cannot be the same as'
-                                   .' your old password.';
+                            $msg = 'Your new password cannot be the same as your old password.';
                             $model = self::M_WARNING;
                         } else {
                             if (strpos($historyPass, $newpass) > 0) {
-                                $msg = 'Your password must be different from'
-                                    .' the last three passwords you have used.'
-                                    .' Please pick a different password.';
+                                $msg = 'Your password must be different from the last three passwords you have used. Please pick a different password.';
                                 $model = self::M_WARNING;
                             } else {
                                 if (strpos($historyPass, $password) > 0) {
@@ -506,7 +536,7 @@ Please create a password that adheres to these complexity requirements:<br>
             $this->message($msg, $model);
         }
         $this->_helper->actionStack('header', 'Panel');
-        $this->_forward('profile');
+        $this->_forward('password');
     }
     
     /**
@@ -516,56 +546,73 @@ Please create a password that adheres to these complexity requirements:<br>
      * @todo Cleanup this method: comments and formatting...what does this
      * method do?
      */
-    function checkPassword($pass, $level = 1) {
-        if ($level > 1) {
-
-            $nameincluded = true;
-            // check last name
-            if (empty($this->user_name_last)
-                || strpos($pass, $this->user_name_last) === false) {
-                $nameincluded = false;
-            }
-            if (!$nameincluded) {
-                // check first name
-                if (empty($this->user_name_first)
-                    || strpos($pass, $this->user_name_first) === false) {
-                    $nameincluded = false;
-                } else {
-                    $nameincluded = true;
-                }
-            }
-            if ($nameincluded) return false; // include first name or last name
-            // high level
-            if (strlen($pass) < 8) return false;
-            // must be include three style among upper case letter,
-            // lower case letter, symbol, digit.
-            // following rule: at least three type in four type,
-            // or symbol and any of other three types
-            $num = 0;
-            if (preg_match("/[0-9]+/", $pass)) // all are digit
-            $num++;
-            if (preg_match("/[a-z]+/", $pass)) // all are digit
-            $num++;
-            if (preg_match("/[A-Z]+/", $pass)) // all are digit
-            $num++;
-            if (preg_match("/[^0-9a-zA-Z]+/", $pass)) // all are digit
-            $num+= 2;
-            if ($num < 3) return false;
-        } else if ($level == 1) {
-            // low level
-            if (strlen($pass) < 3) return false;
-            // must include three style among upper case letter,
-            // lower case letter, symbol, digit.
-            // following rule: at least two type in four type
-            if (preg_match("/^[0-9]+$/", $pass)) // all are digit
-            return false;
-            if (preg_match("/^[a-z]+$/", $pass)) // all are lower case letter
-            return false;
-            if (preg_match("/^[A-Z]+$/", $pass)) // all are upper case letter
-            return false;
+    function checkPassword($pass) {
+        $result = array();
+        $nameincluded = true;
+        // check last name
+        if (empty($this->user_name_last)
+            || strpos($pass, $this->user_name_last) === false) {
+            $nameincluded = false;
         }
-        return true;
+        if (!$nameincluded) {
+            // check first name
+            if (empty($this->user_name_first)
+                || strpos($pass, $this->user_name_first) === false) {
+                $nameincluded = false;
+            } else {
+                $nameincluded = true;
+            }
+        }
+        if ($nameincluded) {
+            $result['check'] = false;
+            $result['reason'] = "The new password can not include your first name or last name";
+            return $result;
+        }
+
+        if (strlen($pass) < readSysConfig('pass_min')) {
+            $result['check'] = false;
+            $result['reason'] = "The password must be at least ".readSysConfig('pass_min')." characters long";
+            return $result;
+        }
+
+        if (strlen($pass) > readSysConfig('pass_max')) {
+            $result['check'] = false;
+            $result['reason'] = "The password must not be more than ".readSysConfig('pass_max')." characters long";
+            return $result;
+        }
+
+        if (true == readSysConfig('pass_uppercase')) {
+            if ( false == preg_match("/[A-Z]+/", $pass)) {
+                $result['reason'] = " The password must contain at least 1 uppercase letter (A-Z),";
+                $result['check'] = false;
+                return $result;
+            }
+        }
+        if (true == readSysConfig('pass_lowercase')) {
+            if ( false == preg_match("/[a-z]+/", $pass) ) {
+                $result['reason'] = "The password must contain at least 1 lowercase letter (a-z),";
+                $result['check'] = false;
+                return $result;
+            }
+        }
+        if ( true == readSysConfig('pass_numerical')) {
+            if ( false == preg_match("/[0-9]+/", $pass) ) {
+                $result['reason'] = "The password must contain at least 1 numeric digit (0-9)";
+                $result['check'] = false;
+                return $result;
+            }
+        }
+        if ( true == readSysConfig('pass_special')) {
+            if ( false == preg_match("/[^0-9a-zA-Z]+/", $pass) ) {
+                $result['reason'] = "The password must contain at least 1 special character (!@#$%^&*-=+~`_)";
+                $result['check'] = false;
+                return $result;
+            }
+        }
+        $result['check'] = true;
+        return $result;
     }
+
     /**
      * authenticate() - Authenticate the user against LDAP or backend database.
      *

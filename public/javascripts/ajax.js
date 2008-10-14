@@ -16,7 +16,6 @@ $(document).ready(function(){
                 buttonImageOnly: true,
                 buttonImage: '/images/calendar.gif'
                 });
-        
 
     $("select[name='poam[system_id]']").change(function(){
         searchAsset();
@@ -133,20 +132,23 @@ $(document).ready(function(){
             var url = target.attr('href');
             var eclass = target.attr('class');
             var cur_val = target.text();
+            var cur_html = target.html();
             var cur_span = target;
             if(type == 'text'){
                 cur_span.replaceWith( '<input name='+name+' class="'+eclass+'" type="text" value="'+cur_val.trim()+'" />');
                 $('input.date').datepicker({
                         dateFormat:'yymmdd',
-                        showOn: 'both', 
+                        showOn: 'both',
+                        onClose: showJustification,
                         buttonImageOnly: true,
                         buttonImage: '/images/calendar.gif',
                         buttonText: 'Calendar'});
             }else if( type == 'textarea' ){
                 var row = target.attr('rows');
                 var col = target.attr('cols');
-                cur_span.replaceWith( '<textarea rows="'+row+'" cols="'+col+'" name="'+name+'">'+
-                        cur_val.trim()+ '</textarea>');
+                cur_span.replaceWith( '<textarea id="'+name+'" rows="'+row+'" cols="'+col+'" name="'+name+'">'+
+                        cur_html+ '</textarea>');
+                tinyMCE.execCommand("mceAddControl", true, name);
             }else{
                 $.get(url,{value:cur_val.trim()},
                 function(data){
@@ -307,4 +309,8 @@ function message( msg ,model){
         $("#msgbar").css('background-color','lightgreen');
     }
     $("#msgbar").css('display','block');
+}
+
+function showJustification(){
+    $("div#ecd_justification").show()
 }
