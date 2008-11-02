@@ -1,0 +1,60 @@
+<?php echo $this->doctype() ?> <!-- This Line will output the doctype we set inside the bootstrap file -->
+
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+
+	<?php 
+		$this->headTitle()->prepend(Config_Fisma::readSysConfig('system_name'));
+		echo $this->headTitle();
+	?>
+
+<script LANGUAGE="JavaScript" type="text/javascript" src="/javascripts/jquery/jquery-1.2.6.min.js"></script>
+<script LANGUAGE="JavaScript" type="text/javascript" src="/javascripts/jquery/jquery-ui-personalized-1.6rc2.min.js"></script>
+<script LANGUAGE="JavaScript" type="text/javascript" src="/javascripts/ajax.js"></script>
+<script LANGUAGE="javascript" type="text/javascript" src="/javascripts/tiny_mce/tiny_mce.js"></script>
+<script LANGUAGE="javascript" type="text/javascript" src="/javascripts/tiny_mce_config.js"></script>
+<script LANGUAGE="javascript" type="text/javascript" src="/javascripts/selectallselectnone.js"></script>
+<script LANGUAGE="javascript" type="text/javascript" src="/javascripts/deleteconfirm.js"></script>
+
+<link rel="icon"
+      type="image/ico"
+      href="/images/favicon.ico" />
+
+  <!--
+      The line below demonstrates usage of the headLink() view helper
+      @see http://framework.zend.com/manual/en/zend.view.helpers.html
+      -->
+  <?php echo $this->headLink()->appendStylesheet('/stylesheets/main.css') ?>
+  <?php echo $this->headLink()->appendStylesheet('/stylesheets/datepicker.css') ?>
+  <?php echo $this->headLink()->appendStylesheet('/stylesheets/jquery-ui-themeroller.css') ?>  
+	  
+</head>
+<body>
+
+<div id='container'>
+
+<div id='top' >
+        <?php echo $this->layout()->header; ?>
+</div><!--top-->
+
+
+<div id="content">
+
+<div id='detail'>
+
+		<!-- This next call will now include any content that was generated in the
+		dispatching of a controllers action (or series of actions).  -->
+		<?php echo $this->layout()->content ?>
+
+</div><!--detail-->
+<div id='footer'>
+        <?php echo $this->layout()->footer; ?>
+</div>
+</div><!--content-->
+
+</div><!--container-->
+
+</body>
+</html>
+

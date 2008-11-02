@@ -20,7 +20,32 @@
  * @author    Jim Chen <xhorse@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: index.php 865 2008-09-10 14:22:44Z mehaase $
+ * @version   $Id: index.php 1065 2008-10-22 22:54:01Z mehaase $
  */
 
-require  '../apps/bootstrap.php';
+// REQUIRE APPLICATION BOOTSTRAP: Perform application-specific setup
+// This allows you to setup the MVC environment to utilize. Later you 
+// can re-use this file for testing your applications.
+// The try-catch block below demonstrates how to handle bootstrap 
+// exceptions. In this application, if defined a different 
+// APPLICATION_ENVIRONMENT other than 'production', we will output the 
+// exception and stack trace to the screen to aid in fixing the issue
+try {
+    require '../application/bootstrap.php';
+} catch (Exception $exception) {
+    echo '<html><body><center>'
+       . 'An exception occured while bootstrapping the application.';
+    if (defined('APPLICATION_ENVIRONMENT') && APPLICATION_ENVIRONMENT != 'production') {
+        echo '<br /><br />' . $exception->getMessage() . '<br />'
+           . '<div align="left">Stack Trace:' 
+           . '<pre>' . $exception->getTraceAsString() . '</pre></div>';
+    }
+    echo '</center></body></html>';
+    exit(1);
+}
+
+// DISPATCH:  Dispatch the request using the front controller.
+// The front controller is a singleton, and should be setup by now. We 
+// will grab an instance and dispatch it, which dispatches your 
+// application.
+Zend_Controller_Front::getInstance()->dispatch();

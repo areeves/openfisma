@@ -1,0 +1,150 @@
+<?php
+    $this->sources[0] = '--Any--';
+    $this->systems[0] = '--Any--';
+?>
+
+<div class="barleft">
+<div class="barright">
+<p><b>Remediation Summary</b></p>
+</div>
+</div>
+<p>
+<form name="filters" method="post" action="/panel/remediation/sub/summary">
+<!-- Begin Filter Table -->
+<table align="center" border="0" cellpadding="3" cellspacing="1" width="95%" class="tipframe">
+    <tr>
+        <td><b>Finding Source: </b>
+            <?php echo $this->formSelect('source_id',
+                                         isset($this->criteria['sourceId'])?$this->criteria['sourceId']:0,
+                                         null,
+                                         $this->sources);?>
+        </td>
+        <td>
+        <td ><b>Asset Owners: </b>
+            <?php echo $this->formSelect('asset_owner',
+                                         isset($this->criteria['assetOwner'])?$this->criteria['assetOwner']:0,
+                                         null,
+                                         $this->systems);?>
+        </td>
+        <td ><b>Action Owners: </b>
+            <?php echo $this->formSelect('system_id',
+                                         isset($this->criteria['systemId'])?$this->criteria['systemId']:0,
+                                         null,
+                                         $this->systems);?>
+        </td>
+        <td align="left"><input type='submit' value='Filter'></td>
+    </tr>
+</table>
+</p>
+<br>
+<table align="center" class="tbframe" width="90%">
+    <tr align="center" bgcolor="#f3f3f3">
+        <td class="tdc"></td>
+        <td colspan="<?php echo count($this->mpEvalList)+2;?>" class="tdc">Mitigation Strategy</td>
+        <td colspan="<?php echo count($this->epEvalList)+1;?>" class="tdc">Remediation</td>
+        <td colspan="2" class="tdc"></td>
+    </tr>
+    <tr align="center" bgcolor="#f3f3f3">
+        <td class="tdc">Action Owner</td>
+        <td class="tdc">New</td>
+        <td class="tdc">Open</td>
+<?php  
+    foreach ($this->mpEvalList as $row) {
+        $mpStatus[] = $row['nickname'];        
+?>
+        <td class="tdc"><?php echo $row['nickname'];?></td>
+<?php } ?>
+        <td class="tdc">EN</td>
+<?php  
+    foreach ($this->epEvalList as $row) { 
+        $epStatus[] = $row['nickname'];    
+?>
+        <td class="tdc"><?php echo $row['nickname'];?></td>
+<?php } ?>
+        <td class="tdc">CLOSED</td>
+        <td class="tdc">Total</td>
+    </tr>
+
+<!-- SUMMARY LOOP -->
+<?php 
+    define('BASE', "/panel/remediation/sub/searchbox/s/search");
+    $statusArray = array();
+    $statusArray = array_merge(array('NEW', 'OPEN'), $mpStatus);
+    array_push($statusArray, 'EN');
+    $statusArray = array_merge($statusArray, $epStatus);
+    array_push($statusArray, 'CLOSED');
+
+    foreach($this->summary as $sid=>$row){
+        $base_url = BASE . '/system_id/' . $sid . $this->criteriaUrl;
+        $flag = false;
+        echo '<tr>';
+        echo '<td width="20%" align="left" class="tdc" bgcolor="#f3f3f3">'.$this->systems[$sid].'</td>';
+
+        foreach ($statusArray as $status) {
+            if (isset($row[$status."overdue"])) {
+                $flag = true;
+            }
+        }
+    
+        foreach ($statusArray as $status) {
+            $overdueTime = new Zend_Date();
+            $overdueHref = $normalHref = $base_url.'/status/'.$status;
+            if ($status == 'NEW' || $status == 'OPEN') {
+                $overdueTime->sub(30, Zend_Date::DAY);
+                $overdueHref .= '/created_date_end/'.$overdueTime->toString('Y-m-d');
+                $normalHref .= '/created_date_begin/'.$overdueTime->toString('Y-m-d');
+            }
+            if (in_array($status, $mpStatus)) {
+                $overdueTime->sub(21, Zend_Date::DAY);
+                $overdueHref .= '/mss_date_end/'.$overdueTime->toString('Y-m-d');
+                $normalHref .= '/mss_date_begin/'.$overdueTime->toString('Y-m-d');
+            }
+            if ($status == 'EN') {
+                $overdueHref .= '/est_date_end/'.$overdueTime->toString('Y-m-d');
+                $normalHref .= '/est_date_begin/'.$overdueTime->toString('Y-m-d');
+            }
+            if (in_array($status, $epStatus)) {
+                $overdueTime->sub(14, Zend_Date::DAY);
+                $overdueHref .='/est_date_end/'.$overdueTime->toString('Y-m-d');
+                $normalHref .= '/est_date_begin/'.$overdueTime->toString('Y-m-d');
+            }
+            echo '<td align="center" class="tdc" bgcolor="#d9ead3">';
+            if ($flag) {
+                echo '<table width="100%" cellspacing="0" cellpadding="0"><tr bgcolor="#d9ead3" align="center"><td>';
+                if (isset($row[$status.'overdue'])) {
+                    $normalCount = $row[$status] - $row[$status."overdue"];
+                    echo $normalCount == ''?'-':'<a href="'.$normalHref.'">'.($row[$status]-$row[$status."overdue"]).'</a>';
+                    echo '</td></tr>';
+                    echo '<tr bgcolor="#f4cccc" align="center"><td><em><a href="'.$overdueHref.'">'.$row[$status."overdue"].'</a></em>';
+                } else {
+                    echo $row[$status] == ''?'-':'<a href="'.$base_url.'/status/'.$status.'">'.$row[$status].'</a>';
+                    echo '</td></tr><tr bgcolor="#f4cccc" align="center"><td>-';
+                }
+                echo '</td></tr></table>';
+            } else {
+                echo $row[$status] == ''?'-':'<a href="'.$base_url.'/status/'.$status.'">'.$row[$status].'</a>';
+            }
+            echo '</td>';
+        }
+        echo '<td align="center" class="tdc" bgcolor="#d9ead3">';
+        echo $row['TOTAL'] == ''?'-':'<a href="'.$base_url.'">'.$row['TOTAL'].'</a>';
+        echo '</td></tr>';
+    }
+
+    if ($this->criteria['systemId'] == 0 ) {
+        $base_url = BASE . $this->criteriaUrl;
+    }
+    
+    echo '<tr bgcolor="#f3f3f3">';
+    echo '<td width="20%" align="center" class="tdc"><b>TOTALS</b></td>';
+    foreach ($statusArray as $status) {
+        echo '<td align="center" class="tdc">';
+        echo $this->total[$status] == '0'?'<b>0</b>':'<a href="'.$base_url.'/status/'.$status.'"><b>'.$this->total[$status].'</b></a></b>';
+        echo '</td>';
+    }
+    echo '<td align="center" class="tdc">';
+    echo $this->total['TOTAL'] == '0'?'<b>0</b>':'<a href="'.$base_url.'"><b>'.$this->total['TOTAL'].'</b></a>';
+    echo '</td></tr>';
+?>
+<!-- END SUMMARY LOOP -->
+</table>

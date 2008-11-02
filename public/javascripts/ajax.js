@@ -20,11 +20,18 @@ $(document).ready(function(){
     $("select[name='poam[system_id]']").change(function(){
         searchAsset();
     });
+    $("select#encrypt").change(function(){
+        if ($(this).val().trim() == 'sha256') {
+             $("#encryptKey").show();
+        } else {
+             $("#encryptKey").hide();
+        }
+    }).trigger('change');
 
     $("select[name='function_screen']").change(function(){
         search_function();
     }).trigger('change');
-
+    
     $('#add_function').click(function() {
         return !$('#available_functions option:selected').remove().appendTo('#exist_functions');  
     });  
@@ -273,6 +280,36 @@ function comment(formname){
                     form1.elements['reject'].value = reason;
                     form1.elements['decision'].value = 'DENY';
                     form1.submit();
+                }
+            }
+        });
+}
+
+function ms_comment(formname){
+    var dw = $(document).width();
+    var dh = $(document).height();
+    $('<div id="full"></div>')
+                .width(dw).height(dh)
+                .css({backgroundColor:"#000000", marginTop:-1*dh, opacity:0, zIndex:10})
+                .appendTo("body").fadeTo(1, 0.4);
+    var content = $("#ms_dialog").html();
+    $('<div title="Mitigation Strategy Approval"></div>').append(content).
+        dialog({position:'top', width: 540, height: 240, resizable: true,modal:true,
+            close:function(){
+                $('#full').remove();
+            },
+            buttons:{
+                'Cancel':function(){
+                    $(this).dialog("close");
+                },
+                'Continue':function(){
+                    var form2 = formname;
+                    var topic = $("input[name=topic]",this).val();
+                    var reason = $("textarea[name=reason]",this).val();
+                    form2.elements['topic'].value = topic;
+                    form2.elements['reject'].value = reason;
+                    form2.elements['decision'].value = 'DENIED';
+                    form2.submit();
                 }
             }
         });
