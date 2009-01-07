@@ -20,7 +20,7 @@
  * @author    Ryan Yang <ryan@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: FindingController.php 1090 2008-10-30 21:01:17Z mehaase $
+ * @version   $Id$
  */
 
 /**
@@ -57,10 +57,10 @@ class FindingController extends PoamBaseController
         );
         if ($criteria['status'] == 'REMEDIATION') {
             $criteria['status'] = array(
-                'OPEN',
+                'DRAFT',
+                'MSA',
                 'EN',
-                'EP',
-                'ES'
+                'EP'
             );
         }
         $result = $this->_poam->search($this->_me->systems, $fields, $criteria,
@@ -77,28 +77,25 @@ class FindingController extends PoamBaseController
      */
     public function viewAction()
     {
+        $this->_acl->requirePrivilege('finding', 'read');
         $req = $this->getRequest();
         $id = $req->getParam('id', 0);
         assert($id);
         $this->view->assign('id', $id);
-        if (Config_Fisma::isAllow('finding', 'read')) {
-            $sys = new System();
-            $poam = new Poam();
-            $detail = $poam->find($id)->current();
-            $this->view->finding = $poam->getDetail($id);
-            $this->view->finding['system_name'] = 
-                    $this->_systemList[$this->view->finding['system_id']];
-            $this->render();
-        } else {
-            /// @todo Add a new Excption page to indicate Access denial
-            $this->render();
-        }
+        $sys = new System();
+        $poam = new Poam();
+        $detail = $poam->find($id)->current();
+        $this->view->finding = $poam->getDetail($id);
+        $this->view->finding['system_name'] = 
+                $this->_systemList[$this->view->finding['system_id']];
     }
     /**
      Edit finding infomation
      */
     public function editAction()
     {
+        $this->_acl->requirePrivilege('finding', 'update');
+        
         $req = $this->getRequest();
         $id = $req->getParam('id');
         assert($id);
@@ -118,97 +115,184 @@ class FindingController extends PoamBaseController
         $this->view->assign('act', 'edit');
         $this->_forward('view', 'Finding');
     }
+    
     /**
-     *  Spreadsheet upload
+     * Allow the user to upload an XML Excel spreadsheet file containing finding data for multiple findings
      *
-     *  The spreadsheet should be a CSV file in fact. It parse the valid data
-     *  and leave the
-     *  remaining to the user.
+     * @todo This is very long. This should be refactored into a separate class. Perhaps even an injection plugin?
      */
     public function injectionAction()
     {
-        $this->_helper->actionStack('header', 'Panel');
-        if (Config_Fisma::isAllow('finding', 'create')) {
-            $csvFile = isset($_FILES['csv']) ? $_FILES['csv'] : array();
-            if (!empty($csvFile)) {
-                if ($csvFile['size'] < 1) {
-                    $errMsg = 'Error: Empty file.';
-                } else {
-                    if ($csvFile['size'] > 1048576) {
-                        $errMsg = 'Error: File is too big.';
-                    }
-                    if (preg_match('/\x00|\xFF/',
-                        file_get_contents($csvFile['tmp_name']))) {
-                        $errMsg = 'Error: Binary file.';
-                    }
-                    if ($csvFile['error']) {
-                        $errMsg = 'Encountered an unknown error while
-                                   processing the file';
-                    }
-                }
+        $this->_acl->requirePrivilege('finding', 'inject');
+
+        // If the form isn't submitted, then there is no work to do
+        if (!isset($_POST['submit'])) {
+            return;
+        }
+        
+        // If the form is submitted, then the file object should contain an array
+        $file = $_FILES['excelFile'];
+        if (!is_array($file)) {
+            $this->message("The file upload failed.", self::M_WARNING);
+            return;
+        }
+
+        // Parse the file using SimpleXML. The finding data is located on the first worksheet.
+        $spreadsheet = simplexml_load_file($file['tmp_name']);
+        if ($spreadsheet === false) {
+            $this->message("The file is not a valid Excel spreadsheet. Make sure that the file is saved as XML.",
+                           self::M_WARNING);
+            return;
+        }
+        // Have to do some namespace manipulation to make the spreadsheet searchable by xpath.
+        $namespaces = $spreadsheet->getNamespaces(true);
+        $spreadsheet->registerXPathNamespace('s', $namespaces['']);
+        $findingData = $spreadsheet->xpath('/s:Workbook/s:Worksheet[1]/s:Table/s:Row');
+        if ($findingData === false) {
+            $this->message("The file format is not recognized. Your version of Excel might be incompatible.",
+                           self::M_WARNING);
+            return;
+        }
+        // $findingData is an array of rows in the first worksheet. The first two rows on this worksheet contain
+        // column headers, so skip them.
+        array_shift($findingData);
+        array_shift($findingData);
+        
+        // Now process each row
+        $error = '';
+        $rowNumber = 3;
+        /**
+         * @todo Perform these commits in a single transaction.
+         */
+        foreach ($findingData as $row) {
+            $rowArray = (array)$row;
+            $rowData = $rowArray['Cell'];
+
+            /** @todo Remove magic number 10, this is the number of columns in the template */
+            // Verify that all columns are filled in
+            if (count($row) != 10) {
+                $error = "Row $rowNumber: Not all columns are filled in.";
+                continue;
             }
-            if (!empty($errMsg)) {
-                $this->message($errMsg, self::M_WARNING);
-                $this->render();
-                return;
+
+            // Assign names to the row data
+            $systemNickname  = $rowData[0]->Data;
+            $dateDiscovered  = $rowData[1]->Data;
+            $networkNickname = $rowData[2]->Data;
+            $ipAddress       = $rowData[3]->Data;
+            $ipPort          = $rowData[4]->Data;
+            $findingSource   = $rowData[5]->Data;
+            $description     = $rowData[6]->Data;
+            $recommendation  = $rowData[7]->Data;
+            $securityControl = $rowData[8]->Data;
+            $risk            = $rowData[9]->Data;
+
+            // Validate row data
+            $systemTable = new System();
+            /**
+             * @todo Multiple SQL injection attacks
+             */
+            $system = $systemTable->fetchRow("nickname = '$systemNickname'");
+            if (isset($system)) {
+                $systemId = $system->id;
+            } else {
+                $error = "Row $rowNumber: Invalid System";
+                continue;
             }
-            if (!empty($csvFile)) {
-                $fileName = $csvFile['name'];
-                $tempFile = $csvFile['tmp_name'];
-                $fileSize = $csvFile['size'];
-                $failedArray = $succeedArray = array();
-                $handle = fopen($tempFile, 'r');
-                $data = fgetcsv($handle, 1000, ",", '"'); //skip the first line
-                $data = fgetcsv($handle, 1000, ",", '"'); //skip the second line
-                $row = 0;
-                while ($data = fgetcsv($handle, 1000, ",", '"')) {
-                    if (implode('', $data) != '') {
-                        $row++;
-                        $ret = $this->insertCsvRow($data);
-                        if (empty($ret)) {
-                            $failedArray[] = $data;
-                        } else {
-                            $poamIds[] = $ret;                        
-                            $succeedArray[] = $data;
-                        }
-                    }
-                }
-                fclose($handle);
-                $summaryMsg = "You have uploaded a CSV file which contains
-                               $row line(s) of data.<br />";
-                if (count($failedArray) > 0) {
-                    $tempFile = 'temp/csv_' . date('YmdHis') . '_' .
-                                 rand(10, 99) . '.csv';
-                    $fp = fopen($tempFile, 'w');
-                    foreach ($failedArray as $fail) {
-                        fputcsv($fp, $fail);
-                    }
-                    fclose($fp);
-                    $summaryMsg.= count($failedArray) . " line(s) cannot be 
-parsed successfully. This is likely due to an unexpected datatype or the use of
-a datafield which is not currently in the database. Please ensure your csv file
-matches the data rows contained <a href='/$tempFile'>here</a> in the spreadsheet
-template. Please update your CSV file and try again.<br />";
-                }
-                if (count($succeedArray) > 0) {
-                    $summaryMsg.= count($succeedArray) . " line(s) parsed and
-                         injected successfully. <br />";
-                }
-                if (count($succeedArray) == $row) {
-                    $summaryMsg.= " Congratulations! All of the lines contained
-                        in the CSV were parsed and injected successfully.";
-                }
-                
-                $this->view->assign('error_msg', $summaryMsg);
+            
+            $networkTable = new Network();
+            $network = $networkTable->fetchRow("nickname = '$networkNickname'");
+            if (isset($network)) {
+                $networkId = $network->id;
+            } else {
+                $error = "Row $rowNumber: Invalid Network";
+                continue;
             }
+
+            if (empty($ipAddress)) {
+                $error = "Row $rowNumber: Blank IP Address";
+                continue;
+            }
+
+            if (empty($ipPort)) {
+                $error = "Row $rowNumber: Blank IP Port";
+                continue;
+            }
+
+            $sourceTable = new Source();
+            $source = $sourceTable->fetchRow("nickname = '$findingSource'");
+            if (isset($source)) {
+                $sourceId = $source->id;
+            } else {
+                $error = "Row $rowNumber: Invalid Finding Source";
+                continue;
+            }
+
+            if (empty($description)) {
+                $error = "Row $rowNumber: Blank Finding Description";
+                continue;
+            }
+
+            if (empty($recommendation)) {
+                $error = "Row $rowNumber: Blank Finding Recommendation";
+                continue;
+            }
+            
+            $now = new Zend_Date();
+            // Check to see if the asset exists
+            $assetTable = new Asset();
+            $asset = $assetTable->fetchRow("network_id = '$networkId' AND
+                                            address_ip = '$ipAddress' AND
+                                            address_port = '$ipPort'");
+            if (!isset($asset)) {
+                // The asset does not exist, so create it.
+                $asset = array('name' => "$ipAddress:$ipPort",
+                               'create_ts' => $now->toString('Y-m-d H:i:s'),
+                               'source' => 'MANUAL',
+                               'system_id' => $systemId,
+                               'network_id' => $networkId,
+                               'address_ip' => $ipAddress,
+                               'address_port' => $ipPort);
+                $assetId = $assetTable->insert($asset);
+            } else {
+                $assetId = $asset->id;
+            }
+            
+            // Now insert the new finding
+            $poamTable = new Poam();
+            $finding = array('asset_id' => $assetId,
+                             'source_id' => $sourceId,
+                             'system_id' => $systemId,
+                             'blscr_id' => $securityControl,
+                             'create_ts' => $now->toString('Y-m-d H:i:s'),
+                             'discover_ts' => $dateDiscovered,
+                             'finding_data' => $description,
+                             'action_suggested' => $recommendation);
+            $poamTable->insert($finding);
+            
+            $rowNumber++;
+        }
+
+        if ($error != '') {
+            $this->message("The findings could not be inserted because one or more rows had errors:<br>$error",
+                           self::M_WARNING);
+            $this->render();
+            // If this were a real transaction, we would roll back right here.
+        } else {
+            // Otherwise, we'd commit right here.
+            $rowsCommitted = $rowNumber - 3;
+            $this->message("$rowsCommitted findings were created.", self::M_NOTICE);
             $this->render();
         }
     }
+    
     /**
      *  Create a finding manually
      */
     public function createAction()
     {
+        $this->_acl->requirePrivilege('finding', 'create');
+        
         if ("new" == $this->_request->getParam('is')) {
             $poam = $this->_request->getPost('poam');
             try {
@@ -219,37 +303,27 @@ template. Please update your CSV file and try again.<br />";
                 }
                 // Validate that the user has selected a finding source
                 if ($poam['source_id'] == 0) {
-                    throw new FismaException(
+                    throw new Exception_General(
                         "You must select a finding source"
                     );
                 }
                 // If the blscr_id is zero, that means the user didn't select
                 // a security control, so set the control to null.
-                if ($poam['blscr_id'] == 0) {
+                if ($poam['blscr_id'] == '0') {
                     unset($poam['blscr_id']);
                 }
                 $poam['status'] = 'NEW';
-                $discoverTs = new Zend_Date($poam['discover_ts']);
+                $discoverTs = new Zend_Date($poam['discover_ts'], 'Y-m-d');
                 $poam['discover_ts'] = $discoverTs->toString("Y-m-d");
                 $poam['create_ts'] = self::$now->toString("Y-m-d H:i:s");
                 $poam['created_by'] = $this->_me->id;
                 $poamId = $this->_poam->insert($poam);
-                $logContent = "a new finding was created";
-                $this->_poam->writeLogs($poamId, $this->_me->id,
-                     self::$now->toString('Y-m-d H:i:s'), 'CREATION',
-                        $logContent);
-
-                $this->_notification
-                     ->add(Notification::FINDING_CREATED,
-                           $this->_me->account,
-                           "PoamID: $poamId",
-                           $poam['system_id']);
 
                 $message = "Finding created successfully";
                 $model = self::M_NOTICE;
             }
             catch(Zend_Exception $e) {
-                if ($e instanceof FismaException) {
+                if ($e instanceof Exception_General) {
                     $message = $e->getMessage();
                 } else {
                     $message = "Failed to create the finding";
@@ -271,6 +345,8 @@ template. Please update your CSV file and try again.<br />";
      */
     public function deleteAction()
     {
+        $this->_acl->requirePrivilege('finding', 'delete');
+        
         $req = $this->getRequest();
         $post = $req->getPost();
         $errno = 0;
@@ -301,92 +377,7 @@ template. Please update your CSV file and try again.<br />";
             's' => 'search'
         ));
     }
-    /** 
-     *  Insert a row of data into database.
-     */
-    protected function insertCsvRow($row)
-    {
-        $asset = new Asset();
-        $poam = new poam();
-        if (!is_array($row) || (count($row) < 7)) {
-            return false;
-        }
-        if (strlen($row[3]) > 63 || (!is_numeric($row[4]) && !empty($row[4]))) {
-            return false;
-        }
-        if (in_array('', array(
-            $row[0],
-            $row[1],
-            $row[2],
-            $row[5],
-            $row[6]
-        ))) {
-            return false;
-        }
-        $row[2] = date('Y-m-d', strtotime($row[2]));
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $row[2])) {
-            return false;
-        }
-        $db = Zend_Registry::get('db');
-        $query = $db->select()->from('systems', 'id')
-                    ->where('nickname = ?', $row[0]);
-        $result = $db->fetchRow($query);
-        $row[0] = !empty($result) ? $result['id'] : false;
-
-        $query->reset();
-        $query = $db->select()->from('networks', 'id')
-                    ->where('nickname = ?', $row[1]);
-        $result = $db->fetchRow($query);
-        $row[1] = !empty($result) ? $result['id'] : false;
-
-        $query->reset();
-        $query = $db->select()->from('sources', 'id')
-                    ->where('nickname = ?', $row[5]);
-        $result = $db->fetchRow($query);
-        $row[5] = !empty($result) ? $result['id'] : false;
-
-        if (!$row[0] || !$row[1] || !$row[5]) {
-            return false;
-        }
-        $assetName = ':' . $row[3] . ':' . $row[4];
-        $query = $asset->select()->from($asset, 'id')
-                       ->where('system_id = ?', $row[0])
-                       ->where('network_id = ?', $row[1])
-                       ->where('address_ip = ?', $row[3])
-                       ->where('address_port = ?', $row[4]);
-        $result = $asset->fetchRow($query);
-        if (!empty($result)) {
-            $data = $result->toArray();
-            $assetId = $data['id'];
-        } else {
-            $assetData = array(
-                'name' => $assetName,
-                'create_ts' => $row[2],
-                'source' => 'SCAN',
-                'system_id' => $row[0],
-                'network_id' => $row[1],
-                'address_ip' => $row[3],
-                'address_port' => $row[4]
-            );
-            $assetId = $asset->insert($assetData);
-        }
-        $poamData = array(
-            'asset_id' => $assetId,
-            'source_id' => $row[5],
-            'system_id' => $row[0],
-            'status' => 'NEW',
-            'create_ts' => self::$now->toString('Y-m-d h:i:s') ,
-            'discover_ts' => $row[2],
-            'finding_data' => $row[6]
-        );
-        $ret = $poam->insert($poamData);
-        $this->_notification
-             ->add(Notification::FINDING_INJECT,
-                   $this->_me->account,
-                   "PoamId: $ret",
-                   $poamData['system_id']);
-        return $ret;
-    }
+    
     /** 
      * Downloading a excel file which is used as a template 
      * for uploading findings.
@@ -395,6 +386,8 @@ template. Please update your CSV file and try again.<br />";
      */
     public function templateAction()
     {
+        $this->_acl->requirePrivilege('finding', 'inject');
+        
         $contextSwitch = $this->_helper->getHelper('contextSwitch');
         $contextSwitch->addContext('xls', array(
             'suffix' => 'xls',
@@ -414,30 +407,39 @@ template. Please update your CSV file and try again.<br />";
             $this->view->systems = $src->getList('nickname',
                 $this->_me->systems);
             if (count($this->view->systems) == 0) {
-                throw new FismaException(
+                throw new Exception_General(
                     "The spreadsheet template can not be " .
                     "prepared because there are no systems defined.");
             }
             $src = new Network();
             $this->view->networks = $src->getList('nickname');
             if (count($this->view->networks) == 0) {
-                 throw new FismaException("The spreadsheet template can not be
+                 throw new Exception_General("The spreadsheet template can not be
                      prepared because there are no networks defined.");
             }
             $src = new Source();
             $this->view->sources = $src->getList('nickname');
             if (count($this->view->networks) == 0) {
-                 throw new FismaException("The spreadsheet template can
+                 throw new Exception_General("The spreadsheet template can
                      not be prepared because there are no finding sources
                      defined.");
             }
+            $blscr = new Blscr();
+            $blscrs = array_keys($blscr->getList('class'));
+            $this->view->blscrs = $blscrs;
+            if (count($this->view->blscrs) == 0) {
+                 throw new Exception_General("The spreadsheet template can not be prepared because there are no security
+                                              controls defined.");
+            }
+            $this->view->risk = array('HIGH', 'MODERATE', 'LOW');
+            //var_dump($this->view->blscrs);die;
+
             // Context switch is called only after the above code executes 
             // successfully. Otherwise if there is an error,
             // the error handler will be confused by context switch and will 
             // look for error.xls.tpl instead of error.tpl
             $contextSwitch->initContext('xls');
-            $this->render();
-        } catch(FismaException $fe) {
+        } catch(Exception_General $fe) {
             Zend_Controller_Action_HelperBroker::getStaticHelper('viewRenderer');
             $this->message($fe->getMessage(), self::M_WARNING);
             $this->_forward('injection', 'Finding');
@@ -445,10 +447,12 @@ template. Please update your CSV file and try again.<br />";
     }
 
     /** 
-     *  pluginAction() - Import scan results via a plug-in
+     * pluginAction() - Import scan results via a plug-in
      */
     public function pluginAction()
-    {
+    {       
+        $this->_acl->requirePrivilege('finding', 'inject');
+
         // Load the finding plugin form
         $uploadForm = Form_Manager::loadForm('finding_upload');
         $uploadForm = Form_Manager::prepareForm($uploadForm);
@@ -458,7 +462,7 @@ template. Please update your CSV file and try again.<br />";
         $plugin = new Plugin();
         $pluginList = $plugin->getList('name');
         $uploadForm->plugin->addMultiOptions($pluginList);
-        
+
         $uploadForm->findingSource->addMultiOption('', '');
         $uploadForm->findingSource->addMultiOptions($this->_sourceList);
 
@@ -470,13 +474,9 @@ template. Please update your CSV file and try again.<br />";
         
         // Configure the file select
         $uploadForm->setAttrib('enctype', 'multipart/form-data');
-        $uploadForm->selectFile->setDestination(APPLICATION_ROOT . '/data/uploads/scanreports')
-                               ->addValidator('Count', false, 1) // ensure only 1 file
-                               ->addValidator('Size', false, 102400) // limit to 100K
-                               ->addValidator('Extension', false, 'xml');
+        $uploadForm->selectFile->setDestination(APPLICATION_ROOT . '/data/uploads/scanreports');
 
         // Setup the view
-        $this->_helper->actionStack('header', 'Panel');
         $this->view->assign('uploadForm', $uploadForm);
 
         // Handle the file upload, if necessary
@@ -498,9 +498,11 @@ template. Please update your CSV file and try again.<br />";
 
                 // Execute the plugin with the received file
                 try {
-                    $findingsCreated = $plugin->parse();
-                    $this->message("Your scan report was successfully uploaded."
-                                   . " $findingsCreated findings were created.",
+                    $plugin->parse();
+                    $this->message("Your scan report was successfully uploaded.<br>"
+                                   . "{$plugin->created} findings were created.<br>"
+                                   . "{$plugin->reviewed} findings need review.<br>"
+                                   . "{$plugin->deleted} findings were suppressed.",
                                    self::M_NOTICE);
                 } catch (Exception_InvalidFileFormat $e) {
                     $this->message("The uploaded file is not a valid format for {$pluginName}: {$e->getMessage()}",
@@ -514,7 +516,7 @@ template. Please update your CSV file and try again.<br />";
                  */
                 $errorString = '';
                 foreach ($uploadForm->getMessages() as $field => $fieldErrors) {
-                    if (count($fieldErrors>0)) {
+                    if (count($fieldErrors)>0) {
                         foreach ($fieldErrors as $error) {
                             $label = $uploadForm->getElement($field)->getLabel();
                             $errorString .= "$label: $error<br>";
@@ -523,14 +525,64 @@ template. Please update your CSV file and try again.<br />";
                 }
 
                 if (!$fileReceived) {
-                    $errorString .= "File upload failed<br>";
+                    $errorString .= "File not received<br>";
                 }
 
                 // Error message
                 $this->message("Scan upload failed:<br>$errorString", self::M_WARNING);
             }
+            $this->render(); // Not sure why this view doesn't auto-render?? It doesn't render when the POST is set.
         }
+    }
 
-        $this->render();
+    /** 
+     * approveAction() - Allows a user to approve or delete pending findings
+     *
+     * @todo Use Zend_Pager
+     */
+    public function approveAction() {
+        $this->_acl->requirePrivilege('finding', 'approve');
+        
+        $db = Zend_Registry::get('db');
+        $findings = $db->fetchAll("SELECT new_poam.id,
+                                          new_poam.finding_data,
+                                          new_poam.duplicate_poam_id,
+                                          new_poam_system.nickname,
+                                          old_poam.status old_status,
+                                          old_poam.type old_type,
+                                          old_poam_system.nickname old_nickname
+                                     FROM poams new_poam
+                               INNER JOIN systems new_poam_system ON new_poam.system_id = new_poam_system.id
+                                LEFT JOIN poams old_poam ON new_poam.duplicate_poam_id = old_poam.id
+                                LEFT JOIN systems old_poam_system ON old_poam.system_id = old_poam_system.id
+                                    WHERE new_poam.status = 'PEND'
+                                 ORDER BY new_poam.system_id,
+                                          new_poam.id");
+        
+        $this->view->assign('findings', $findings);
+    }
+    
+    /**
+     * processApprovalAction() - Process the form submitted from the approveAction()
+     *
+     * @todo Add audit logging
+     */
+    public function processApprovalAction() {
+        $this->_acl->requirePrivilege('finding', 'approve');
+        
+        $db = Zend_Registry::get('db');
+        $post = $this->getRequest()->getPost();
+        if (isset($post['findings'])) {
+            $inString = mysql_real_escape_string(implode(',', $post['findings']));
+            if (isset($_POST['approve_selected'])) {
+                $poam = new Poam();
+                $now = new Zend_Db_Expr('now()');
+                $poam->update(array('status' => 'NEW', 'create_ts' => $now), "id IN ($inString)");
+            } elseif (isset($_POST['delete_selected'])) {
+                $poam = new Poam();
+                $poam->delete("id IN ($inString)");
+            }
+        }
+        $this->_forward('approve', 'Finding');
     }
 }

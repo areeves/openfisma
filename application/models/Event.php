@@ -20,7 +20,7 @@
  * @author    ???
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: Event.php 880 2008-09-15 22:40:54Z mehaase $
+ * @version   $Id$
  *
  * @todo Clean up and assign an author
  */

@@ -9,7 +9,7 @@
                 <tr>
                     <td align="left">
                         <b target="type" <?php
-        if(('NEW' == $this->poam['status'] || 'OPEN' == $this->poam['status'])&& Config_Fisma::isAllow('remediation','update_finding_course_of_action')){
+        if(('NEW' == $this->poam['status'] || 'DRAFT' == $this->poam['status'])&& $this->acl->isAllowed('remediation','update_finding_course_of_action')){
             echo 'class="editable"';
         }?> >Type:&nbsp;</b>
                     <span name="poam[type]" id="type" type="select" 
@@ -21,8 +21,8 @@
                 <tr>
                     <td>
                         <b target="action_planned" <?php 
-           if(in_array($this->poam['status'],array('NEW','OPEN'))
-                && Config_Fisma::isAllow('remediation','update_finding_course_of_action')){
+           if(in_array($this->poam['status'],array('NEW','DRAFT'))
+                && $this->acl->isAllowed('remediation','update_finding_course_of_action')){
                echo 'class="editable"';
            }?> >Description:&nbsp;</b>
                         <span name="poam[action_planned]" id="action_planned" 
@@ -38,8 +38,8 @@
             <table width="100%" cellpadding="5" class="tipframe">
                 <th align="left">
                 <span target="action_resources" <?php
-        if(in_array($this->poam['status'],array('NEW','OPEN'))
-           && Config_Fisma::isAllow('remediation','update_finding_resources')){
+        if(in_array($this->poam['status'],array('NEW','DRAFT'))
+           && $this->acl->isAllowed('remediation','update_finding_resources')){
             echo 'class="editable"';
         } ?> >Resources Required for Course of Action</span></th>
                 <tr>
@@ -73,8 +73,8 @@
                     <td>
                         <b target="action_est_date"
                         <?php 
-                            if(Config_Fisma::isAllow('remediation','update_finding_course_of_action')
-                                && in_array($this->poam['status'], array('NEW', 'OPEN'))){
+                            if($this->acl->isAllowed('remediation','update_finding_course_of_action')
+                                && in_array($this->poam['status'], array('NEW', 'DRAFT'))){
                                 echo 'class="editable"';
                             }
                         ?> >Current Expected Completion Date:&nbsp;</b>
@@ -88,7 +88,7 @@
                         </span>
                         <?php 
                             if (!empty($this->poam['ecd_justification'])) {
-                            echo '<b>Justification:</b>&nbsp;'.$this->poam['ecd_justification'].' --<i>by '.$this->justification['name_first'].' '.$this->justification['name_last'].' ON '.$this->justification['time'].'</i>';
+                            echo '<b>Justification:</b>&nbsp;'.$this->poam['ecd_justification'].' --<i>by '.$this->justification['account'].' ON '.$this->justification['time'].'</i>';
                             }
                             if (!empty($this->poam['action_est_date'])) { 
                         ?>

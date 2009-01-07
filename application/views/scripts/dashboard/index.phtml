@@ -8,12 +8,14 @@
     <tr>
         <td  align="left"><b>Alerts </b>
             <ul>
-            <!-- Awaiting Mitigation Strategy -->
-            <li>There are <b><a href="<?php echo $this->url ?>NEW"><?PHP echo $this->alert['NEW'];?></a></b> finding(s) awaiting a mitigation strategy and <b><a href="<?php echo $this->url;?>OPEN"><?PHP echo $this->alert['OPEN'];?></a></b> awaiting approval.</li>
+            <!-- Awaiting Draft -->
+            <li>There are <b><a href="<?php echo $this->url ?>NEW"><?PHP echo $this->alert['NEW'];?></a></b> NEW findings (findings that do not have a mitigation strategy).</li>
+            <!-- Awating Mitigation Strategy -->
+            <li>There are <b><a href="<?php echo $this->url;?>DRAFT"><?PHP echo $this->alert['DRAFT'];?></a></b> DRAFT findings (findings that have a mitigation strategy but have not been submitted for approval).</li>
             <!-- Awaiting Evidence -->
-            <li>There are <b><a href="<?php echo $this->url ?>EN"><?PHP echo $this->alert['EN'];?></a></b> finding(s) awaiting evidence.
+            <li>There are <b><a href="<?php echo $this->url ?>EN/ontime/ontime"><?PHP echo $this->alert['EN'];?></a></b> findings awaiting evidence.
             <!-- Overdue Awaiting Evidence -->
-            <li>There are <b><a href="<?php echo $this->url ?>EO"><?PHP echo $this->alert['EO'];?></a></b> overdue finding(s) awaiting evidence.
+            <li>There are <b><a href="<?php echo $this->url ?>EN/ontime/overdue"><?PHP echo $this->alert['EO'];?></a></b> overdue findings awaiting evidence.
             </ul>
         </td>
     </tr>
@@ -22,11 +24,16 @@
 <table width="95%" align="center"  border="0" cellpadding="10" class="tipframe">
     <tr>
         <td  align="left"><b>Last Login</b>
+            <?php if(!empty($this->lastLogin)) { ?>
             <ul>
             <li>Last Logged in at <b><?php echo $this->lastLogin; ?></b></li>
             <li>From Ip address <b><?php echo $this->lastLoginIp;?></b></li>
             <li>There were <b><?php echo $this->failureCount;?></b> bad login attempts since your last login.</li>
             </ul>
+            <?php } else { ?>
+            <p>This is the first time you have logged into <?php echo $this->applicationName ?>. 
+            We will begin tracking your login attempts moving forward.</p>
+            <?php } ?>
         </td>
     </tr>
 </table>
@@ -59,38 +66,35 @@ if (isset($this->notifications)) {
 ?>
 
 <?php if ( !empty( $this->alert['TOTAL'] ) ) { ?>
-<table width="95%" align="center" border="0" cellpadding="0" cellspacing="0" class="tipframe">
-    <tr><td colspan="3"  align="left"><b>&nbsp;&nbsp;&nbsp;Management Overview </b></td></tr>
-    <tr>
-      <td width="33%"  align="center">
-        <?php echo $this->partial('/dashboard/chart.phtml', array(
-                    'source_url'=> '/dashboard/totalstatus/format/xml/type/pie',
-                    'width'=>380,
-                    'height'=>220 ) );
-        ?>
-      </td>
-      <td width="34%"  align="center">
-        <?php echo $this->partial('/dashboard/chart.phtml', array(
-                    'source_url'=> urlencode(
-                        '/dashboard/totalstatus/format/xml/type/3d column'),
-                    'width'=>200,
-                    'height'=>220 ) );
-        ?>
-      </td>
-      <td width="33%"  align="center">
-        <?php echo $this->partial('/dashboard/chart.phtml', array(
-                    'source_url'=> '/dashboard/totaltype/format/xml',
-                    'width'=>380,
-                    'height'=>220 ));
-        ?>
-      </td>
-    </tr>
-    <tr>
-      <td width="33%"  align="center">Current Distribution of<br>POA&amp;M Status</td>
-      <td width="34%"  align="center">Current POA&amp;M Item<br>Totals by Status</td>
-      <td width="33%"  align="center">Current Distribution of<br>POA&amp;M Type</td>
-    </tr>
-</table>
+<div style='position: relative; width: 100%;'>
+    <table width="95%" align="center" border="0" cellpadding="0" cellspacing="0" class="tipframe">
+        <tr><td colspan="2"  align="left"><b>&nbsp;&nbsp;&nbsp;Management Overview </b></td></tr>
+        <tr>
+          <td width="34%"  align="center">
+            <?php echo $this->partial('/dashboard/chart.phtml', array(
+                        'source_url'=> urlencode(
+                            '/dashboard/totalstatus/format/xml/type/3d column'),
+                        'width'=>380,
+                        'height'=>275) );
+            ?>
+          </td>
+          <td width="33%"  align="center">
+            <?php echo $this->partial('/dashboard/chart.phtml', array(
+                        'source_url'=> '/dashboard/totaltype/format/xml',
+                        'width'=>380,
+                        'height'=>275 ));
+            ?>
+          </td>
+        </tr>
+        <tr>
+          <td width="34%"  align="center"><b>Finding Status<br>Distribution</b></td>
+          <td width="33%"  align="center"><b>Mitigation Strategy<br>Distribution</b></td>
+        </tr>
+    </table>
+
+    <!-- This div blocks click through on the swf charts -->
+    <div class='shield'>&nbsp;</div>
+</div>
 
 <?php } ?>
 

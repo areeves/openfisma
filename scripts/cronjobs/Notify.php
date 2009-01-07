@@ -20,7 +20,7 @@
  * @author    Jim Chen <xhorse@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: Notify.php 1072 2008-10-23 00:23:13Z ford_james $
+ * @version   $Id$
  */
 
 /**
@@ -29,9 +29,8 @@
  */
 define('COMMAND_LINE', true);
 
-require_once dirname(__FILE__) . '/../application/bootstrap.php';
-
-require_once (APPLICATION_CONFIGS . '/setting.php');
+require_once (APPLICATION_ROOT . '/application/bootstrap.php');
+require_once (APPLICATION_ROOT . '/application/config/setting.php');
 
 // Kick off the main routine:
 Notify::processNotificationQueue();
@@ -132,7 +131,7 @@ class Notify
         // This will only execute one per script execution.
         static $hostUrl;
         if (!isset($hostUrl)) {
-            $config = new Zend_Config_Ini(APPLICATION_CONFIGS . '/install.conf', 'general');
+            $config = new Zend_Config_Ini(APPLICATION_ROOT . '/application/config/install.conf', 'general');
             $hostUrl = $config->hostUrl;
         }
         

@@ -53,13 +53,6 @@ class OrganizationController extends SecurityController
         $this->_pagingBasePath = $req->getBaseUrl()
                                    . '/panel/organization/sub/list';
         $this->_paging['currentPage'] = $req->getParam('p', 1);
-        if (!in_array($req->getActionName(), array(
-            'login',
-            'logout'
-        ))) {
-            // by pass the authentication when login
-            parent::preDispatch();
-        }
     }
 
     /**
@@ -88,6 +81,8 @@ class OrganizationController extends SecurityController
      */
     public function searchboxAction()
     {
+        $this->_acl->requirePrivilege('admin_organizations', 'read');
+        
         $req = $this->getRequest();
         $fid = $req->getParam('fid');
         $qv = $req->getParam('qv');
@@ -96,6 +91,10 @@ class OrganizationController extends SecurityController
         ), array(
             'count' => 'COUNT(o.id)'
         ));
+        if (!empty($qv)) {
+            $query->where("$fid = ?", $qv);
+            $this->_pagingBasePath .= '/fid/'.$fid.'/qv/'.$qv;
+        }
         $res = $this->_organization->fetchRow($query)->toArray();
         $count = $res['count'];
         $this->_paging['totalItems'] = $count;
@@ -105,7 +104,6 @@ class OrganizationController extends SecurityController
         $this->view->assign('qv', $qv);
         $this->view->assign('total', $count);
         $this->view->assign('links', $pager->getLinks());
-        $this->render();
     }
 
     /*
@@ -113,6 +111,8 @@ class OrganizationController extends SecurityController
      */     
     public function listAction()
     {
+        $this->_acl->requirePrivilege('admin_organizations', 'read');
+        
         $req = $this->getRequest();
         $field = $req->getParam('fid');
         $value = trim($req->getParam('qv'));
@@ -124,7 +124,6 @@ class OrganizationController extends SecurityController
                                              $this->_paging['perPage']);
         $organizationList = $this->_organization->fetchAll($query)->toArray();
         $this->view->assign('organization_list', $organizationList);
-        $this->render();
     }
 
     /**
@@ -132,6 +131,8 @@ class OrganizationController extends SecurityController
      */
     public function viewAction()
     {
+        $this->_acl->requirePrivilege('admin_organizations', 'read');
+        
         $form = $this->getOrganizationForm();
         $id = $this->_request->getParam('id');
         $v = $this->_request->getParam('v');
@@ -169,7 +170,8 @@ class OrganizationController extends SecurityController
      */
     public function createAction()
     {
-
+        $this->_acl->requirePrivilege('admin_organizations', 'create');
+        
         $form = $this->getOrganizationForm();
         $organization = $this->_request->getPost();
         if ($organization) {
@@ -201,7 +203,7 @@ class OrganizationController extends SecurityController
                  */
                 $errorString = '';
                 foreach ($form->getMessages() as $field => $fieldErrors) {
-                    if (count($fieldErrors>0)) {
+                    if (count($fieldErrors)>0) {
                         foreach ($fieldErrors as $error) {
                             $label = $form->getElement($field)->getLabel();
                             $errorString .= "$label: $error<br>";
@@ -214,7 +216,6 @@ class OrganizationController extends SecurityController
         }
         $this->view->title = "Create ";
         $this->view->form = $form;
-        $this->render();
     }
 
     /**
@@ -222,6 +223,8 @@ class OrganizationController extends SecurityController
      */
     public function deleteAction()
     {
+        $this->_acl->requirePrivilege('admin_organizations', 'delete');
+        
         $req = $this->getRequest();
         $id = $req->getParam('id');
         $db = $this->_organization->getAdapter();
@@ -256,6 +259,8 @@ class OrganizationController extends SecurityController
      */
     public function updateAction ()
     {
+        $this->_acl->requirePrivilege('admin_organizations', 'update');
+        
         $form = $this->getOrganizationForm();
         $formValid = $form->isValid($_POST);
         $organization = $form->getValues();
@@ -282,7 +287,7 @@ class OrganizationController extends SecurityController
         } else {
             $errorString = '';
             foreach ($form->getMessages() as $field => $fieldErrors) {
-                if (count($fieldErrors>0)) {
+                if (count($fieldErrors)>0) {
                     foreach ($fieldErrors as $error) {
                         $label = $form->getElement($field)->getLabel();
                         $errorString .= "$label: $error<br>";

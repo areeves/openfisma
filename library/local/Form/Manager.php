@@ -20,7 +20,7 @@
  * @author    Mark E. Haase <mhaase@endeavorsystems.com>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id:$
+ * @version   $Id$
  */
 
 /**
@@ -45,7 +45,7 @@ class Form_Manager
      */
     static function loadForm($formName) {
         // Load the form from a .form file
-        $config = new Zend_Config_Ini(APPLICATION_CONFIGS . "/form/{$formName}.form", $formName);
+        $config = new Zend_Config_Ini(APPLICATION_ROOT . "/application/config/form/{$formName}.form", $formName);
         $form = new Zend_Form($config);
 
         return $form;

@@ -20,7 +20,7 @@
  * @author    ???
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: System.php 940 2008-09-27 13:40:22Z ryanyang $
+ * @version   $Id$
  *
  * @todo This file doesn't fit into the OpenFISMA coding standards. It should be
  * refactored into a more fitting class, or else the comments should be
@@ -71,5 +71,84 @@ class System extends FismaModel
         } else {
             return parent::getList($fields, $primaryKey, $order);
         }
+    }
+    
+    /**
+     * Calculate Security categorization.
+     *
+     * The calculation over enumeration fields {LOW, MODERATE, HIGH} is tricky here. The algorithm 
+     * is up to their mapping value, which is decided by the appear consequence in TABLE definition.
+     * For example, in case `confidentiality` ENUM('NA','LOW','MODERATE','HIGH') it turns out the 
+     * mapping value: LOW=0, MODERATE=1, HIGH=2. The value calculated is the maximun of C, I, A. And 
+     * is transferred back to enumeration name again.
+     *
+     * As the C(Confidentiality) has the additional value 'NA', which is absent from the other two
+     * I,A, it's necessary to remove it before calculating the security categorization. Due to the
+     * design, we have to hard code it, say array_shift($confidentiality).
+     * 
+     * @param string $confidentiality confidentiality
+     * @param string $integrity integrity
+     * @param string $availability availability
+     * @return string security_categorization
+     */
+    public function calcSecurityCategory($confidentiality, $integrity, $availability)
+    {
+        if (NULL == $confidentiality || NULL == $integrity || NULL == $availability) {
+            return NULL;
+        }
+        $array = $this->getEnumColumns('confidentiality');
+        assert(in_array($confidentiality, $array));
+        array_shift($array);
+        $confidentiality = array_search($confidentiality, $array);
+        
+        $array = $this->getEnumColumns('integrity');
+        assert(in_array($integrity, $array));
+        $integrity = array_search($integrity, $array);
+        
+        $array = $this->getEnumColumns('availability');
+        assert(in_array($availability, $array));
+        $availability = array_search($availability, $array);
+
+        $index = max((int)$confidentiality, (int)$integrity, (int)$availability);
+        return $array[$index];
+    }
+
+    /**
+     * Calculate min level
+     *
+     * @see calcSecurityCategory
+     *
+     * @param string $levelA
+     * @param string $levelB
+     * @param return string min of $levelA and $levelB
+     */
+    public function calcMin($levelA, $levelB)
+    {
+        $cloumns = $this->getEnumColumns('availability');
+        assert(in_array($levelA, $cloumns));
+        assert(in_array($levelB, $cloumns));
+        $senseMap = array_flip($cloumns);
+        $ret = min($senseMap[$levelA], $senseMap[$levelB]);
+        return $cloumns[$ret];
+    }
+    
+    /**
+     * Calcuate overall threat level
+     *
+     * @see calcSecurityCategory
+     *
+     * @param string $threat threat level
+     * @param string $countermeasure countermeasure level
+     * @return string overall threat
+     */
+    public function calcThreat($threat, $countermeasure)
+    {
+        $cloumns = $this->getEnumColumns('availability');
+        assert(in_array($threat, $cloumns));
+        assert(in_array($countermeasure, $cloumns));
+        $cloumnsMap = array_flip($cloumns);
+        $max = max(count($cloumnsMap) - $cloumnsMap[$threat], $cloumnsMap[$countermeasure]);
+        $ret = count($cloumns) - $max;
+        return $cloumns[$ret];
     }
 }

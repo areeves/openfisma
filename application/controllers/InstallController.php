@@ -20,7 +20,7 @@
  * @author    Jim Chen <xhorse@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: InstallController.php 1079 2008-10-23 05:57:04Z ryanyang $
+ * @version   $Id$
  */
 
 /**
@@ -42,7 +42,6 @@ class InstallController extends Zend_Controller_Action
     {
         $this->view->back = '';
         $this->view->next = '/install/envcheck';
-        $this->render();
     }
     public function envcheckAction()
     {
@@ -59,7 +58,6 @@ class InstallController extends Zend_Controller_Action
             );
             $this->view->next = '';
         }
-        $this->render();
     }
     public function checkingAction()
     {
@@ -67,7 +65,7 @@ class InstallController extends Zend_Controller_Action
             APPLICATION_ROOT . '/public/temp',
             APPLICATION_ROOT . '/data/logs',
             APPLICATION_ROOT . '/public/evidence',
-            APPLICATION_CONFIGS .'/'. Config_Fisma::CONFIGFILE_NAME
+            APPLICATION_ROOT . '/application/config/'. Config_Fisma::INSTALL_CONFIG
         );
         $notwritables = array();
         foreach ($wDirectories as $k => $wok) {
@@ -84,7 +82,6 @@ class InstallController extends Zend_Controller_Action
         } else {
             $this->view->next = '';
         }
-        $this->render();
     }
     public function dbsettingAction()
     {
@@ -96,7 +93,6 @@ class InstallController extends Zend_Controller_Action
         $this->view->title = 'General settings';
         $this->view->back = '/install/checking';
         $this->view->next = '/install/dbreview';
-        $this->render();
     }
     public function dbreviewAction()
     {
@@ -153,7 +149,6 @@ class InstallController extends Zend_Controller_Action
         } else {
             $this->view->back = '/install/dbsetting';
             $this->view->next = '/install/initial';
-            $this->render();
         }
     }
     public function initialAction()
@@ -208,7 +203,7 @@ class InstallController extends Zend_Controller_Action
                 );
                 try {
                     $db = Zend_Db::factory(new Zend_Config($zendDsn));
-                    $initFiles = array(APPLICATION_CONFIGS . '/db/base.sql');
+                    $initFiles = array(APPLICATION_ROOT . '/application/config/db/base.sql');
                     if ($ret = $this->importSql($db, $initFiles)) {
                         $checklist['schema'] = 'ok';
                     }
@@ -223,7 +218,7 @@ class InstallController extends Zend_Controller_Action
         }
         $this->view->dsn = $dsn;
         if ($ret) {
-            if (is_writable(APPLICATION_CONFIGS .'/'. Config_Fisma::CONFIGFILE_NAME)) {
+            if (is_writable(APPLICATION_ROOT .'/application/config/'. Config_Fisma::INSTALL_CONFIG)) {
                 $confTpl = $this->_helper->viewRenderer
                                          ->getViewScript('config');
 
@@ -245,7 +240,7 @@ class InstallController extends Zend_Controller_Action
                 }
 
                 $dbconfig = $this->view->render($confTpl);
-                if (0 < file_put_contents(APPLICATION_CONFIGS .'/'. Config_Fisma::CONFIGFILE_NAME,
+                if (0 < file_put_contents(APPLICATION_ROOT .'/application/config/'. Config_Fisma::INSTALL_CONFIG,
                     $dbconfig)) {
                     $checklist['savingconfig'] = 'ok';
                 } else {
@@ -273,7 +268,6 @@ class InstallController extends Zend_Controller_Action
     {
         $this->view->title = 'Install complete';
         $this->view->next = '/user/login';
-        $this->render();
     }
     public function errorAction()
     {
@@ -289,7 +283,6 @@ class InstallController extends Zend_Controller_Action
             break;
         }
         $this->getResponse()->clearBody();
-        $this->render();
     }
 
     /*

@@ -20,7 +20,7 @@
  * @author    Jim Chen <xhorse@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: ConfigController.php 978 2008-10-13 13:43:47Z ryanyang $
+ * @version   $Id$
  */
 
 /**
@@ -63,6 +63,8 @@ class ConfigController extends SecurityController
 
     public function indexAction()
     {
+        $this->_acl->requirePrivilege('app_configuration', 'update');
+        $this->_helper->viewRenderer->setNoRender();
         $this->_helper->actionStack('password');
         $this->_helper->actionStack('notification');
         $this->_helper->actionStack('contact');
@@ -73,24 +75,9 @@ class ConfigController extends SecurityController
      */
     public function viewAction()
     {
-        // Fill up with data
+        $this->_acl->requirePrivilege('app_configuration', 'update');
+        
         $form = $this->getConfigForm('general_config');
-        $ret = $this->_config->getList(array('key', 'value', 'description'));
-        $configs = NULL;
-        foreach ($ret as $item) {
-            if (in_array($item['key'], array(Config::EXPIRING_TS))) {
-                $item['value'] /= 60; //convert to hour from second
-            }
-            if (in_array($item['key'], array(Config::USE_NOTIFICATION,
-                Config::BEHAVIOR_RULE))) {
-                $item['value'] = $item['description'];
-            }
-
-            $configs[$item['key']] = $item['value'];
-        }
-
-        // Update the change
-        $form->setDefaults($configs);
         if ($this->_request->isPost()) {
             $configPost = $this->_request->getPost();
             if (isset($configPost[Config::MAX_ABSENT])) {
@@ -101,10 +88,7 @@ class ConfigController extends SecurityController
                         Config::SYSTEM_NAME =>0,
                         Config::MAX_ABSENT  =>0,
                         Config::AUTH_TYPE   =>0,
-                        Config::F_THRESHOLD =>0,
                         Config::EXPIRING_TS =>0,
-                        Config::UNLOCK_ENABLED =>0,
-                        Config::UNLOCK_DURATION =>0,
                         Config::USE_NOTIFICATION =>0,
                         Config::BEHAVIOR_RULE =>0,
                         Config::ROB_DURATION  =>0
@@ -115,13 +99,11 @@ class ConfigController extends SecurityController
                         $records[] = $k;
                         $where = $this->_config->getAdapter()
                             ->quoteInto('`key` = ?', $k);
-                        if (in_array($k, array(Config::EXPIRING_TS))) { 
+                        if (in_array($k, array(Config::EXPIRING_TS, Config::UNLOCK_DURATION))) {
                             $v *= 60; //convert to second
                         }
-                        if (in_array($k, array(Config::USE_NOTIFICATION,
-                                               Config::BEHAVIOR_RULE))) {
-                            $this->_config->update(array('description' => $v),
-                                $where);
+                        if (in_array($k, array(Config::USE_NOTIFICATION,Config::BEHAVIOR_RULE))) {
+                            $this->_config->update(array('description' => $v), $where);
                         } else {
                             $this->_config
                                  ->update(array('value' => $v), $where);
@@ -134,10 +116,39 @@ class ConfigController extends SecurityController
                     $msg = 'Configuration updated successfully';
                     $this->message($msg, self::M_NOTICE);
                 } else {
-                    $form->populate($configPost);
+                    /**
+                     * @todo this error display code needs to go into the decorator,
+                     * but before that can be done, the function it calls needs to be
+                     * put in a more convenient place
+                     */
+                    $errorString = '';
+                    foreach ($form->getMessages() as $field => $fieldErrors) {
+                        if (count($fieldErrors)>0) {
+                            foreach ($fieldErrors as $error) {
+                                $label = $form->getElement($field)->getLabel();
+                                $errorString .= "$label: $error<br>";
+                            }
+                        }
+                    }
+                    // Error message
+                    $this->message("Unable to save general policies:<br>$errorString", self::M_WARNING);
                 }
             }
         }
+        $ret = $this->_config->getList(array('key', 'value', 'description'));
+        $configs = NULL;
+        foreach ($ret as $item) {
+            if (in_array($item['key'], array(Config::EXPIRING_TS, Config::UNLOCK_DURATION))) {
+                $item['value'] /= 60; //convert to minute from second
+            }
+            if (in_array($item['key'], array(Config::USE_NOTIFICATION,
+                Config::BEHAVIOR_RULE))) {
+                $item['value'] = $item['description'];
+            }
+
+            $configs[$item['key']] = $item['value'];
+        }
+        $form->setDefaults($configs);
         
         //get ldap configuration
         $ldaps = $this->_config->getLdap();
@@ -151,6 +162,8 @@ class ConfigController extends SecurityController
      */
     public function contactAction()
     {
+        $this->_acl->requirePrivilege('app_configuration', 'update');
+        
         $config = new Config();
         $form = $this->getConfigForm('contact_config');
         if ($this->_request->isPost()) {
@@ -168,7 +181,23 @@ class ConfigController extends SecurityController
                     $msg = 'Configuration updated successfully';
                     $this->message($msg, self::M_NOTICE);
                 } else {
-                    $form->populate($data);
+                    /**
+                     * @todo this error display code needs to go into the decorator,
+                     * but before that can be done, the function it calls needs to be
+                     * put in a more convenient place
+                     */
+                    $errorString = '';
+                    foreach ($form->getMessages() as $field => $fieldErrors) {
+                        if (count($fieldErrors)>0) {
+                            foreach ($fieldErrors as $error) {
+                                $label = $form->getElement($field)->getLabel();
+                                $errorString .= "$label: $error<br>";
+                            }
+                        }
+                    }
+                    // Error message
+                    $this->message("Unable to save Technical Contact Information:<br>$errorString",
+                        self::M_WARNING);
                 }
             }
         }
@@ -188,6 +217,8 @@ class ConfigController extends SecurityController
      */
     public function ldapupdateAction()
     {
+        $this->_acl->requirePrivilege('app_configuration', 'update');
+        
         $form = $this->getForm('ldap');
         $id = $this->_request->getParam('id');
         if ($this->_request->isPost()) {
@@ -210,7 +241,6 @@ class ConfigController extends SecurityController
             }
         }
         $this->view->form = $form;
-        $this->render();
     }
 
     /**
@@ -218,6 +248,8 @@ class ConfigController extends SecurityController
      */
     public function ldapdelAction()
     {
+        $this->_acl->requirePrivilege('app_configuration', 'update');
+        
         $id = $this->_request->getParam('id');
         $this->_config->delLdap($id);
         // @REVIEW
@@ -233,6 +265,8 @@ class ConfigController extends SecurityController
      */
     public function ldapvalidAction()
     {
+        $this->_acl->requirePrivilege('app_configuration', 'update');
+        
         $form = $this->getForm('ldap');
         if ($this->_request->isPost()) {
             $data = $this->_request->getPost();
@@ -260,6 +294,8 @@ class ConfigController extends SecurityController
      */
     public function notificationAction()
     {
+        $this->_acl->requirePrivilege('app_configuration', 'update');
+        
         $config = new Config();
         $form = $this->getConfigForm('notification_config');
         if ($this->_request->isPost()) {
@@ -277,7 +313,22 @@ class ConfigController extends SecurityController
                     $msg = 'Configuration updated successfully';
                     $this->message($msg, self::M_NOTICE);
                 } else {
-                    $form->populate($data);
+                    /**
+                     * @todo this error display code needs to go into the decorator,
+                     * but before that can be done, the function it calls needs to be
+                     * put in a more convenient place
+                     */
+                    $errorString = '';
+                    foreach ($form->getMessages() as $field => $fieldErrors) {
+                        if (count($fieldErrors)>0) {
+                            foreach ($fieldErrors as $error) {
+                                $label = $form->getElement($field)->getLabel();
+                                $errorString .= "$label: $error<br>";
+                            }
+                        }
+                    }
+                    // Error message
+                    $this->message("Unable to save Notifciation Policies:<br>$errorString", self::M_WARNING);
                 }
             }
         } 
@@ -296,6 +347,8 @@ class ConfigController extends SecurityController
      */
     public function privacyAction()
     {
+        $this->_acl->requirePrivilege('app_configuration', 'update');
+        
         $config = new Config();
         $form = $this->getConfigForm('privacy_policy_config');
         if ($this->_request->isPost()) {
@@ -310,7 +363,22 @@ class ConfigController extends SecurityController
                     $msg = 'Configuration updated successfully';
                     $this->message($msg, self::M_NOTICE);
                 } else {
-                    $form->populate($data);
+                    /**
+                     * @todo this error display code needs to go into the decorator,
+                     * but before that can be done, the function it calls needs to be
+                     * put in a more convenient place
+                     */
+                    $errorString = '';
+                    foreach ($form->getMessages() as $field => $fieldErrors) {
+                        if (count($fieldErrors)>0) {
+                            foreach ($fieldErrors as $error) {
+                                $label = $form->getElement($field)->getLabel();
+                                $errorString .= "$label: $error<br>";
+                            }
+                        }
+                    }
+                    // Error message
+                    $this->message("Unable to save privacy policies:<br>$errorString", self::M_WARNING);
                 }
             }
         }
@@ -329,6 +397,8 @@ class ConfigController extends SecurityController
      */
     public function passwordAction()
     {
+        $this->_acl->requirePrivilege('app_configuration', 'update');
+        
         $config = new Config();
         $form = $this->getConfigForm('password_config');
         if ($this->_request->isPost()) {
@@ -339,6 +409,9 @@ class ConfigController extends SecurityController
                     unset($values['submit']);
                     unset($values['reset']);
                     foreach ($values as $k => $v) {
+                        if ($k == Config::UNLOCK_DURATION) {
+                            $v *=  60;//Convert to sencond
+                        }
                         $where = $config->getAdapter()
                             ->quoteInto('`key` = ?', $k);
                         $config->update(array('value' => $v), $where);
@@ -346,13 +419,31 @@ class ConfigController extends SecurityController
                     $msg = 'Password Complexity Configuration updated successfully';
                     $this->message($msg, self::M_NOTICE);
                 } else {
-                    $form->populate($data);
+                    /**
+                     * @todo this error display code needs to go into the decorator,
+                     * but before that can be done, the function it calls needs to be
+                     * put in a more convenient place
+                     */
+                    $errorString = '';
+                    foreach ($form->getMessages() as $field => $fieldErrors) {
+                        if (count($fieldErrors)>0) {
+                            foreach ($fieldErrors as $error) {
+                                $label = $form->getElement($field)->getLabel();
+                                $errorString .= "$label: $error<br>";
+                            }
+                        }
+                    }
+                    // Error message
+                    $this->message("Unable to save password policies:<br>$errorString", self::M_WARNING);
                 }
             }
         }
         $items = $config->getList(array('key', 'value'));
         $configs = array();
         foreach ($items as $item) {
+            if ($item['key'] == Config::UNLOCK_DURATION) {
+                $item['value'] /= 60; //convert to minute from second
+            }
             $configs[$item['key']] = $item['value'];
         }
         $form->setDefaults($configs);

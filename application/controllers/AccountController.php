@@ -20,7 +20,7 @@
  * @author    Ryan Yang <ryan@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: AccountController.php 1087 2008-10-28 20:12:42Z ford_james $
+ * @version   $Id$
  */
 
 /**
@@ -31,14 +31,19 @@
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
  */
-class AccountController extends PoamBaseController
+class AccountController extends SecurityController
 {
     private $_user;
-    
-    protected $_sanity = array(
-        // @todo remove this array
+
+    private $_paging = array(
+        'mode' => 'Sliding',
+        'append' => false,
+        'urlVar' => 'p',
+        'path' => '',
+        'currentPage' => 1,
+        'perPage' => 20
     );
-    
+
     /**
      * init() - Initialize internal members.
      */
@@ -49,6 +54,14 @@ class AccountController extends PoamBaseController
         $ajaxContext = $this->_helper->getHelper('AjaxContext');
         $ajaxContext->addActionContext('checkdn', 'html')
                     ->initContext();
+    }
+
+    public function preDispatch()
+    {
+        parent::preDispatch();
+        $req = $this->getRequest();
+        $this->_pagingBasePath = $req->getBaseUrl() . '/panel/account/sub/list';
+        $this->_paging['currentPage'] = $req->getParam('p', 1);
     }
 
     /**
@@ -113,51 +126,29 @@ class AccountController extends PoamBaseController
      */
     public function searchboxAction()
     {
-        // These are the fields which can be searched, the key is the physical
-        // name and the value is the logical name which is displayed in the
-        // interface.
-        $criteria = array(
-            'name_last' => 'Last Name',
-            'name_first' => 'First Name',
-            'account' => 'Username',
-            'email' => 'Email',
-            'title' => 'Title',
-            'phone_office' => 'Office Phone',
-            'phone_mobile' => 'Mobile Phone'
-        );
-        $postAction = "/panel/account/sub/list";
+        $this->_acl->requirePrivilege('admin_users', 'read');
 
-        // Count the total number of users and configure the pager
-        $user = new User();
-        $userCount = $user->count();
-        $this->_paging['currentPage'] = $this->_request->getParam('p', 1);
-        $this->_paging['totalItems'] = $userCount;
-        $this->_paging['fileName'] = "/panel/account/sub/list/p/%d";
-
-        if ('log' == $this->_request->getParam('sub')) {
-            $criteria = array(
-                'event'=>'Event Name',
-                'account'=>'Account Name');
-            $postAction = "/panel/account/sub/log";
-
-            $query = $user->getAdapter()->select()->from('account_logs',
-                         array('count'=>'count(*)'));
-            $ret = $user->getAdapter()->fetchRow($query);
-            $logCount = $ret['count'];
-            $this->_paging['totalItems'] = $logCount;
-            $this->_paging['fileName'] = "/panel/account/sub/log/p/%d";
+        $fid = $this->_request->getParam('fid');
+        $qv  = $this->_request->getParam('qv');
+        $query = $this->_user->select()->from(array(
+            'u' => 'users'
+        ), array(
+            'count' => 'COUNT(u.id)'
+        ))->order('u.account ASC');
+        if (!empty($qv)) {
+            $query->where("$fid = ?", $qv);
+            $this->_pagingBasePath .= '/fid/'.$fid.'/qv/'.$qv;
         }
-
-        $pager = &Pager::factory($this->_paging);
-        
-        // Assign view outputs
-        $this->view->assign('criteria', $criteria);
-        $this->view->assign('fid', $this->_request->getParam('fid'));
-        $this->view->assign('qv', $this->_request->getParam('qv'));
-        $this->view->assign('postAction', $postAction);
-        $this->view->assign('total', $userCount);
+        $res = $this->_user->fetchRow($query)->toArray();
+        $count = $res['count'];
+        $this->_paging['totalItems'] = $count;
+        $this->_paging['fileName'] = "{$this->_pagingBasePath}/p/%d";
+        $pager = & Pager::factory($this->_paging);
+        $this->view->assign('fid', $fid);
+        $this->view->assign('qv', $qv);
+        $this->view->assign('total', $count);
         $this->view->assign('links', $pager->getLinks());
-        $this->render();
+
     }
     
     /**
@@ -165,6 +156,8 @@ class AccountController extends PoamBaseController
      */
     public function listAction()
     {
+        $this->_acl->requirePrivilege('admin_users', 'read');
+        
         // Set up the query to get the full list of users
         $user = new User();
         $qry = $user->select()
@@ -205,7 +198,6 @@ class AccountController extends PoamBaseController
         // Assign view outputs
         $this->view->assign('roleList', $roleList);
         $this->view->assign('userList', $userList);
-        $this->render();
     }
     
     /**
@@ -214,6 +206,7 @@ class AccountController extends PoamBaseController
      */
     public function viewAction()
     {
+        $this->_acl->requirePrivilege('admin_users', 'read');
         $form = $this->getAccountForm();
         
         // $id is the user id of the record that should be displayed
@@ -261,7 +254,9 @@ class AccountController extends PoamBaseController
         if ($v == 'edit') {
             // Prepare the password requirements explanation:
             $requirements = $this->_getPasswordRequirements();
-            $this->view->assign('requirements', $requirements);
+            if (Config_Fisma::readSysConfig('auth_type') == 'database') {
+                $this->view->assign('requirements', $requirements);
+            }
             $this->view->assign('viewLink',
                                 "/panel/account/sub/view/id/$id");
             $form->setAction("/panel/account/sub/update/id/$id");
@@ -295,6 +290,8 @@ class AccountController extends PoamBaseController
      */
     public function updateAction()
     {
+        $this->_acl->requirePrivilege('admin_users', 'update');
+        
         // Load the account form in order to perform validations.
         $form = $this->getAccountForm();
         $pass = $form->getElement('password');
@@ -338,7 +335,8 @@ class AccountController extends PoamBaseController
                     ));
                     return;
                 }
-                $accountData['password'] = Config_Fisma::encrypt($accountData['password']);
+                $accountData['password'] = $this->_user->digest($accountData['password']);
+                $accountData['hash']     = Config_Fisma::readSysConfig('encrypt');
             } else {
                 unset($accountData['password']);
             }
@@ -358,7 +356,7 @@ class AccountController extends PoamBaseController
                     self::$now->toString("Y-m-d H:i:s");
             } elseif ($accountData['is_active'] == 1) {
                 $accountData['failure_count'] = 0;
-                $accountData['last_login_ts'] = new Zend_Db_Expr('NOW()');
+                $accountData['last_login_ts'] = '0000-00-00 00:00:00';
                 $accountData['termination_ts'] = NULL;
             }
 
@@ -367,9 +365,9 @@ class AccountController extends PoamBaseController
                 $this->_notification
                      ->add(Notification::ACCOUNT_MODIFIED,
                         $this->_me->account, $id);
-                $this->_user->log(User::MODIFICATION,
+                $this->_user->log('ACCOUNT_MODIFICATION',
                                    $this->_me->id,
-                                   "Modified user {$accountData['account']}");
+                                   "User Account {$accountData['account']} Successfully Modified");
             }
 
             $mySystems = $this->_user->getMySystems($id);
@@ -414,7 +412,7 @@ class AccountController extends PoamBaseController
              */
             $errorString = '';
             foreach ($form->getMessages() as $field => $fieldErrors) {
-                if (count($fieldErrors>0)) {
+                if (count($fieldErrors)>0) {
                     foreach ($fieldErrors as $error) {
                         $label = $form->getElement($field)->getLabel();
                         $errorString .= "$label: $error<br>";
@@ -440,6 +438,8 @@ class AccountController extends PoamBaseController
      */
     public function deleteAction()
     {
+        $this->_acl->requirePrivilege('admin_users', 'delete');
+        
         $req = $this->getRequest();
         $id = $req->getParam('id');
         assert($id);
@@ -456,9 +456,9 @@ class AccountController extends PoamBaseController
                 $this->_me->account, $id);
             $msg = "User " . $userName . " deleted successfully.";
             $model = self::M_NOTICE;
-            $this->_user->log(USER::TERMINATION,
+            $this->_user->log('ACCOUNT_DELETED',
                                $this->_me->id,
-                               'delete user ' . $userName);
+                               'User Account ' . $userName . ' Successfully Deleted');
         } else {
             $msg = "Failed to delete user.";
             $model = self::M_WARNING;
@@ -472,6 +472,8 @@ class AccountController extends PoamBaseController
      */
     public function createAction()
     {
+        $this->_acl->requirePrivilege('admin_users', 'create');
+        
         // Get the account form
         $form = $this->getAccountForm();
         $form->setAction('/panel/account/sub/save');
@@ -494,7 +496,6 @@ class AccountController extends PoamBaseController
         
         // Assign view outputs.
         $this->view->form = Form_Manager::prepareForm($form);
-        $this->render();
     }
     
     /**
@@ -502,6 +503,8 @@ class AccountController extends PoamBaseController
      */
     public function saveAction()
     {
+        $this->_acl->requirePrivilege('admin_users', 'update');
+        
         // Load the account form in order to perform validations.
         $form = $this->getAccountForm();
         $post = $this->_request->getPost();
@@ -544,10 +547,12 @@ class AccountController extends PoamBaseController
                 $accountData['account'] = $accountData['ldap_dn'];
             } else if ( 'database' == Config_Fisma::readSysConfig('auth_type') ) {
                 $password = $accountData['password'];
-                $accountData['password'] = Config_Fisma::encrypt($accountData['password']);
+                $accountData['password'] = $this->_user->digest($accountData['password']);
+                $accountData['hash'] = Config_Fisma::readSysConfig('encrypt');
             }
             $accountData['created_ts'] = self::$now->toString('Y-m-d H:i:s');
             $accountData['auto_role'] = $accountData['account'].'_r';
+            $accountData['password_ts'] = self::$now->toString('Y-m-d H:i:s');
 
             $userId = $this->_user->insert($accountData);
             
@@ -561,11 +566,12 @@ class AccountController extends PoamBaseController
 
             $this->_notification->add(Notification::ACCOUNT_CREATED,
                 $this->_me->account, $userId);
+                
             // Log the new account creation and display a success message to the
             // user.
-            $this->_user->log(User::CREATION, $this->_me->id,
-                             'create user('.$accountData['account'].')');
-            $this->message("User ({$accountData['account']}) added, and a validate email has been sent to this user",
+            $this->_user->log('ACCOUNT_CREATED', $this->_me->id,
+                             'User Account '.$accountData['account'].' Successfully Created');
+            $this->message("User ({$accountData['account']}) added, and a validation email has been sent to this user.",
                            self::M_NOTICE);
 
             $this->emailvalidate($userId, $accountData['email'], 'create',
@@ -574,6 +580,7 @@ class AccountController extends PoamBaseController
             // On success, redirect to read view
             $this->view->setScriptPath(APPLICATION_PATH . '/views/scripts');
             $this->_forward('view', null, null, array('id' => $userId));
+            $this->_forward('create');
         } else {
             /**
              * @todo this error display code needs to go into the decorator,
@@ -582,7 +589,7 @@ class AccountController extends PoamBaseController
              */
             $errorString = '';
             foreach ($form->getMessages() as $field => $fieldErrors) {
-                if (count($fieldErrors>0)) {
+                if (count($fieldErrors)>0) {
                     foreach ($fieldErrors as $error) {
                         $label = $form->getElement($field)->getLabel();
                         $errorString .= "$label: $error<br>";
@@ -605,6 +612,8 @@ class AccountController extends PoamBaseController
      */
     public function checkdnAction()
     {
+        $this->_acl->requirePrivilege('admin_users', 'read');
+        
         $config = new Config();
         $data = $config->getLdap();
         $dn = $this->_request->getParam('dn');
@@ -639,6 +648,8 @@ class AccountController extends PoamBaseController
      */
     public function assignroleAction()
     {
+        $this->_acl->requirePrivilege('admin_users', 'update');
+        
         $req = $this->getRequest();
         $userId = $req->getParam('id');
         $db = $this->_user->getAdapter();
@@ -744,8 +755,6 @@ class AccountController extends PoamBaseController
             $this->message('assign role and privileges successfully.', 
                             self::M_NOTICE);
             $this->_redirect('panel/account/sub/assignrole/id/' . $userId);
-        } else {
-            $this->render();
         }
     }
     /**
@@ -753,6 +762,8 @@ class AccountController extends PoamBaseController
      */
     public function searchprivilegeAction()
     {
+        $this->_acl->requirePrivilege('admin_users', 'read');
+        
         $req = $this->_request;
         $db = $this->_user->getAdapter();
         $userId = $req->getParam('id');
@@ -808,35 +819,6 @@ class AccountController extends PoamBaseController
         $this->view->assign('available_privileges', $availablePrivileges);
         $this->_helper->layout->setLayout('ajax');
         $this->render('availableprivi');
-    }
-
-    /**
-     * logAction() - List all the users log message.
-     */
-    public function logAction()
-    {
-        // Set up the query to get the full list of user logs
-        $db = $this->_user->getAdapter();
-        $qry = $db->select()
-                  ->from(array('al' => 'account_logs'),
-                         array('timestamp', 'event', 'user_id', 'message'))
-                  ->joinLeft(array('u'=>'users'),
-                             'al.user_id = u.id',
-                             'account');
-
-        $qv = $this->_request->getParam('qv');
-        if (!empty($qv)) {
-            $fid = $this->_request->getParam('fid');
-            $qry->where("$fid = '$qv'");
-        }
-        $qry->order("timestamp DESC");
-        $qry->limitPage($this->_paging['currentPage'], 
-                        $this->_paging['perPage']);
-        $logList = $db->fetchAll($qry);
-        
-        // Assign view outputs
-        $this->view->assign('logList', $logList);
-        $this->render();
     }
 
     /**

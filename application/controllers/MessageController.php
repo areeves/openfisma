@@ -20,7 +20,7 @@
  * @author    Ryan Yang <ryan@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: MessageController.php 1087 2008-10-28 20:12:42Z ford_james $
+ * @version   $Id$
  */
 
 /**
@@ -29,6 +29,8 @@
  * @package   Controller
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
+ *
+ * @todo This doesn't appear to be a controller... why is it called MessageController??
  */
 class MessageController extends Zend_Controller_Action
 {
@@ -43,9 +45,12 @@ class MessageController extends Zend_Controller_Action
             self::M_WARNING
         )));
         $msg = str_replace("\n", '', $msg);
+        $msg = addslashes($msg);
         $this->view->msg = $msg;
         $this->view->model = $model;
         $this->_helper->viewRenderer->renderScript('message.phtml');
+        // restore the auto rendering
+        $this->_helper->viewRenderer->setNoRender(false);
     }
 
     /**
@@ -60,7 +65,7 @@ class MessageController extends Zend_Controller_Action
 
         $mail->setFrom(Config_Fisma::readSysConfig('sender'), Config_Fisma::readSysConfig('system_name'));
         $mail->addTo($email);
-        $mail->setSubject("Email validation");
+        $mail->setSubject("Confirm Your E-mail Address");
 
         $validateCode = md5(rand());
         

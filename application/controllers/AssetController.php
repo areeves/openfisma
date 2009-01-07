@@ -20,7 +20,7 @@
  * @author    Jim Chen <xhorse@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: AssetController.php 940 2008-09-27 13:40:22Z ryanyang $
+ * @version   $Id$
  */
 
 /**
@@ -72,6 +72,8 @@ class AssetController extends PoamBaseController
      */
     public function searchAction()
     {
+        $this->_acl->requirePrivilege('asset', 'read');
+        
         $req = $this->getRequest();
         $systemId = $req->getParam('sid');
         $assetName = $req->getParam('name');
@@ -102,6 +104,8 @@ class AssetController extends PoamBaseController
      */
     public function createAction()
     {
+        $this->_acl->requirePrivilege('asset', 'create');
+        
         $systems = new System();
         $user = new User();
         $product = new Product();
@@ -153,6 +157,8 @@ class AssetController extends PoamBaseController
      */
     public function detailAction()
     {
+        $this->_acl->requirePrivilege('asset', 'read');
+        
         $req = $this->getRequest();
         $id = $req->getParam('id');
         if (!empty($id)) {
@@ -189,6 +195,7 @@ class AssetController extends PoamBaseController
      */
     public function searchboxAction()
     {
+        $this->_acl->requirePrivilege('asset', 'read');
         $req = $this->getRequest();
         $criteria['system_id'] = $req->get('system_id');
         $criteria['product'] = $req->get('product');
@@ -262,57 +269,61 @@ class AssetController extends PoamBaseController
             $this->view->assign('asset_list', $assetList);
             $this->view->assign('links', $pager->getLinks());
         }
-        $this->render();
     }
     /** 
      *  View an asset in detail
      */
     public function viewAction()
     {
+        $this->_acl->requirePrivilege('asset', 'read');
+        
         $req = $this->getRequest();
         $id = $req->getParam('id');
         assert($id);
         $db = $this->_asset->getAdapter();
-        $query = $db->select()->from(array(
-            'a' => 'assets'
-        ), array(
-            'name' => 'a.name',
-            'source' => 'a.source',
-            'created_date' => 'a.create_ts',
-            'ip' => 'a.address_ip',
-            'system_id' => 'a.system_id',
-            'network_id' => 'a.network_id',
-            'port' => 'a.address_port'
-        ))->joinLeft(array(
-            'p' => 'products'
-        ), 'a.prod_id = p.id', array(
-            'prod_name' => 'p.name',
-            'prod_vendor' => 'p.vendor',
-            'prod_version' => 'p.version'
-        ))->joinLeft(array(
-            'n' => 'networks'
-        ), 'a.network_id = n.id', array(
-            'net_nickname' => 'n.nickname',
-            'net_name' => 'n.name'
-        ))->where('a.id = ?', $id);
+        $query = $db->select()
+                    ->from(array('a' => 'assets'),
+                           array('name' => 'a.name',
+                                 'source' => 'a.source',
+                                 'created_date' => 'a.create_ts',
+                                 'ip' => 'a.address_ip',
+                                 'system_id' => 'a.system_id',
+                                 'network_id' => 'a.network_id',
+                                 'port' => 'a.address_port'))
+                    ->joinLeft(array('p' => 'products'),
+                               'a.prod_id = p.id',
+                               array('prod_name' => 'p.name',
+                                     'prod_vendor' => 'p.vendor',
+                                     'prod_version' => 'p.version'))
+                    ->joinLeft(array('n' => 'networks'),
+                               'a.network_id = n.id',
+                               array('net_nickname' => 'n.nickname',
+                                     'net_name' => 'n.name'))
+                    ->joinLeft(array('s' => 'systems'),
+                               'a.system_id = s.id',
+                               array('sys_nickname' => 's.nickname',
+                                     'sys_name' => 's.name'))
+                    ->where('a.id = ?', $id);
         $asset = $db->fetchRow($query);
         $this->view->assign('asset', $asset);
         $this->view->assign('id', $id);
         if ('edit' == $req->getParam('s')) {
             $this->view->assign('system_list', $this->_systemList);
             $this->view->assign('network_list', $this->_networkList);
-            $this->_helper->actionStack('header', 'Panel');
+            //$this->_helper->actionStack('header', 'Panel');
             $this->render('edit');
-            $this->_forward('search', 'Product');
-        } else {
-            $this->render();
+            $this->_helper->actionStack('search', 'Product');
         }
     }
+
+
     /**
      *  update information of an asset
      */
     public function updateAction()
     {
+        $this->_acl->requirePrivilege('asset', 'update');
+        
         $req = $this->getRequest();
         $id = $req->getParam('id');
         assert($id);
@@ -340,6 +351,7 @@ class AssetController extends PoamBaseController
             $msg = 'Failed to edit the asset';
             $this->message($msg, self::M_WARNING);
         }
+        $this->_helper->_actionStack('header', 'panel');
         $this->_forward('view', null, null, array(
             'id' => $id,
             's' => 'edit'
@@ -350,19 +362,28 @@ class AssetController extends PoamBaseController
      */
     public function deleteAction()
     {
+        $this->_acl->requirePrivilege('asset', 'delete');
+        
         $req = $this->getRequest();
         $post = $req->getPost();
         $errno = 0;
-        foreach ($post as $k => $id) {
-            if ('aid_' == substr($k, 0, 4)) {
+        if (!empty($post['aid'])) {
+            $aids = $post['aid'];
+            foreach ($aids as $id) {
                 $assetIds[] = $id;
                 $res = $this->_asset->delete("id = $id");
                 if (!$res) {
                     $errno++;
                 }
             }
+        } else {
+            $errno = -1;
         }
-        if ($errno > 0) {
+
+        if ($errno < 0) {
+            $msg = "Pleasse select a option at least";
+            $this->message($msg, self::M_WARNING);
+        } else if ($errno > 0) {
             $msg = $errno . "Failed to delete the asset";
             $this->message($msg, self::M_WARNING);
         } else {

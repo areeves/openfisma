@@ -20,7 +20,7 @@
  * @author    Ryan Yang <ryan@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: SystemController.php 1007 2008-10-18 11:33:18Z ryanyang $
+ * @version   $Id$
  */
 
 /**
@@ -80,13 +80,6 @@ class SystemController extends SecurityController
         $this->_pagingBasePath = $req->getBaseUrl() .
             '/panel/system/sub/list';
         $this->_paging['currentPage'] = $req->getParam('p', 1);
-        if (!in_array($req->getActionName(), array(
-            'login',
-            'logout'
-        ))) {
-            // by pass the authentication when login
-            parent::preDispatch();
-        }
     }
 
     /**
@@ -106,18 +99,19 @@ class SystemController extends SecurityController
                 $form->getElement('organization_id')->addMultiOptions(array($row['id'] => $row['name']));
             }
         }
-        $array = array('HIGH'=>'High', 'MODERATE'=>'Moderate', 'LOW'=>'Low');
-        foreach ($array as $k=>$v) {
-            $form->getElement('confidentiality')->addMultiOptions(array($k=>$v));
-            $form->getElement('integrity')->addMultiOptions(array($k=>$v));
-            $form->getElement('availability')->addMultiOptions(array($k=>$v));
-        }
-        $type = array('GENERAL SUPPORT SYSTEM'=>'GENERAL SUPPORT SYSTEM',
-                      'MINOR APPLICATION'=>'MINOR APPLICATION',
-                      'MAJOR APPLICATION'=>'MAJOR APPLICATION');
-        foreach ($type as $k=>$v) {
-            $form->getElement('type')->addMultiOptions(array($k=>$v));
-        }
+        
+        $array = $this->_system->getEnumColumns('confidentiality');
+        $form->getElement('confidentiality')->addMultiOptions(array_combine($array, $array));
+        
+        $array = $this->_system->getEnumColumns('integrity');
+        $form->getElement('integrity')->addMultiOptions(array_combine($array, $array));
+        
+        $array = $this->_system->getEnumColumns('availability');
+        $form->getElement('availability')->addMultiOptions(array_combine($array, $array));
+        
+        $type = $this->_system->getEnumColumns('type');
+        $form->getElement('type')->addMultiOptions(array_combine($type, $type));
+        
         return Form_Manager::prepareForm($form);
     }
 
@@ -126,6 +120,8 @@ class SystemController extends SecurityController
      */     
     public function listAction()
     {
+        $this->_acl->requirePrivilege('admin_systems', 'read');
+        
         $req = $this->getRequest();
         $field = $req->getParam('fid');
         $value = trim($req->getParam('qv'));
@@ -144,7 +140,6 @@ class SystemController extends SecurityController
             $this->_paging['perPage']);
         $systemList = $db->fetchAll($query);
         $this->view->assign('system_list', $systemList);
-        $this->render();
     }
 
     /**
@@ -152,6 +147,8 @@ class SystemController extends SecurityController
      */
     public function searchboxAction()
     {
+        $this->_acl->requirePrivilege('admin_systems', 'read');
+        
         $req = $this->getRequest();
         $fid = $req->getParam('fid');
         $qv = $req->getParam('qv');
@@ -160,6 +157,10 @@ class SystemController extends SecurityController
         ), array(
             'count' => 'COUNT(s.id)'
         ));
+        if (!empty($qv)) {
+            $query->where("$fid = ?", $qv);
+            $this->_pagingBasePath .= '/fid/'.$fid.'/qv/'.$qv;
+        }
         $res = $this->_system->fetchRow($query)->toArray();
         $count = $res['count'];
         $this->_paging['totalItems'] = $count;
@@ -169,7 +170,6 @@ class SystemController extends SecurityController
         $this->view->assign('qv', $qv);
         $this->view->assign('total', $count);
         $this->view->assign('links', $pager->getLinks());
-        $this->render();
     }
 
     /**
@@ -177,6 +177,8 @@ class SystemController extends SecurityController
      */
     public function createAction()
     {
+        $this->_acl->requirePrivilege('admin_systems', 'create');
+        
         $form = $this->getSystemForm('system');
         $system = $this->_request->getPost();
         if ($system) {
@@ -184,19 +186,7 @@ class SystemController extends SecurityController
                 $system = $form->getValues();
                 unset($system['submit']);
                 unset($system['reset']);
-                
-                $array = array('LOW'=>1, 'MODERATE'=>2, 'HIGH'=>3);
-                $max = $array[$system['confidentiality']];
-                $system['security_categorization'] = $system['confidentiality'];
-                if ($max < $array[$system['integrity']]) {
-                    $max = $array[$system['integrity']];
-                    $system['security_categorization'] = $system['integrity'];
-                }
-                if ($max < $array[$system['availability']]) {
-                    $max = $array[$system['availability']];
-                    $system['security_categorization'] = $system['availability'];
-                }               
-                    
+
                 $systemId = $this->_system->insert($system);
                 if (! $systemId) {
                     //@REVIEW 3 lines
@@ -221,7 +211,7 @@ class SystemController extends SecurityController
                  */
                 $errorString = '';
                 foreach ($form->getMessages() as $field => $fieldErrors) {
-                    if (count($fieldErrors>0)) {
+                    if (count($fieldErrors)>0) {
                         foreach ($fieldErrors as $error) {
                             $label = $form->getElement($field)->getLabel();
                             $errorString .= "$label: $error<br>";
@@ -234,7 +224,6 @@ class SystemController extends SecurityController
         }
         $this->view->title = "Create ";
         $this->view->form = $form;
-        $this->render();
     }
 
     /**
@@ -242,6 +231,8 @@ class SystemController extends SecurityController
      */
     public function deleteAction()
     {
+        $this->_acl->requirePrivilege('admin_systems', 'delete');
+        
         $errno = 0;
         $req = $this->getRequest();
         $id = $req->getParam('id');
@@ -283,12 +274,15 @@ class SystemController extends SecurityController
      */
     public function viewAction()
     {
+        $this->_acl->requirePrivilege('admin_systems', 'read');
+        
         $form = $this->getSystemForm();
         $id = $this->_request->getParam('id');
         $v = $this->_request->getParam('v');
 
         $res = $this->_system->find($id)->toArray();
         $system = $res[0];
+
         $organization = new Organization();
         $res = $organization->find($system['organization_id'])->toArray();
         if (!empty($res)) {
@@ -323,6 +317,8 @@ class SystemController extends SecurityController
      */
     public function updateAction ()
     {
+        $this->_acl->requirePrivilege('admin_systems', 'update');
+        
         $form = $this->getSystemForm();
         $formValid = $form->isValid($_POST);
         $system = $form->getValues();
@@ -331,6 +327,7 @@ class SystemController extends SecurityController
         if ($formValid) {
             unset($system['submit']);
             unset($system['reset']);
+
             $res = $this->_system->update($system, 'id = ' . $id);
             if ($res) {
                 //@REVIEW 3 lines
@@ -349,7 +346,7 @@ class SystemController extends SecurityController
         } else {
             $errorString = '';
             foreach ($form->getMessages() as $field => $fieldErrors) {
-                if (count($fieldErrors>0)) {
+                if (count($fieldErrors)>0) {
                     foreach ($fieldErrors as $error) {
                         $label = $form->getElement($field)->getLabel();
                         $errorString .= "$label: $error<br>";

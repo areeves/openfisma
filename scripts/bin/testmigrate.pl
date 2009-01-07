@@ -32,7 +32,7 @@
 # Author:    Mark E. Haase <mhaase@endeavorsystems.com>
 # Copyright: (c) 2008 Endeavor Systems, Inc. (http://www.endeavorsystems.com)
 # License:   http://www.openfisma.org/mw/index.php?title=License
-# Version:   $Id: testmigrate.pl 1086 2008-10-28 14:59:27Z mehaase $
+# Version:   $Id$
 #
 ################################################################################
 
@@ -204,10 +204,10 @@ sub dumpSchema {
     &error("Command did not execute successfully. See previous output for more info.");
   }
   print DUMPFILE <<NOTICE;
---------------------------------------------------------------------
+--
 -- WARNING This file is created automatically and should not be
 -- edited by hand.
---------------------------------------------------------------------
+--
 NOTICE
   print DUMPFILE $schemaDump;
   close DUMPFILE;

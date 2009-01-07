@@ -23,12 +23,14 @@
  * @author    Mark E. Haase <mhaase@endeavorsystems.com>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id:$
+ * @version   $Id$
  */
 
 // Run the application bootstrap in command line mode
-define('COMMAND_LINE', true);
-require_once(realpath(dirname(__FILE__)."/../application/bootstrap.php"));
+if (!defined('COMMAND_LINE')) {
+    define('COMMAND_LINE', true);
+    require_once(realpath(dirname(__FILE__)."/../application/bootstrap.php"));
+}
 
 // Load the base class
 require_once 'PHPUnit/Extensions/SeleniumTestCase.php';
@@ -37,14 +39,13 @@ require_once 'PHPUnit/Extensions/SeleniumTestCase.php';
  * The selenium config file contains the server address (or name), user name, and password for connecting to the
  * selenium server.
  */ 
-define('SELENIUM_CONFIG_FILE', APPLICATION_CONFIGS . '/selenium.conf');
+define('SELENIUM_CONFIG_FILE', APPLICATION_ROOT . '/application/config/selenium.conf');
 
 /**
  * This is the base class for all selenium tests in OpenFISMA. This base class
  * sets up the server information for accessing Selenium RC.
  *
  * @package Test
- * @version $Id:$
  */
 abstract class Test_FismaSeleniumTest extends PHPUnit_Extensions_SeleniumTestCase
 {
@@ -148,8 +149,9 @@ abstract class Test_FismaSeleniumTest extends PHPUnit_Extensions_SeleniumTestCas
         $userId = $userTable->insert(
             array(
                 'account' => self::USER_NAME,
-                'password' => Config_Fisma::encrypt(self::PASSWORD),
+                'password' => $userTable->digest(self::PASSWORD),
                 'is_active' => 1,
+                'password_ts' => new Zend_Db_Expr('now()'),
                 'last_rob' => new Zend_Db_Expr('now()')
             )
         );

@@ -20,7 +20,7 @@
  * @author    Ryan Yang <ryan@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: ReportController.php 1089 2008-10-30 06:28:38Z ryanyang $
+ * @version   $Id$
  */
 
 /**
@@ -35,8 +35,12 @@ class ReportController extends PoamBaseController
 {
     /**
      * init() - Create the additional pdf and xls contexts for this class.
+     *
+     * @todo Why are the contexts duplicated in init() and predispatch()? I think the init() method is the right place
+     * for it.
      */
-    public function init() {
+    public function init()
+    {
         parent::init();
         $swCtx = $this->_helper->contextSwitch();
         if (!$swCtx->hasContext('pdf')) {
@@ -59,7 +63,8 @@ class ReportController extends PoamBaseController
     /**
      * preDispatch() - Add the action contexts for this controller.
      */
-    public function preDispatch() {
+    public function preDispatch()
+    {
         parent::preDispatch();
         $this->req = $this->getRequest();
         $swCtx = $this->_helper->contextSwitch();
@@ -71,7 +76,7 @@ class ReportController extends PoamBaseController
               ->addActionContext('swdisc', array('pdf', 'xls'))
               ->addActionContext('total', array('pdf', 'xls'))
               ->addActionContext('overdue', array('pdf', 'xls'))
-              ->addActionContext('pluginreport', array('pdf', 'xls'))
+              ->addActionContext('plugin-report', array('pdf', 'xls'))
               ->initContext();
     }
 
@@ -80,6 +85,8 @@ class ReportController extends PoamBaseController
      */
     public function fismaAction()
     {
+        $this->_acl->requirePrivilege('report', 'generate_fisma_report');
+
         $req = $this->getRequest();
         $criteria['year'] = $req->getParam('y');
         $criteria['quarter'] = $req->getParam('q');
@@ -88,6 +95,7 @@ class ReportController extends PoamBaseController
         $criteria['enddate'] = $req->getParam('enddate');
         $this->view->assign('system_list', $this->_systemList);
         $this->view->assign('criteria', $criteria);
+        $this->view->assign('year', empty($criteria['year'])?date('Y'):$criteria['year']);
         $dateBegin = '';
         $dateEnd = '';
         if ('search' == $req->getParam('s') || 
@@ -131,7 +139,7 @@ class ReportController extends PoamBaseController
                 $dateEnd = new Zend_Date($enddate, Zend_Date::DATES);
             }
             $systemArray = array(
-                'system_id' => $systemId
+                'systemId' => $systemId
             );
             $aawArray = array(
                 'createdDateEnd' => $dateBegin,
@@ -199,41 +207,56 @@ class ReportController extends PoamBaseController
             ), $criteriaFaw);
             $this->view->assign('summary', $summary);
         }
-        $this->render();
     }
     
     /**
      * poamAction() - Generate poam report
      */
-    public function poamAction() {
+    public function poamAction()
+    {
+        $this->_acl->requirePrivilege('report', 'generate_poam_report');
+        
         $req = $this->getRequest();
-        $params = array(
-            'systemId' => 'system_id',
-            'sourceId' => 'source_id',
-            'type' => 'type',
-            'year' => 'year',
-            'status' => 'status'
-        );
-        $criteria = $this->retrieveParam($req, $params);
+        $params['system_id'] = $req->getParam('system_id');
+        $params['source_id'] = $req->getParam('source_id');
+        $params['type'] = $req->getParam('type');
+        $params['year'] = $req->getParam('year');
+        $params['status'] = $req->getParam('status');
         $this->view->assign('source_list', $this->_sourceList);
         $this->view->assign('system_list', $this->_systemList);
         $this->view->assign('network_list', $this->_networkList);
-        $this->view->assign('criteria', $criteria);
+        $this->view->assign('params', $params);
         $isExport = $req->getParam('format');
+
         if ('search' == $req->getParam('s') || isset($isExport)) {
+            $criteria = array();
+            if (!empty($params['system_id'])) {
+                $criteria['systemId'] = $params['system_id'];
+            }
+            if (!empty($params['source_id'])) {
+                $criteria['sourceId'] = $params['source_id'];
+            }
+            if (!empty($params['type'])) {
+                $criteria['type'] = $params['type'];
+            }
+            if (!empty($params['status'])) {
+                if ('OPEN' == $params['status']) {
+                    $criteria['status'] = array('NEW', 'DRAFT', 'MSA', 'EN', 'EP');
+                } else {
+                    $criteria['status'] = $params['status'];
+                }
+            }
             $this->_pagingBasePath.= '/panel/report/sub/poam/s/search';
             if (isset($isExport)) {
                 $this->_paging['currentPage'] = 
                     $this->_pagging['perPage'] = null;
             }
-            $this->makeUrl($criteria);
-            if (!empty($criteria['year'])) {
+            $this->makeUrl($params);
+            if (!empty($params['year'])) {
                 $criteria['createdDateBegin'] = new 
-                    Zend_Date($criteria['year'], Zend_Date::YEAR);
-                $criteria['createdDateEnd'] = clone 
-                    $criteria['created_date_begin'];
+                    Zend_Date($params['year'], Zend_Date::YEAR);
+                $criteria['createdDateEnd'] = clone $criteria['createdDateBegin'];
                 $criteria['createdDateEnd']->add(1, Zend_Date::YEAR);
-                unset($criteria['year']);
             }
             $list = & $this->_poam->search($this->_me->systems, array(
                 'id',
@@ -248,6 +271,7 @@ class ReportController extends PoamBaseController
                 'status',
                 'action_suggested',
                 'action_planned',
+                'action_current_date',
                 'action_est_date',
                 'cmeasure',
                 'threat_source',
@@ -258,79 +282,87 @@ class ReportController extends PoamBaseController
                 'cmeasure_effectiveness',
                 'cmeasure_justification',
                 'blscr_id',
+                'duetime',
                 'count' => 'count(*)'), 
                 $criteria, $this->_paging['currentPage'], 
-                $this->_paging['perPage']);
+                $this->_paging['perPage'],
+                false);
             $total = array_pop($list);
             $this->_paging['totalItems'] = $total;
             $this->_paging['fileName'] = "{$this->_pagingBasePath}/p/%d";
             $pager = & Pager::factory($this->_paging);
+
+            $this->view->assign('poam', $this->_poam);
             $this->view->assign('poam_list', $list);
             $this->view->assign('links', $pager->getLinks());
         }
-        $this->render();
     }
     
     /**
      * overdueAction() - Overdue report
      */
-    public function overdueAction() {
+    public function overdueAction()
+    {
+        $this->_acl->requirePrivilege('report', 'generate_overdue_report');
+        
         // Get request variables
         $req = $this->getRequest();
-        $params = array(
-            'systemId' => 'system_id',
-            'sourceId' => 'source_id',
-            'overdueType' => 'overdue_type',
-            'overdueDay' => 'overdue_day',
-            'year' => 'year'
-        );
-        $criteria = $this->retrieveParam($req, $params);
+        $params['system_id'] = $req->getParam('system_id');
+        $params['source_id'] = $req->getParam('source_id');
+        $params['overdue_type'] = $req->getParam('overdue_type');
+        $params['overdue_day'] = $req->getParam('overdue_day');
+        $params['year'] = $req->getParam('year');
+
         $this->view->assign('source_list', $this->_sourceList);
         $this->view->assign('system_list', $this->_systemList);
-        $this->view->assign('criteria', $criteria);
+        $this->view->assign('network_list', $this->_networkList);
+        $this->view->assign('params', $params);
         $isExport = $req->getParam('format');
         
         if ('search' == $req->getParam('s') || isset($isExport)) {
+            $criteria = array();
+            if (!empty($params['system_id'])) {
+                $criteria['systemId'] = $params['system_id'];
+            }
+            if (!empty($params['source_id'])) {
+                $criteria['sourceId'] = $params['source_id'];
+            }
             // Setup the paging if necessary
             $this->_pagingBasePath.= '/panel/report/sub/overdue/s/search';
             if (isset($isExport)) {
                 $this->_paging['currentPage'] = null;
                 $this->_paging['perPage'] = null;
             }
-            $this->makeUrl($criteria);
+            $this->makeUrl($params);
             $this->view->assign('url', $this->_pagingBasePath);
             
             // Interpret the search criteria
-            if (isset($criteria['overdueType'])) {
-                $criteria['overdue']['type'] = $criteria['overdueType'];
-            }
-            if (isset($criteria['overdueDay'])) {
-                $criteria['overdue']['day'] = $criteria['overdueDay'];
-            }
-            if (!empty($criteria['year'])) {
-                $criteria['createdDateBegin'] =
-                    new Zend_Date($criteria['year'], Zend_Date::YEAR);
-                $criteria['createdDateEnd'] = 
-                    clone $criteria['createdDateBegin'];
+            if (!empty($params['year'])) {
+                $criteria['createdDateBegin'] = new Zend_Date($params['year'], Zend_Date::YEAR);
+                $criteria['createdDateEnd']   = clone $criteria['createdDateBegin'];
                 $criteria['createdDateEnd']->add(1, Zend_Date::YEAR);
-                unset($criteria['year']);
             }
-            if (!empty($criteria['overdue'])) {
-                $date = clone self::$now;
-                $date->sub(($criteria['overdue']['day'] - 1) * 30,
-                    Zend_Date::DAY);
-                $criteria['overdue']['end_date'] = clone $date;
-                $date->sub(30, Zend_Date::DAY);
-                $criteria['overdue']['begin_date'] = $date;
-                if ($criteria['overdue']['day'] == 5) {
-                    ///@todo hardcode greater than 120
-                    unset($criteria['overdue']['begin_date']);
+            if (!empty($params['overdue_type'])) {
+                $dateEnd = clone self::$now;
+                $dateEnd->sub(($params['overdue_day'] -1) * 30, Zend_Date::DAY);
+                $dateBegin = clone $dateEnd;
+                $dateBegin->sub(30, Zend_Date::DAY);
+
+                if ('sso' == $params['overdue_type']) {
+                    if ($params['overdue_day'] != 5) {
+                        $criteria['actualDateBegin'] = $dateBegin;
+                    }
+                    $criteria['actualDateEnd'] = $dateEnd;
+                } else if ('action' == $params['overdue_type']) {
+                    if ($params['overdue_day'] != 5) {
+                        $criteria['estDateBegin'] = $dateBegin;
+                    }
+                    $criteria['estDateEnd'] = $dateEnd;
                 }
             }
             
             // Search for overdue items according to the criteria
-            $list = $this->_poam->search(
-                $this->_me->systems,
+            $list = $this->_poam->search($this->_me->systems,
                 array(
                     'id',
                     'finding_data',
@@ -345,13 +377,14 @@ class ReportController extends PoamBaseController
                     'action_suggested',
                     'action_planned',
                     'threat_level',
+                    'action_current_date',
                     'action_est_date',
                     'count' => 'count(*)'
                 ),
                 $criteria,
                 $this->_paging['currentPage'],
-                $this->_paging['perPage']
-            );
+                $this->_paging['perPage'],
+                false);
                 
             // Last result is the total
             $total = array_pop($list);
@@ -363,7 +396,6 @@ class ReportController extends PoamBaseController
             $this->view->assign('poam_list', $list);
             $this->view->assign('links', $pager->getLinks());
         }
-        $this->render();
     }
 
     /**
@@ -371,6 +403,8 @@ class ReportController extends PoamBaseController
      */
     public function generalAction()
     {
+        $this->_acl->requirePrivilege('report', 'generate_general_report');
+        
         $req = $this->getRequest();
         $type = $req->getParam('type', '');
         $this->view->assign('type', $type);
@@ -404,6 +438,8 @@ class ReportController extends PoamBaseController
      * blscrAction() - Generate BLSCR report
      */
     public function blscrAction() {
+        $this->_acl->requirePrivilege('report', 'generate_general_report');
+        
         $db = $this->_poam->getAdapter();
         $system = new system();
         $rpdata = array();
@@ -440,21 +476,22 @@ class ReportController extends PoamBaseController
         ))->where("b.class = 'TECHNICAL'")->group("b.code");
         $rpdata[] = $db->fetchAll($query);
         $this->view->assign('rpdata', $rpdata);
-        $this->render();
     }
     
     /**
      * fipsAction() - FIPS report
      */
-    public function fipsAction() {
-        require_once('RiskAssessment.php');
-        $system = new system();
-        $systems = $system->getList(array(
+    public function fipsAction()
+    {
+        $this->_acl->requirePrivilege('report', 'generate_general_report');
+        
+        $sysObj = new System();
+        $systems = $sysObj->getList(array(
             'name' => 'name',
             'type' => 'type',
             'conf' => 'confidentiality',
             'avail' => 'availability',
-            'integ' => 'availability'
+            'integ' => 'integrity'
         ));
         $fipsTotals = array();
         $fipsTotals['LOW'] = 0;
@@ -463,9 +500,7 @@ class ReportController extends PoamBaseController
         $fipsTotals['n/a'] = 0;
         foreach ($systems as $sid => & $system) {
             if (strtolower($system['conf']) != 'none') {
-                $riskObj = new RiskAssessment($system['conf'],
-                    $system['avail'], $system['integ'], null, null, null);
-                $fips = $riskObj->get_data_sensitivity();
+                $fips = $sysObj->calcSecurityCategory($system['conf'], $system['integ'], $system['avail']);
             } else {
                 $fips = 'n/a';
             }
@@ -485,13 +520,15 @@ class ReportController extends PoamBaseController
         $rpdata[] = $systems;
         $rpdata[] = $fipsTotals;
         $this->view->assign('rpdata', $rpdata);
-        $this->render();
     }
     
     /**
      * prodsAction() - Generate products report
      */
-    public function prodsAction() {
+    public function prodsAction()
+    {
+        $this->_acl->requirePrivilege('report', 'generate_general_report');
+        
         $db = $this->_poam->getAdapter();
         $query = $db->select()->from(array(
             'prod' => 'products'
@@ -502,19 +539,21 @@ class ReportController extends PoamBaseController
             'NumoOV' => 'count(prod.id)'
         ))->join(array(
             'p' => 'poams'
-        ), 'p.status IN ("OPEN","EN","UP","ES")', array())->join(array(
+        ), 'p.status IN ("DRAFT","MSA", "EN","EP")', array())->join(array(
             'a' => 'assets'
         ), 'a.id = p.asset_id AND a.prod_id = prod.id', array())
             ->group("prod.vendor")->group("prod.name")->group("prod.version");
         $rpdata = $db->fetchAll($query);
         $this->view->assign('rpdata', $rpdata);
-        $this->render();
     }
     
     /**
      * swdiscAction() - Software discovered report
      */
-    public function swdiscAction() {
+    public function swdiscAction()
+    {
+        $this->_acl->requirePrivilege('report', 'generate_general_report');
+        
         $db = $this->_poam->getAdapter();
         $query = $db->select()->from(array(
             'p' => 'products'
@@ -527,13 +566,15 @@ class ReportController extends PoamBaseController
         ), 'a.source = "SCAN" AND a.prod_id = p.id', array());
         $rpdata = $db->fetchAll($query);
         $this->view->assign('rpdata', $rpdata);
-        $this->render();
     }
     
     /**
      * totalAction() - ???
      */
-    public function totalAction() {
+    public function totalAction()
+    {
+        $this->_acl->requirePrivilege('report', 'generate_general_report');
+        
         $db = $this->_poam->getAdapter();
         $system = new system();
         $rpdata = array();
@@ -545,7 +586,7 @@ class ReportController extends PoamBaseController
         ))->join(array(
             'p' => 'poams'
         ), 'p.type IN ("CAP","AR","FP") AND
-            p.status IN ("OPEN","EN","EP","ES") AND p.system_id = sys.id',
+            p.status IN ("DRAFT", "MSA", "EN", "EP") AND p.system_id = sys.id',
             array())->join(array(
             'a' => 'assets'
         ), 'a.id = p.asset_id', array())->group("p.system_id");
@@ -573,13 +614,13 @@ class ReportController extends PoamBaseController
         array_push($rpdata, $totalOpen);
         array_push($rpdata, $systemTotalArray);
         $this->view->assign('rpdata', $rpdata);
-        $this->render();
     }
     /**
      * rafsAction() - Batch generate RAFs for each system
      */
     public function rafsAction()
     {
+        $this->_acl->requirePrivilege('report', 'generate_system_rafs');
         $sid = $this->_req->getParam('system_id');
         $this->view->assign('system_list', $this->_systemList);
         if (!empty($sid)) {
@@ -592,37 +633,54 @@ class ReportController extends PoamBaseController
             $poamIds = $this->_poam->getAdapter()->fetchCol($query);
             $count = count($poamIds);
             if ($count > 0) {
-                $this->_helper->layout->disableLayout(true);
                 $fname = tempnam('/tmp/', "RAFs");
                 @unlink($fname);
                 $rafs = new Archive_Tar($fname, true);
-                $this->view->assign('source_list', $this->_sourceList);
                 $path = $this->_helper->viewRenderer
-                    ->getViewScript('raf', array(
-                    'controller' => 'remediation',
-                    'suffix' => 'pdf.phtml'
-                ));
-                foreach ($poamIds as $id) {
-                    $poamDetail = & $this->_poam->getDetail($id);
-                    $this->view->assign('poam', $poamDetail);
-                    $rafs->addString("raf_{$id}.pdf",
-                        $this->view->render($path));
+                        ->getViewScript('raf', array(
+                                        'controller' => 'remediation',
+                                        'suffix' => 'pdf.phtml'));
+                try {
+                    $system = new System();
+                    foreach ($poamIds as $id) {
+                        $poamDetail = & $this->_poam->getDetail($id);
+                        $this->view->assign('poam', $poamDetail);
+                        $ret = $system->find($poamDetail['system_id']);
+                        $actOwner = $ret->current()->toArray();
+                        $securityCategorization = $system->calcSecurityCategory($actOwner['confidentiality'],
+                                                                                $actOwner['integrity'],
+                                                                                $actOwner['availability']);
+                        if (NULL == $securityCategorization) {
+                            throw new Exception_General('The security categorization for ('.$actOwner['id'].')'.
+                                $actOwner['name'].' is not defined. An analysis of risk cannot be generated '.
+                                'unless these values are defined.');
+                        }
+                        $this->view->assign('securityCategorization', $securityCategorization);
+                        $rafs->addString("raf_{$id}.pdf", $this->view->render($path));
+                    }
+                    $this->_helper->layout->disableLayout(true);
+                    $this->_helper->viewRenderer->setNoRender();
+                    header("Content-type: application/octetstream");
+                    header('Content-Length: ' . filesize($fname));
+                    header("Content-Disposition: attachment; filename=RAFs.tgz");
+                    header("Content-Transfer-Encoding: binary");
+                    header("Expires: 0");
+                    header("Cache-Control: must-revalidate, post-check=0,".
+                        " pre-check=0");
+                    header("Pragma: public");
+                    echo file_get_contents($fname);
+                    @unlink($fname);
+                } catch (Exception_General $e) {
+                    if ($e instanceof Exception_General) {
+                        $message = $e->getMessage();
+                    }
+                    $this->message($message, self::M_WARNING);
                 }
-                header("Content-type: application/octetstream");
-                header('Content-Length: ' . filesize($fname));
-                header("Content-Disposition: attachment; filename=RAFs.tgz");
-                header("Content-Transfer-Encoding: binary");
-                header("Expires: 0");
-                header("Cache-Control: must-revalidate, post-check=0,".
-                    " pre-check=0");
-                header("Pragma: public");
-                echo file_get_contents($fname);
-                @unlink($fname);
             } else {
-                $this->render();
+                /** @todo english */
+                $this->message('No finding', self::M_WARNING);
+                $this->_forward('report','panel',null,array('sub' => 'rafs', 'system_id' => ''));
             }
-        } else {
-            $this->render();
         }
     }
     
@@ -633,43 +691,54 @@ class ReportController extends PoamBaseController
      */         
     public function pluginAction() 
     {
+        $this->_acl->requirePrivilege('report', 'read');
+        
         // Build up report menu
-        $reportsConfig = new Zend_Config_Ini(APPLICATION_CONFIGS . '/reports.conf');
+        $reportsConfig = new Zend_Config_Ini(APPLICATION_ROOT . '/application/config/reports.conf');
         $reports = $reportsConfig->toArray();
         $this->view->assign('reports', $reports);
-        $this->render();
     }
 
     /**
-     * pluginreportAction() - Execute and display the specified plug-in report
+     * pluginReportAction() - Execute and display the specified plug-in report
+     *
+     * @todo Need to implement Excel and PDF export options
      */         
-    public function pluginreportAction() 
+    public function pluginReportAction()
     {
+        $this->_acl->requirePrivilege('report', 'read');
+        
         // Verify a plugin report name was passed to this action
         $reportName = $this->_req->getParam('name');
         if (!isset($reportName)) {
-            $this->forward('plugin');
+            $this->_forward('plugin');
+            return;
         }
         
         // Verify that the user has permission to run this report
-        $reportConfig = new Zend_Config_Ini(APPLICATION_CONFIGS . '/reports.conf', $reportName);
-        $reportRoles = $reportConfig->roles;
-        $report = $reportConfig->toArray();
-        $reportRoles = $report['roles'];
-        if (!is_array($reportRoles)) {
-            $reportRoles = array($reportRoles);
-        }
-        $user = new User();
-        $role = $user->getRoles($this->_me->id);
-        $role = $role[0]['nickname'];
-        if (!in_array($role, $reportRoles)) {
-            throw new Exception_General("User \"{$this->_me->account}\" does not have permission to view"
-                                     . " the \"$reportName\" plug-in report.");
+        $reportConfig = new Zend_Config_Ini(APPLICATION_ROOT . '/application/config/reports.conf', $reportName);
+        if ($this->_me->account != 'root') {
+            $reportRoles = $reportConfig->roles;
+            $report = $reportConfig->toArray();
+            $reportRoles = $report['roles'];
+            if (!is_array($reportRoles)) {
+                $reportRoles = array($reportRoles);
+            }
+            $user = new User();
+            $role = $user->getRoles($this->_me->id);
+            $role = $role[0]['nickname'];
+            if (!in_array($role, $reportRoles)) {
+                throw new Exception_General("User \"{$this->_me->account}\" does not have permission to view"
+                                          . " the \"$reportName\" plug-in report.");
+            }
         }
         
         // Execute the report script
-        $reportScriptFile = APPLICATION_CONFIGS . "/reports/$reportName.sql";
+        $reportScriptFile = APPLICATION_ROOT . "/application/config/reports/$reportName.sql";
         $reportScriptFileHandle = fopen($reportScriptFile, 'r');
+        if (!$reportScriptFileHandle) {
+            throw new Exception_General("Unable to load plug-in report SQL file: $reportScriptFile");
+        }
         $reportScript = '';
         while (!feof($reportScriptFileHandle)) {
             $reportScript .= fgets($reportScriptFileHandle);
@@ -681,13 +750,13 @@ class ReportController extends PoamBaseController
         if (isset($reportData[0])) {
             $columns = array_keys($reportData[0]);
         } else {
-            // @todo replace with a user level error message and forward to pluginAction()
-            throw new Exception_General("No data for plugin report \"$reportName\"");
+            $msg = "The report could not be created because the report query did not return any data.";
+            $this->message($msg, self::M_WARNING);
+            $this->_forward('plugin');
+            return;
         } 
         $this->view->assign('title', $reportConfig->title);
         $this->view->assign('columns', $columns);
         $this->view->assign('rows', $reportData);
-        $this->render();
-
     }
 }

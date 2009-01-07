@@ -1,5 +1,4 @@
 <?php 
-    require_once( MODELS . '/Comments.php');
     $evidence = $this->ev;
     $evaluation = $this->eval;
     $comment = new Comments();
@@ -38,7 +37,6 @@
         $name = &$v['name'];
         if(isset($evaluation[$name])) {
             if( $evaluation[$name]['group'] != 'EVIDENCE' ) {
-                var_dump($evaluation[$name]);
                 continue;
             }
             $value = &$evaluation[$v['name']]['decision'];
@@ -53,15 +51,16 @@
         }
         echo  "<tr><td><b>$name:&nbsp;</b>";
         if($value=='NONE' && $editable){
-            if(Config_Fisma::isAllow('remediation',$v['function'])){
+            if($this->acl->isAllowed('remediation',$v['function'])){
                 echo '<input type="hidden" name="evaluation" value="'.$v['id'].'"/>';
                 echo '<input type="hidden" name="precedence" value="'.$v['precedence_id'].'"/>';
                 echo '<input type="hidden" name="topic" value="" />';
                 echo '<input type="hidden" name="reject" value="" />';
+                echo '<input type="hidden" name="comment" value="" />';
                 echo '<input type="hidden" name="decision" value="APPROVE" />';
                 echo '<input type="submit" value="APPROVE" />';
                 echo '<input type="button" value="DENY" '.
-                    'onclick="comment(document.eval_ev'.$evidence['id'].');" />';
+                    'onclick="ev_deny(document.eval_ev'.$evidence['id'].');" />';
             }else{
                 echo "$value </td>";
             }
@@ -74,7 +73,7 @@
                 $row = $comment->fetchRow('poam_evaluation_id = '.$evaluation[$name]['eval_id']);
                 echo "<td>";
                 if( !empty($row) ) {
-                    echo "<b>{$row->topic}</b>:{$row->content}";
+                    echo "<b>{$row->content}</b>";
                 }
                 echo " -- <i> by $username ON $date </i></td>";
             }
@@ -84,10 +83,3 @@
     ?>
     </table>
 </form>
-
-<div id='comment_dialog' style="display:none">
-Topic:
-<input type="text" name="topic" size=80 value="" />
-Justification:
-<textarea name="reason" rows="3" cols="76" ></textarea>
-</div>

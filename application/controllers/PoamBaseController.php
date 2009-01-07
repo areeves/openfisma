@@ -20,7 +20,7 @@
  * @author    Jim Chen <xhorse@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: PoamBaseController.php 940 2008-09-27 13:40:22Z ryanyang $
+ * @version   $Id$
  */
 
 /**
@@ -31,6 +31,7 @@
  * @license   http://www.openfisma.org/mw/index.php?title=License
  *
  * @todo Need to explain what the purpose of this controller is.
+ * @todo This is not a controller, why is it named PoamBaseController??
  */
 class PoamBaseController extends SecurityController
 {

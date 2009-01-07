@@ -20,7 +20,7 @@
  * @author    Jim Chen <xhorse@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: UserController.php 1087 2008-10-28 20:12:42Z ford_james $
+ * @version   $Id$
  */
 
 /**
@@ -38,21 +38,21 @@ class UserController extends MessageController
      * @var User
      */
     private $_user = null;
-    
+
     /**
      * The Zend_Auth identity corresponding to the current user.
      *
      * @var Zend_Auth
      */
     private $_me = null;
-    
+
     /**
      * The message displayed to the user when their e-mail address needs validation.
      */
     const VALIDATION_MESSAGE = "<br />Because you changed your e-mail address, we have sent you a confirmation message.
                                 <br />You will need to confirm the validity of your new e-mail address before you will
                                 receive any e-mail notifications.";
-    
+
     /**
      * init() - Initialize internal data structures.
      */         
@@ -61,7 +61,7 @@ class UserController extends MessageController
         $this->_user = new User();
         $this->_me = Zend_Auth::getInstance()->getIdentity();
     }
-    
+
     /**
      * loginAction() - Handles user login, verifying the password, etc.
      */
@@ -70,12 +70,15 @@ class UserController extends MessageController
         $req = $this->getRequest();
         $username = $req->getPost('username');
         $password = $req->getPost('userpass');
-        
+
         // If the username isn't passed in the post variables, then just display
         // the login screen without any further processing.
         $this->_helper->layout->setLayout('login');
         if ( empty($username) ) {
             return $this->render();
+        } else {
+            $this->view->username = $username;
+            $this->view->password = $password;
         }
 
         try {
@@ -83,93 +86,75 @@ class UserController extends MessageController
              * @todo Fix this SQL injection
              */
             $whologin = $this->_user->fetchRow("account = '$username'");
+            $now = new Zend_Date();
 
             // If the username isn't found, throw an exception
             if (empty($whologin)) {
-                $this->_user->log(User::LOGINFAILURE, '',
-                    "This username does not exist: ".$username);
+                $this->_user->log('LOGINFAILURE', '', 'Failure');
                 throw new Zend_Auth_Exception("Incorrect username or password");
             }
-            
+
+            $threshold['failure'] = Config_Fisma::readSysConfig("failure_threshold");
             $whologin = $whologin->toArray();
 
+            $failureCount = $whologin['failure_count'];
+            $isQualified = $whologin['is_active'];
             // If the account is locked...
             // (due to manual lock, expired account, password errors, etc.)
-            if ( ! $whologin['is_active'] && 'database' == Config_Fisma::readSysConfig('auth_type')) {
-                $unlockEnabled = Config_Fisma::readSysConfig('unlock_enabled');
-                if (1 == intval($unlockEnabled)) {
-                    $unlockDuration = Config_Fisma::readSysConfig('unlock_duration');
-
-                    // If the system administrator has elected to have accounts
-                    // unlock automatically, then calculate how much time is
-                    // left on the lock.
-                    $now = new Zend_Date();
-                    $terminationTs = new Zend_Date($whologin['termination_ts']);
-                    $terminationTs->add($unlockDuration, Zend_Date::SECOND);
-                    $unlockRemaining = clone $terminationTs;
-                    $unlockRemaining->sub($now);
-                    $minutesRemaining = ceil($unlockRemaining->getTimestamp() / 60);
-
-                    if ($terminationTs->isEarlier($now)) {
-                        $updateData =
-                        $this->_user->update(array('is_active'=>1,
-                                                   'failure_count'=>0,
-                                                   'termination_ts'=>NULL),
-                                                   'id  = '.$whologin['id']);
-                    } else {
-                        throw new Zend_Auth_Exception('Your user account has been locked due to'
-                                                    . Config_Fisma::readSysConfig("failure_threshold")
-                                                    . ' or more unsuccessful login attempts. Your account will be'
-                                                    . " unlocked in $minutesRemaining minutes. Please try again at that"
-                                                    . 'time.');
+            if ('database' == Config_Fisma::readSysConfig('auth_type')) {
+                if (!$isQualified) {
+                    if ($failureCount >= $threshold['failure']) {
+                        if (Config_Fisma::readSysConfig('unlock_enabled')) {
+                            $unlockDuration = Config_Fisma::readSysConfig('unlock_duration');
+                            // If the system administrator has elected to have accounts
+                            // unlock automatically, then calculate how much time is
+                            // left on the lock.
+                            $terminationTs = new Zend_Date($whologin['termination_ts'], Zend_Date::ISO_8601);
+                            $terminationTs->add($unlockDuration, Zend_Date::SECOND);
+                            //beyond the time limited, unlock automatically
+                            if ($terminationTs->isLater($now)) {
+                                $reincarnation = clone $now;
+                                $terminationTs->sub($now);
+                                throw new Zend_Auth_Exception('Your user account has been locked due to '
+                                . $threshold['failure']
+                                . " or more unsuccessful login attempts. Your account will be"
+                                . " unlocked in ".ceil($terminationTs->getTimestamp()/60)
+                                . " minutes. Please try again at that time.<br>"
+                                . " You may also contact the Administrator for further assistance.");
+                            } else {
+                                $array = array('is_active'=>1, 'failure_count'=>0);
+                                $this->_user->update($array, 'id = '.$whologin['id']);
+                            }
+                            $isQualified = true;
+                        } else {
+                            throw new Zend_Auth_Exception('Your user account has been locked due to '
+                            . $threshold['failure']
+                            . ' or more unsuccessful login attempts. Please contact the'
+                            . ' <a href="mailto:'. Config_Fisma::readSysConfig('contact_email')
+                            . '">Administrator</a>.');
+                        }
+                    } else { //administrator manually lock it
+                        throw new Zend_Auth_Exception('Your account has been locked by the Administrator. '
+                        . 'Please contact the'
+                        . ' <a href="mailto:'. Config_Fisma::readSysConfig('contact_email')
+                        . '">Administrator</a>.');
                     }
-                } else {
-                    // If accounts are not unlocked automatically on this
-                    // system, then let the user know that they need to contact
-                    // the administrator.
-                    throw new Zend_Auth_Exception('Your account has been locked due to '
-                                                . Config_Fisma::readSysConfig("failure_threshold")
-                                                . ' or more unsuccessful login attempts. Please contact the'
-                                                . ' <a href="mailto:'
-                                                . Config_Fisma::readSysConfig('contact_email')
-                                                . '">Administrator</a>.');
-                }
-            }
+                }//deactive policy
+            } // database password policy
 
             // Proceed through authorization based on the configured mechanism
             // (LDAP, Database, etc.)
             $authType = Config_Fisma::readSysConfig('auth_type');
             $auth = Zend_Auth::getInstance();
             $result = $this->authenticate($authType, $username, $password);
-            
-            if (!$result->isValid()) {
-                $this->_user->log(User::LOGINFAILURE,
-                                  $whologin['id'],
-                                  'Password Error');
-                $notification = new Notification();
-                $notification->add(Notification::ACCOUNT_LOGIN_FAILURE,
-                                   null,
-                                   "User: {$whologin['account']}");
 
-                if ($whologin['failure_count'] >= Config_Fisma::readSysConfig('failure_threshold') - 1) {
-                    $this->_user->log(User::TERMINATION,
-                                      $whologin['id'],
-                                      'Account locked');
-                    $notification = new Notification();
-                    $notification->add(Notification::ACCOUNT_LOCKED,
-                                       null,
-                                       "User: {$whologin['account']}");
-                    throw new Zend_Auth_Exception('Your account has been locked due to '
-                                                . Config_Fisma::readSysConfig("failure_threshold")
-                                                . ' or more unsuccessful login attempts. Please contact the'
-                                                . ' <a href="mailto:'
-                                                . Config_Fisma::readSysConfig('contact_email')
-                                                . '">Administrator</a>.');
-                }
-                
+            if (!$result->isValid()) {
+                $this->_user->log('LOGINFAILURE',
+                $whologin['id'],
+                'Failure');
                 throw new Zend_Auth_Exception("Incorrect username or password");
             }
-            
+
             // At this point, the user is authenticated.
             // Now check if the account has expired.
             $_me = (object)$whologin;
@@ -177,22 +162,18 @@ class UserController extends MessageController
             $deactiveTime = new Zend_Date();
             $deactiveTime->sub($period, Zend_Date::DAY);
             $lastLogin = new Zend_Date($whologin['last_login_ts'],
-                                       'YYYY-MM-DD HH-MI-SS');
+            'YYYY-MM-DD HH-MI-SS');
 
             if ( !$lastLogin->equals(new Zend_Date('0000-00-00 00:00:00')) && $lastLogin->isEarlier($deactiveTime) ) {
+                $this->_user->log('ACCOUNT_LOCKOUT', $_me->id, "User Account $_me->account Successfully Locked");
                 throw new Zend_Auth_Exception("Your account has been locked because you have not logged in for $period"
-                                            . "or more days. Please contact the <a href=\"mailto:"
-                                            . Config_Fisma::readSysConfig('contact_email')
-                                            . '">Administrator</a>.');
+                . "or more days. Please contact the <a href=\"mailto:"
+                . Config_Fisma::readSysConfig('contact_email')
+                . '">Administrator</a>.');
             }
-            
-            // If we get this far, then the login is totally successful.
-            $this->_user->log(User::LOGIN, $_me->id, "Success");
-            $notification = new Notification();
-            $notification->add(Notification::ACCOUNT_LOGIN_SUCCESS,
-                               $whologin['account'],
-                               "UserId: {$whologin['id']}");
 
+            // If we get this far, then the login is totally successful.
+            $this->_user->log('LOGIN', $_me->id, "Success");
             // Initialize the Access Control
             $nickname = $this->_user->getRoles($_me->id);
             foreach ($nickname as $n) {
@@ -201,29 +182,60 @@ class UserController extends MessageController
             if (empty( $_me->roleArray )) {
                 $_me->roleArray[] = $_me->account . '_r';
             }
-            $_me->systems = $this->_user->getMySystems($_me->id);
-            
+
             // Set up the session timeout
             $store = $auth->getStorage();
             $exps = new Zend_Session_Namespace($store->getNamespace());
             $exps->setExpirationSeconds(Config_Fisma::readSysConfig('expiring_seconds'));
             $store->write($_me);
-            
-            // Check to see if the user needs to review the rules of behavior.
-            // If they do, then send them to that page. Otherwise, send them to
-            // the dashboard.
-            $nextRobReview = new Zend_Date($whologin['last_rob'], 'Y-m-d');
-            $nextRobReview->add(Config_Fisma::readSysConfig('rob_duration'), Zend_Date::DAY);
-            $now = new Zend_Date();
-            if ($now->isEarlier($nextRobReview)) {
-                $this->_forward('index', 'Panel');
+
+            //check password expire
+            $passExpirePeriod = Config_Fisma::readSysConfig('pass_expire');
+            $passwordTs = new Zend_Date($whologin['password_ts'], 'Y-m-d');
+            $passwordTs->add($passExpirePeriod-3, Zend_Date::DAY); //show warning advance 3 days
+            if ($now->isLater($passwordTs)) {
+                $passwordTs->add(3, Zend_Date::DAY);
+                $passwordTs->sub($now);
+                $leaveDays = intval($passwordTs->get('DAY'));
+                if ($leaveDays <= 3) {
+                    $message = "Your password will expire in $leaveDays days, ".
+                    " you may change it here.";
+                    $model = self::M_WARNING;
+                    $this->message($message, $model);
+                    // redirect back to password change action
+                    $this->_helper->_actionStack('header', 'Panel');
+                    $this->_forward('password');
+                } else {
+                    $this->_user->log('ACCOUNT_LOCKOUT',
+                    $_me->id,
+                    "User Account $_me->account Successfully Locked");
+                    throw new Zend_Auth_Exception('Your user account has been locked because you have not'
+                    . " changed your password for $passExpirePeriod or more days."
+                    . ' Please contact the'
+                    . ' <a href="mailto:'. Config_Fisma::readSysConfig('contact_email')
+                    . '">Administrator</a>.');
+                }
+            } else if ('md5' == $whologin['hash']) {
+                $message = 'This version of the application uses an improved password storage scheme.'
+                . ' You will need to change your password in order to upgrade your account.';
+                $this->message($message, self::M_WARNING);
+                $this->_helper->_actionStack('header', 'Panel');
+                $this->_forward('password');
             } else {
-                $this->_helper->layout->setLayout('notice');
-                return $this->render('rule');
+                // Check to see if the user needs to review the rules of behavior.
+                // If they do, then send them to that page. Otherwise, send them to
+                // the dashboard.
+                $nextRobReview = new Zend_Date($whologin['last_rob'], 'Y-m-d');
+                $nextRobReview->add(Config_Fisma::readSysConfig('rob_duration'), Zend_Date::DAY);
+                if ($now->isEarlier($nextRobReview)) {
+                    $this->_forward('index', 'Panel');
+                } else {
+                    $this->_helper->layout->setLayout('notice');
+                    return $this->render('rule');
+                }
             }
         } catch(Zend_Auth_Exception $e) {
             $this->view->assign('error', $e->getMessage());
-            $this->render();
         }
     }
 
@@ -235,7 +247,7 @@ class UserController extends MessageController
         $now = new Zend_Date();
         $nowSqlString = $now->toString('Y-m-d H:i:s');
         $this->_user->update(array('last_rob'=>$nowSqlString), 'id = '.$this->_me->id);
-        $this->_user->log(User::ROB_ACCEPT, $this->_me->id, 'accept ROB');
+        $this->_user->log('ROB_ACCEPT', $this->_me->id, 'accept ROB');
         $this->_forward('index', 'Panel');
     }
 
@@ -244,7 +256,7 @@ class UserController extends MessageController
      */
     public function logoutAction() {
         if (!empty($this->_me)) {
-            $this->_user->log(User::LOGOUT, $this->_me->id, $this->_me->account . ' logout');
+            $this->_user->log('LOGOUT', $this->_me->id, 'Success');
             $notification = new Notification();
             $notification->add(Notification::ACCOUNT_LOGOUT, null, "User: {$this->_me->account}");
             Zend_Auth::getInstance()->clearIdentity();
@@ -283,21 +295,20 @@ class UserController extends MessageController
         // Profile Form
         $form = $this->getprofileForm();
         $query = $this->_user
-                      ->select()->setIntegrityCheck(false)
-                      ->from('users',
-                             array('name_last',
-                                   'name_first',
-                                   'phone_office',
-                                   'phone_mobile',
-                                   'email',
-                                   'title'))
-                      ->where('id = ?', $this->_me->id);
+        ->select()->setIntegrityCheck(false)
+        ->from('users',
+        array('name_last',
+        'name_first',
+        'phone_office',
+        'phone_mobile',
+        'email',
+        'title'))
+        ->where('id = ?', $this->_me->id);
         $userProfile = $this->_user->fetchRow($query)->toArray();
         $form->setAction("/panel/user/sub/updateprofile");
         $form->setDefaults($userProfile);
         $this->view->assign('form', Form_Manager::prepareForm($form));
 
-        $this->render();
     }
 
     /**
@@ -308,13 +319,13 @@ class UserController extends MessageController
         // Load the change password file
         $passwordForm = Form_Manager::loadForm('change_password');
         $passwordForm = Form_Manager::prepareForm($passwordForm);
-        
+
         // Prepare the password requirements explanation:
         $requirements[] = "Length must be between "
-                        . Config_Fisma::readSysConfig('pass_min')
-                        . " and "
-                        . Config_Fisma::readSysConfig('pass_max')
-                        . " characters long.";
+        . Config_Fisma::readSysConfig('pass_min')
+        . " and "
+        . Config_Fisma::readSysConfig('pass_max')
+        . " characters long.";
         if (Config_Fisma::readSysConfig('pass_uppercase') == 1) {
             $requirements[] = "Must contain at least 1 upper case character (A-Z)";
         }
@@ -330,8 +341,6 @@ class UserController extends MessageController
 
         $this->view->assign('requirements', $requirements);
         $this->view->assign('form', $passwordForm);
-        
-        $this->render();
     }
 
     /**
@@ -352,8 +361,6 @@ class UserController extends MessageController
 
         $this->view->availableList = array_diff($allEvent, $enabledEvent);
         $this->view->enableList = array_intersect($allEvent, $enabledEvent);
-
-        $this->render();
     }
 
     /**
@@ -377,11 +384,13 @@ class UserController extends MessageController
             $ret = $this->_user->update($profileData, 'id = '.$this->_me->id);
             if ($ret == 1) {
                 $this->_user
-                     ->log(User::MODIFICATION, $this->_me->id, "{$this->_me->account} Profile Modified");
+                ->log('ACCOUNT_MODIFICATION',
+                $this->_me->id,
+                "User Account {$this->_me->account} Successfully Modified");
                 $msg = "Profile modified successfully.";
 
                 if ($originalEmail != $profileData['email']
-                    && empty($notifyEmail)) {
+                && empty($notifyEmail)) {
                     $this->_user->update(array('email_validate'=>0), 'id = '.$this->_me->id);
                     $this->emailvalidate($this->_me->id, $profileData['email'], 'update');
                     $msg .= self::VALIDATION_MESSAGE;
@@ -390,7 +399,7 @@ class UserController extends MessageController
                 $this->message($msg, self::M_NOTICE);
             } else {
                 $this->message("Unable to update account. ($ret)",
-                    self::M_WARNING);
+                self::M_WARNING);
             }
         } else {
             /**
@@ -400,7 +409,7 @@ class UserController extends MessageController
              */
             $errorString = '';
             foreach ($form->getMessages() as $field => $fieldErrors) {
-                if (count($fieldErrors > 0)) {
+                if (count($fieldErrors) > 0) {
                     foreach ($fieldErrors as $error) {
                         $label = $form->getElement($field)->getLabel();
                         $errorString .="$label: $error<br>";
@@ -431,7 +440,7 @@ class UserController extends MessageController
         }
         $event->saveEnabledEvents($this->_me->id, $data['enableEvents']);
         $notifyData = array('notify_frequency' => $data['notify_frequency'],
-                            'notify_email' => $data['notify_email']);
+        'notify_email' => $data['notify_email']);
         $ret = $this->_user->update($notifyData, "id = " . $this->_me->id);
         if ($ret > 0 || 0 == $ret) {
             $msg = "Notification events modified successfully.";
@@ -444,7 +453,7 @@ class UserController extends MessageController
 
         if ($originalEmail != $data['notify_email'] && $data['notify_email'] != '') {
             $this->_user
-                 ->update(array('email_validate'=>0), 'id = ' . $this->_me->id);
+            ->update(array('email_validate'=>0), 'id = ' . $this->_me->id);
             $this->_emailvalidate($this->_me->id, $data['notify_email'], 'update');
             $msg .= self::VALIDATION_MESSAGE;
         }
@@ -454,7 +463,7 @@ class UserController extends MessageController
         $this->_forward('notifications');
     }
 
-        
+
     /**
      * pwdchangeAction() - Handle any edits to a user's profile settings.
      *
@@ -464,12 +473,15 @@ class UserController extends MessageController
     public function pwdchangeAction()
     {
         $req = $this->getRequest();
+        $userRow = $this->_user->find($this->_me->id)->current();
         if ('save' == $req->getParam('s')) {
             $post = $req->getPost();
             $passwordForm = Form_Manager::loadForm('change_password');
             $passwordForm = Form_Manager::prepareForm($passwordForm);
+            $oldPassword = $passwordForm->getElement('oldPassword');
+            $oldPassword->addValidator(new Form_Validator_PasswdMatch($userRow));
             $password = $passwordForm->getElement('newPassword');
-            $password->addValidator(new Form_Validator_Password());
+            $password->addValidator(new Form_Validator_Password($userRow));
             $formValid = $passwordForm->isValid($post);
             if (!$formValid) {
                 /**
@@ -479,7 +491,7 @@ class UserController extends MessageController
                 */
                 $errorString = '';
                 foreach ($passwordForm->getMessages() as $field => $fieldErrors) {
-                    if (count($fieldErrors>0)) {
+                    if (count($fieldErrors)>0) {
                         foreach ($fieldErrors as $error) {
                             $label = $passwordForm->getElement($field)->getLabel();
                             $errorString .= "$label: $error<br>";
@@ -490,23 +502,22 @@ class UserController extends MessageController
                 $msg = "Unable to change password:<br>".$errorString;
                 $model = self::M_WARNING;
             } else {
-                $newPass = Config_Fisma::encrypt($req->newPassword);
-                $ret = $this->_user->find($this->_me->id)->current();
-                $historyPass = $ret->historyPassword;
-                if (strpos($historyPass, $ret->password) > 0) {
-                    $historyPass = ':' . $newPass . $historyPass;
-                } else {
-                    $historyPass = ':' . $newPass . ':' . $ret->password . $historyPass;
+                $newPass = $this->_user->digest($req->newPassword);
+                $historyPass = $userRow->historyPassword;
+                $count = substr_count($historyPass, ':');
+                if (3 == $count) {
+                    $historyPass = substr($historyPass, 0, -strlen(strrchr($historyPass, ':')));
                 }
-                $historyPass = substr($historyPass, 0, 99);
+                $historyPass = ':' . $userRow->password . $historyPass;
                 $now = date('Y-m-d H:i:s');
                 $data = array(
-                    'password' => $newPass,
-                    'history_password' => $historyPass,
-                    'password_ts' => $now
+                'password' => $newPass,
+                'hash'     => Config_Fisma::readSysConfig('encrypt'),
+                'history_password' => $historyPass,
+                'password_ts' => $now
                 );
                 $result = $this->_user->update($data,
-                    'id = ' . $this->_me->id);
+                'id = ' . $this->_me->id);
                 if (!$result) {
                     $msg = 'Failed to change the password';
                     $model = self::M_WARNING;
@@ -517,10 +528,9 @@ class UserController extends MessageController
             }
             $this->message($msg, $model);
         }
-        $this->_helper->actionStack('header', 'Panel');
         $this->_forward('password');
     }
-    
+
     /**
      * authenticate() - Authenticate the user against LDAP or backend database.
      *
@@ -544,10 +554,10 @@ class UserController extends MessageController
             $authAdapter = new Zend_Auth_Adapter_Ldap($data, $username, $password);
         } else if ($type == 'database') {
             $authAdapter = new Zend_Auth_Adapter_DbTable($db, 'users', 'account', 'password');
-            $encryptPass = Config_Fisma::encrypt($password);
-            $authAdapter->setIdentity($username)->setCredential($encryptPass);
+            $digestPass = $this->_user->digest($password, $username);
+            $authAdapter->setIdentity($username)->setCredential($digestPass);
         }
-        
+
         $auth = Zend_Auth::getInstance();
         return $auth->authenticate($authAdapter);
     }
@@ -559,7 +569,6 @@ class UserController extends MessageController
      */
     public function privacyAction()
     {
-        $this->render();
     }
 
     /**
@@ -571,7 +580,6 @@ class UserController extends MessageController
      */
     public function robAction()
     {
-        $this->render();
     }
 
     /**
@@ -587,25 +595,24 @@ class UserController extends MessageController
         $notifyEmail = $ret->current()->notify_email;
         $email = !empty($notifyEmail)?$notifyEmail:$userEmail;
         $query = $this->_user
-                      ->getAdapter()
-                      ->select()
-                      ->from('validate_emails', 'validate_code')
-                      ->where('user_id = ?', $userId)
-                      ->where('email = ?', $email)
-                      ->order('id DESC');
+        ->getAdapter()
+        ->select()
+        ->from('validate_emails', 'validate_code')
+        ->where('user_id = ?', $userId)
+        ->where('email = ?', $email)
+        ->order('id DESC');
         $ret = $this->_user->getAdapter()->fetchRow($query);
         if ($this->_request->getParam('code') == $ret['validate_code']) {
             $this->_user->getAdapter()->delete('validate_emails', 'user_id = '.$userId);
             $this->_user->update(array('email_validate'=>1), 'id = '.$userId);
             $msg = "Your e-mail address has been validated. You may close this window or click <a href='http://"
-                 . $_SERVER['HTTP_HOST']
-                 . "'>here</a> to go back to "
-                 . Config_Fisma::readSysConfig('system_name')
-                 . '.';
+            . $_SERVER['HTTP_HOST']
+            . "'>here</a> to enter "
+            . Config_Fisma::readSysConfig('system_name')
+            . '.';
         } else {
             $msg = "Error: Your e-mail address can not be confirmed. Please contact an administrator.";
         }
         $this->view->msg = $msg;
-        $this->render();
     }
 }

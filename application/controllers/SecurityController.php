@@ -20,7 +20,7 @@
  * @author    Jim Chen <xhorse@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: SecurityController.php 993 2008-10-15 09:36:49Z xhorse $
+ * @version   $Id$
  */
 
 /**
@@ -31,8 +31,7 @@
  * @license   http://www.openfisma.org/mw/index.php?title=License
  *
  * @todo Write a description of what this class does in the comments.
- * @todo The includes on this file are probably excessive. Clean out any
- * includes which aren't necessary.
+ * @todo This isn't a controller! Why is it called Security Controller?
  */
 class SecurityController extends MessageController
 {
@@ -40,6 +39,11 @@ class SecurityController extends MessageController
      authenticated user instance
      */
     protected $_me = null;
+    /**
+     * role instance
+     *
+     */
+    protected $_acl = null;
     /**
      * rules to sanity check the data
      */
@@ -76,15 +80,17 @@ class SecurityController extends MessageController
             // refresh the expiring timer
             $exps = new Zend_Session_Namespace($store->getNamespace());
             $exps->setExpirationSeconds(Config_Fisma::readSysConfig('expiring_seconds'));
-            $this->initializeAcl($this->_me->id);
+            $this->_acl = $this->initializeAcl($this->_me->id);
+            $user = new User();
+            $this->_me->systems = $user->getMySystems($this->_me->id);
             if (isset($this->_sanity['data'])) {
                 $this->_validator = new Zend_Filter_Input(
                     $this->_sanity['filter'], $this->_sanity['validator'],
                     $this->_request->getParam($this->_sanity['data']));
             }
         }
-
         $this->_notification = new Notification();
+        $this->view->assign('acl', $this->_acl);
     }
 
     public function preDispatch()
@@ -104,7 +110,7 @@ class SecurityController extends MessageController
     protected function initializeAcl($uid)
     {
         if (!Zend_Registry::isRegistered('acl')) {
-            $acl = new Zend_Acl();
+            $acl = new Fismacl();
             $db = Zend_Registry::get('db');
             $query = $db->select()->from(array(
                 'r' => 'roles'

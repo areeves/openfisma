@@ -20,7 +20,7 @@
  * @author    Chris Chen <chriszero@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: MetainfoController.php 997 2008-10-16 07:52:41Z chriszero $
+ * @version   $Id$
  */
  
 /**
@@ -80,6 +80,5 @@ class MetainfoController extends PoamBaseController
                 $list[$this->view->selected]:'CAP';
         }
         $this->view->list = $list;
-        $this->render();
     }
 }

@@ -20,7 +20,7 @@
  * @author    Jim Chen <xhorse@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: PanelController.php 1070 2008-10-22 23:24:00Z ford_james $
+ * @version   $Id$
  */
  
 /**
@@ -34,6 +34,11 @@
  */
 class PanelController extends SecurityController
 {
+    public function preDispatch()
+    {
+        parent::preDispatch();
+        $this->_helper->viewRenderer->setNoRender();
+    }
     /** Alias of dashboardAction
      */
     public function indexAction()
@@ -42,16 +47,13 @@ class PanelController extends SecurityController
     }
     public function headerAction()
     {
-        $this->_helper->layout->assign('header',
-            $this->view->render($this->_helper->viewRenderer->getViewScript()));
         $this->_helper->layout->setLayout('layout');
         $this->_helper->actionStack('footer');
+        $this->render('header', 'header');
     }
-
     public function footerAction()
     {
-        $this->_helper->layout->assign('footer',
-            $this->view->render($this->_helper->viewRenderer->getViewScript()));
+        $this->render('footer', 'footer');           
     }
 
     public function dashboardAction()
@@ -166,6 +168,14 @@ class PanelController extends SecurityController
         $sub = $req->getParam('sub');
         $this->_helper->actionStack($sub, 'Role');
         $this->_helper->actionStack('searchbox', 'Role');
+        $this->_helper->actionStack('header');
+    }
+    public function logAction()
+    {
+        $req = $this->getRequest();
+        $sub = $req->getParam('sub');
+        $this->_helper->actionStack($sub, 'Log');
+        $this->_helper->actionStack('searchbox', 'Log');
         $this->_helper->actionStack('header');
     }
 }

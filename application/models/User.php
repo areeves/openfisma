@@ -20,7 +20,7 @@
  * @author    Jim Chen <xhorse@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: User.php 1043 2008-10-21 10:38:28Z xhorse $
+ * @version   $Id$
  */
 
 /**
@@ -47,16 +47,9 @@ class User extends FismaModel
                                                'field' => 'system_id'),
                             self::ROLE => array('table' => 'user_roles',
                                                 'field' => 'role_id'));
-    const SYS = 'system';
-    const ROLE = 'role';
-    const CREATION = 'creation';
-    const MODIFICATION = 'modification';
-    const DISABLING = 'disabling';
-    const TERMINATION = 'termination';
-    const LOGINFAILURE = 'loginfailure';
-    const LOGIN = 'login';
-    const LOGOUT = 'logout';
-    const ROB_ACCEPT = 'rob_accept';
+    const SYS = 'SYSTEM';
+    const ROLE = 'ROLE';
+
     public function init ()
     {
         $writer = new Zend_Log_Writer_Db($this->_db, $this->_logName,
@@ -117,7 +110,7 @@ class User extends FismaModel
     /** 
      * Log any creation, modification, disabling and termination of account.
      *
-     * @param $type constant {CREATION,MODIFICATION,DISABLING,TERMINATION,
+     * @param $type constant {ACCOUNT_CREATED,ACCOUNT_MODIFICATION,ACCOUNT_LOCKOUT,DISABLING,ACCOUNT_DELETED,
      *                  LOGIN,LOGINFAILURE,LOGOUT, ROB_ACCEPT}
      * @param $uid int action taken user id
      * @param $extra_msg string extra message to be logged.
@@ -127,39 +120,57 @@ class User extends FismaModel
      * function. It is completely unmaintainable.
      */
     public function log ($type, $uid, $msg = null) {
-        assert(in_array($type, array(self::CREATION,
-                                     self::MODIFICATION,
-                                     self::DISABLING,
-                                     self::TERMINATION,
-                                     self::LOGINFAILURE,
-                                     self::LOGIN,
-                                     self::LOGOUT,
-                                     self::ROB_ACCEPT)));
+        $log = new Log();
+        $types = $log->getEnumColumns('event');
+        assert(in_array($type, $types));
         assert(is_string($msg));
         assert($this->_logger);
         if ( !empty($uid) ) {
             $rows = $this->find($uid);
             $row = $rows->current();
+            $account = $row->account;
+            
             $now = new Zend_Date();
+            $notification = new Notification();
             $nowSqlString = $now->get('Y-m-d H:i:s');
-            if ($type == self::LOGINFAILURE) {
-                $row->failureCount++;
-                if ($row->failureCount >= Config_Fisma::readSysConfig('failure_threshold')) {
-                    $row->terminationTs = $nowSqlString;
-                    $row->isActive = 0;
-                }
-                $row->save();
-            } else if ($type == self::LOGIN) {
+            
+             if ($type == 'LOGIN') {
                 $row->failureCount = 0;
                 $row->lastLoginTs = $nowSqlString;
                 $row->lastLoginIp = $_SERVER["REMOTE_ADDR"];
                 $row->mostRecentNotifyTs = $nowSqlString;
+                $row->isActive = 1; // in case user is locked.
+                $row->save();
+                $notification->add(Notification::ACCOUNT_LOGIN_SUCCESS,
+                   $account, "UserId: {$uid}");
+            } else if ($type == 'LOGINFAILURE') {
+                $type = 'LOGIN';
+                $notification->add(Notification::ACCOUNT_LOGIN_FAILURE,
+                                   null, "User: {$account}");
+                $row->failureCount++;
+                if ('database' ==  Config_Fisma::readSysConfig('auth_type')
+                    && $row->failureCount >= Config_Fisma::readSysConfig('failure_threshold')) {
+                    $row->terminationTs = $nowSqlString;
+                    $row->isActive = 0;
+                    $notification->add(Notification::ACCOUNT_LOCKED,
+                        null, "User: {$account}");
+                    $this->_logger->setEventItem('uid', $uid);
+                    $this->_logger->setEventItem('type', 'ACCOUNT_LOCKOUT');
+                    $this->_logger->info("User Account $account Successfully Locked");
+                }
+                $row->save();
+            } else if ($type == 'ACCOUNT_LOCKOUT') {
+                $row->terminationTs = $nowSqlString;
+                $row->isActive = 0;
+                $row->failureCount = 0;
+                $notification->add(Notification::ACCOUNT_LOCKED,
+                        null, "User: {$account}");
                 $row->save();
             }
+            $this->_logger->setEventItem('uid', $uid);
+            $this->_logger->setEventItem('type', $type); 
+            $this->_logger->info($msg);
         }
-        $this->_logger->setEventItem('uid', $uid);
-        $this->_logger->setEventItem('type', $type);
-        $this->_logger->info($msg);
     }
     
     /**
@@ -193,5 +204,34 @@ class User extends FismaModel
             }
         }
         return $ret;
+    }
+
+   /**
+    * Generate the desired hash of a password
+    *
+    * @param string $password password
+    * @param string $account account name
+    * @return string digest password
+    */
+    public function digest($password, $account=null) {
+        if ($account !== null) {
+            $row = $this->fetchRow("account = '$account'");
+            assert(count($row)==1);
+            if ('md5' == $row->hash) {  //md5 hash always get 128 bits,i.e. 32 hex digits
+                //keep the old hash algorithm
+                return md5($password);
+            }
+        }
+        $digestType = Config_Fisma::readSysConfig('encrypt');
+        if ('sha1' == $digestType) {
+            return sha1($password);
+        }
+        if ('sha256' == $digestType) {
+            $key = self::readSysConfig('encryptKey');
+            $cipher_alg = MCRYPT_TWOFISH;
+            $iv=mcrypt_create_iv(mcrypt_get_iv_size($cipher_alg,MCRYPT_MODE_ECB), MCRYPT_RAND);
+            $digestPassword = mcrypt_encrypt($cipher_alg, $key, $password, MCRYPT_MODE_CBC, $iv);
+            return $digestPassword;
+        }
     }
 }

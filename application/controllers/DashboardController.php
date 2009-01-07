@@ -20,7 +20,7 @@
  * @author    Jim Chen <xhorse@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: DashboardController.php 940 2008-09-27 13:40:22Z ryanyang $
+ * @version   $Id$
  */
  
 /**
@@ -60,6 +60,8 @@ class DashboardController extends SecurityController
      */
     public function indexAction()
     {
+        $this->_acl->requirePrivilege('dashboard', 'read');
+        
         // Check to see if we got passed a "dismiss" parameter to dismiss
         // notifications
         $request = $this->getRequest();
@@ -79,8 +81,8 @@ class DashboardController extends SecurityController
         
         $newCount  = $this->_poam->search($this->_allSystems, array(
             'count' => 'count(*)'), array('status' => 'NEW'));
-        $openCount = $this->_poam->search($this->_allSystems, array(
-            'count' => 'count(*)'), array('status' => 'OPEN'));
+        $draftCount = $this->_poam->search($this->_allSystems, array(
+            'count' => 'count(*)'), array('status' => 'DRAFT'));
         $enCount = $this->_poam->search($this->_allSystems, array(
             'count' => 'count(*)'
         ), array(
@@ -91,27 +93,30 @@ class DashboardController extends SecurityController
             'count' => 'count(*)'
         ), array(
             'status' => 'EN',
-            'estDateEnd' => parent::$now
+            'ontime' => 'overdue'
         ));
         $total = $this->_poam->search($this->_allSystems, array(
-            'count' => 'count(*)'
-        ));
+            'count' => 'count(*)'), array('notStatus' => 'PEND'));
         $alert = array();
         $alert['TOTAL'] = $total;
         $alert['NEW']  = $newCount;
-        $alert['OPEN'] = $openCount;
+        $alert['DRAFT'] = $draftCount;
         $alert['EN'] = $enCount;
         $alert['EO'] = $eoCount;
         $url = '/panel/remediation/sub/searchbox/s/search/status/';
 
         $this->view->url = $url;
         $this->view->alert = $alert;
-
-        $lastLoginDate = new Zend_Date($this->_me->last_login_ts);
-        $lastLogin = $lastLoginDate->toString('l, M j, g:i a');
-        $this->view->lastLogin = $lastLogin;
-        $this->view->lastLoginIp = $this->_me->last_login_ip;
-        $this->view->failureCount = $this->_me->failure_count;
+        
+        if (false !== strtotime($this->_me->last_login_ts)) {
+            $lastLoginDate = new Zend_Date($this->_me->last_login_ts, Zend_Date::ISO_8601);
+            $lastLogin = $lastLoginDate->toString('l, M j, g:i a');
+            $this->view->lastLogin = $lastLogin;
+            $this->view->lastLoginIp = $this->_me->last_login_ip;
+            $this->view->failureCount = $this->_me->failure_count;
+        } else {
+            $this->view->applicationName = Config_Fisma::readSysConfig('system_name');
+        }
         
         $notification = new Notification();
         $notifications = $notification->getNotifications($this->_me->id);
@@ -124,8 +129,7 @@ class DashboardController extends SecurityController
         }
         $idString = urlencode(implode(',', $ids));
         $this->view->dismissUrl = "/panel/dashboard/dismiss/$idString";
-        
-        $this->render();
+
     }
     
     /**
@@ -133,6 +137,8 @@ class DashboardController extends SecurityController
      */
     public function totalstatusAction()
     {
+        $this->_acl->requirePrivilege('dashboard', 'read');
+        
         $poam = $this->_poam;
         $req = $this->getRequest();
         $type = $req->getParam('type', 'pie');
@@ -142,29 +148,61 @@ class DashboardController extends SecurityController
         ))) {
             $type = 'pie';
         }
-        $ret = $poam->search($this->_allSystems, array(
-            'count' => 'status',
-            'status'
-        ));
-        $eoCount = $poam->search($this->_allSystems, array(
-            'count' => 'count(*)'
-        ), array(
-            'status' => 'EN',
-            'est_date_end' => parent::$now
-        ));
-        $this->view->summary = array(
-            'NEW' => 0,
-            'OPEN' => 0,
-            'EN' => 0,
-            'EP' => 0,
-            'ES' => 0,
-            'CLOSED' => 0
-        );
-        foreach ($ret as $s) {
-            $this->view->summary["{$s['status']}"] = $s['count'];
-        }
-        $this->view->summary["EO"] = $eoCount;
         $this->view->chart_type = $type;
+        
+        //count normal status ( NEW, DRAFT, EN )
+        $arrPoamInfo = $this->_poam->search($this->_me->systems, array(
+            'count' => array(
+                'status'
+            ) ,
+            'status',
+            'type',
+            'system_id'
+        ));
+
+        $arrTotal = array('NEW'=>0, 'DRAFT'=>0, 'EN'=>0);
+        foreach ($arrPoamInfo as $arrPoam) {
+            if (in_array($arrPoam['status'], array_keys($arrTotal))) {
+                $arrTotal[$arrPoam['status']] = $arrPoam['count'];
+            }
+        }
+        $arrTmpTotal = array('NEW'=>$arrTotal['NEW'], 'DRAFT'=>$arrTotal['DRAFT']);
+        $objEval = new Evaluation();
+        //count mitigation strategy status 
+        $arrMsaEvalList = $objEval->getEvalList('ACTION');
+        foreach ($arrMsaEvalList as $arrMsaEvalRow) {
+            $arrMsaPoam = $this->_poam->search($this->_me->systems,
+                array('count' => 'nickname'),
+                array('mp' => $arrMsaEvalRow['precedence_id'], 'name')
+            );
+            $description[$arrMsaEvalRow['nickname']] = $arrMsaEvalRow['name'];
+            if (!empty($arrMsaPoam)) {
+                $arrTmpTotal = array_merge($arrTmpTotal,
+                               array($arrMsaEvalRow['nickname']=>$arrMsaPoam[0]['count']));
+            } else {
+                $arrTmpTotal = array_merge($arrTmpTotal,array($arrMsaEvalRow['nickname']=>0));
+            }
+        }
+        $arrTmpTotal = array_merge($arrTmpTotal,array('EN'=>$arrTotal['EN']));
+        //count evidence status
+        $arrEpEvalList = $objEval->getEvalList('EVIDENCE');
+        foreach ($arrEpEvalList as $arrEpEvalRow) {
+            $arrEpPoam = $this->_poam->search($this->_me->systems,
+                array('count' => 'nickname'), 
+                array('ep' => $arrEpEvalRow['precedence_id'], 'name')
+            );
+            $description[$arrEpEvalRow['nickname']] = $arrEpEvalRow['name'];
+            if (!empty($arrEpPoam)) {
+                $arrTmpTotal = array_merge($arrTmpTotal,
+                               array($arrEpEvalRow['nickname']=>$arrEpPoam[0]['count']));
+            } else {
+                $arrTmpTotal = array_merge($arrTmpTotal,array($arrEpEvalRow['nickname']=>0));
+            }
+        }
+        $this->view->summary = $arrTmpTotal;
+
+        $description['EN'] = 'Evidence Needed';
+        $this->view->description = $description;
         // Headers Required for IE+SSL (see bug #2039290) to stream XML
         header('Pragma:private');
         header('Cache-Control:private');
@@ -176,6 +214,8 @@ class DashboardController extends SecurityController
      */
     public function totaltypeAction()
     {
+        $this->_acl->requirePrivilege('dashboard', 'read');
+        
         $ret = $this->_poam->search($this->_allSystems, array(
             'count' => 'type',
             'type'
@@ -192,6 +232,5 @@ class DashboardController extends SecurityController
         // Headers Required for IE+SSL (see bug #2039290) to stream XML
         header('Pragma:private');
         header('Cache-Control:private');
-        $this->render();
     }
 }

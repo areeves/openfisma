@@ -20,7 +20,7 @@
  * @author    Chris Chen <chriszero@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: Notification.php 1077 2008-10-23 05:51:23Z ryanyang $
+ * @version   $Id$
  */
 
 /**

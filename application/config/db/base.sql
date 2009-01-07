@@ -1,7 +1,7 @@
---------------------------------------------------------------------
+--
 -- WARNING This file is created automatically and should not be
 -- edited by hand.
---------------------------------------------------------------------
+--
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8;
 CREATE TABLE `account_logs` (
@@ -9,7 +9,7 @@ CREATE TABLE `account_logs` (
   `timestamp` datetime NOT NULL,
   `priority` tinyint(3) unsigned NOT NULL,
   `priority_name` varchar(10) NOT NULL,
-  `event` enum('CREATION','MODIFICATION','TERMINATION','DISABLING','LOGINFAILURE','LOGIN','LOGOUT','ROB_ACCEPT') NOT NULL,
+  `event` enum('ACCOUNT_CREATED','ACCOUNT_MODIFICATION','ACCOUNT_DELETED','ACCOUNT_LOCKOUT','DISABLING','LOGINFAILURE','LOGIN','LOGOUT','ROB_ACCEPT') NOT NULL,
   `user_id` int(10) unsigned NOT NULL,
   `message` text NOT NULL,
   PRIMARY KEY  (`id`)
@@ -255,12 +255,12 @@ INSERT INTO `configurations` VALUES (8,'smtp_username','','Username for smtp Aut
 INSERT INTO `configurations` VALUES (9,'smtp_password','','Password for smtp Authenticate');
 INSERT INTO `configurations` VALUES (10,'send_type','sendmail','Notification email send type');
 INSERT INTO `configurations` VALUES (11,'smtp_port','25','Smtp server port');
-INSERT INTO `configurations` VALUES (12,'unlock_enabled','0','Enable Automated Account Unlock');
-INSERT INTO `configurations` VALUES (13,'unlock_duration','15','Automated Account Unlock Duration (hour)');
+INSERT INTO `configurations` VALUES (12,'unlock_enabled','1','Enable Automated Account Unlock');
+INSERT INTO `configurations` VALUES (13,'unlock_duration','300','Automated Account Unlock Duration (In Seconds)');
 INSERT INTO `configurations` VALUES (14,'contact_name','','Technical support Contact name');
 INSERT INTO `configurations` VALUES (15,'contact_phone','','Technical support Contact phone number');
-INSERT INTO `configurations` VALUES (16,'contact_email','mark.haase@ed.gov','Technical support Contact Email Address');
-INSERT INTO `configurations` VALUES (17,'contact_subject','OVMS%20Feedback%2FBugs','Technical Support Email Subject Text');
+INSERT INTO `configurations` VALUES (16,'contact_email','','Technical support Contact Email Address');
+INSERT INTO `configurations` VALUES (17,'contact_subject','','Technical Support Email Subject Text');
 INSERT INTO `configurations` VALUES (18,'use_notification','System use notification','This is a United States Government Computer system. We encourage its use by authorized staff, auditors, and contractors. Activity on this system is subject to monitoring in the course of systems administration and to protect the system from unauthorized use. Users are further advised that they have no expectation of privacy while using this system or in any material on this system. Unauthorized use of this system is a violation of Federal Law and will be punished with fines or imprisonment (P.L. 99-474) Anyone using this system expressly consents to such monitoring and acknowledges that unauthorized use may be reported to the proper authorities.');
 INSERT INTO `configurations` VALUES (19,'behavior_rule','Rules Of Behavior','SENSITIVE BUT UNCLASSIFIED INFORMATION PROPERTY OF THE UNITED STATES\r\nGOVERNMENT\r\n\r\nDISCLOSURE, COPYING, DISSEMINATION, OR DISTRIBUTION OF SENSITIVE BUT\r\nUNCLASSIFIED INFORMATION TO UNAUTHORIZED USERS IS PROHIBITED.\r\n\r\nPlease dispose of sensitive but unclassified information when no longer\r\nneeded.\r\n\r\nI. Usage Agreement\r\n\r\nThis is a Federal computer system and is the property of the United States\r\nGovernment. It is for authorized use only. Users (authorized or\r\nunauthorized) have no explicit or implicit expectation of privacy in\r\nanything viewed, created, downloaded, or stored on this system, including\r\ne-mail, Internet, and Intranet use. Any or all uses of this system\r\n(including all peripheral devices and output media) and all files on this\r\nsystem may be intercepted, monitored, read, captured, recorded, disclosed,\r\ncopied, audited, and/or inspected by authorized Agency personnel, the\r\nOffice of Inspector General (OIG),and/or other law enforcement personnel,\r\nas well as authorized officials of other agencies. Access or use of this\r\ncomputer by any person, whether authorized or unauthorized, constitutes\r\nconsent to such interception, monitoring, reading, capturing, recording,\r\ndisclosure, copying, auditing, and/or inspection at the discretion of\r\nauthorized Agency personnel, law enforcement personnel (including the\r\nOIG),and/or authorized officials other agencies. Unauthorized use of this\r\nsystem is prohibited and may constitute a violation of 18 U.S.C. 1030 or\r\nother Federal laws and regulations and may result in criminal, civil,\r\nand/or administrative action. By continuing to use this system, you\r\nindicate your awareness of, and consent to, these terms and conditions and\r\nacknowledge that there is no reasonable expectation of privacy in the\r\naccess or use of this computer system.');
 INSERT INTO `configurations` VALUES (5,'sender','','Send Email Address');
@@ -273,6 +273,7 @@ INSERT INTO `configurations` VALUES (24,'pass_lowercase','1','Require Lower Case
 INSERT INTO `configurations` VALUES (23,'pass_uppercase','1','Require Upper Case Characters');
 INSERT INTO `configurations` VALUES (27,'pass_min','8','Minimum Password Length');
 INSERT INTO `configurations` VALUES (28,'pass_max','64','Maximum Password Length');
+INSERT INTO `configurations` VALUES (29,'pass_expire','90','Password Expiration days');
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8;
 CREATE TABLE `evaluations` (
@@ -360,7 +361,8 @@ CREATE TABLE `evidences` (
   `submission` varchar(128) NOT NULL default '',
   `submitted_by` int(10) unsigned NOT NULL default '0',
   `submit_ts` date NOT NULL default '0000-00-00',
-  PRIMARY KEY  (`id`)
+  PRIMARY KEY  (`id`),
+  KEY `poam_id` (`poam_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
 SET @saved_cs_client     = @@character_set_client;
@@ -454,6 +456,9 @@ INSERT INTO `functions` VALUES (89,'Admin Notifications','notification','admin',
 INSERT INTO `functions` VALUES (92,'Mitigation Strategy Provided to IVV','remediation','update_mitigation_strategy_approval_2','','1');
 INSERT INTO `functions` VALUES (93,'Mitigation Strategy submit','remediation','mitigation_strategy_submit','','1');
 INSERT INTO `functions` VALUES (94,'Mitigation Strategy revise','remediation','mitigation_strategy_revise','','1');
+INSERT INTO `functions` VALUES (95,'Approve Injected Findings','finding','approve','','1');
+INSERT INTO `functions` VALUES (96,'Inject Findings','finding','inject','','1');
+INSERT INTO `functions` VALUES (97,'Edit Finding Description','remediation','update_finding_description','','1');
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8;
 CREATE TABLE `ldap_config` (
@@ -525,7 +530,8 @@ CREATE TABLE `poam_evaluations` (
   `user_id` int(10) NOT NULL,
   `decision` enum('APPROVED','DENIED','EST_CHANGED') default NULL,
   `date` date NOT NULL default '0000-00-00',
-  PRIMARY KEY  (`id`)
+  PRIMARY KEY  (`id`),
+  KEY `group_id` (`group_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
 SET @saved_cs_client     = @@character_set_client;
@@ -546,13 +552,13 @@ CREATE TABLE `poams` (
   `source_id` int(10) unsigned NOT NULL default '0',
   `system_id` int(10) unsigned NOT NULL default '0',
   `blscr_id` varchar(5) default NULL,
-  `create_ts` datetime NOT NULL default '0000-00-00 00:00:00',
-  `discover_ts` datetime NOT NULL default '0000-00-00 00:00:00',
-  `modify_ts` datetime NOT NULL default '0000-00-00 00:00:00',
+  `create_ts` date NOT NULL,
+  `discover_ts` date NOT NULL,
+  `modify_ts` date NOT NULL,
   `mss_ts` datetime NOT NULL default '0000-00-00 00:00:00',
-  `close_ts` datetime default '0000-00-00 00:00:00',
+  `close_ts` date NOT NULL,
   `type` enum('NONE','CAP','FP','AR') NOT NULL default 'NONE',
-  `status` enum('PEND','NEW','OPEN','MSA','EN','EP','CLOSED','DELETED') NOT NULL default 'NEW',
+  `status` enum('PEND','NEW','DRAFT','MSA','EN','EP','CLOSED','DELETED') NOT NULL default 'NEW',
   `is_repeat` tinyint(1) default NULL,
   `finding_data` text NOT NULL,
   `previous_audits` text,
@@ -574,6 +580,7 @@ CREATE TABLE `poams` (
   `threat_source` text,
   `threat_level` enum('NONE','LOW','MODERATE','HIGH') NOT NULL default 'NONE',
   `threat_justification` text,
+  `duplicate_poam_id` int(11) default NULL,
   PRIMARY KEY  (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
@@ -587,7 +594,9 @@ CREATE TABLE `products` (
   `name` varchar(64) NOT NULL default '',
   `version` varchar(32) NOT NULL default '',
   `desc` text,
-  PRIMARY KEY  (`id`)
+  `cpe_name` varchar(256) default NULL,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `cpe_name` (`cpe_name`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
 SET @saved_cs_client     = @@character_set_client;
@@ -664,6 +673,7 @@ INSERT INTO `role_functions` VALUES (7,66);
 INSERT INTO `role_functions` VALUES (7,70);
 INSERT INTO `role_functions` VALUES (7,71);
 INSERT INTO `role_functions` VALUES (7,77);
+INSERT INTO `role_functions` VALUES (7,95);
 INSERT INTO `role_functions` VALUES (8,1);
 INSERT INTO `role_functions` VALUES (8,2);
 INSERT INTO `role_functions` VALUES (8,6);
@@ -677,6 +687,7 @@ INSERT INTO `role_functions` VALUES (8,34);
 INSERT INTO `role_functions` VALUES (8,35);
 INSERT INTO `role_functions` VALUES (8,39);
 INSERT INTO `role_functions` VALUES (8,40);
+INSERT INTO `role_functions` VALUES (8,95);
 INSERT INTO `role_functions` VALUES (10,1);
 INSERT INTO `role_functions` VALUES (10,2);
 INSERT INTO `role_functions` VALUES (10,3);
@@ -732,6 +743,7 @@ INSERT INTO `role_functions` VALUES (10,85);
 INSERT INTO `role_functions` VALUES (10,86);
 INSERT INTO `role_functions` VALUES (10,87);
 INSERT INTO `role_functions` VALUES (10,88);
+INSERT INTO `role_functions` VALUES (10,95);
 INSERT INTO `role_functions` VALUES (11,1);
 INSERT INTO `role_functions` VALUES (11,2);
 INSERT INTO `role_functions` VALUES (11,3);
@@ -857,10 +869,9 @@ CREATE TABLE `schema_version` (
   PRIMARY KEY  (`schema_version`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
-INSERT INTO `schema_version` VALUES (26);
+INSERT INTO `schema_version` VALUES (44);
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8;
-INSERT INTO `schema_version` VALUES (28);
 CREATE TABLE `sources` (
   `id` int(10) unsigned NOT NULL auto_increment,
   `name` varchar(64) NOT NULL,
@@ -880,10 +891,9 @@ CREATE TABLE `systems` (
   `organization_id` int(10) NOT NULL,
   `desc` text,
   `type` enum('GENERAL SUPPORT SYSTEM','MINOR APPLICATION','MAJOR APPLICATION') default NULL,
-  `confidentiality` enum('NONE','LOW','MODERATE','HIGH') NOT NULL default 'NONE',
-  `integrity` enum('NONE','LOW','MODERATE','HIGH') NOT NULL default 'NONE',
-  `availability` enum('NONE','LOW','MODERATE','HIGH') NOT NULL default 'NONE',
-  `security_categorization` enum('NONE','LOW','MODERATE','HIGH') NOT NULL,
+  `confidentiality` enum('NA','LOW','MODERATE','HIGH') default NULL,
+  `integrity` enum('LOW','MODERATE','HIGH') default NULL,
+  `availability` enum('LOW','MODERATE','HIGH') default NULL,
   `tier` int(10) unsigned NOT NULL default '0',
   `confidentiality_justification` text NOT NULL,
   `integrity_justification` text NOT NULL,
@@ -923,6 +933,7 @@ CREATE TABLE `users` (
   `id` int(10) unsigned NOT NULL auto_increment,
   `account` varchar(32) NOT NULL,
   `password` varchar(256) NOT NULL default '',
+  `hash` enum('md5','sha1','sha256') NOT NULL default 'sha1',
   `title` varchar(64) default NULL,
   `name_last` varchar(32) NOT NULL default '',
   `name_middle` char(1) default NULL,
@@ -949,7 +960,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `account` (`account`)
 ) ENGINE=MyISAM AUTO_INCREMENT=10000 DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
-INSERT INTO `users` VALUES (1,'root','4a95bac3e19b28ee0acf3cc1137b4d1e66720a49','admin','Application',NULL,'Admin','0000-00-00 00:00:00','0000-00-00 00:00:00','','0000-00-00 00:00:00','','0000-00-00 00:00:00',1,0,'',NULL,'',0,'root_r',720,'0000-00-00 00:00:00','','','0000-00-00 00:00:00');
+INSERT INTO `users` VALUES (1,'root','4a95bac3e19b28ee0acf3cc1137b4d1e66720a49','sha1','admin','Application',NULL,'Admin','2008-11-06 16:19:55','2008-11-06 16:19:55','','0000-00-00 00:00:00','','0000-00-00 00:00:00',1,0,'',NULL,'',0,'root_r',720,'0000-00-00 00:00:00','','','0000-00-00 00:00:00');
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8;
 CREATE TABLE `validate_emails` (
@@ -985,4 +996,4 @@ CREATE TABLE `vulnerabilities` (
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
 TRUNCATE TABLE schema_version;
-INSERT INTO schema_version (schema_version) VALUES (29);
+INSERT INTO schema_version (schema_version) VALUES (45);

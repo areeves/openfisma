@@ -23,18 +23,19 @@
  * @author    Mark E. Haase <mhaase@endeavorsystems.com>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id:$
+ * @version   $Id$
  */
 
 // Run the application bootstrap in command line mode
 define('COMMAND_LINE', true);
 require_once(realpath(dirname(__FILE__)."/../application/bootstrap.php")); 
+define('TEST', APPLICATION_ROOT . '/tests');
 
 // Change directory to TEST, in order to make including files relatively simple
 chdir(TEST);
-set_include_path(get_include_path() .
-                 PATH_SEPARATOR . VENDORS .
-                 PATH_SEPARATOR . TEST);
+// set_include_path(get_include_path() .
+//                  PATH_SEPARATOR . VENDORS .
+//                  PATH_SEPARATOR . TEST);
 require_once 'PHPUnit/Framework/TestSuite.php';
 require_once 'PHPUnit/TextUI/TestRunner.php';
 
@@ -44,7 +45,6 @@ require_once 'PHPUnit/TextUI/TestRunner.php';
  * process.
  *
  * @package Test
- * @version $Id:$
  */
 class AllTests
 {

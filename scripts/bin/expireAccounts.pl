@@ -44,7 +44,7 @@
 # Author:    Mark E. Haase <mhaase@endeavorsystems.com>
 # Copyright: (c) 2008 Endeavor Systems, Inc. (http://www.endeavorsystems.com)
 # License:   http://www.openfisma.org/mw/index.php?title=License
-# Version:   $Id: expireAccounts.pl 1016 2008-10-20 15:41:43Z ford_james $
+# Version:   $Id$
 #
 ################################################################################
 

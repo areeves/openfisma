@@ -20,6 +20,52 @@ $(document).ready(function(){
     $("select[name='poam[system_id]']").change(function(){
         searchAsset();
     });
+
+    $("select#poamSearchStatus").change(function(){
+        var value = $(this).val().trim();
+        if (!(value == '0' 
+            || value == 'CLOSED'
+            || value == 'NOT-CLOSED'
+            || value == 'NOUP-30'
+            || value == 'NOUP-60'
+            || value == 'NOUP-90')) {
+            $("select#poamSearchOnTime").removeAttr("disabled");
+        } else {
+            $("select#poamSearchOnTime").attr("disabled", "disabled");
+        }
+    }).trigger('change');
+
+    $("select#remediationSearchAging").change(function(){
+        var value = $(this).val().trim();
+        if (value == '0') {
+            $("input#created_date_begin").removeAttr("disabled");
+            $("input#created_date_end").removeAttr("disabled");
+            $('input.date').datepicker("enable");
+        } else {
+            $("input#created_date_begin").attr("disabled", "disabled");
+            $("input#created_date_begin").val('');
+            $("input#created_date_end").attr("disabled", "disabled");
+            $("input#created_date_end").val('');
+            $('input.date').datepicker("disable");
+        }
+    }).trigger('change');
+    
+    $("input#created_date_begin").change(function (){
+        if($(this).val().trim() != '' || $("input#created_date_end").val().trim() != '') {
+            $("select#remediationSearchAging").attr("disabled", "disabled");
+        } else {
+            $("select#remediationSearchAging").attr("disabled", "");
+        }
+    }).trigger('change');
+    
+    $("input#created_date_end").change(function (){
+        if($(this).val().trim() != '' || $("input#created_date_begin").val().trim() != '') {
+            $("select#remediationSearchAging").attr("disabled", "disabled");
+        } else {
+            $("select#remediationSearchAging").attr("disabled", "");
+        }
+    }).trigger('change');
+    
     $("select#encrypt").change(function(){
         if ($(this).val().trim() == 'sha256') {
              $("#encryptKey").show();
@@ -166,8 +212,6 @@ $(document).ready(function(){
             }
         }
     });
-    date = new Date();
-    $("span[name=year]").html( date.getFullYear() );
     shortcut(0);
 
 });
@@ -176,7 +220,7 @@ function shortcut(step){
     if( !isFinite(step) ){
         step = 0;
     }
-    var year = $("span[name=year]").html();
+    var year = $("span[name=gen_shortcut]").attr('year');
     year = Number(year) + Number(step);
     var url = $("span[name=gen_shortcut]").attr('url')+year+'/';
     $("span[name=year]").html( year );
@@ -247,7 +291,7 @@ function upload_evidence(){
                 .appendTo("body").fadeTo(1, 0.4);
     var content = $("#editorDIV").html();
     $('<div title="Upload Evidence"></div>').append(content).
-        dialog({position:'top', width: 540, height: 200, resizable: true,modal:true,
+        dialog({position:'middle', width: 540, height: 200, resizable: true,modal:true,
             close:function(){
                 $('#full').remove();
             }
@@ -255,16 +299,27 @@ function upload_evidence(){
     return false;
 }
 
-function comment(formname){
+function ev_deny(formname){
     var dw = $(document).width();
     var dh = $(document).height();
     $('<div id="full"></div>')
                 .width(dw).height(dh)
                 .css({backgroundColor:"#000000", marginTop:-1*dh, opacity:0, zIndex:10})
-                .appendTo("body").fadeTo(1, 0.4);
-    var content = $("#comment_dialog").html();
-    $('<div title="Upload Evidence"></div>').append(content).
-        dialog({position:'top', width: 540, height: 240, resizable: true,modal:true,
+                .appendTo("body")
+                .fadeTo(1, 0.4);
+
+    var content = document.createElement('div');
+    var p = document.createElement('p');
+    p.appendChild(document.createTextNode('Comments:'));
+    content.appendChild(p);
+    var dt = document.createElement('textarea');
+    dt.rows = 5;
+    dt.cols = 60;
+    dt.name = 'comment';
+    content.appendChild(dt);
+
+    $('<div title="Provide Justification"></div>').append(content).
+        dialog({position:'middle', width: 500, height: 240, resizable: true,modal:true,
             close:function(){
                 $('#full').remove();
             },
@@ -274,10 +329,8 @@ function comment(formname){
                 },
                 'Continue':function(){
                     var form1 = formname;
-                    var topic = $("input[name=topic]",this).val();
-                    var reason = $("textarea[name=reason]",this).val();
-                    form1.elements['topic'].value = topic;
-                    form1.elements['reject'].value = reason;
+                    var comments = $("textarea[name=comment]",this).val();
+                    form1.elements['comment'].value = comments;
                     form1.elements['decision'].value = 'DENY';
                     form1.submit();
                 }
@@ -292,9 +345,19 @@ function ms_comment(formname){
                 .width(dw).height(dh)
                 .css({backgroundColor:"#000000", marginTop:-1*dh, opacity:0, zIndex:10})
                 .appendTo("body").fadeTo(1, 0.4);
-    var content = $("#ms_dialog").html();
+
+    var content = document.createElement('div');
+    var p = document.createElement('p');
+    p.appendChild(document.createTextNode('Comments:'));
+    content.appendChild(p);
+    var dt = document.createElement('textarea');
+    dt.rows = 5;
+    dt.cols = 60;
+    dt.name = 'comment';
+    content.appendChild(dt);
+    
     $('<div title="Mitigation Strategy Approval"></div>').append(content).
-        dialog({position:'top', width: 540, height: 240, resizable: true,modal:true,
+        dialog({position:'middle', width: 500, height: 440, resizable: true,modal:true,
             close:function(){
                 $('#full').remove();
             },
@@ -304,10 +367,8 @@ function ms_comment(formname){
                 },
                 'Continue':function(){
                     var form2 = formname;
-                    var topic = $("input[name=topic]",this).val();
-                    var reason = $("textarea[name=reason]",this).val();
-                    form2.elements['topic'].value = topic;
-                    form2.elements['reject'].value = reason;
+                    var comment = $("textarea[name=comment]",this).val();
+                    form2.elements['comment'].value = comment;
                     form2.elements['decision'].value = 'DENIED';
                     form2.submit();
                 }
@@ -325,7 +386,7 @@ function getProdId(){
 
 function searchProduct(){
     var trigger = $("input#search_product");
-    var url = trigger.attr('url') + '/view/list';
+    var url = trigger.attr('url');
     $("input.product").each(function(){
         if($(this).attr('value')){
             url += '/' + $(this).attr('name') + '/' + $(this).attr('value');

@@ -20,7 +20,7 @@
  * @author    Jim Chen <xhorse@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: ErrorController.php 1012 2008-10-20 05:20:50Z mehaase $
+ * @version   $Id$
  */
  
 /**
@@ -41,6 +41,9 @@ class ErrorController extends Zend_Controller_Action
      */
     public function errorAction()
     {
+        // If an error occurs in any context other than the default, then the view suffix will have changed; therefore,
+        // we should always reset the view suffix before rendering an error message.
+        $this->_helper->viewRenderer->setViewSuffix('phtml');
         $content = null;
         $errors = $this->_getParam('error_handler');
         $this->_helper->layout->setLayout('error');
@@ -54,9 +57,15 @@ class ErrorController extends Zend_Controller_Action
         $logger = Config_Fisma::getLogInstance();
         $logger->log($content, Zend_Log::ERR);
         $this->view->content = $content;
+
+        $front = Zend_Controller_Front::getInstance();
+        if ($stack = $front->getPlugin('Zend_Controller_Plugin_ActionStack')) {
+            //clear the action stack to prevent additional exceptions would be throwed
+            while($stack->popStack());
+        }
         $this->_helper->actionStack('header', 'panel');
-        $this->render();
     }
+
     /**
      * Error handler for input validation error
      */

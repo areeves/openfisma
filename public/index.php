@@ -20,7 +20,7 @@
  * @author    Jim Chen <xhorse@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: index.php 1065 2008-10-22 22:54:01Z mehaase $
+ * @version   $Id$
  */
 
 // REQUIRE APPLICATION BOOTSTRAP: Perform application-specific setup
@@ -35,7 +35,7 @@ try {
 } catch (Exception $exception) {
     echo '<html><body><center>'
        . 'An exception occured while bootstrapping the application.';
-    if (defined('APPLICATION_ENVIRONMENT') && APPLICATION_ENVIRONMENT != 'production') {
+    if (Config_Fisma::readSysConfig('show_trace')) {
         echo '<br /><br />' . $exception->getMessage() . '<br />'
            . '<div align="left">Stack Trace:' 
            . '<pre>' . $exception->getTraceAsString() . '</pre></div>';

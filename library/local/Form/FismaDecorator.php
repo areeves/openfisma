@@ -20,7 +20,7 @@
  * @author    Mark E. Haase <mhaase@endeavorsystems.com>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id:$
+ * @version   $Id$
  */
 
 /**
@@ -67,11 +67,7 @@ class Form_FismaDecorator extends Zend_Form_Decorator_Abstract
     public function buildInput() {
         $element = $this->getElement();
         $helper  = $element->helper;
-        if ($element instanceof Zend_Form_Element_Checkbox) {
-            $value = $element->getCheckedValue();
-        }else{
-            $value = $element->getValue();
-        }
+        $value = $element->getValue();
         return $element->getView()->$helper(
             $element->getName(),
             $value,
@@ -111,7 +107,7 @@ class Form_FismaDecorator extends Zend_Form_Decorator_Abstract
                     . $this->buildLabel()
                     . '</td><td>'
                     . $this->buildInput()
-                    . $this->buildErrors()
+                    //. $this->buildErrors()
                     . '</td></tr>';
         } else if ($element instanceof Zend_Form_DisplayGroup) {
             $render = '<div class=\'subform\'><table class=\'fisma_crud\'>'
