@@ -581,7 +581,7 @@ class RemediationController extends PoamBaseController
                               ->where("`group` = 'ACTION'")
                               ->order('precedence_id ASC')->limit(1);
                 $nextEvaluation = $this->_poam->getAdapter()->fetchRow($rst);
-                $poam['status'] = $nextEvaluation['nickname'];
+                $newStatus = $nextEvaluation['nickname'];
                 
                 $msEvaluation = $this->_poam->getActEvaluation($poamId);
                 /** @todo english 
@@ -599,7 +599,7 @@ class RemediationController extends PoamBaseController
                                           $this->_me->account,
                                           "PoamId: $poamId",
                                           $oldpoam['system_id']);
-                $logContent = "Update: status\n Original: \"{$oldpoam['status']}\" New: \"{$poam['status']}\"";
+                $logContent = "Update: status\n Original: \"{$oldpoam['status']}\" New: \"{$newStatus}\"";
             //Revise Mitigation Strategy
             } else {
                 $poam['status'] = 'DRAFT';
