@@ -362,7 +362,10 @@ class SystemController extends SecurityController
         $ret = $this->_system->find($id)->current();
         if (!empty($ret)) {
             $query = $ret->name . ' ' . $ret->nickname;
+        } else {
+            throw new Exception_General("The system posted is not a valid system");
         }
+        $data['system'] = $system['name'] . ' ' . $system['nickname'];
 
         if ($formValid) {
             unset($system['save']);
@@ -376,14 +379,14 @@ class SystemController extends SecurityController
                          $this->_me->account, $id);
 
                 //Update findings index
-                if (is_dir(Config_Fisma::getPath('data') . '/index/finding')) {
+                if (is_dir(Config_Fisma::getPath('data') . '/index/finding') && $query!= $data['system']) {
                     $index = new Zend_Search_Lucene(Config_Fisma::getPath('data') . '/index/finding');
                     $hits = $index->find('system:'.$query);
+                    $ids = array();
                     foreach ($hits as $hit) {
                         $ids[] = $hit->id;
                         $x[] = $hit->rowId;
                     }
-                    $data['system'] = $system['name'] . ' ' . $system['nickname'];
                     Config_Fisma::updateIndex('finding', $ids, $data);
                 }
 
