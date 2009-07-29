@@ -1,6 +1,0 @@
-IrIncidentActor:
-    columns:
-        incident_id: 
-            type: integer
-        user_id: 
-            type: integer

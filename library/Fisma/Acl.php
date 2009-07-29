@@ -21,6 +21,7 @@
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
  * @version   $Id: Fismacl.php -1M 2009-04-15 18:40:38Z (local) $
+ * @package   Fisma
  */
 
 /**
@@ -30,10 +31,9 @@
  * 2) Ensure that the system only accesses objects within their assigned systems
  * 3) Add a requirePrivilege method, which is a convenient way to assert that a user is allowed to do something
  * 
- * @category   local
- * @package    Local
  * @copyright  Copyright (c) 2005-2008
  * @license    http://www.openfisma.org/mw/index.php?title=License
+ * @package    Fisma
  */
 class Fisma_Acl extends Zend_Acl
 {
@@ -56,18 +56,14 @@ class Fisma_Acl extends Zend_Acl
         if ('root' == $identity) {
             return true;
         }
-
+        
         // Otherwise, check the ACL
         try {
             $resource = strtolower($resource);
             $acl = Zend_Registry::get('acl');
             if (isset($organization)) {
-                $organization = Doctrine::getTable('Organization')->find($organization);
-                if (!empty($organization)) {
-                    $orgNick = $organization->nickname;
-                }
                 // See User::acl() for explanation of how $organization is used
-                return $acl->isAllowed($identity, "$orgNick/$resource", $privilege);
+                return $acl->isAllowed($identity, "$organization/$resource", $privilege);
             } else {
                 return $acl->isAllowed($identity, $resource, $privilege);
             }
@@ -101,9 +97,8 @@ class Fisma_Acl extends Zend_Acl
 
         if (!self::hasPrivilege($resource, $privilege, $organization)) {
             if (isset($organization)) {
-                $orgNick = Doctrine::getTable('Organization')->find($organization)->nickname;
                 throw new Fisma_Exception_InvalidPrivilege("User does not have the privilege for "
-                    . "($orgNick/$resource, $privilege)");
+                    . "($organization/$resource, $privilege)");
             } else {
                 throw new Fisma_Exception_InvalidPrivilege("User does not have the privilege for "
                     . "($resource, $privilege)");

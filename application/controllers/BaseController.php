@@ -48,6 +48,17 @@ abstract class BaseController extends SecurityController
      */
     protected $_modelName = null;
 
+    /** 
+     * This field is used to query the ACL, since some objects are tied to organizations and other objects
+     * are not. It is null by default, but subclasses should set it to '*' to indicate that those objects
+     * are tied to specific organizations.
+     * 
+     * @var string
+     */
+    protected $_organizations = null;
+    
+    private $_aclResource; // which ACL resources this controller corresponds to
+
     /**
      * Make sure the model has been properly set
      */
@@ -55,9 +66,13 @@ abstract class BaseController extends SecurityController
     {
         parent::init();
         if (is_null($this->_modelName)) {
-            //@todo english
             //Actually user should not be able to see this error message
-            throw new Fisma_Exception('The subject model has not been specified');
+            throw new Fisma_Exception('Internal error. Subclasses of the BaseController must specify the _modelName field');
+        } else {
+            // Covert UpperCamelCase to lower_underscore_format to get the aclResource name
+            $aclResource = preg_replace('/([A-Z])/', '_$1', $this->_modelName);
+            $aclResource = strtolower(substr($aclResource, 1));
+            $this->_aclResource = $aclResource;
         }
     }
 
@@ -110,8 +125,7 @@ abstract class BaseController extends SecurityController
         if (is_null($subject)) {
             $subject = new $this->_modelName();
         } elseif (!$subject instanceof Doctrine_Record) {
-            /** @todo english */
-            throw new Fisma_Exception('Invalid parameter expecting a Record model');
+            throw new Fisma_Exception('Expected a Doctrine_Record object');
         }
         $subject->merge($form->getValues());
         $subject->save();
@@ -122,14 +136,11 @@ abstract class BaseController extends SecurityController
      */
     public function viewAction()
     {
-        Fisma_Acl::requirePrivilege($this->_modelName, 'read');
+        Fisma_Acl::requirePrivilege($this->_aclResource, 'read', $this->_organizations);
         $id     = $this->_request->getParam('id');
         $subject = Doctrine::getTable($this->_modelName)->find($id);
         if (!$subject) {
-            /**
-             * @todo english
-             */
-            throw new Fisma_Exception("Invalid {$this->_modelName}");
+            throw new Fisma_Exception("Invalid {$this->_modelName} ID");
         }
         $form   = $this->getForm();
         
@@ -147,7 +158,7 @@ abstract class BaseController extends SecurityController
      */
     public function createAction()
     {
-        Fisma_Acl::requirePrivilege($this->_modelName, 'create');
+        Fisma_Acl::requirePrivilege($this->_aclResource, 'create', $this->_organizations);
         // Get the subject form
         $form   = $this->getForm();
         $form->setAction("/panel/{$this->_modelName}/sub/create");
@@ -158,12 +169,11 @@ abstract class BaseController extends SecurityController
                     Doctrine_Manager::connection()->beginTransaction();
                     $this->saveValue($form);
                     Doctrine_Manager::connection()->commit();
-                    $msg   = "The {$this->_modelName} is created";
+                    $msg   = "{$this->_modelName} created successfully";
                     $model = self::M_NOTICE;
                 } catch (Doctrine_Exception $e) {
                     Doctrine_Manager::connection()->rollback();
-                    /** @todo english please notice following 3 sentences*/
-                    $msg   = "Failure in creation. ";
+                    $msg   = "Could not create the object ";
                     if (Fisma::debug()) {
                         $msg .= $e->getMessage();
                     }
@@ -172,7 +182,6 @@ abstract class BaseController extends SecurityController
                 $this->message($msg, $model);
             } else {
                 $errorString = Fisma_Form_Manager::getErrors($form);
-                // Error message
                 $this->message("Unable to create the {$this->_modelName}:<br>$errorString", self::M_WARNING);
             }
         }
@@ -185,14 +194,11 @@ abstract class BaseController extends SecurityController
      */
     public function editAction()
     {
-        Fisma_Acl::requirePrivilege($this->_modelName, 'update');
+        Fisma_Acl::requirePrivilege($this->_aclResource, 'update', $this->_organizations);
         $id     = $this->_request->getParam('id');
         $subject = Doctrine::getTable($this->_modelName)->find($id);
         if (!$subject) {
-            /**
-             * @todo english
-             */
-            throw new Fisma_Exception("Invalid {$this->_modelName}");
+            throw new Fisma_Exception("Invalid {$this->_modelName} ID");
         }
         $form   = $this->getForm();
         
@@ -205,12 +211,11 @@ abstract class BaseController extends SecurityController
             if ($form->isValid($post)) {
                 try {
                     $result = $this->saveValue($form, $subject);
-                    /** @todo english. This notice span following segments */
-                    $msg   = "The {$this->_modelName} is updated";
+                    $msg   = "{$this->_modelName} updated successfully";
                     $model = self::M_NOTICE;
                 } catch (Doctrine_Exception $e) {
                     //Doctrine_Manager::connection()->rollback();
-                    $msg  = "Failure in saving ";
+                    $msg  = "Error while trying to save: ";
                     if (Fisma::debug()) {
                         $msg .= $e->getMessage();
                     }
@@ -219,7 +224,7 @@ abstract class BaseController extends SecurityController
                 $this->message($msg, $model);
             } else {
                 $errorString = Fisma_Form_Manager::getErrors($form);
-                $this->message("Unable to update the {$this->_modelName}:<br>$errorString", self::M_WARNING);
+                $this->message("Error while trying to save: {$this->_modelName}:<br>$errorString", self::M_WARNING);
             }
         }
         $form = $this->setForm($subject, $form);
@@ -233,24 +238,21 @@ abstract class BaseController extends SecurityController
      */
     public function deleteAction()
     {
-        Fisma_Acl::requirePrivilege($this->_modelName, 'delete');
+        Fisma_Acl::requirePrivilege($this->_aclResource, 'delete', $this->_organizations);
         $id = $this->_request->getParam('id');
         $subject = Doctrine::getTable($this->_modelName)->find($id);
         if (!$subject) {
-            /** @todo english */
-            $msg   = "Invalid {$this->_modelName}";
+            $msg   = "Invalid {$this->_modelName} ID";
             $type = self::M_WARNING;
         } else {
             try {
                 Doctrine_Manager::connection()->beginTransaction();
                 $subject->delete();
                 Doctrine_Manager::connection()->commit();
-                 // @todo english
-                $msg   = "{$this->_modelName} is deleted successfully";
+                $msg   = "{$this->_modelName} deleted successfully";
                 $type = self::M_NOTICE;
             } catch (Doctrine_Exception $e) {
                 Doctrine_Manager::connection()->rollback();
-                /** @todo english */
                 if (Fisma::debug()) {
                     $msg .= $e->getMessage();
                 }
@@ -266,7 +268,7 @@ abstract class BaseController extends SecurityController
      */
     public function listAction()
     {
-        Fisma_Acl::requirePrivilege($this->_modelName, 'read');
+        Fisma_Acl::requirePrivilege($this->_aclResource, 'read', $this->_organizations);
         $keywords = trim($this->_request->getParam('keywords'));
         $link = empty($keywords) ? '' :'/keywords/'.$keywords;
         $this->view->link     = $link;
@@ -282,7 +284,7 @@ abstract class BaseController extends SecurityController
      */
     public function searchAction()
     {
-        Fisma_Acl::requirePrivilege($this->_modelName, 'read');
+        Fisma_Acl::requirePrivilege($this->_aclResource, 'read', $this->_organizations);
         $sortBy = $this->_request->getParam('sortby', 'id');
         $order  = $this->_request->getParam('order');
         $keywords  = $this->_request->getParam('keywords'); 
@@ -290,8 +292,7 @@ abstract class BaseController extends SecurityController
         //filter the sortby to prevent sqlinjection
         $subjectTable = Doctrine::getTable($this->_modelName);
         if (!in_array(strtolower($sortBy), $subjectTable->getColumnNames())) {
-            /** @todo english */
-            return $this->_helper->json('invalid parameters');
+            return $this->_helper->json('Invalid "sortBy" parameter');
         }
 
         $order = strtoupper($order);

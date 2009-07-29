@@ -19,14 +19,15 @@
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
  * @version   $Id: index.php 1793 2009-06-19 17:49:33Z mehaase $
+ * @package   Listener
  */
  
 /**
  * A listener for the User model
  *
- * @package   Listener
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/license.php
+ * @package   Listener
  */
 class UserListener extends Doctrine_Record_Listener
 {
@@ -49,10 +50,13 @@ class UserListener extends Doctrine_Record_Listener
             $user->EmailValidation[]         = $emailValidation;
         }
         
-        if (isset($modified['password']) && $modified['password']) {
+        if (isset($modified['password'])) {
             $user->generateSalt();
             $user->password        = $user->hash($modified['password']);
             $user->passwordTs      = Fisma::now();
+
+            /** @todo where is the password policy enforcement ? */
+            
             // Generate user's password history
             $pwdHistory = $user->passwordHistory;
             if (3 == substr_count($pwdHistory, ':')) {
@@ -67,6 +71,11 @@ class UserListener extends Doctrine_Record_Listener
         
         if (isset($modified['lastRob'])) {
             $user->log(User::ACCEPT_ROB, "Accepted Rules of Behavior");
+        }
+
+        //@todo can't use $user->lockAccount() which has save function in itsself.
+        if ($modified['locked']) {
+            $user->lockType = User::LOCK_TYPE_MANUAL;
         }
     }
 

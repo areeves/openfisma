@@ -86,7 +86,7 @@ class FindingController extends BaseController
         $sources = Doctrine::getTable('Source')->findAll()->toArray();
         $form->getElement('sourceId')->addMultiOptions(array('' => '--select--'));
         foreach ($sources as $source) {
-            $form->getElement('sourceId')->addMultiOptions(array($source['id'] => $source['name']));
+            $form->getElement('sourceId')->addMultiOptions(array($source['id'] => html_entity_decode($source['name'])));
         }
     
         $securityControls = Doctrine::getTable('SecurityControl')->findAll()->toArray();
@@ -131,7 +131,6 @@ class FindingController extends BaseController
         if (is_null($subject)) {
             $subject = new $this->_modelName();
         } else {
-            /** @todo English */
             throw new Fisma_Exception('Invalid parameter expecting a Record model');
         }
         $values = $form->getValues();
@@ -154,7 +153,7 @@ class FindingController extends BaseController
      */
     public function injectionAction()
     {
-        Fisma_Acl::requirePrivilege('finding', 'inject');
+        Fisma_Acl::requirePrivilege('finding', 'inject', '*');
 
         /** @todo convert this to a Zend_Form */
         // If the form isn't submitted, then there is no work to do
@@ -215,7 +214,7 @@ class FindingController extends BaseController
      */
     public function templateAction()
     {
-        Fisma_Acl::requirePrivilege('finding', 'inject');
+        Fisma_Acl::requirePrivilege('finding', 'inject', '*');
         
         $contextSwitch = $this->_helper->getHelper('contextSwitch');
         $contextSwitch->addContext('xls', array(
@@ -238,10 +237,8 @@ class FindingController extends BaseController
                 $this->view->systems[$orgSystem['id']] = $orgSystem['nickname'];
             }
             if (count($this->view->systems) == 0) {
-                /** @todo english **/
-                throw new Fisma_Exception(
-                    "The spreadsheet template can not be " .
-                    "prepared because there are no systems defined.");
+                throw new Fisma_Exception("The spreadsheet template can not be
+                    prepared because there are no systems defined.");
             }
             
             $networks = Doctrine::getTable('Network')->findAll()->toArray();
@@ -250,7 +247,6 @@ class FindingController extends BaseController
                 $this->view->networks[$network['id']] = $network['nickname'];
             }
             if (count($this->view->networks) == 0) {
-                /** @todo english **/
                 throw new Fisma_Exception("The spreadsheet template can not be
                      prepared because there are no networks defined.");
             }
@@ -261,7 +257,6 @@ class FindingController extends BaseController
                 $this->view->sources[$source['id']] = $source['nickname'];
             }
             if (count($this->view->sources) == 0) {
-                /** @todo english **/
                 throw new Fisma_Exception("The spreadsheet template can
                     not be prepared because there are no finding sources
                     defined.");
@@ -302,7 +297,7 @@ class FindingController extends BaseController
      */
     public function pluginAction()
     {       
-        Fisma_Acl::requirePrivilege('finding', 'inject');
+        Fisma_Acl::requirePrivilege('finding', 'inject', '*');
 
         // Load the finding plugin form
         $uploadForm = Fisma_Form_Manager::loadForm('finding_upload');
@@ -321,7 +316,9 @@ class FindingController extends BaseController
         $sources = Doctrine::getTable('Source')->findAll()->toArray();
         $sourceList = array();
         foreach ($sources as $source) {
-            $sourceList[$source['id']] = $source['nickname'] . ' - ' . $source['name'];
+            $sourceList[$source['id']] = html_entity_decode($source['nickname']) 
+                                       . ' - ' 
+                                       . html_entity_decode($source['name']);
         }
         $uploadForm->findingSource->addMultiOption('', '');
         $uploadForm->findingSource->addMultiOptions($sourceList);
@@ -359,13 +356,14 @@ class FindingController extends BaseController
                 $pluginTbl = $pluginTbl->getTable('Plugin')->find($values['plugin']);
                 $pluginClass = $pluginTbl->class;
                 $pluginName = $pluginTbl->name;
-                $plugin = new $pluginClass($filePath,
-                                           $values['network'],
-                                           $values['system'],
-                                           $values['findingSource']);
-                
+                                
                 // Execute the plugin with the received file
                 try {
+                    $plugin = new $pluginClass($filePath,
+                                               $values['network'],
+                                               $values['system'],
+                                               $values['findingSource']);
+
                     // get original file name
                     $originalName = pathinfo(basename($filePath), PATHINFO_FILENAME);
                     // get current time and set to a format like '_2009-05-04_11_22_02'
@@ -419,7 +417,7 @@ class FindingController extends BaseController
      */
     public function approveAction()
     {
-        Fisma_Acl::requirePrivilege('finding', 'approve');
+        Fisma_Acl::requirePrivilege('finding', 'approve', '*');
         
         $q = Doctrine_Query::create()
              ->select('*')
@@ -433,7 +431,7 @@ class FindingController extends BaseController
      *  Process the form submitted from the approveAction()
      */
     public function processApprovalAction() {
-        Fisma_Acl::requirePrivilege('finding', 'approve');
+        Fisma_Acl::requirePrivilege('finding', 'approve', '*');
 
         $findings = $this->_request->getPost('findings', array());
         foreach ($findings as $id) {

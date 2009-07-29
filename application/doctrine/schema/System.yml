@@ -9,7 +9,7 @@ System:
 
         confidentiality:
             type: enum
-            values: [na, LOW, MODERATE, HIGH]
+            values: [NA, LOW, MODERATE, HIGH]
             comment: The FIPS-199 confidentiality impact
         confidentialityDescription:
             type: string
@@ -44,9 +44,6 @@ System:
         controlAssessmentDt:
             type: date
             comment: The last time the security controls were tested for this system
-        #continuousMonitoringPolicy:
-        #    type: string
-        #    comment: An HTML field to store the system\'s CM policy
         hasFiif:
             type: enum
             values: ["YES", "NO"] # YAML converts YES to a boolean unless its quoted
@@ -60,7 +57,7 @@ System:
             values: ["YES", "NO"]
             comment: Whether this system requires a Privacy Impact Analysis
         piaUrl:
-            type: string
+            type: string(255)
             extra:
                 purify: plaintext
             comment: A URL pointing to the Privacy Impact Analysis
@@ -69,12 +66,12 @@ System:
             values: ["YES", "NO"]
             comment: Whether a System Of Record Notice is required
         sornUrl:
-            type: string
+            type: string(255)
             extra:
                 purify: plaintext
             comment: A URL pointing to the System Of Record Notice
         uniqueProjectId:
-            type: string
+            type: string(23)
             extra:
                 purify: plaintext
             comment: The Unique Project Identifier (UPI) correlates information systems to their corresponding fiscal budget items. The UPI always has the folLOWing format: "xxx-xx-xx-xx-xx-xxxx-xx"        

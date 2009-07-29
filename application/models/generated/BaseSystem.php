@@ -24,8 +24,8 @@
  * @property enum $sornRequired
  * @property string $sornUrl
  * @property string $uniqueProjectId
- * @property Doctrine_Collection $Documents
  * @property Doctrine_Collection $Organization
+ * @property Doctrine_Collection $Documents
  * 
  * @package    ##PACKAGE##
  * @subpackage ##SUBPACKAGE##
@@ -38,7 +38,7 @@ abstract class BaseSystem extends Doctrine_Record
     {
         $this->setTableName('system');
         $this->hasColumn('type', 'enum', null, array('type' => 'enum', 'values' => array(0 => 'gss', 1 => 'major', 2 => 'minor'), 'comment' => 'General Support System, Major Application, or Minor Application'));
-        $this->hasColumn('confidentiality', 'enum', null, array('type' => 'enum', 'values' => array(0 => 'na', 1 => 'LOW', 2 => 'MODERATE', 3 => 'HIGH'), 'comment' => 'The FIPS-199 confidentiality impact'));
+        $this->hasColumn('confidentiality', 'enum', null, array('type' => 'enum', 'values' => array(0 => 'NA', 1 => 'LOW', 2 => 'MODERATE', 3 => 'HIGH'), 'comment' => 'The FIPS-199 confidentiality impact'));
         $this->hasColumn('confidentialityDescription', 'string', null, array('type' => 'string'));
         $this->hasColumn('integrity', 'enum', null, array('type' => 'enum', 'values' => array(0 => 'LOW', 1 => 'MODERATE', 2 => 'HIGH'), 'comment' => 'The FIPS-199 integrity impact'));
         $this->hasColumn('integrityDescription', 'string', null, array('type' => 'string'));
@@ -52,19 +52,19 @@ abstract class BaseSystem extends Doctrine_Record
         $this->hasColumn('hasFiif', 'enum', null, array('type' => 'enum', 'values' => array(0 => 'YES', 1 => 'NO'), 'comment' => 'Whether the system contains any Federal Information in Identifiable Form'));
         $this->hasColumn('hasPii', 'enum', null, array('type' => 'enum', 'values' => array(0 => 'YES', 1 => 'NO'), 'comment' => 'Whether the system contains any Personally Identifiable Information'));
         $this->hasColumn('piaRequired', 'enum', null, array('type' => 'enum', 'values' => array(0 => 'YES', 1 => 'NO'), 'comment' => 'Whether this system requires a Privacy Impact Analysis'));
-        $this->hasColumn('piaUrl', 'string', null, array('type' => 'string', 'extra' => array('purify' => 'plaintext'), 'comment' => 'A URL pointing to the Privacy Impact Analysis'));
+        $this->hasColumn('piaUrl', 'string', 255, array('type' => 'string', 'extra' => array('purify' => 'plaintext'), 'comment' => 'A URL pointing to the Privacy Impact Analysis', 'length' => '255'));
         $this->hasColumn('sornRequired', 'enum', null, array('type' => 'enum', 'values' => array(0 => 'YES', 1 => 'NO'), 'comment' => 'Whether a System Of Record Notice is required'));
-        $this->hasColumn('sornUrl', 'string', null, array('type' => 'string', 'extra' => array('purify' => 'plaintext'), 'comment' => 'A URL pointing to the System Of Record Notice'));
-        $this->hasColumn('uniqueProjectId', 'string', null, array('type' => 'string', 'extra' => array('purify' => 'plaintext'), 'comment' => 'The Unique Project Identifier (UPI) correlates information systems to their corresponding fiscal budget items. The UPI always has the folLOWing format: "xxx-xx-xx-xx-xx-xxxx-xx"'));
+        $this->hasColumn('sornUrl', 'string', 255, array('type' => 'string', 'extra' => array('purify' => 'plaintext'), 'comment' => 'A URL pointing to the System Of Record Notice', 'length' => '255'));
+        $this->hasColumn('uniqueProjectId', 'string', 23, array('type' => 'string', 'extra' => array('purify' => 'plaintext'), 'comment' => 'The Unique Project Identifier (UPI) correlates information systems to their corresponding fiscal budget items. The UPI always has the folLOWing format: "xxx-xx-xx-xx-xx-xxxx-xx"', 'length' => '23'));
     }
 
     public function setUp()
     {
-        $this->hasMany('SystemDocument as Documents', array('local' => 'id',
-                                                            'foreign' => 'systemId'));
-
         $this->hasMany('Organization', array('local' => 'id',
                                              'foreign' => 'systemId'));
+
+        $this->hasMany('SystemDocument as Documents', array('local' => 'id',
+                                                            'foreign' => 'systemId'));
 
     $this->addListener(new XssListener(), 'XssListener');
     $this->addListener(new BaseListener(), 'BaseListener');

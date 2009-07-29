@@ -1,42 +1,38 @@
 Evaluation:
     MITIGATION ISSO:
         id: 1
-        name: Awaiting ISSO Approval for Mitigation Strategy
+        name: ISSO Approval for Mitigation Strategy
         nickname: MS ISSO
         NextEvaluation: [MITIGATION IVV]
         precedence: 0
         approvalGroup: action
         Privilege: finding_mitigation_isso
-        #Event: ...
-        #Function: ...
+        Event: MITIGATION_ISSO
 
     MITIGATION IVV:
         id: 2
-        name: Awaiting IV&amp;V Approval for Mitigation Strategy
-        nickname: MS IV&amp;V
+        name: IV&V Approval for Mitigation Strategy
+        nickname: MS IV&V
         precedence: 1
         approvalGroup: action
         Privilege: finding_mitigation_ivv
-        #Event: ...
-        #Function: ...
+        Event: MITIGATION_IVV
 
     EVIDENCE ISSO:
         id: 3
-        name: Awaiting ISSO Approval for Evidence
+        name: ISSO Approval for Evidence
         nickname: EV ISSO
         NextEvaluation: [EVIDENCE IVV]
         precedence: 0
         approvalGroup: evidence
         Privilege: finding_evidence_isso
-        #Event: ...
-        #Function: ...
+        Event: EVIDENCE_ISSO
 
     EVIDENCE IVV:
         id: 4
-        name: Awaiting IV&amp;V Approval for Evidence
-        nickname: EV IV&amp;V
+        name: IV&V Approval for Evidence
+        nickname: EV IV&V
         precedence: 1
         approvalGroup: evidence
         Privilege: finding_evidence_ivv
-        #Event: ...
-        #Function: ...
+        Event: EVIDENCE_IVV

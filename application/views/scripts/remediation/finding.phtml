@@ -1,5 +1,6 @@
 <?php
     $finding = $this->finding;
+    $orgId = $finding->ResponsibleOrganization->nickname;
     $status  = $finding->getStatus();
 ?>
 <div class="column left">
@@ -16,6 +17,18 @@
         <tr>
             <td>Date Opened:</td>
             <td><?php echo $finding->createdTs;?></td>
+        </tr>
+        <tr>
+            <td>Date Closed:</td>
+            <td>
+                <?php 
+                if (!is_null($finding->closedTs)) {
+                    echo $finding->closedTs;
+                } else {
+                    echo "<i>Not closed</i>";
+                }
+                ?>
+            </td>
         </tr>
         <tr>
             <td>Source:</td>
@@ -58,7 +71,7 @@
                      href="/metainfo/list/o/organization/format/html/"
                      <?php
                      if('NEW' == $status || 'DRAFT' == $status
-                         && Fisma_Acl::hasPrivilege('finding', 'update_assignment')) {
+                         && Fisma_Acl::hasPrivilege('finding', 'update_assignment', $orgId)) {
                          echo 'class="editable" target="organization"'; 
                      }
                      ?>>
@@ -128,7 +141,7 @@
 <div class="clear"></div>
 
 <?php 
-if (Fisma_Acl::hasPrivilege('finding','update_finding_description')) {
+if (Fisma_Acl::hasPrivilege('finding', 'update_description', $orgId)) {
     Fisma_Format_Section::startSection('Description', 'finding_description');
 } else {
     Fisma_Format_Section::startSection('Description');
@@ -141,7 +154,7 @@ if (Fisma_Acl::hasPrivilege('finding','update_finding_description')) {
 
 <?php
 if ('NEW' == $status || 'DRAFT' == $status
-    && Fisma_Acl::hasPrivilege('finding', 'update_recommendation')) {
+    && Fisma_Acl::hasPrivilege('finding', 'update_recommendation', $orgId)) {
     Fisma_Format_Section::startSection('Recommendation', 'recommendation');
 } else {
     Fisma_Format_Section::startSection('Recommendation');

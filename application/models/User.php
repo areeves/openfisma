@@ -72,7 +72,7 @@ class User extends BaseUser
     const LOGOUT        = 'logout';
     const ACCEPT_ROB    = 'accept rob';
     const CHANGE_PASSWORD = 'change password';
-    const VALIDTAE_EMAIL  = 'validate email';
+    const VALIDATE_EMAIL  = 'validate email';
     /**
      * Returns an object which represents the current, authenticated user
      * If the $user is current User, then return this object instead of create a new one.
@@ -103,9 +103,8 @@ class User extends BaseUser
         $this->lockTs = date('Y-m-d H:i:s');
         $this->lockType = $lockType;
         $this->save();
-        /** @todo english */
-        $this->log(self::LOCK_USER, "Account unlocked by $lockType");
-        Notification::notify(Notification::USER_LOCKED, $this, self::currentUser());
+        $this->log(self::LOCK_USER, "Account locked: $lockType");
+        Notification::notify('USER_LOCKED', $this, self::currentUser());
     }
     
     /**
@@ -118,7 +117,6 @@ class User extends BaseUser
         $this->lockType = null;
         $this->failureCount = 0;
         $this->save();
-        /** @todo english */
         $this->log(self::UNLOCK_USER, "Account unlocked");
 
     }
@@ -185,15 +183,26 @@ class User extends BaseUser
                                 $acl->add(new Zend_Acl_Resource($systemResource));
                             }
                             $acl->allow($newRole, $systemResource, $privilege->action);
+                            
+                            // The wildcard resources indicates whether a user has this privilege on *any* 
+                            // system. This is useful for knowing when to show certain user interface elements
+                            // like menu items. The resource is named "*/finding"
+                            $wildcardResource = "*/$privilege->resource";
+                            if (!$acl->has($wildcardResource)) {
+                                $acl->add(new Zend_Acl_Resource($wildcardResource));
+                            }
+                            $acl->allow($newRole, $wildcardResource, $privilege->action);                            
                         }
+                    } else {
+                        // Create a resource and grant it to the current role
+                        if (!$acl->has($privilege->resource)) {
+                            $acl->add(new Zend_Acl_Resource($privilege->resource));
+                        }
+                        $acl->allow($newRole, $privilege->resource, $privilege->action);
                     }
-                    // Create a resource and grant it to the current role
-                    if (!$acl->has($privilege->resource)) {
-                        $acl->add(new Zend_Acl_Resource($privilege->resource));
-                    }
-                    $acl->allow($newRole, $privilege->resource, $privilege->action);
                 }
             }
+
             // Create a role for this user that inherits all of the roles created above
             $userRole = new Zend_Acl_Role($this->username);
             $acl->addRole($userRole, $roleArray);
@@ -245,11 +254,10 @@ class User extends BaseUser
             $this->emailValidate = true;
             $emailValidation->delete();
             $this->save();
-            //@todo english,aslo see the follow
-            $this->log(self::VALIDATE_EMAIL, 'Email validate successfully');
+            $this->log(self::VALIDATE_EMAIL, 'Email validation successful');
             return true;
         } else {
-            $this->log(self::VALIDTAE_EMAIL, 'Email validate faild');
+            $this->log(self::VALIDATE_EMAIL, 'Email validation failed');
             return false;
         }
     }
@@ -274,14 +282,14 @@ class User extends BaseUser
             $this->currentLoginIp = $_SERVER['REMOTE_ADDR'];
             $this->oldFailureCount = $this->failureCount;
             $this->failureCount = 0;
-            Notification::notify(Notification::USER_LOGIN_SUCCESS, $this, $this);
+            Notification::notify('LOGIN_SUCCESS', $this, $this);
             $loginRet = true;
         } else {
             $this->failureCount++;
             if ($this->failureCount >= Configuration::getConfig('failure_threshold')) {
                 $this->lockAccount(User::LOCK_TYPE_PASSWORD);
             }
-            Notification::notify(Notification::USER_LOGIN_FAILURE, $this, $this);
+            Notification::notify('LOGIN_FAILURE', $this, $this);
         }
         $this->save();
         return $loginRet;
@@ -296,6 +304,7 @@ class User extends BaseUser
             throw new Fisma_Exception("Logout is not allowed in command line mode");
         }
         
+        Notification::notify('LOGOUT', $this, User::currentUser());
         $this->log(self::LOGOUT, 'Log out');
     }
 
@@ -309,7 +318,6 @@ class User extends BaseUser
     {
         $accountLog = new AccountLog();
         if (!in_array($event, $accountLog->getTable()->getEnumValues('event'))) {
-            /** @todo english */
             throw new Fisma_Exception("Invalid account log event type");
         }
         $accountLog->ip = $_SERVER["REMOTE_ADDR"];
@@ -332,7 +340,7 @@ class User extends BaseUser
     {
         $existEvents = null;
         foreach ($this->Events as $event) {
-            $existEvents[$event['id']] = $event['name'];
+            $existEvents[$event['id']] = $event['description'];
         }
         return $existEvents;
     }
@@ -360,7 +368,7 @@ class User extends BaseUser
         }
         
         foreach ($query as $event) {
-            $availableEvents[$event->id] = $event->name;
+            $availableEvents[$event->id] = $event->description;
         }
 
         $existEvents = $this->getExistEvents();

@@ -21,15 +21,15 @@
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
  * @version   $Id$
- * @todo english  Please check the email subject, content.
+ * @package   Fisma
  */
 
 /**
  * Send mail to user for validate email, account notification etc. 
  *
- * @package    Fisma
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license    http://www.openfisma.org/mw/index.php?title=License
+ * @package    Fisma
  */
 class Fisma_Mail extends Zend_Mail
 {
@@ -53,7 +53,6 @@ class Fisma_Mail extends Zend_Mail
     public function validateEmail($user, $email)
     {
         $this->addTo($email);
-        /** @todo english */
         $this->setSubject("Confirm Your E-mail Address");
 
         $this->_contentTpl->host  = Zend_Controller_Front::getInstance()->getRequest()->getHttpHost();
@@ -112,7 +111,7 @@ class Fisma_Mail extends Zend_Mail
         $this->addTo($user->email, $user->nameFirst . ' ' . $user->nameLast);
         $this->setSubject("Your new account for $systemName has been created");
         $this->_contentTpl->user = $user;
-        $this->_contentTpl->host = Zend_Controller_Front::getInstance()->getRequest()->getHttpHost();
+        $this->_contentTpl->host = Configuration::getConfig('host_url');
         $content = $this->_contentTpl->render('sendaccountinfo.phtml');
         $this->setBodyText($content);
 

@@ -27,12 +27,12 @@ abstract class BaseSecurityControl extends Doctrine_Record
     {
         $this->setTableName('security_control');
         $this->hasColumn('code', 'string', 5, array('type' => 'string', 'fixed' => 1, 'comment' => 'The control number, e.g. AC-05', 'length' => '5'));
-        $this->hasColumn('class', 'enum', null, array('type' => 'enum', 'values' => array(0 => 'management', 1 => 'operational', 2 => 'technical')));
+        $this->hasColumn('class', 'enum', null, array('type' => 'enum', 'values' => array(0 => 'MANAGEMENT', 1 => 'OPERATIONAL', 2 => 'TECHNICAL')));
         $this->hasColumn('subclass', 'string', 255, array('type' => 'string', 'length' => '255'));
         $this->hasColumn('family', 'string', 255, array('type' => 'string', 'length' => '255'));
         $this->hasColumn('control', 'string', null, array('type' => 'string'));
         $this->hasColumn('guidance', 'string', null, array('type' => 'string'));
-        $this->hasColumn('controlLevel', 'enum', null, array('type' => 'enum', 'values' => array(0 => 'none', 1 => 'low', 2 => 'moderate', 3 => 'high')));
+        $this->hasColumn('controlLevel', 'enum', null, array('type' => 'enum', 'values' => array(0 => 'NONE', 1 => 'LOW', 2 => 'MODERATE', 3 => 'HIGH')));
         $this->hasColumn('enhancements', 'string', null, array('type' => 'string'));
         $this->hasColumn('supplement', 'string', null, array('type' => 'string'));
     }

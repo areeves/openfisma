@@ -63,6 +63,8 @@ class AssetController extends BaseController
     function init()
     {
         parent::init();
+        $this->_organizations = '*';
+        
         $swCtx = $this->_helper->contextSwitch();
         if (!$swCtx->hasContext('pdf')) {
             $swCtx->addContext('pdf', array(
@@ -126,9 +128,7 @@ class AssetController extends BaseController
     protected function setForm($subject, $form)
     {
         $product = $subject->Product;
-        $form->getElement('productId')->addMultiOptions(array($product->id => $product->id 
-                                        . ' | ' . $product->name . ' | ' . $product->vendor
-                                        . ' | ' . $product->version));
+        $form->getElement('productId')->addMultiOptions(array($product->id => $product->name));
         $form->setDefaults($subject->toArray());
         return $form;
     }
@@ -144,14 +144,11 @@ class AssetController extends BaseController
         if (is_null($subject)) {
             $subject = new $this->_modelName();
         } elseif (!$subject instanceof Doctrine_Record) {
-            /** @todo english */
-            throw new Fisma_Exception('Invalid parameter expecting a Record model');
+            throw new Fisma_Exception('Invalid parameter: Expected a Doctrine_Record');
         }
         $values = $form->getValues();
         $product = Doctrine::getTable('Product')->find($values['productId']);
-        $form->getElement('productId')->addMultiOptions(array($product->id => $product->id 
-                                        . ' | ' . $product->name . ' | ' . $product->vendor
-                                        . ' | ' . $product->version));
+        $form->getElement('productId')->addMultiOptions(array($product->id => $product->name));
         $subject->merge($values);
         $subject->save();
     }
@@ -201,7 +198,7 @@ class AssetController extends BaseController
      */
     public function createAction()
     {
-        Fisma_Acl::requirePrivilege('asset', 'create');
+        Fisma_Acl::requirePrivilege('asset', 'create', '*');
         $this->_request->setParam('source', 'MANUAL');
         parent::createAction();
     }
@@ -211,7 +208,7 @@ class AssetController extends BaseController
      */
     public function searchboxAction()
     {
-        Fisma_Acl::requirePrivilege('asset', 'read');
+        Fisma_Acl::requirePrivilege('asset', 'read', '*');
         
         $params = $this->parseCriteria();
         $systems = $this->_me->getOrganizations();
@@ -232,7 +229,7 @@ class AssetController extends BaseController
      */
     public function searchAction()
     {
-        Fisma_Acl::requirePrivilege('asset', 'read');
+        Fisma_Acl::requirePrivilege('asset', 'read', '*');
 
         $params = $this->parseCriteria();
         $q = Doctrine_Query::create()
@@ -322,10 +319,7 @@ class AssetController extends BaseController
             $asset = new Asset();
             $asset = $asset->getTable('Asset')->find($id);
             if (!$asset) {
-                /**
-                 * @todo english
-                 */
-                throw new Fisma_Exception("Invalid {$this->_modelName}");
+                throw new Fisma_Exception("Invalid asset ID");
             }
             $assetInfo = $asset->toArray();
             $assetInfo['systemName'] = $asset->Organization->name;
@@ -344,30 +338,27 @@ class AssetController extends BaseController
      */
     public function deleteAction()
     {
-        Fisma_Acl::requirePrivilege($this->_modelName, 'delete');
         $id = $this->_request->getParam('id');
         $asset = Doctrine::getTable($this->_modelName)->find($id);
+        Fisma_Acl::requirePrivilege($this->_modelName, 'delete', $asset->Organization->nickname);
+        
         if (!$asset) {
-            /** @todo english */
-            $msg   = "Invalid {$this->_modelName}";
+            $msg   = "Invalid {$this->_modelName} ID";
             $type = self::M_WARNING;
         } else {
             try {
                 if (count($asset->Findings)) {
-                    /** @todo english **/
-                    $msg   = $msg = 'This asset have been used, You could not to delete';
+                    $msg   = $msg = 'This asset cannot be deleted because it has findings against it';
                     $type = self::M_WARNING;
                 } else {
                     Doctrine_Manager::connection()->beginTransaction();
                     $asset->delete();
                     Doctrine_Manager::connection()->commit();
-                    /** @todo english **/
-                    $msg   = "{$this->_modelName} is deleted successfully";
+                    $msg   = "Asset deleted successfully";
                     $type = self::M_NOTICE;
                 }
             } catch (Doctrine_Exception $e) {
                 Doctrine_Manager::connection()->rollback();
-                /** @todo english */
                 if (Fisma::debug()) {
                     $msg .= $e->getMessage();
                 }
@@ -383,7 +374,8 @@ class AssetController extends BaseController
      */
     public function multideleteAction()
     {
-        Fisma_Acl::requirePrivilege('asset', 'delete');
+        /** @todo this isn't right... the delete should check each asset individually */
+        Fisma_Acl::requirePrivilege('asset', 'delete', '*');
 
         $req = $this->getRequest();
         $post = $req->getPost();

@@ -37,14 +37,14 @@
  * @property Doctrine_Collection $Organizations
  * @property Doctrine_Collection $Events
  * @property Doctrine_Collection $AccountLogs
- * @property Doctrine_Collection $Notifications
- * @property Doctrine_Collection $Evidence
- * @property Doctrine_Collection $Uploads
- * @property Doctrine_Collection $Findings
- * @property Doctrine_Collection $EmailValidation
  * @property Doctrine_Collection $AuditLogs
  * @property Doctrine_Collection $Comments
+ * @property Doctrine_Collection $EmailValidation
+ * @property Doctrine_Collection $Evidence
+ * @property Doctrine_Collection $Findings
  * @property Doctrine_Collection $FindingEvaluations
+ * @property Doctrine_Collection $Notifications
+ * @property Doctrine_Collection $Uploads
  * 
  * @package    ##PACKAGE##
  * @subpackage ##SUBPACKAGE##
@@ -58,8 +58,8 @@ abstract class BaseUser extends Doctrine_Record
         $this->setTableName('user');
         $this->hasColumn('createdTs', 'timestamp', null, array('type' => 'timestamp'));
         $this->hasColumn('modifiedTs', 'timestamp', null, array('type' => 'timestamp'));
-        $this->hasColumn('username', 'string', 255, array('type' => 'string', 'unique' => true, 'extra' => array('purify' => 'plaintext'), 'comment' => 'This users unique authentication credential', 'length' => '255'));
-        $this->hasColumn('password', 'string', 255, array('type' => 'string', 'length' => '255'));
+        $this->hasColumn('username', 'string', 255, array('type' => 'string', 'unique' => true, 'extra' => array('logicalName' => 'User Name', 'purify' => 'plaintext', 'template' => true), 'comment' => 'This users unique authentication credential', 'length' => '255'));
+        $this->hasColumn('password', 'string', 255, array('type' => 'string', 'extra' => array('logicalName' => 'Password', 'template' => 'true'), 'length' => '255'));
         $this->hasColumn('passwordSalt', 'string', 10, array('type' => 'string', 'fixed' => 1, 'comment' => 'A randomly generated salt, used to discourage rainbow table attacks against the password database', 'length' => '10'));
         $this->hasColumn('passwordTs', 'timestamp', null, array('type' => 'timestamp'));
         $this->hasColumn('passwordHistory', 'string', null, array('type' => 'string'));
@@ -73,13 +73,13 @@ abstract class BaseUser extends Doctrine_Record
         $this->hasColumn('lastLoginIp', 'string', 15, array('type' => 'string', 'ip' => true, 'length' => '15'));
         $this->hasColumn('currentLoginIp', 'string', 15, array('type' => 'string', 'ip' => true, 'length' => '15'));
         $this->hasColumn('lastLoginTs', 'timestamp', null, array('type' => 'timestamp'));
-        $this->hasColumn('title', 'string', 255, array('type' => 'string', 'extra' => array('purify' => 'plaintext'), 'comment' => 'The users position or title within the agency', 'length' => '255'));
-        $this->hasColumn('nameFirst', 'string', 255, array('type' => 'string', 'extra' => array('purify' => 'plaintext'), 'comment' => 'The users first name', 'length' => '255'));
-        $this->hasColumn('nameLast', 'string', 255, array('type' => 'string', 'extra' => array('purify' => 'plaintext'), 'comment' => 'The users last name', 'length' => '255'));
-        $this->hasColumn('email', 'string', 255, array('type' => 'string', 'extra' => array('purify' => 'plaintext'), 'email' => true, 'comment' => 'The users primary e-mail address', 'length' => '255'));
+        $this->hasColumn('title', 'string', 255, array('type' => 'string', 'extra' => array('logicalName' => 'Title', 'purify' => 'plaintext', 'template' => true), 'comment' => 'The users position or title within the agency', 'length' => '255'));
+        $this->hasColumn('nameFirst', 'string', 255, array('type' => 'string', 'extra' => array('logicalName' => 'First Name', 'template' => true, 'purify' => 'plaintext'), 'comment' => 'The users first name', 'length' => '255'));
+        $this->hasColumn('nameLast', 'string', 255, array('type' => 'string', 'extra' => array('logicalName' => 'Last Name', 'template' => true, 'purify' => 'plaintext'), 'comment' => 'The users last name', 'length' => '255'));
+        $this->hasColumn('email', 'string', 255, array('type' => 'string', 'extra' => array('logicalName' => 'E-mail Address', 'template' => true, 'purify' => 'plaintext'), 'email' => true, 'comment' => 'The users primary e-mail address', 'length' => '255'));
         $this->hasColumn('emailValidate', 'boolean', null, array('type' => 'boolean', 'default' => false, 'comment' => 'Whether the user has validated their e-mail address'));
-        $this->hasColumn('phoneOffice', 'string', 10, array('type' => 'string', 'fixed' => 1, 'extra' => array('purify' => 'plaintext'), 'comment' => 'U.S. 10 digit phone number; stored without punctuation', 'length' => '10'));
-        $this->hasColumn('phoneMobile', 'string', 10, array('type' => 'string', 'fixed' => 1, 'extra' => array('purify' => 'plaintext'), 'comment' => 'U.S. 10 digit phone number; stored without punctuation', 'length' => '10'));
+        $this->hasColumn('phoneOffice', 'string', 10, array('type' => 'string', 'fixed' => 1, 'extra' => array('logicalName' => 'Office Phone', 'template' => true, 'purify' => 'plaintext'), 'comment' => 'U.S. 10 digit phone number; stored without punctuation', 'length' => '10'));
+        $this->hasColumn('phoneMobile', 'string', 10, array('type' => 'string', 'fixed' => 1, 'extra' => array('logicalName' => 'Mobile Phone', 'template' => true, 'purify' => 'plaintext'), 'comment' => 'U.S. 10 digit phone number, stored as 10 digits without punctuation', 'length' => '10'));
         $this->hasColumn('searchColumnsPref', 'integer', null, array('type' => 'integer', 'comment' => 'A bitmask corresponding to visible columns on the search page'));
         $this->hasColumn('notifyFrequency', 'integer', null, array('type' => 'integer'));
         $this->hasColumn('mostRecentNotifyTs', 'timestamp', null, array('type' => 'timestamp'));
@@ -103,29 +103,29 @@ abstract class BaseUser extends Doctrine_Record
         $this->hasMany('AccountLog as AccountLogs', array('local' => 'id',
                                                           'foreign' => 'userId'));
 
-        $this->hasMany('Notification as Notifications', array('local' => 'id',
-                                                              'foreign' => 'userId'));
-
-        $this->hasMany('Evidence', array('local' => 'id',
-                                         'foreign' => 'userId'));
-
-        $this->hasMany('SystemDocument as Uploads', array('local' => 'id',
-                                                          'foreign' => 'userId'));
-
-        $this->hasMany('Finding as Findings', array('local' => 'id',
-                                                    'foreign' => 'createdByUserId'));
-
-        $this->hasMany('EmailValidation', array('local' => 'id',
-                                                'foreign' => 'userId'));
-
         $this->hasMany('AuditLog as AuditLogs', array('local' => 'id',
                                                       'foreign' => 'userId'));
 
         $this->hasMany('Comment as Comments', array('local' => 'id',
                                                     'foreign' => 'userId'));
 
+        $this->hasMany('EmailValidation', array('local' => 'id',
+                                                'foreign' => 'userId'));
+
+        $this->hasMany('Evidence', array('local' => 'id',
+                                         'foreign' => 'userId'));
+
+        $this->hasMany('Finding as Findings', array('local' => 'id',
+                                                    'foreign' => 'createdByUserId'));
+
         $this->hasMany('FindingEvaluation as FindingEvaluations', array('local' => 'id',
                                                                         'foreign' => 'userId'));
+
+        $this->hasMany('Notification as Notifications', array('local' => 'id',
+                                                              'foreign' => 'userId'));
+
+        $this->hasMany('SystemDocument as Uploads', array('local' => 'id',
+                                                          'foreign' => 'userId'));
 
         $softdelete0 = new Doctrine_Template_SoftDelete();
         $timestampable0 = new Doctrine_Template_Timestampable(array('created' => array('name' => 'createdTs', 'type' => 'timestamp'), 'updated' => array('name' => 'modifiedTs', 'type' => 'timestamp')));

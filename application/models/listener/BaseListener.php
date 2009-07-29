@@ -19,35 +19,35 @@
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
  * @version   $Id$
+ * @package   Listener
  */
  
 /**
  * A special listener which create notifications or update lucene index for each meta-data
  * 
- * @package   Listener
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/license.php
+ * @package   Listener
  */
 class BaseListener extends Doctrine_Record_Listener 
 {
-    public function preInsert(Doctrine_Event $event)
+    public function postInsert(Doctrine_Event $event)
     {
         $invoker = $event->getInvoker();
         $type    = $this->_getNotifyType($invoker, 'CREATED');
-        Notification::notify($type, $invoker, User::currentUser());
+        
+        /** @todo this is a bit ugly. the organization is only included if it happens to be called "organizationId" */
+        if (isset($invoker->orgSystemId)) {
+            Notification::notify($type, $invoker, User::currentUser(), $invoker->orgSystemId);
+        } else {
+            Notification::notify($type, $invoker, User::currentUser());
+        }
     }
 
-    public function preUpdate(Doctrine_Event $event)
+    public function postUpdate(Doctrine_Event $event)
     {
         $invoker = $event->getInvoker();
-        $type    = $this->_getNotifyType($invoker, 'MODIFIED');
-        Notification::notify($type, $invoker, User::currentUser());
-    }
-
-    public function preDelete(Doctrine_Event $event)
-    {
-        $invoker = $event->getInvoker();
-        $type    = $this->_getNotifyType($invoker, 'DELETED');
+        $type    = $this->_getNotifyType($invoker, 'UPDATED');
         Notification::notify($type, $invoker, User::currentUser());
     }
 
@@ -61,22 +61,25 @@ class BaseListener extends Doctrine_Record_Listener
     public function postDelete(Doctrine_Event $event)
     {
         $invoker  = $event->getInvoker();
+        $type    = $this->_getNotifyType($invoker, 'DELETED');
+        Notification::notify($type, $invoker, User::currentUser());
+
         $modified = $invoker->getModified($old=false, $last=true);
         Fisma_Lucene::deleteIndex($invoker->getTable()->getTableName(), $invoker->id);
     }
 
     /**
-     * Get the notification type
+     * Get the name of the notification
      *
      * @param Doctrine Record $invoker
      * @param string $action
-     * @return int notification type
+     * @return string notification name
      */
     private function _getNotifyType($invoker, $action)
     {
         $table = strtoupper($invoker->getTable()->getTableName());
-        $event = $table . '_' . $action;
-        eval ("\$type = Notification::$event;");
-        return $type;
+        $eventName = $table . '_' . $action;
+        
+        return $eventName;
     }
 }

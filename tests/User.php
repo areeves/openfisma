@@ -85,7 +85,7 @@ class User extends BaseUser
 
     public function postInsert()
     {
-        Notification::notify(Notification::ACCOUNT_CREATED, $this, User::currentUser());
+        Notification::notify('USER_CREATED', $this, User::currentUser());
         Doctrine_Manager::connection()->commit();
 
         Fisma_Lucene::updateIndex('account', $this);
@@ -93,7 +93,7 @@ class User extends BaseUser
 
     public function postUpdate()
     {
-        Notification::notify(Notification::ACCOUNT_MODIFIED, $this, User::currentUser());
+        Notification::notify('USER_UPDATED', $this, User::currentUser());
         Doctrine_Manager::connection()->commit();
 
         Fisma_Lucene::updateIndex('account', $this);
@@ -101,7 +101,7 @@ class User extends BaseUser
 
     public function postDelete()
     {
-        Notification::notify(Notification::ACCOUNT_DELETED, $this, User::currentUser());
+        Notification::notify('USER_DELETED', $this, User::currentUser());
         Doctrine_Manager::connection()->commit();
 
         Fisma_Lucene::deleteIndex('account', $this->id);
@@ -277,12 +277,10 @@ class User extends BaseUser
         if ($validateCode == $validation[0]->validationCode) {
             $this->emailValidate = true;
             $validation->delete();
-            //@todo english
-            $this->_log('Email validate successfully');
+            $this->_log('Email validation successful');
             return true;
         } else {
-            //@todo english
-            $this->_log('Email validate faild');
+            $this->_log('Email validation failed');
             return false;
         }
     }
@@ -292,8 +290,7 @@ class User extends BaseUser
      */
     public function logout()
     {
-        //@todo english
-        $this->_log('Log out');
+        $this->_log('Logout');
         Zend_Auth::getInstance()->clearIdentity();
     }
 

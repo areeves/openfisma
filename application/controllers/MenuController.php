@@ -52,45 +52,49 @@ class MenuController extends SecurityController
     {
         $menubar = new Fisma_Yui_MenuBar();
         
+        // Tell the browser to cache the menu bar
+        $this->getResponse()->setHeader('Cache-Control', 'max-age=3600', true);
+        $this->getResponse()->setHeader('Last-Modified', 'Thu, 01 Dec 1984 16:00:00 GMT', true);
+        $this->getResponse()->setHeader('Expires', 'Thu, 01 Dec 2100 16:00:00 GMT', true);
+        $this->getResponse()->setHeader('Pragma', null, true);
+        
         if (Fisma_Acl::hasPrivilege('area', 'dashboard')) {
             $dashboard = new Fisma_Yui_MenuItem('Dashboard', '/panel/dashboard');
             $menubar->add($dashboard);
         }
 
-        if (Fisma_Acl::hasPrivilege('finding', 'read')) {
+        if (Fisma_Acl::hasPrivilege('finding', 'read', '*')) {
             $findings = new Fisma_Yui_Menu('Findings');
             
             $findings->add(new Fisma_Yui_MenuItem('Summary', '/panel/remediation/sub/summary'));
             $findings->add(new Fisma_Yui_MenuItem('Search', '/panel/remediation/sub/searchbox'));
 
-            if (Fisma_Acl::hasPrivilege('finding', 'create')) {
+            if (Fisma_Acl::hasPrivilege('finding', 'create', '*')) {
                 $findings->add(new Fisma_Yui_MenuItem('Create New Finding', '/panel/finding/sub/create'));
             }
             
-            if (Fisma_Acl::hasPrivilege('finding', 'inject')) {
+            if (Fisma_Acl::hasPrivilege('finding', 'inject', '*')) {
                 $findings->add(new Fisma_Yui_MenuItem('Upload Spreadsheet', '/panel/finding/sub/injection'));
                 $findings->add(new Fisma_Yui_MenuItem('Upload Scan Results', '/panel/finding/sub/plugin'));
             }
             
-            if (Fisma_Acl::hasPrivilege('finding', 'approve')) {
+            if (Fisma_Acl::hasPrivilege('finding', 'approve', '*')) {
                 $findings->add(new Fisma_Yui_MenuItem('Approve Pending Findings', '/panel/finding/sub/approve'));
             }
             
             $menubar->add($findings);
         }
 
-        if (Fisma_Acl::hasPrivilege('System', 'read')) {
+        if (Fisma_Acl::hasPrivilege('system', 'read', '*')) {
             $systems = new Fisma_Yui_Menu('System Inventory');
 
             $systems->add(new Fisma_Yui_MenuItem('Systems', '/panel/system/sub/list'));
             
-            if (Fisma_Acl::hasPrivilege('Asset', 'read')) {
+            if (Fisma_Acl::hasPrivilege('asset', 'read', '*')) {
                 $systems->add(new Fisma_Yui_MenuItem('Assets', '/panel/asset/sub/list'));
             }
 
-            if (Fisma_Acl::hasPrivilege('System', 'read')) {
-                $systems->add(new Fisma_Yui_MenuItem('Documentation', '/panel/system-document/sub/list'));
-            }
+            $systems->add(new Fisma_Yui_MenuItem('Documentation', '/panel/system-document/sub/list'));
             
             $menubar->add($systems);
         }
@@ -99,9 +103,7 @@ class MenuController extends SecurityController
             $reports = new Fisma_Yui_Menu('Reports');
             
             $reports->add(new Fisma_Yui_MenuItem('FISMA Report', '/panel/report/sub/fisma'));
-            //This section needs a huge overhaul
-            //$reports->add(new Fisma_Yui_MenuItem('General Report', '/panel/report/sub/general'));
-            $reports->add(new Fisma_Yui_MenuItem('Generate System RAFs', '/panel/report/sub/rafs'));
+            //$reports->add(new Fisma_Yui_MenuItem('Generate System RAFs', '/panel/report/sub/rafs'));
             $reports->add(new Fisma_Yui_MenuItem('Overdue Report', '/panel/report/sub/overdue'));
             $reports->add(new Fisma_Yui_MenuItem('Plug-in Reports', '/panel/report/sub/plugin'));
             

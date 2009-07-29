@@ -1,4 +1,36 @@
-/** @todo start migrating functionality out of this file. eventually this file needs to be removed */
+/*************************************************************************
+ *
+ * Copyright (c) 2008 Endeavor Systems, Inc.
+ *
+ * This file is part of OpenFISMA.
+ *
+ * OpenFISMA is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * OpenFISMA is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with OpenFISMA.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ ******************************************************************************* 
+ *
+ * Main js file
+ * @todo start migrating functionality out of this file. 
+ * eventually this file needs to be removed 
+ *
+ * @author    Mark E. Haase <mhaase@endeavorsystems.com>
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/mw/index.php?title=License
+ * @version   $Id$
+ *
+ *******************************************************************************
+ */
+
 String.prototype.trim = function() {
         return this.replace(/^\s+|\s+$/g,"");
 }
@@ -376,7 +408,8 @@ function highlight(node,keywords) {
         return true;
     }
 
-	keywords = keywords.split(',');
+    // Remove special chars
+	keywords = keywords.split(' ');
 	for (var i in keywords) {
 		keyword = keywords[i];
 
@@ -462,7 +495,6 @@ function switchYear(step){
 }
 
 /**
- * @todo english
  * Check the form if has something changed but not saved
  * if nothing changes, then give a confirmation
  * @param dom check_form checking form
@@ -498,14 +530,18 @@ function form_confirm (check_form, action) {
     }
 
     if(changed) {
-        if (confirm('WARNING: You have unsaved changes on the page. If you continue, these changes will be lost. If you want to save your changes, click "Cancel" now and then click "Save Changes".') == true) {
-            return true;
-        }
-    } else {
-        if (confirm('WARNING: You are about to '+action+'. This action cannot be undone. Please click "Ok" to confirm your action or click "Cancel" to stop.') == true) {
+        if (confirm('WARNING: You have unsaved changes on the page. If you continue, these'
+                  + ' changes will be lost. If you want to save your changes, click "Cancel"' 
+                  + ' now and then click "Save Changes".')) {
             return true;
         }
     }
+    
+    if (confirm('WARNING: You are about to ' + action + '. This action cannot be undone.'
+              + ' Please click "Ok" to confirm your action or click "Cancel" to stop.')) {
+        return true;
+    }
+
     return false;
 }
 
@@ -626,7 +662,7 @@ function showCalendar(block, trigger) {
                 Dom.get(block).value = "";
             }
             dialog.hide();
-            if ('finding[expectedCompletionDate]' == Dom.get(block).name) {
+            if ('finding[currentEcd]' == Dom.get(block).name) {
                 validateEcd();
             }
         });

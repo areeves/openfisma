@@ -118,7 +118,7 @@ class RemediationController extends SecurityController
     
     public function indexAction()
     {
-        Fisma_Acl::requirePrivilege('finding', 'read');
+        Fisma_Acl::requirePrivilege('finding', 'read', '*');
         
         $this->_helper->actionStack('searchbox', 'Remediation');
         $this->_helper->actionStack('summary', 'Remediation');
@@ -130,7 +130,7 @@ class RemediationController extends SecurityController
      */    
     public function summaryAction()
     {
-        Fisma_Acl::requirePrivilege('finding', 'read');
+        Fisma_Acl::requirePrivilege('finding', 'read', '*');
         
         $mitigationEvaluationQuery = Doctrine_Query::create()
                                      ->from('Evaluation e')
@@ -151,7 +151,7 @@ class RemediationController extends SecurityController
      * Invoked asynchronously to load data for the summary table.
      */
     public function summaryDataAction() {
-        Fisma_Acl::requirePrivilege('finding', 'read');
+        Fisma_Acl::requirePrivilege('finding', 'read', '*');
         
         // Doctrine supports the idea of using a base query when populating a tree. In our case, the base
         // query selects all Organizations which the user has access to.
@@ -300,7 +300,6 @@ class RemediationController extends SecurityController
      */
     private function _parseCriteria()
     {
-        Fisma_Acl::requirePrivilege('finding', 'read');
         $params = array('responsibleOrganizationId' => 0, 'sourceId' => 0, 'type' => '',
                         'status' => '', 'ids' => '', 'assetOwner' => 0,
                         'estDateBegin' => '', 'estDateEnd' => '',
@@ -405,7 +404,7 @@ class RemediationController extends SecurityController
             'attachments' => array('label' => 'Attachments', 
                                    'sortable' => false, 
                                    'hidden' => ($visibleColumns & (1 << 15)) == 0),
-            'expectedCompletionDate' => array('label' => 'Expected Completion Date', 
+            'currentEcd' => array('label' => 'Expected Completion Date', 
                                            'sortable' => true, 
                                            'hidden' => ($visibleColumns & (1 << 16)) == 0)
         );
@@ -415,11 +414,10 @@ class RemediationController extends SecurityController
     /**
     * Do the real searching work. It's a thin wrapper
     * of poam model's search method.
-    * @yui clean up this method -- lots of stuff that doesn't apply when using the yui data table
     */
     public function searchAction()
     {
-        Fisma_Acl::requirePrivilege('finding', 'read');
+        Fisma_Acl::requirePrivilege('finding', 'read', '*');
         $params = $this->_parseCriteria();
         $link = $this->_helper->makeUrlParams($params);
         $this->view->assign('link', $link);
@@ -445,11 +443,10 @@ class RemediationController extends SecurityController
      */
     public function searchboxAction()
     {
-        Fisma_Acl::requirePrivilege('finding', 'read');
+        Fisma_Acl::requirePrivilege('finding', 'read', '*');
         
         $params = $this->_parseCriteria();
         $this->view->assign('params', $params);
-        
         $this->view->assign('systems', $this->_organizations->toKeyValueArray('id', 'name'));
         $this->view->assign('sources', Doctrine::getTable('Source')->findAll()->toKeyValueArray('id', 'name'));
         $this->_helper->actionStack('search', 'Remediation');
@@ -471,7 +468,8 @@ class RemediationController extends SecurityController
      */
     public function modifyAction()
     {
-        Fisma_Acl::requirePrivilege('finding', 'update');
+        // ACL for finding objects is handled inside the finding listener, because it has to do some
+        // very fine-grained error checking
         
         $id          = $this->_request->getParam('id');
         $findingData = $this->_request->getPost('finding', array());
@@ -485,7 +483,7 @@ class RemediationController extends SecurityController
             Doctrine_Manager::connection()->commit();
         } catch (Doctrine_Exception $e) {
             Doctrine_Manager::connection()->rollback();
-            $message = "Failure in changing. ";
+            $message = "Error: Unable to update finding. ";
             if (Fisma::debug()) {
                 $message .= $e->getMessage();
             }
@@ -506,18 +504,20 @@ class RemediationController extends SecurityController
 
         $finding  = $this->_getFinding($id);
         if (!empty($decision)) {
-            Fisma_Acl::requirePrivilege('finding', $finding->CurrentEvaluation->Privilege->action);
+            Fisma_Acl::requirePrivilege('finding', 
+                                        $finding->CurrentEvaluation->Privilege->action,
+                                        $finding->ResponsibleOrganization->nickname);
         }
        
         try {
             Doctrine_Manager::connection()->beginTransaction();
 
             if ('submitmitigation' == $do) {
-                Fisma_Acl::requirePrivilege('finding', 'mitigation_strategy_submit');
+                Fisma_Acl::requirePrivilege('finding', 'mitigation_strategy_submit', $finding->ResponsibleOrganization->nickname);
                 $finding->submitMitigation(User::currentUser());
             }
             if ('revisemitigation' == $do) {
-                Fisma_Acl::requirePrivilege('finding', 'mitigation_strategy_revise');
+                Fisma_Acl::requirePrivilege('finding', 'mitigation_strategy_revise', $finding->ResponsibleOrganization->nickname);
                 $finding->reviseMitigation(User::currentUser());
             }
 
@@ -530,9 +530,13 @@ class RemediationController extends SecurityController
                 $finding->deny(User::currentUser(), $comment);
             }
             Doctrine_Manager::connection()->commit();
-        } catch (Doctrine_Exception $e) {
+        } catch (Doctrine_Connection_Exception $e) {
             Doctrine_Manager::connection()->rollback();
-            $message = "Failure in this operation. ";
+            $message = 'Failure in this operation. '
+                     . $e->getPortableMessage() 
+                     . ' ('
+                     . $e->getPortableCode()
+                     . ')';
             if (Fisma::debug()) {
                 $message .= $e->getMessage();
             }
@@ -547,10 +551,10 @@ class RemediationController extends SecurityController
      */
     public function uploadevidenceAction()
     {
-        Fisma_Acl::requirePrivilege('finding', 'upload_evidence');
-
         $id = $this->_request->getParam('id');
         $finding = $this->_getFinding($id);
+
+        Fisma_Acl::requirePrivilege('finding', 'upload_evidence', $finding->ResponsibleOrganization->nickname);
 
         define('EVIDENCE_PATH', Fisma::getPath('data') . '/uploads/evidence');
         $file = $_FILES['evidence'];
@@ -562,9 +566,9 @@ class RemediationController extends SecurityController
             }
 
             $extension = end(explode(".",$file['name']));
-            if (!in_array(strtolower($extension), array('zip', 'rar', 'gz', 'tar'))) {
-                /** @todo english */
-                $message = 'Not allowed file type. Please Make sure your evidence is a single package';
+            /** @todo cleanup */
+            if (in_array(strtolower($extension), array('exe', 'php', 'phtml', 'php5', 'php4', 'js', 'css'))) {
+                $message = 'This file type is not allowed.';
                 throw new Fisma_Exception($message);
             }
 
@@ -578,7 +582,6 @@ class RemediationController extends SecurityController
             $count = 0;
             $filename = preg_replace('/^(.*)\.(.*)$/', '$1-' . $nowStr . '.$2', $file['name'], 2, $count);
             $absFile = EVIDENCE_PATH ."/{$id}/{$filename}";
-            //$absFile = EVIDENCE_PATH ."/{$id}/{$filename}";
             if ($count > 0) {
                 if (move_uploaded_file($file['tmp_name'], $absFile)) {
                     chmod($absFile, 0755);
@@ -599,26 +602,16 @@ class RemediationController extends SecurityController
     
     /**
      * Download evidence
-     *
      */
     public function downloadevidenceAction()
     {
-        Fisma_Acl::requirePrivilege('finding', 'read_evidence');
-
         $id = $this->_request->getParam('id');
-        $evidence = new Evidence();
-        $evidence = $evidence->getTable()->find($id);
+        $evidence = Doctrine::getTable('Evidence')->find($id);
         if (empty($evidence)) {
-            /** @todo english */
-            throw new Fisma_Exception('Wrong link');
+            throw new Fisma_Exception('Invalid evidence ID');
         }
 
-        if (!in_array($evidence->Finding->ResponsibleOrganization, $this->_me->getOrganizations()->toArray())
-            && 'root' != $this->_me->username)
-        {
-            /** @todo english */
-            throw new Fisma_Exception('You have no rights to access this file');
-        }
+        Fisma_Acl::requirePrivilege('finding', 'read', $evidence->Finding->ResponsibleOrganization->nickname);
 
         $fileName = $evidence->filename;
         $filePath = Fisma::getPath('data') . '/uploads/evidence/'. $evidence->findingId . '/';
@@ -638,8 +631,7 @@ class RemediationController extends SecurityController
             }
             fclose($fp);
         } else {
-            /** @todo english */
-            throw new Fisma_Exception('No such file or path.');
+            throw new Fisma_Exception('The requested file could not be found');
         }
     }
 
@@ -655,7 +647,7 @@ class RemediationController extends SecurityController
         $finding  = $this->_getFinding($id);
 
         if (!empty($decision)) {
-            Fisma_Acl::requirePrivilege('finding', $finding->CurrentEvaluation->Privilege->action);
+            Fisma_Acl::requirePrivilege('finding', $finding->CurrentEvaluation->Privilege->action, $finding->ResponsibleOrganization->nickname);
         }
 
         try {
@@ -688,10 +680,10 @@ class RemediationController extends SecurityController
      */
     public function rafAction()
     {
-        Fisma_Acl::requirePrivilege('report', 'generate_system_rafs');
-
         $id = $this->_request->getParam('id');
         $finding = $this->_getFinding($id);
+
+        Fisma_Acl::requirePrivilege('finding', 'read', $finding->ResponsibleOrganization->nickname);
 
         try {
             if ($finding->threat == '' ||
@@ -704,7 +696,6 @@ class RemediationController extends SecurityController
             
             $system = $finding->ResponsibleOrganization->System;
             if (NULL == $system->fipsCategory) {
-                /** @todo english */
                 throw new Fisma_Exception('The security categorization for ' .
                      '(' . $finding->responsibleOrganizationId . ')' . 
                      $finding->ResponsibleOrganization->name . ' is not defined. An analysis of ' .
@@ -727,7 +718,6 @@ class RemediationController extends SecurityController
     }
 
     /**
-     * @todo english
      * Get keywords from basic search query for highlight
      *
      * Basic search query is a complicated format string, system should pick-up available keywords to highlight
@@ -800,15 +790,24 @@ class RemediationController extends SecurityController
     function auditLogAction() {
         $this->_viewFinding();
         $this->_helper->layout->setLayout('ajax');
+        
+        $auditQuery = Doctrine_Query::create()
+                      ->select('a.createdTs, u.username, a.description')
+                      ->from('AuditLog a')
+                      ->innerJoin('a.User u')
+                      ->where('a.findingId = ?', $this->getRequest()->getParam('id'))
+                      ->orderBy('a.createdTs DESC')
+                      ->setHydrationMode(Doctrine::HYDRATE_SCALAR);
+        $auditLogs = $auditQuery->execute();
+        $this->view->auditLogs = $auditLogs;
     }
     
-
     /**
      * Real searching worker, to return searching results for page, PDF, Excel
      *
      */
     public function search2Action() {
-        Fisma_Acl::requirePrivilege('finding', 'read');
+        Fisma_Acl::requirePrivilege('finding', 'read', '*');
         
         /* @todo A hack to translate column names in the data table to column names
          * which can be sorted... this could probably be done in a much better way.
@@ -940,11 +939,11 @@ class RemediationController extends SecurityController
             if ($v) {
                 if ($k == 'estDateBegin') {
                     $v = $v->toString('Y-m-d H:i:s');
-                    $q->andWhere("f.expectedCompletionDate > ?", $v);
+                    $q->andWhere("f.currentEcd > ?", $v);
                 } elseif ($k == 'estDateEnd') {
                     $v = $v->addDay(1);
                     $v = $v->toString('Y-m-d H:i:s');
-                    $q->andWhere("f.expectedCompletionDate < ?", $v);
+                    $q->andWhere("f.currentEcd < ?", $v);
                 } elseif ($k == 'createdDateBegin') {
                     $v = $v->toString('Y-m-d H:i:s');
                     $q->andWhere("f.createdTs > ?", $v);
@@ -1001,14 +1000,14 @@ class RemediationController extends SecurityController
                 $row['status'] = $result->status;
             }
             $row['threatLevel'] = $result->threatLevel;
-            if (empty($result->expectedCompletionDate) || $result->expectedCompletionDate == '0000-00-00') {
+            if (empty($result->currentEcd) || $result->currentEcd == '0000-00-00') {
                 if ($result->currentEcd != '0000-00-00') {
-                    $row['expectedCompletionDate'] = $result->currentEcd;
+                    $row['currentEcd'] = $result->currentEcd;
                 } else {
-                    $row['expectedCompletionDate'] = '';
+                    $row['currentEcd'] = '';
                 }
             } else {
-                $row['expectedCompletionDate'] = $result->expectedCompletionDate;
+                $row['currentEcd'] = $result->currentEcd;
             }
             $row['countermeasuresEffectiveness'] = $result->countermeasuresEffectiveness;
             
@@ -1090,9 +1089,9 @@ class RemediationController extends SecurityController
         $finding = new Finding();
         $finding = $finding->getTable()->find($id);
         if (false == $finding) {
-             throw new Fisma_Exception("FINDING($findingId) is not found, Make sure a valid ID is specified");
+             throw new Fisma_Exception("FINDING($findingId) is not found. Make sure a valid ID is specified.");
         }
-        Fisma_Acl::requirePrivilege('finding', 'read', $finding->responsibleOrganizationId);
+
         return $finding;
     }
 }

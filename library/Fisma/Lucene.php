@@ -21,14 +21,15 @@
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
  * @version   $Id$
+ * @package   Fisma
  */
 
 /**
  * Lucene index URD
  *
- * @package    Fisma
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license    http://www.openfisma.org/mw/index.php?title=License
+ * @package    Fisma
  */
 class Fisma_Lucene
 {
@@ -56,30 +57,19 @@ class Fisma_Lucene
     public static function search($keywords, $indexName)
     {
         if (!is_dir(Fisma::getPath('index') . '/' . $indexName)) {
-            /** @todo english */
-            throw new Fisma_Exception('The path of creating indexes is not existed');
+            throw new Fisma_Exception("Cannot search '$indexName' because the index does not exist.");
         }
-        $cache = Fisma::getCacheInstance('LuceneSearch');
         $userId = User::currentUser()->id;
         $index = new Zend_Search_Lucene(Fisma::getPath('index') . '/' . $indexName);
-        // if the keywords didn't in cache or current keywords is different from the keywords in cache,
-        // then do the LUCENE searching
-        if (!$cache->load($userId . '_keywords') || $keywords != $cache->load($userId . '_keywords')) {
-            $hits = $index->find($keywords);
-            $ids = array();
-            foreach ($hits as $row) {
-                $id = $row->rowId;
-                if (!empty($id)) {
-                    $ids[] = $id;
-                }
+        $hits = $index->find($keywords);
+        $ids = array();
+        foreach ($hits as $row) {
+            $id = $row->rowId;
+            if (!empty($id)) {
+                $ids[] = $id;
             }
-            // Cache current searching result, and identify it from user id.
-            $cache->save($ids, $userId . '_' . $indexName);
-            // Cache current keywords, and identify it from user id.
-            $cache->save($keywords, $userId . '_keywords');
         }
-        //get the last result
-        return $cache->load($userId . '_' . $indexName);
+        return $ids;
     }
 
     /**
@@ -149,8 +139,11 @@ class Fisma_Lucene
      */
     public static function getColumnType($indexName, $field)
     {
+        // Lucene indices have field names like 'Product_name'... To translate to a database name,
+        // we need to remove the 'Product_' part.
+        $fieldName = substr(strstr($field, '_'), 1);
         $indexTable       =  Doctrine::getTable(ucfirst($indexName));
-        $columnDefinition = $indexTable->getColumnDefinition(strtolower($field));
+        $columnDefinition = $indexTable->getColumnDefinition(strtolower($fieldName));
         return $columnDefinition['type'];
     }
 }

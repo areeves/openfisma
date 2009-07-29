@@ -14,8 +14,8 @@
  * @property string $description
  * @property System $System
  * @property Doctrine_Collection $Users
- * @property Doctrine_Collection $Findings
  * @property Doctrine_Collection $Assets
+ * @property Doctrine_Collection $Findings
  * 
  * @package    ##PACKAGE##
  * @subpackage ##SUBPACKAGE##
@@ -29,7 +29,7 @@ abstract class BaseOrganization extends Doctrine_Record
         $this->setTableName('organization');
         $this->hasColumn('createdTs', 'timestamp', null, array('type' => 'timestamp'));
         $this->hasColumn('modifiedTs', 'timestamp', null, array('type' => 'timestamp'));
-        $this->hasColumn('name', 'string', null, array('type' => 'string', 'extra' => array('purify' => 'plaintext')));
+        $this->hasColumn('name', 'string', 255, array('type' => 'string', 'extra' => array('purify' => 'plaintext'), 'length' => '255'));
         $this->hasColumn('nickname', 'string', 255, array('type' => 'string', 'unique' => true, 'extra' => array('purify' => 'plaintext'), 'length' => '255'));
         $this->hasColumn('orgType', 'enum', null, array('type' => 'enum', 'values' => array(0 => 'agency', 1 => 'bureau', 2 => 'organization', 3 => 'system')));
         $this->hasColumn('systemId', 'integer', null, array('type' => 'integer'));
@@ -45,11 +45,11 @@ abstract class BaseOrganization extends Doctrine_Record
                                               'local' => 'organizationId',
                                               'foreign' => 'userId'));
 
-        $this->hasMany('Finding as Findings', array('local' => 'id',
-                                                    'foreign' => 'responsibleOrganizationId'));
-
         $this->hasMany('Asset as Assets', array('local' => 'id',
                                                 'foreign' => 'orgSystemId'));
+
+        $this->hasMany('Finding as Findings', array('local' => 'id',
+                                                    'foreign' => 'responsibleOrganizationId'));
 
         $nestedset0 = new Doctrine_Template_NestedSet();
         $softdelete0 = new Doctrine_Template_SoftDelete();
