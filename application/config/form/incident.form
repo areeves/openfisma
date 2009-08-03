@@ -1,0 +1,105 @@
+; This is the form for incident.
+;
+; This form should be loaded through FormManager::loadForm() in order to recieve
+; the proper decorators, filters, etc.
+;
+; Author    Nathan Harris <nathan.harris@endeavorsystems.com>
+; Copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+; License   http://www.openfisma.org/mw/index.php?title=License
+; Version   $Id$
+
+[incident]
+elementPrefixPath.prefix = Fisma_Form
+elementPrefixPath.path = Fisma/Form
+elementPrefixPath.type = Validate
+method = "post"
+elementFilters.trim = "StringTrim"
+elementFilters.tags = "StripTags"
+
+elements.reporter_title.type = "text"
+elements.reporter_title.options.label = "Title"
+elements.reporter_title.options.style = "width:200px"
+displayGroups.reporter.elements.reporter_title = "reporter_title"
+
+elements.reporter_first_name.type = "text"
+elements.reporter_first_name.options.label = "First Name"
+elements.reporter_first_name.options.style = "width:200px"
+displayGroups.reporter.elements.reporter_first_name = "reporter_first_name"
+
+elements.reporter_last_name.type = "text"
+elements.reporter_last_name.options.label = "Last Name"
+elements.reporter_last_name.options.style = "width:200px"
+displayGroups.reporter.elements.reporter_last_name = "reporter_last_name"
+
+elements.reporter_organization.type = "text"
+elements.reporter_organization.options.label = "Organization"
+elements.reporter_organization.options.style = "width:400px"
+displayGroups.reporterOrg.elements.reporter_organization = "reporter_organization"
+
+elements.reporter_address1.type = "text"
+elements.reporter_address1.options.label = "Address1"
+elements.reporter_address1.options.style = "width:400px"
+displayGroups.reporterAddress1.elements.reporter_address1 = "reporter_address1"
+
+elements.reporter_address2.type = "text"
+elements.reporter_address2.options.label = "Address2"
+elements.reporter_address2.options.style = "width:400px"
+displayGroups.reporterAddress2.elements.reporter_address2 = "reporter_address2"
+
+elements.reporter_city.type = "text"
+elements.reporter_city.options.label = "City"
+elements.reporter_city.options.style = "width:200px"
+displayGroups.reporterCityStateZip.elements.reporter_city = "reporter_city"
+
+elements.reporter_state.type = "text"
+elements.reporter_state.options.label = "State"
+elements.reporter_state.options.style = "width:100px"
+displayGroups.reporterCityStateZip.elements.reporter_state = "reporter_state"
+
+elements.reporter_zip.type = "text"
+elements.reporter_zip.options.label = "Zip"
+elements.reporter_zip.options.style = "width:150px"
+displayGroups.reporterCityStateZip.elements.reporter_zip = "reporter_zip"
+
+elements.reporter_phone.type = "text"
+elements.reporter_phone.options.label = "Phone"
+elements.reporter_phone.options.style = "width:150px"
+displayGroups.reporterPhone.elements.reporter_phone = "reporter_phone"
+
+elements.reporter_fax.type = "text"
+elements.reporter_fax.options.label = "Fax"
+elements.reporter_fax.options.style = "width:150px"
+displayGroups.reporterFax.elements.reporter_fax = "reporter_fax"
+
+elements.reporter_email.type = "text"
+elements.reporter_email.options.label = "Email"
+elements.reporter_email.options.style = "width:225px"
+displayGroups.reporterEmail.elements.reporter_email = "reporter_email"
+
+elements.location_building.type = "text"
+elements.location_building.options.label = "Building"
+elements.location_building.options.style = "width:200px"
+displayGroups.locationBuilding.elements.location_building = "location_building"
+
+elements.location_room.type = "text"
+elements.location_room.options.label = "Room"
+elements.location_room.options.style = "width:200px"
+displayGroups.locationRoom.elements.location_room = "location_room"
+
+elements.location_rack.type = "text"
+elements.location_rack.options.label = "Rack"
+elements.location_rack.options.style = "width:200px"
+displayGroups.locationRack.elements.location_rack = "location_rack"
+
+
+elements.additional_info.type = "textarea"
+elements.additional_info.options.validators.mce.validator = "MceNotEmpty"
+elements.additional_info.options.label = "Enter Description of Incident"
+elements.additional_info.options.cols = "70%"
+elements.additional_info.options.rows = "7"
+elements.additional_info.options.required = true
+displayGroups.addInfo.elements.additional_info = "additional_info"
+
+elements.save.type = "Form_Button_Submit"
+elements.save.options.value = "Report Incident"
+displayGroups.incdient3.elements.save = "save"
