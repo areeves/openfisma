@@ -43,34 +43,12 @@ class IncidentController extends BaseController
     protected $_modelName = 'Incident';
 
     /**
-     * my OrgSystems
-     *
-     * @var array
-     */
-    private $_myOrgSystems = null;
-    
-    /**
-     * my OrgSystem ids
-     *
-     * @var array
-     */
-    private $_myOrgSystemIds = null;
-    
-    /**
      * initialize the basic information, my orgSystems
      *
      */
     public function init()
     {
         parent::init();
-        $orgSystems = $this->_me->getOrganizations()->toArray();
-        $this->_myOrgSystems = $orgSystems;
-        
-        $orgSystemIds = array(0);
-        foreach ($orgSystems as $orgSystem) {
-            $orgSystemIds[] = $orgSystem['id'];
-        }
-        $this->_myOrgSystemIds = $orgSystemIds;
     }
     
     
@@ -83,8 +61,151 @@ class IncidentController extends BaseController
     {
         $form = Fisma_Form_Manager::loadForm('incident');
 
-        $form->setElementDecorators(array(new Fisma_Form_CreateFindingDecorator()));
+        /* setting up state dropdown */
+        $form->getElement('reporter_state')->addMultiOptions(array(0 => '--select--'));
+        foreach ($this->getStates() as $state) {
+            $form->getElement('reporter_state')
+                 ->addMultiOptions(array($state => $state));
+        }
+
+        /* setting up timestamp and timezone dropdowns */
+        $form->getElement('incident_hour')->addMultiOptions(array(0 => ' -- ')); 
+        $form->getElement('incident_minute')->addMultiOptions(array(0 => ' -- ')); 
+        $form->getElement('incident_ampm')->addMultiOptions(array(0 => ' -- ')); 
+        $form->getElement('incident_tz')->addMultiOptions(array(0 => ' -- ')); 
+
+        foreach($this->getHours() as $hour) {
+            $form->getElement('incident_hour')
+                 ->addMultiOptions(array($hour => $hour));
+        }
+        
+        foreach($this->getMinutes() as $min) {
+            $form->getElement('incident_minute')
+                 ->addMultiOptions(array($min => $min));
+        }
+        
+        foreach($this->getAmpm() as $ampm) {
+            $form->getElement('incident_ampm')
+                 ->addMultiOptions(array($ampm => $ampm));
+        }
+        
+        foreach($this->getTz() as $tz) {
+            $form->getElement('incident_tz')
+                 ->addMultiOptions(array($tz => $tz));
+        }
+
+        foreach($this->getOS() as $key => $os) {
+            $form->getElement('host_os')
+                 ->addMultiOptions(array($key => $os));
+        }
+
+
+        $form->getElement('classification')->addMultiOptions(array(0 => ' will be populated from category table ')); 
+        
+        $form->getElement('assessment_critical')->addMultiOptions(array(0 => ' NO ')); 
+        $form->getElement('assessment_critical')->addMultiOptions(array(1 => ' YES ')); 
+        
+        $form->getElement('assessment_sensitivity')->addMultiOptions(array(   'low' => ' LOW ')); 
+        $form->getElement('assessment_sensitivity')->addMultiOptions(array('medium' => ' MEDIUM ')); 
+        $form->getElement('assessment_sensitivity')->addMultiOptions(array(  'high' => ' HIGN ')); 
+        
+
+        $form->setDisplayGroupDecorators(array(
+            new Zend_Form_Decorator_FormElements(),
+            new Fisma_Form_CreateIncidentDecorator()
+        ));
+
+        $form->setElementDecorators(array(new Fisma_Form_CreateIncidentDecorator()));
+
+        $timestamp = $form->getElement('incident_ts');
+        $timestamp->clearDecorators();
+        $timestamp->addDecorator('ViewScript', array('viewScript'=>'datepicker.phtml'));
+        $timestamp->addDecorator(new Fisma_Form_CreateFindingDecorator());
 
         return $form;
+    }
+
+    private function getStates() {
+        $states = array (
+              'AL' => 'Alabama',
+              'AK' => 'Alaska',
+              'AZ' => 'Arizona',
+              'AR' => 'Arkansas',
+              'CA' => 'California',
+              'CO' => 'Colorado',
+              'CT' => 'Connecticut',
+              'DE' => 'Delaware',
+              'DC' => 'District of Columbia',
+              'FL' => 'Florida',
+              'GA' => 'Georgia',
+              'HI' => 'Hawaii',
+              'ID' => 'Idaho',
+              'IL' => 'Illinois',
+              'IN' => 'Indiana',
+              'IA' => 'Iowa',
+              'KS' => 'Kansas',
+              'KY' => 'Kentucky',
+              'LA' => 'Louisiana',
+              'ME' => 'Maine',
+              'MD' => 'Maryland',
+              'MA' => 'Massachusetts',
+              'MI' => 'Michigan',
+              'MN' => 'Minnesota',
+              'MS' => 'Mississippi',
+              'MO' => 'Missouri',
+              'MT' => 'Montana',
+              'NE' => 'Nebraska',
+              'NV' => 'Nevada',
+              'NH' => 'New Hampshire',
+              'NJ' => 'New Jersey',
+              'NM' => 'New Mexico',
+              'NY' => 'New York',
+              'NC' => 'North Carolina',
+              'ND' => 'North Dakota',
+              'OH' => 'Ohio',
+              'OK' => 'Oklahoma',
+              'OR' => 'Oregon',
+              'PW' => 'Palau',
+              'PA' => 'Pennsylvania',
+              'PR' => 'Puerto Rico',
+              'RI' => 'Rhode Island',
+              'SC' => 'South Carolina',
+              'SD' => 'South Dakota',
+              'TN' => 'Tennessee',
+              'TX' => 'Texas',
+              'UT' => 'Utah',
+              'VT' => 'Vermont',
+              'VI' => 'Virgin Island',
+              'VA' => 'Virginia',
+              'WA' => 'Washington',
+              'WV' => 'West Virginia',
+              'WI' => 'Wisconsin',
+              'WY' => 'Wyoming'
+        );
+
+        return $states;
+    }
+
+    private function getHours() {
+        return array('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12');
+    }
+    private function getMinutes() {
+        return array('00', '15', '30', '45');
+    }
+    private function getAmpm() {
+        return array('AM', 'PM');
+    }
+    private function getTz() {
+        return array('EST', 'CST', 'MST', 'PST');
+    }
+    
+    private function getOS() {
+        return array(    '2007' => 'Win 2007',
+                        'vista' => 'Vista',
+                           'xp' => 'XP',
+                        'macos' => 'Mac OSX',
+                        'linux' => 'Linux',
+                         'unix' => 'Unix'
+                    );
     }
 }
