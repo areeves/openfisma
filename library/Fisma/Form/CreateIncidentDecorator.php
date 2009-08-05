@@ -93,7 +93,7 @@ class Fisma_Form_CreateIncidentDecorator extends Fisma_Form_FismaDecorator
                 . '</td><td><br />'
                 . $this->buildInput(). $content
                 . '</td></tr>';
-            } elseif (in_array($element->getName(), array('additional_info','host_additional','actions_taken'))) {
+            } elseif (in_array($element->getName(), array('additional_info', 'host_additional', 'actions_taken', 'pii_additional'))) {
                 $render = '<tr><td colspan="2" style="text-align: left"><br /><br />'
                 .   $this->buildLabel()
                 .   '<br />'
@@ -117,6 +117,12 @@ class Fisma_Form_CreateIncidentDecorator extends Fisma_Form_FismaDecorator
                 . '<br />'
                 . $this->buildInput()
                 . '</td><td>&nbsp;</td></tr>';
+            } elseif (in_array($element->getName(), array('pii_involved'))) {
+                $render = '<tr><td width="40%">'
+                . $this->buildLabel()
+                . '</td><td>'
+                . $this->buildInput(). $content
+                . '</td></tr>';
             } else {
                 $render = '<tr><td>'
                 . $this->buildLabel()

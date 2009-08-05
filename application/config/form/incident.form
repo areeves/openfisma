@@ -145,13 +145,47 @@ elements.host_additional.options.rows = "7"
 displayGroups.incident.elements.host_additional="host_additional"
 
 elements.pii_involved.type="select"
-elements.pii_involved.options.label="Was PII Involved"
+elements.pii_involved.options.label="Was PII involved"
 displayGroups.pii.elements.pii_involved="pii_involved"
 
+elements.pii_additional.type="textarea"
+elements.pii_additional.options.label="Describe PII"
+elements.pii_additional.options.cols = "70%"
+elements.pii_additional.options.rows = "7"
+displayGroups.pii.elements.pii_additional="pii_additional"
 
+elements.pii_mobile_media.type="select"
+elements.pii_mobile_media.options.label="Was PII stored on Mobile Media"
+displayGroups.pii.elements.pii_mobile_media="pii_mobile_media"
 
+elements.pii_mobile_media_type.type="select"
+elements.pii_mobile_media_type.options.label="What type of Mobile Media"
+displayGroups.pii.elements.pii_mobile_media_type="pii_mobile_media_type"
 
+elements.pii_encrypted.type="select"
+elements.pii_encrypted.options.label="Was PII encrypted"
+displayGroups.pii.elements.pii_encrypted="pii_encrypted"
 
+elements.pii_authorities_contacted.type="select"
+elements.pii_authorities_contacted.options.label="Were authorities contacted"
+displayGroups.pii.elements.pii_authorities_contacted="pii_authorities_contacted"
+
+elements.pii_police_report.type="select"
+elements.pii_police_report.options.label="Was a police report filed"
+displayGroups.pii.elements.pii_police_report="pii_police_report"
+
+elements.pii_individuals_count.type="text"
+elements.pii_individuals_count.options.label="Home many individuals were effected"
+elements.pii_individuals_count.options.style="width:100px"
+displayGroups.pii.elements.pii_individuals_count="pii_individuals_count"
+
+elements.pii_individuals_notification.type="select"
+elements.pii_individuals_notification.options.label="Were affected individuals contacted"
+displayGroups.pii.elements.pii_individuals_notification="pii_individuals_notification"
+
+elements.pii_shipment.type="select"
+elements.pii_shipment.options.label="Was PII in a shipment"
+displayGroups.pii.elements.pii_shipment="pii_shipment"
 
 
 elements.save.type = "Form_Button_Submit"

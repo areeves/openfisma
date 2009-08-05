@@ -99,16 +99,29 @@ class IncidentController extends BaseController
                  ->addMultiOptions(array($key => $os));
         }
 
+        $form->getElement('pii_mobile_media_type')->addMultiOptions(array(0 => '--select--'));
+        foreach($this->getMobileMedia() as $key => $mm) {
+            $form->getElement('pii_mobile_media_type')
+                 ->addMultiOptions(array($key => $mm));
+        }
 
         $form->getElement('classification')->addMultiOptions(array(0 => ' will be populated from category table ')); 
-        
-        $form->getElement('assessment_critical')->addMultiOptions(array(0 => ' NO ')); 
-        $form->getElement('assessment_critical')->addMultiOptions(array(1 => ' YES ')); 
         
         $form->getElement('assessment_sensitivity')->addMultiOptions(array(   'low' => ' LOW ')); 
         $form->getElement('assessment_sensitivity')->addMultiOptions(array('medium' => ' MEDIUM ')); 
         $form->getElement('assessment_sensitivity')->addMultiOptions(array(  'high' => ' HIGN ')); 
-        
+       
+        /* this method defined below adds yes/no values to all select elements passed in the 2nd argument */
+        $this->createBoolean(&$form,    array(  'assessment_critical', 
+                                                'pii_involved', 
+                                                'pii_mobile_media', 
+                                                'pii_encrypted', 
+                                                'pii_authorities_contacted', 
+                                                'pii_police_report',
+                                                'pii_individuals_notification',
+                                                'pii_shipment',
+                                        )
+                            );
 
         $form->setDisplayGroupDecorators(array(
             new Zend_Form_Decorator_FormElements(),
@@ -207,5 +220,24 @@ class IncidentController extends BaseController
                         'linux' => 'Linux',
                          'unix' => 'Unix'
                     );
+    }
+    
+    private function getMobileMedia() {
+        return array(    'laptop' => 'Laptop',
+                           'disc' => 'CD/DVD',
+                       'document' => 'Document',
+                            'usb' => 'USB/Flash Drive',
+                           'tape' => 'Magnetic Tape',
+                          'other' => 'Other'
+                    );
+    }
+
+    private function createBoolean(&$form, $elements) {
+        foreach($elements as $element) {
+            $form->getElement($element)->addMultiOptions(array('0' => ' NO ')); 
+            $form->getElement($element)->addMultiOptions(array('1' => ' YES ')); 
+        }
+
+        return 1;
     }
 }
