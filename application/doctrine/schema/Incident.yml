@@ -95,7 +95,7 @@ Incident:
             type: string(255)
         host_os:
             type: enum
-            values: [2007, vista, xp, maxos, linux, unix]
+            values: [2007, vista, xp, macos, linux, unix]
         host_additional:
             type: string(1000)
         
