@@ -120,6 +120,7 @@ class IncidentController extends BaseController
                                                 'pii_police_report',
                                                 'pii_individuals_notification',
                                                 'pii_shipment',
+                                                'pii_shipment_sender_contact'
                                         )
                             );
 
@@ -138,6 +139,36 @@ class IncidentController extends BaseController
         return $form;
     }
 
+    /** 
+     * Overriding Hooks
+     *
+     * @param Zend_Form $form
+     * @param Doctrine_Record|null $subject
+     */
+    protected function saveValue($form, $subject=null)
+    {
+        if (is_null($subject)) {
+            $subject = new $this->_modelName();
+        } else {
+            throw new Fisma_Exception('Invalid parameter expecting a Record model');
+        }
+        $values = $form->getValues();
+
+        $values['source_ip'] = $_SERVER['REMOTE_ADDR'];
+
+        $values['report_ts'] = date('Y-m-d G:i:s');
+        $values['report_tz'] = date('T');
+
+        if ($values['incident_hour'] && $values['incident_minute'] && $values['incident_ampm']) {
+            if ($values['incident_ampm'] == 'PM') {
+                $values['incident_hour'] += 12;
+            }
+            $values['incident_ts'] .= " {$values['incident_hour']}:{$values['incident_minute']}:00";
+        }
+
+        $subject->merge($values);
+        $subject->save();
+    }
     private function getStates() {
         $states = array (
               'AL' => 'Alabama',
@@ -209,7 +240,7 @@ class IncidentController extends BaseController
         return array('AM', 'PM');
     }
     private function getTz() {
-        return array('EST', 'CST', 'MST', 'PST');
+        return array('EST', 'CST', 'MTN', 'PST');
     }
     
     private function getOS() {

@@ -93,7 +93,7 @@ class Fisma_Form_CreateIncidentDecorator extends Fisma_Form_FismaDecorator
                 . '</td><td><br />'
                 . $this->buildInput(). $content
                 . '</td></tr>';
-            } elseif (in_array($element->getName(), array('additional_info', 'host_additional', 'actions_taken', 'pii_additional'))) {
+            } elseif (in_array($element->getName(), array('additional_info', 'host_additional', 'actions_taken', 'pii_additional', 'pii_shipment_timeline', 'pii_shipment_tracking_numbers'))) {
                 $render = '<tr><td colspan="2" style="text-align: left"><br /><br />'
                 .   $this->buildLabel()
                 .   '<br />'

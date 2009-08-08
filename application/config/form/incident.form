@@ -80,7 +80,6 @@ elements.assessment_critical.type="select"
 elements.assessment_critical.options.label="Is Incident Critical"
 displayGroups.incident.elements.assessment_critical="assessment_critical"
 
-
 elements.assessment_sensitivity.type="select"
 elements.assessment_sensitivity.options.label="Incident Sensitivity"
 displayGroups.incident.elements.assessment_sensitivity="assessment_sensitivity"
@@ -123,6 +122,23 @@ elements.actions_taken.options.label="Describe any actions that have been taken"
 elements.actions_taken.options.cols = "70%"
 elements.actions_taken.options.rows = "7"
 displayGroups.incident.elements.actions_taken="actions_taken"
+
+elements.location_building.type = "text"
+elements.location_building.options.label = "What building did the incidnet occur in"
+elements.location_building.options.style = "width:200px"
+displayGroups.incident.elements.location_building = "location_building"
+
+elements.location_room.type = "text"
+elements.location_room.options.label = "What room did the incident occur in"
+elements.location_room.options.style = "width:200px"
+displayGroups.incident.elements.location_room = "location_room"
+
+elements.location_rack.type = "text"
+elements.location_rack.options.label = "What rack did the incident occur in"
+elements.location_rack.options.style = "width:200px"
+displayGroups.incident.elements.location_rack = "location_rack"
+
+
 
 elements.host_name.type="text"
 elements.host_name.options.label="Host Name"
@@ -187,6 +203,28 @@ elements.pii_shipment.type="select"
 elements.pii_shipment.options.label="Was PII in a shipment"
 displayGroups.pii.elements.pii_shipment="pii_shipment"
 
+elements.pii_shipment_sender_company.type="text"
+elements.pii_shipment_sender_company.options.label="What company handled the shipment"
+elements.pii_shipment_sender_company.options.style="width:100px"
+displayGroups.pii.elements.pii_shipment_sender_company="pii_shipment_sender_company"
+
+elements.pii_shipment_sender_contact.type="select"
+elements.pii_shipment_sender_contact.label="l"
+elements.pii_shipment_sender_contact.options.label="Was the shipping company contacted"
+displayGroups.pii.elements.pii_shipment_sender_contact="pii_shipment_sender_contact"
+
+
+elements.pii_shipment_timeline.type="textarea"
+elements.pii_shipment_timeline.options.label="Describe Shipment Timeline"
+elements.pii_shipment_timeline.options.cols = "70%"
+elements.pii_shipment_timeline.options.rows = "7"
+displayGroups.pii.elements.pii_shipment_timeline="pii_shipment_timeline"
+
+elements.pii_shipment_tracking_numbers.type="textarea"
+elements.pii_shipment_tracking_numbers.options.label="Tracking Numbers"
+elements.pii_shipment_tracking_numbers.options.cols = "70%"
+elements.pii_shipment_tracking_numbers.options.rows = "7"
+displayGroups.pii.elements.pii_shipment_tracking_numbers="pii_shipment_tracking_numbers"
 
 elements.save.type = "Form_Button_Submit"
 elements.save.options.value = "Report Incident"
