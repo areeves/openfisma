@@ -90,7 +90,7 @@ class PanelController extends SecurityController
     }
     
     /** 
-     * Forward to finding Controller
+     * Forward to incident Controller
      */
     public function incidentAction()
     {
@@ -99,6 +99,19 @@ class PanelController extends SecurityController
         $this->_helper->actionStack($sub, 'Incident');
         $this->_helper->actionStack('header');
     }
+
+    /** 
+     * Forward to ir category Controller
+     */
+    public function ircategoryAction()
+    {
+        $req = $this->getRequest();
+        $sub = $req->getParam('sub');
+        $this->_helper->actionStack($sub, 'IRCategory');
+        $this->_helper->actionStack('header');
+    }
+    
+
 
     /** 
      * Forward to account Controller
