@@ -12,3 +12,8 @@ IrSubCategory:
             type: string(255)
         description:
             type: string(1000) 
+
+    relations:
+        IrCategory:
+            local: id
+            foreign: id
