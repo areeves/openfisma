@@ -63,7 +63,7 @@ class IncidentController extends BaseController
 
         /* setting up state dropdown */
         $form->getElement('reporter_state')->addMultiOptions(array(0 => '--select--'));
-        foreach ($this->getStates() as $state) {
+        foreach ($this->_getStates() as $state) {
             $form->getElement('reporter_state')
                  ->addMultiOptions(array($state => $state));
         }
@@ -74,33 +74,33 @@ class IncidentController extends BaseController
         $form->getElement('incident_ampm')->addMultiOptions(array(0 => ' -- ')); 
         $form->getElement('incident_tz')->addMultiOptions(array(0 => ' -- ')); 
 
-        foreach($this->getHours() as $hour) {
+        foreach($this->_getHours() as $hour) {
             $form->getElement('incident_hour')
                  ->addMultiOptions(array($hour => $hour));
         }
         
-        foreach($this->getMinutes() as $min) {
+        foreach($this->_getMinutes() as $min) {
             $form->getElement('incident_minute')
                  ->addMultiOptions(array($min => $min));
         }
         
-        foreach($this->getAmpm() as $ampm) {
+        foreach($this->_getAmpm() as $ampm) {
             $form->getElement('incident_ampm')
                  ->addMultiOptions(array($ampm => $ampm));
         }
         
-        foreach($this->getTz() as $tz) {
+        foreach($this->_getTz() as $tz) {
             $form->getElement('incident_tz')
                  ->addMultiOptions(array($tz => $tz));
         }
 
-        foreach($this->getOS() as $key => $os) {
+        foreach($this->_getOS() as $key => $os) {
             $form->getElement('host_os')
                  ->addMultiOptions(array($key => $os));
         }
 
         $form->getElement('pii_mobile_media_type')->addMultiOptions(array(0 => '--select--'));
-        foreach($this->getMobileMedia() as $key => $mm) {
+        foreach($this->_getMobileMedia() as $key => $mm) {
             $form->getElement('pii_mobile_media_type')
                  ->addMultiOptions(array($key => $mm));
         }
@@ -112,7 +112,7 @@ class IncidentController extends BaseController
         $form->getElement('assessment_sensitivity')->addMultiOptions(array(  'high' => ' HIGN ')); 
        
         /* this method defined below adds yes/no values to all select elements passed in the 2nd argument */
-        $this->createBoolean(&$form,    array(  'assessment_critical', 
+        $this->_createBoolean(&$form,    array(  'assessment_critical', 
                                                 'pii_involved', 
                                                 'pii_mobile_media', 
                                                 'pii_encrypted', 
@@ -169,7 +169,7 @@ class IncidentController extends BaseController
         $subject->merge($values);
         $subject->save();
     }
-    private function getStates() {
+    private function _getStates() {
         $states = array (
               'AL' => 'Alabama',
               'AK' => 'Alaska',
@@ -230,20 +230,20 @@ class IncidentController extends BaseController
         return $states;
     }
 
-    private function getHours() {
+    private function _getHours() {
         return array('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12');
     }
-    private function getMinutes() {
+    private function _getMinutes() {
         return array('00', '15', '30', '45');
     }
-    private function getAmpm() {
+    private function _getAmpm() {
         return array('AM', 'PM');
     }
-    private function getTz() {
+    private function _getTz() {
         return array('EST', 'CST', 'MTN', 'PST');
     }
     
-    private function getOS() {
+    private function _getOS() {
         return array(    '2007' => 'Win 2007',
                         'vista' => 'Vista',
                            'xp' => 'XP',
@@ -253,7 +253,7 @@ class IncidentController extends BaseController
                     );
     }
     
-    private function getMobileMedia() {
+    private function _getMobileMedia() {
         return array(    'laptop' => 'Laptop',
                            'disc' => 'CD/DVD',
                        'document' => 'Document',
@@ -263,7 +263,7 @@ class IncidentController extends BaseController
                     );
     }
 
-    private function createBoolean(&$form, $elements) {
+    private function _createBoolean(&$form, $elements) {
         foreach($elements as $element) {
             $form->getElement($element)->addMultiOptions(array('0' => ' NO ')); 
             $form->getElement($element)->addMultiOptions(array('1' => ' YES ')); 
