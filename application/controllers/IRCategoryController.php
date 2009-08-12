@@ -183,7 +183,7 @@ class IRCategoryController extends SecurityController
      */
     public function viewAction()
     {
-        Fisma_Acl::requirePrivilege('ir', 'read'); 
+        Fisma_Acl::requirePrivilege('ircategory', 'read'); 
         $this->searchbox();
         $id = $this->_request->getParam('id');
         $v = $this->_request->getParam('v', 'view');
@@ -314,7 +314,7 @@ class IRCategoryController extends SecurityController
      * Returns the standard form for creating, reading, and
      * updating categories.
      * 
-     * @param Object $currOrg current recode of organization
+     * @param Object $currCat current record of category
      * @return Zend_Form
      */
     private function _getCategoryForm($currCat = null)
