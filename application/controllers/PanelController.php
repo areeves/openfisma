@@ -111,6 +111,16 @@ class PanelController extends SecurityController
         $this->_helper->actionStack('header');
     }
     
+    /** 
+     * Forward to ir workflow Controller
+     */
+    public function irworkflowAction()
+    {
+        $req = $this->getRequest();
+        $sub = $req->getParam('sub');
+        $this->_helper->actionStack($sub, 'IRWorkflow');
+        $this->_helper->actionStack('header');
+    }
 
 
     /** 
