@@ -430,11 +430,18 @@ class IRCategoryController extends SecurityController
             $categories[$val['id']] = $val['category'] . ' - ' . $val['name']; 
         } 
 
-        /* TODO: populate this when workflow CRUD is in place */
-        $workflows = array( '1' => 'foo',
-                            '2' => 'bar',
-                            '3' => 'baz',
-                        );
+
+        /* Get all workflows */ 
+        $q = Doctrine_Query::create()
+             ->select('w.id, w.name ')
+             ->from('IRWorkflowDef w')
+             ->orderby('w.name');          
+ 
+        $wfs = $q->execute()->toArray();        
+
+        foreach($wfs as $key => $val) {
+            $workflows[$val['id']] = $val['name']; 
+        } 
 
         $form->getElement('category_id')->addMultiOptions($categories);
         $form->getElement('workflow_id')->addMultiOptions($workflows);

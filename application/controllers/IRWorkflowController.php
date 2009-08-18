@@ -166,7 +166,8 @@ class IRWorkflowController extends SecurityController
             $q2 = Doctrine_Query::create()
                   ->select('s.name, s.sortorder, s.workflow_id')
                   ->from('IRSteps s')
-                  ->where('s.workflow_id = ?', $val['id']);  
+                  ->where('s.workflow_id = ?', $val['id'])
+                  ->orderBy('s.sortorder');
 
             $wfs[$key]['children'] = $q2->execute()->toArray();
             foreach($wfs[$key]['children'] as $key2 => $val2) {
