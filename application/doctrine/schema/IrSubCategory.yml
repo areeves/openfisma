@@ -4,6 +4,10 @@ IrSubCategory:
             type: integer
             primary: true
             autoincrement: true
+        createdTs: 
+            type: timestamp
+        modifiedTs: 
+            type: timestamp
         category_id: 
             type: integer
         workflow_id: 
@@ -17,3 +21,13 @@ IrSubCategory:
         IrCategory:
             local: id
             foreign: id
+
+    actAs:
+        SoftDelete:
+        Timestampable:
+            created:
+                name: createdTs
+                type: timestamp
+            updated:
+                name: modifiedTs
+                type: timestamp
