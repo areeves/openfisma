@@ -97,7 +97,6 @@ class MenuController extends SecurityController
 
             $menubar->add($incidents);
 
-
         if (Fisma_Acl::hasPrivilege('system', 'read', '*')) {
             $systems = new Fisma_Yui_Menu('System Inventory');
 
