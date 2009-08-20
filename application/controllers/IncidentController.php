@@ -244,7 +244,7 @@ class IncidentController extends BaseController
     }
     
     private function _getOS() {
-        return array(    '2007' => 'Win 2007',
+        return array(    '2007' => 'Win 7',
                         'vista' => 'Vista',
                            'xp' => 'XP',
                         'macos' => 'Mac OSX',

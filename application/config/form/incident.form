@@ -124,7 +124,7 @@ elements.actions_taken.options.rows = "7"
 displayGroups.incident.elements.actions_taken="actions_taken"
 
 elements.location_building.type = "text"
-elements.location_building.options.label = "What building did the incidnet occur in"
+elements.location_building.options.label = "What building did the incident occur in"
 elements.location_building.options.style = "width:200px"
 displayGroups.incident.elements.location_building = "location_building"
 
@@ -191,7 +191,7 @@ elements.pii_police_report.options.label="Was a police report filed"
 displayGroups.pii.elements.pii_police_report="pii_police_report"
 
 elements.pii_individuals_count.type="text"
-elements.pii_individuals_count.options.label="Home many individuals were effected"
+elements.pii_individuals_count.options.label="Home many individuals were affected"
 elements.pii_individuals_count.options.style="width:100px"
 displayGroups.pii.elements.pii_individuals_count="pii_individuals_count"
 
