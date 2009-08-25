@@ -13,8 +13,6 @@ elementPrefixPath.prefix = Fisma_Form
 elementPrefixPath.path = Fisma/Form
 elementPrefixPath.type = Validate
 method = "post"
-elementFilters.trim = "StringTrim"
-elementFilters.tags = "StripTags"
 
 elements.reporter_title.type = "text"
 elements.reporter_title.options.label = "Title"

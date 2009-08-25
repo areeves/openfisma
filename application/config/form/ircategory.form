@@ -6,12 +6,10 @@
 ; Author    Nathan Harris <nathan.harris@endeavorsystems.com>
 ; Copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
 ; License   http://www.openfisma.org/mw/index.php?title=License
-; Version   $Id:$
+; Version   $Id$
 
 [ircategory]
 method = "post"
-elementFilters.trim = "StringTrim"
-elementFilters.tags = "StripTags"
 
 elements.category.type = "select"
 elements.category.options.label = "Category"

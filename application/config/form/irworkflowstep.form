@@ -6,12 +6,10 @@
 ; Author    Nathan Harris <nathan.harris@endeavorsystems.com>
 ; Copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
 ; License   http://www.openfisma.org/mw/index.php?title=License
-; Version   $Id:$
+; Version   $Id$
 
 [irworkflowstep]
 method = "post"
-elementFilters.trim = "StringTrim"
-elementFilters.tags = "StripTags"
 
 elements.workflow_id.type = "select"
 elements.workflow_id.options.label = "Workflow"
