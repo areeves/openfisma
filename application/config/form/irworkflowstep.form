@@ -11,13 +11,13 @@
 [irworkflowstep]
 method = "post"
 
-elements.workflow_id.type = "select"
-elements.workflow_id.options.label = "Workflow"
-displayGroups.irworkflowstep.elements.workflow_id = "workflow_id"
+elements.workflowId.type = "select"
+elements.workflowId.options.label = "Workflow"
+displayGroups.irworkflowstep.elements.workflowId = "workflowId"
 
-elements.role_id.type = "select"
-elements.role_id.options.label = "Role"
-displayGroups.irworkflowstep.elements.role_id = "role_id"
+elements.roleId.type = "select"
+elements.roleId.options.label = "Role"
+displayGroups.irworkflowstep.elements.roleId = "roleId"
 
 elements.sortorder.type = "select"
 elements.sortorder.options.label = "Sort Order"

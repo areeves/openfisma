@@ -11,13 +11,13 @@
 [irsubcategory]
 method = "post"
 
-elements.category_id.type = "select"
-elements.category_id.options.label = "Category"
-displayGroups.irsubcategory.elements.category = "category_id"
+elements.categoryId.type = "select"
+elements.categoryId.options.label = "Category"
+displayGroups.irsubcategory.elements.category = "categoryId"
 
-elements.workflow_id.type = "select"
-elements.workflow_id.options.label = "Workflow"
-displayGroups.irsubcategory.elements.workflow_id = "workflow_id"
+elements.workflowId.type = "select"
+elements.workflowId.options.label = "Workflow"
+displayGroups.irsubcategory.elements.workflowId = "workflowId"
 
 elements.name.type = "text"
 elements.name.options.label = "Name"
