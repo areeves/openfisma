@@ -167,7 +167,7 @@ class IRCategoryController extends SecurityController
             $q2 = Doctrine_Query::create()
                   ->select('sc.name')
                   ->from('IRSubCategory sc')
-                  ->where('sc.category_id = ?', $val['id']);  
+                  ->where('sc.categoryId = ?', $val['id']);  
 
             $cats[$key]['children'] = $q2->execute()->toArray();
             foreach($cats[$key]['children'] as $key2 => $val2) {
@@ -443,8 +443,8 @@ class IRCategoryController extends SecurityController
             $workflows[$val['id']] = $val['name']; 
         } 
 
-        $form->getElement('category_id')->addMultiOptions($categories);
-        $form->getElement('workflow_id')->addMultiOptions($workflows);
+        $form->getElement('categoryId')->addMultiOptions($categories);
+        $form->getElement('workflowId')->addMultiOptions($workflows);
         
         return Fisma_Form_Manager::prepareForm($form);
     }

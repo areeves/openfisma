@@ -164,9 +164,9 @@ class IRWorkflowController extends SecurityController
             $wfs[$key]['children'] =  ''; 
 
             $q2 = Doctrine_Query::create()
-                  ->select('s.name, s.sortorder, s.workflow_id')
+                  ->select('s.name, s.sortorder, s.workflowId')
                   ->from('IRSteps s')
-                  ->where('s.workflow_id = ?', $val['id'])
+                  ->where('s.workflowId = ?', $val['id'])
                   ->orderBy('s.sortorder');
 
             $wfs[$key]['children'] = $q2->execute()->toArray();
@@ -393,9 +393,9 @@ class IRWorkflowController extends SecurityController
             $workflows[$val['id']] = $val['name']; 
         } 
         
-        $form->getElement('workflow_id')->addMultiOptions($workflows);
+        $form->getElement('workflowId')->addMultiOptions($workflows);
         
-        $form->getElement('role_id')->addMultiOptions(array('1'=>'role #1', '2'=>'role #2', '3'=>'role #3'));
+        $form->getElement('roleId')->addMultiOptions(array('1'=>'role #1', '2'=>'role #2', '3'=>'role #3'));
 
         $form->getElement('sortorder')->addMultiOptions(array('1'=>'1','2'=>'2','3'=>'3'));
         

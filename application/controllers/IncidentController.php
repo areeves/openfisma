@@ -62,65 +62,65 @@ class IncidentController extends BaseController
         $form = Fisma_Form_Manager::loadForm('incident');
 
         /* setting up state dropdown */
-        $form->getElement('reporter_state')->addMultiOptions(array(0 => '--select--'));
+        $form->getElement('reporterState')->addMultiOptions(array(0 => '--select--'));
         foreach ($this->_getStates() as $state) {
-            $form->getElement('reporter_state')
+            $form->getElement('reporterState')
                  ->addMultiOptions(array($state => $state));
         }
 
         /* setting up timestamp and timezone dropdowns */
-        $form->getElement('incident_hour')->addMultiOptions(array(0 => ' -- ')); 
-        $form->getElement('incident_minute')->addMultiOptions(array(0 => ' -- ')); 
-        $form->getElement('incident_ampm')->addMultiOptions(array(0 => ' -- ')); 
-        $form->getElement('incident_tz')->addMultiOptions(array(0 => ' -- ')); 
+        $form->getElement('incidentHour')->addMultiOptions(array(0 => ' -- ')); 
+        $form->getElement('incidentMinute')->addMultiOptions(array(0 => ' -- ')); 
+        $form->getElement('incidentAmpm')->addMultiOptions(array(0 => ' -- ')); 
+        $form->getElement('incidentTz')->addMultiOptions(array(0 => ' -- ')); 
 
         foreach($this->_getHours() as $hour) {
-            $form->getElement('incident_hour')
+            $form->getElement('incidentHour')
                  ->addMultiOptions(array($hour => $hour));
         }
         
         foreach($this->_getMinutes() as $min) {
-            $form->getElement('incident_minute')
+            $form->getElement('incidentMinute')
                  ->addMultiOptions(array($min => $min));
         }
         
         foreach($this->_getAmpm() as $ampm) {
-            $form->getElement('incident_ampm')
+            $form->getElement('incidentAmpm')
                  ->addMultiOptions(array($ampm => $ampm));
         }
         
         foreach($this->_getTz() as $tz) {
-            $form->getElement('incident_tz')
+            $form->getElement('incidentTz')
                  ->addMultiOptions(array($tz => $tz));
         }
 
         foreach($this->_getOS() as $key => $os) {
-            $form->getElement('host_os')
+            $form->getElement('hostOs')
                  ->addMultiOptions(array($key => $os));
         }
 
-        $form->getElement('pii_mobile_media_type')->addMultiOptions(array(0 => '--select--'));
+        $form->getElement('piiMobileMediaType')->addMultiOptions(array(0 => '--select--'));
         foreach($this->_getMobileMedia() as $key => $mm) {
-            $form->getElement('pii_mobile_media_type')
+            $form->getElement('piiMobileMediaType')
                  ->addMultiOptions(array($key => $mm));
         }
 
         $form->getElement('classification')->addMultiOptions(array(0 => ' will be populated from category table ')); 
         
-        $form->getElement('assessment_sensitivity')->addMultiOptions(array(   'low' => ' LOW ')); 
-        $form->getElement('assessment_sensitivity')->addMultiOptions(array('medium' => ' MEDIUM ')); 
-        $form->getElement('assessment_sensitivity')->addMultiOptions(array(  'high' => ' HIGN ')); 
+        $form->getElement('assessmentSensitivity')->addMultiOptions(array(   'low' => ' LOW ')); 
+        $form->getElement('assessmentSensitivity')->addMultiOptions(array('medium' => ' MEDIUM ')); 
+        $form->getElement('assessmentSensitivity')->addMultiOptions(array(  'high' => ' HIGN ')); 
        
         /* this method defined below adds yes/no values to all select elements passed in the 2nd argument */
-        $this->_createBoolean(&$form,    array(  'assessment_critical', 
-                                                'pii_involved', 
-                                                'pii_mobile_media', 
-                                                'pii_encrypted', 
-                                                'pii_authorities_contacted', 
-                                                'pii_police_report',
-                                                'pii_individuals_notification',
-                                                'pii_shipment',
-                                                'pii_shipment_sender_contact'
+        $this->_createBoolean(&$form,    array(  'assessmentCritical', 
+                                                 'piiInvolved', 
+                                                 'piiMobileMedia', 
+                                                 'piiEncrypted', 
+                                                 'piiAuthoritiesContacted', 
+                                                 'piiPoliceReport',
+                                                 'piiIndividualsNotification',
+                                                 'piiShipment',
+                                                 'piiShipmentSenderContact'
                                         )
                             );
 
@@ -131,7 +131,7 @@ class IncidentController extends BaseController
 
         $form->setElementDecorators(array(new Fisma_Form_CreateIncidentDecorator()));
 
-        $timestamp = $form->getElement('incident_ts');
+        $timestamp = $form->getElement('incidentTs');
         $timestamp->clearDecorators();
         $timestamp->addDecorator('ViewScript', array('viewScript'=>'datepicker.phtml'));
         $timestamp->addDecorator(new Fisma_Form_CreateFindingDecorator());
@@ -154,16 +154,16 @@ class IncidentController extends BaseController
         }
         $values = $form->getValues();
 
-        $values['source_ip'] = $_SERVER['REMOTE_ADDR'];
+        $values['sourceIp'] = $_SERVER['REMOTE_ADDR'];
 
-        $values['report_ts'] = date('Y-m-d G:i:s');
-        $values['report_tz'] = date('T');
+        $values['reportTs'] = date('Y-m-d G:i:s');
+        $values['reportTz'] = date('T');
 
-        if ($values['incident_hour'] && $values['incident_minute'] && $values['incident_ampm']) {
-            if ($values['incident_ampm'] == 'PM') {
-                $values['incident_hour'] += 12;
+        if ($values['incidentHour'] && $values['incidentMinute'] && $values['incidentAmpm']) {
+            if ($values['incidentAmpm'] == 'PM') {
+                $values['incidentHour'] += 12;
             }
-            $values['incident_ts'] .= " {$values['incident_hour']}:{$values['incident_minute']}:00";
+            $values['incidentTs'] .= " {$values['incidentHour']}:{$values['incidentMinute']}:00";
         }
 
         $subject->merge($values);
@@ -265,6 +265,7 @@ class IncidentController extends BaseController
 
     private function _createBoolean(&$form, $elements) {
         foreach($elements as $element) {
+            $form->getElement($element)->addMultiOptions(array('' => ' -- select -- ')); 
             $form->getElement($element)->addMultiOptions(array('0' => ' NO ')); 
             $form->getElement($element)->addMultiOptions(array('1' => ' YES ')); 
         }
