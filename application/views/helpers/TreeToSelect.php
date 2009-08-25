@@ -20,7 +20,7 @@
  * @author    Mark E. Haase <mhaase@endeavorsystems.com>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: IsOnTime.php 1797 2009-06-19 22:27:35Z mehaase $
+ * @version   $Id$
  * @package   View_Helper
  */
  

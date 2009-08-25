@@ -20,7 +20,7 @@
  * @author    Nathan Harris <nathan.harris@endeavorsystems.com>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: FindingController.php 2082 2009-07-29 21:27:37Z nathanrharris $
+ * @version   $Id$
  * @package   Controller
  */
 

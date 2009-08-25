@@ -52,3 +52,46 @@ Role:
         nickname: OSS
         description: <p><strong>[OpenFISMA Definition]</strong></p><p>Operational Support StaffOperational support staff has the ability to view POA&M information and participates in the POA&M process in any or all of the following ways: </p><p><ul><li>Submitting course of action, mitigation strategy and/or expected completion date for the approval of the SSO. <li>Submitting threats and countermeasures information for the approval of the SSO. <li>Submitting evidence packages for the approval of the SSO.</ul></p>
         Privileges: [areas_dashboard, findings_read, findings_update_type, findings_update_course_of_action, findings_update_control_assignment, findings_update_countermeasures, findings_update_finding_resources, findings_update_ecd, findings_upload_evidence, findings_mitigation_strategy_submit, findings_mitigation_strategy_revise, asset_read, notification_asset, notification_finding]
+
+    OIG:
+        name: OIG Representative
+        nickname: OIG
+        description:
+        Privileges: [incident_view]
+
+    ED-CIRC:
+        name: Incident Manager
+        nickname: ED-CIRC
+        description:
+        Privileges: [incident_view]
+
+    IRC:
+        name: Incident Response Coordinator
+        nickname: IRC
+        description: 
+        Privileges: [incident_view]
+    
+    DBR:
+        name: Data Breach Representatives
+        nickname: DBR
+        description:
+        Privileges: [incident_view]
+   
+    PA:
+        name: Privacy Advocate
+        nickname: PA
+        description:
+        Privileges: [incident_view]
+        
+    IRS:
+        name: Incident Response Specialist
+        nickname: IRS
+        description:
+        Privileges: [incident_view]
+  
+    HDR:
+        name: Help Desk Representative
+        nickname: HDR
+        description:
+        Privileges: [incident_view]
+         
