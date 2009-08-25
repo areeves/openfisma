@@ -338,13 +338,13 @@ Privilege:
         orgSpecific: true
 
     # Incident
-    incident_view:
-        resource: invcident
-        action: view
+    incident_read:
+        resource: incident
+        action: read
         description: View Incident
         orgSpecific: false
     incident_reject:
-        resource: invcident
+        resource: incident
         action: reject
         description: Reject Incident
         orgSpecific: false
@@ -354,27 +354,27 @@ Privilege:
         description: Classify Incident
         orgSpecific: false
     incident_resolve:
-        resource: invcident
+        resource: incident
         action: resolve
         description: Resolve Incident
         orgSpecific: false
     incident_close:
-        resource: invcident
+        resource: incident
         action: close
         description: Close Incident
         orgSpecific: false
     incident_clone:
-        resource: invcident
+        resource: incident
         action: clone
         description: Clone Incident
         orgSpecific: false
     incident_actors:
-        resource: invcident
+        resource: incident
         action: actors
         description: Add and Remove Incident Actors
         orgSpecific: false
     incident_viewers:
-        resource: invcident
+        resource: incident
         action: viewers
         description: Add and Remove Incident Viewers
         orgSpecific: false
@@ -424,9 +424,9 @@ Privilege:
         orgSpecific: false
 
     # IR Reporting
-    irreport_view:
+    irreport_read:
         resource: irreport
-        action: view
+        action: read
         description: View IR Reports
         orgSpecific: false
     irreport_generate:
