@@ -1,4 +1,6 @@
 Incident:
+    listeners: [XssListener]
+    
     columns:
         id: 
             type: integer
@@ -57,6 +59,8 @@ Incident:
             
         additional_info:
             type: string(1000) 
+            extra: 
+                purify: html
 
 
         pii_involved:
@@ -98,11 +102,15 @@ Incident:
             values: [2007, vista, xp, macos, linux, unix]
         host_additional:
             type: string(1000)
+            extra: 
+                purify: html
         
         source_ip:
             type: string(255)
         source_additional:
             type: string(1000)
+            extra: 
+                purify: html
         
         assessment_critical:
             type: boolean
@@ -112,6 +120,8 @@ Incident:
         
         actions_taken:
             type: string(1000)
+            extra: 
+                purify: html
         
         files:
             type: string(255)
