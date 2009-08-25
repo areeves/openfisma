@@ -87,13 +87,20 @@ class MenuController extends SecurityController
 
             $incidents = new Fisma_Yui_Menu('Incidents');
           
-            $incidents->add(new Fisma_Yui_MenuItem('Incident Dashboard', '/panel/incident/dashboard'));
-            $incidents->add(new Fisma_Yui_MenuItem('Search', '/panel/incident/sub/search'));
+            if (Fisma_Acl::hasPrivilege('incident', 'read', '*')) {
+                $incidents->add(new Fisma_Yui_MenuItem('Incident Dashboard', '/panel/incident/dashboard'));
+                $incidents->add(new Fisma_Yui_MenuItem('Search', '/panel/incident/sub/search'));
+            }
             $incidents->add(new Fisma_Yui_MenuItem('Report Incident', '/panel/incident/sub/create'));
-            $incidents->add(new Fisma_Yui_MenuItem('Manage Categories', '/panel/ircategory/sub/list'));
-            $incidents->add(new Fisma_Yui_MenuItem('Manage Workflows', '/panel/irworkflow/sub/list'));
-            $incidents->add(new Fisma_Yui_MenuItem('Incident Reports', '/panel/incident/sub/reports'));
-            
+            if (Fisma_Acl::hasPrivilege('ircategory', 'read', '*')) {
+                $incidents->add(new Fisma_Yui_MenuItem('Manage Categories', '/panel/ircategory/sub/list'));
+            }
+            if (Fisma_Acl::hasPrivilege('irworkflowdef', 'read', '*')) {
+                $incidents->add(new Fisma_Yui_MenuItem('Manage Workflows', '/panel/irworkflow/sub/list'));
+            }
+            if (Fisma_Acl::hasPrivilege('irreport', 'read', '*')) {
+                $incidents->add(new Fisma_Yui_MenuItem('Incident Reports', '/panel/incident/sub/reports'));
+            }
 
             $menubar->add($incidents);
 
