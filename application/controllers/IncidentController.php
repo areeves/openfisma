@@ -53,7 +53,7 @@ class IncidentController extends BaseController
     
     
     /**
-     * Returns the standard form for creating finding
+     * Returns the standard form for creating an incident
      *
      * @return Zend_Form
      */
@@ -244,7 +244,7 @@ class IncidentController extends BaseController
     }
     
     private function _getOS() {
-        return array(    '2007' => 'Win 7',
+        return array(    'win7' => 'Windows 7',
                         'vista' => 'Vista',
                            'xp' => 'XP',
                         'macos' => 'Mac OSX',
