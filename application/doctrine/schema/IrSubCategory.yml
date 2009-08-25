@@ -10,9 +10,9 @@ IrSubCategory:
             type: timestamp
         modifiedTs: 
             type: timestamp
-        category_id: 
+        categoryId: 
             type: integer
-        workflow_id: 
+        workflowId: 
             type: integer
         name: 
             type: string(255)

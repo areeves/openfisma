@@ -10,9 +10,9 @@ IrSteps:
             type: timestamp
         modifiedTs: 
             type: timestamp
-        workflow_id: 
+        workflowId: 
             type: integer
-        role_id: 
+        roleId: 
             type: integer
         sortorder: 
             type: integer
