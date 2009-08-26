@@ -57,41 +57,41 @@ Role:
         name: OIG Representative
         nickname: OIG
         description:
-        Privileges: [incident_view]
+        Privileges: [incident_read]
 
     ED-CIRC:
         name: Incident Manager
         nickname: ED-CIRC
         description:
-        Privileges: [incident_view]
+        Privileges: [incident_read]
 
     IRC:
         name: Incident Response Coordinator
         nickname: IRC
         description: 
-        Privileges: [incident_view]
+        Privileges: [incident_read]
     
     DBR:
         name: Data Breach Representatives
         nickname: DBR
         description:
-        Privileges: [incident_view]
+        Privileges: [incident_read]
    
     PA:
         name: Privacy Advocate
         nickname: PA
         description:
-        Privileges: [incident_view]
+        Privileges: [incident_read]
         
     IRS:
         name: Incident Response Specialist
         nickname: IRS
         description:
-        Privileges: [incident_view]
+        Privileges: [incident_read]
   
     HDR:
         name: Help Desk Representative
         nickname: HDR
         description:
-        Privileges: [incident_view]
+        Privileges: [incident_read]
          
