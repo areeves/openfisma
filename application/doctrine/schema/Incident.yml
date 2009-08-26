@@ -45,13 +45,13 @@ Incident:
             type: timestamp
         incidentTz: 
             type: enum
-            values: [EST, CST, MTN, PST]
+            values: [AST, ADT, EST, EDT, CST, CDT, MST, MDT, PST, PDT, AKST, AKDT, HAST, HADT]
         
         reportTs: 
             type: timestamp
         reportTz: 
             type: enum
-            values: [EST, CST, MTN, PST]
+            values: [AST, ADT, EST, EDT, CST, CDT, MST, MDT, PST, PDT, AKST, AKDT, HAST, HADT]
 
         classification:
             type: integer(8)

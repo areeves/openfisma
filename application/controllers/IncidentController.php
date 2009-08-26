@@ -240,7 +240,22 @@ class IncidentController extends BaseController
         return array('AM', 'PM');
     }
     private function _getTz() {
-        return array('EST', 'CST', 'MTN', 'PST');
+        return  array(
+                    'AST'  =>   'Atlantic Standard Time',
+                    'ADT'  =>   'Atlantic Daylight Time',
+                    'EST'  =>   'Eastern Standard Time',
+                    'EDT'  =>   'Eastern Daylight Time',
+                    'CST'  =>   'Central Standard Time',
+                    'CDT'  =>   'Central Daylight Time',
+                    'MST'  =>   'Mountain Standard Time',
+                    'MDT'  =>   'Mountain Daylight Time',
+                    'PST'  =>   'Pacific Standard Time',
+                    'PDT'  =>   'Pacific Daylight Time',
+                    'AKST' =>   'Alaska Standard Time',
+                    'AKDT' =>   'Alaska Daylight Time',
+                    'HAST' =>   'Hawaii-Aleutian Standard Time',
+                    'HADT' =>   'Hawaii-Aleutian Daylight Time',
+                );
     }
     
     private function _getOS() {
