@@ -115,7 +115,7 @@ class IncidentController extends BaseController
             
             $q  = Doctrine_Query::create()
                 ->select('s.id')
-                ->from('irIncidentWorkflow s')
+                ->from('IrIncidentWorkflow s')
                 ->where('s.incidentId = ?', $incident_id)
                 ->andWhere('s.status = ?', 'current');
  
@@ -141,7 +141,7 @@ class IncidentController extends BaseController
         
         $q  = Doctrine_Query::create()
             ->select('iw.*')
-            ->from('irIncidentWorkflow iw')
+            ->from('IrIncidentWorkflow iw')
             ->where('iw.incidentId = ?', $incident_id);
 
         $incident = $q->execute();
@@ -175,7 +175,7 @@ class IncidentController extends BaseController
         /* check for last step and set incident status to resolved */
         $q  = Doctrine_Query::create()
             ->select('count(*) as count')
-            ->from('irIncidentWorkflow iw')
+            ->from('IrIncidentWorkflow iw')
             ->where('iw.incidentId = ?', $incident_id)
             ->andWhere('iw.status = ?', 'queued');
 
@@ -374,8 +374,8 @@ class IncidentController extends BaseController
         $q = Doctrine_Query::create()
              ->select('u.id, u.nameFirst, u.nameLast')
              ->from('user u')
-             ->where('u.id NOT IN (SELECT ia.userId FROM irIncidentActor ia WHERE ia.incidentid = ?)', $id)
-             ->andWhere('u.id NOT IN (SELECT io.userId FROM irIncidentObserver io WHERE io.incidentid = ?)', $id);
+             ->where('u.id NOT IN (SELECT ia.userId FROM IrIncidentActor ia WHERE ia.incidentid = ?)', $id)
+             ->andWhere('u.id NOT IN (SELECT io.userId FROM IrIncidentObserver io WHERE io.incidentid = ?)', $id);
 
         $users = $q->execute();
 
@@ -385,7 +385,7 @@ class IncidentController extends BaseController
         $q = Doctrine_Query::create()
              ->select('u.id, u.nameFirst, u.nameLast')
              ->from('user u')
-             ->where('u.id IN (SELECT ia.userId FROM irIncidentActor ia WHERE ia.incidentid = ?)', $id);
+             ->where('u.id IN (SELECT ia.userId FROM IrIncidentActor ia WHERE ia.incidentid = ?)', $id);
 
         $users = $q->execute();
 
@@ -394,7 +394,7 @@ class IncidentController extends BaseController
         $q = Doctrine_Query::create()
              ->select('u.id, u.nameFirst, u.nameLast')
              ->from('user u')
-             ->where('u.id IN (SELECT io.userId FROM irIncidentObserver io WHERE io.incidentid = ?)', $id);
+             ->where('u.id IN (SELECT io.userId FROM IrIncidentObserver io WHERE io.incidentid = ?)', $id);
 
         $users = $q->execute();
 
@@ -422,7 +422,7 @@ class IncidentController extends BaseController
         $userid = $this->_request->getParam('userid');
         
         $q =    Doctrine_Query::create()
-                ->delete('irIncidentActor ia')
+                ->delete('IrIncidentActor ia')
                 ->where('ia.userid = ?', $userid)
                 ->andWhere('ia.incidentid = ?', $id);
         
@@ -450,7 +450,7 @@ class IncidentController extends BaseController
         $userid = $this->_request->getParam('userid');
         
         $q =    Doctrine_Query::create()
-                ->delete('irIncidentObserver io')
+                ->delete('IrIncidentObserver io')
                 ->where('io.userid = ?', $userid)
                 ->andWhere('io.incidentid = ?', $id);
         
