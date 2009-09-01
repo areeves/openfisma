@@ -99,7 +99,7 @@ Incident:
             type: string(255)
         hostOs:
             type: enum
-            values: [2007, vista, xp, macos, linux, unix]
+            values: [win7, vista, xp, macos, linux, unix]
         hostAdditional:
             type: string(1000)
             extra: 
@@ -129,6 +129,9 @@ Incident:
         oigId:
             type: int(10)
 
+        status:
+            type: enum
+            values: [new, open, resolved, rejected, closed]
 
 
 

@@ -15,7 +15,7 @@ IrIncidentWorkflow:
         status:
             type: enum
             length: 9
-            values: ['QUEUED','CURRENT','COMPLETED','REOPENED']
+            values: ['queued','current','completed','reopened']
         completeTs: 
             type: timestamp
         comments:
