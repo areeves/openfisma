@@ -165,7 +165,7 @@ class IRWorkflowController extends SecurityController
 
             $q2 = Doctrine_Query::create()
                   ->select('s.name, s.sortorder, s.workflowId')
-                  ->from('IRSteps s')
+                  ->from('IrSteps s')
                   ->where('s.workflowId = ?', $val['id'])
                   ->orderBy('s.sortorder');
 
@@ -336,7 +336,7 @@ class IRWorkflowController extends SecurityController
         if ($wfsValues) {
             if ($form->isValid($wfsValues)) {
                 $wfsValues = $form->getValues();
-                $irworkflowstep = new IRSteps();
+                $irworkflowstep = new IrSteps();
                 $irworkflowstep->merge($wfsValues);
                 
                 // save the data, if failure then return false
@@ -414,7 +414,7 @@ class IRWorkflowController extends SecurityController
         $id = $this->_request->getParam('id');
         $v = $this->_request->getParam('v', 'stepview');
         
-        $irworkflowstep = Doctrine::getTable('IRSteps')->find($id);
+        $irworkflowstep = Doctrine::getTable('IrSteps')->find($id);
         
         $form = $this->_getWorkflowStepForm($irworkflowstep);
         
@@ -450,7 +450,7 @@ class IRWorkflowController extends SecurityController
     {
         Fisma_Acl::requirePrivilege('irworkflow', 'update'); 
         $id = $this->_request->getParam('id', 0);
-        $irworkflowstep = new IRSteps();
+        $irworkflowstep = new IrSteps();
         $irworkflowstep = $irworkflowstep->getTable()->find($id);
 
         if (!$irworkflowstep) {
@@ -518,7 +518,7 @@ class IRWorkflowController extends SecurityController
     {
         Fisma_Acl::requirePrivilege('irworkflow', 'delete');
         $id = $this->_request->getParam('id');
-        $irworkflow = Doctrine::getTable('IRSteps')->find($id);
+        $irworkflow = Doctrine::getTable('IrSteps')->find($id);
         if ($irworkflow) {
             if ($irworkflow->delete()) {
                 $msg = "Workflow Step deleted successfully";

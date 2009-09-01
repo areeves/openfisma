@@ -166,7 +166,7 @@ class IRCategoryController extends SecurityController
 
             $q2 = Doctrine_Query::create()
                   ->select('sc.name')
-                  ->from('IRSubCategory sc')
+                  ->from('IrSubCategory sc')
                   ->where('sc.categoryId = ?', $val['id']);  
 
             $cats[$key]['children'] = $q2->execute()->toArray();
@@ -371,7 +371,7 @@ class IRCategoryController extends SecurityController
         if ($subCatValues) {
             if ($form->isValid($subCatValues)) {
                 $subCatValues = $form->getValues();
-                $irsubcategory = new IRSubCategory();
+                $irsubcategory = new IrSubCategory();
                 $irsubcategory->merge($subCatValues);
                 
                 
@@ -459,7 +459,7 @@ class IRCategoryController extends SecurityController
         $id = $this->_request->getParam('id');
         $v = $this->_request->getParam('v', 'subview');
         
-        $irsubcategory = Doctrine::getTable('IRSubCategory')->find($id);
+        $irsubcategory = Doctrine::getTable('IrSubCategory')->find($id);
         
         $form = $this->_getSubCategoryForm($irsubcategory);
         
@@ -495,7 +495,7 @@ class IRCategoryController extends SecurityController
     {
         Fisma_Acl::requirePrivilege('ircategory', 'update'); 
         $id = $this->_request->getParam('id', 0);
-        $irsubcategory = new IRSubCategory();
+        $irsubcategory = new IrSubCategory();
         $irsubcategory = $irsubcategory->getTable()->find($id);
 
         if (!$irsubcategory) {
@@ -541,7 +541,7 @@ class IRCategoryController extends SecurityController
     {
         Fisma_Acl::requirePrivilege('ircategory', 'delete');
         $id = $this->_request->getParam('id');
-        $irsubcategory = Doctrine::getTable('IRSubCategory')->find($id);
+        $irsubcategory = Doctrine::getTable('IrSubCategory')->find($id);
         if ($irsubcategory) {
             if ($irsubcategory->delete()) {
                 $msg = "Sub Category deleted successfully";
