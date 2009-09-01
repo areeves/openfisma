@@ -288,11 +288,11 @@ class IncidentController extends BaseController
             $iw->save();
 
             /* create snapshot of workflow and add it to the ir_incident_workflow table */
-            $subcat = Doctrine::getTable('irSubCategory')->find($subCategoryId);
+            $subcat = Doctrine::getTable('IrSubCategory')->find($subCategoryId);
            
             $q = Doctrine_Query::create()
                  ->select('s.id, s.roleid, s.sortorder, s.name, s.description')
-                 ->from('irSteps s')
+                 ->from('IrSteps s')
                  ->where('s.workflowid = ?', $subcat->workflowId)
                  ->orderby('s.sortorder');
                 
@@ -492,7 +492,7 @@ class IncidentController extends BaseController
         
         $q = Doctrine_Query::create()
              ->select('*')
-             ->from('incident i')
+             ->from('Incident i')
              ->whereIn('i.status', $status)
              ->orderBy("i.$sortBy $order")
              ->limit($this->_paging['count'])
@@ -763,7 +763,7 @@ class IncidentController extends BaseController
     private function _getCategories() {
         $q = Doctrine_Query::create()
              ->select('s.id, s.name')
-             ->from('irSubCategory s')
+             ->from('IrSubCategory s')
              ->orderBy("s.name");
 
         $categories = $q->execute();
