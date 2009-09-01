@@ -334,7 +334,7 @@ class IncidentController extends BaseController
 
         $q  = Doctrine_Query::create()
             ->select('c.*')
-            ->from('irComment c')
+            ->from('IrComment c')
             ->where('c.incidentId = ?', $incident_id)
             ->orderBy('createdTs DESC');
 
