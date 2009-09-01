@@ -20,7 +20,7 @@
  * @author    Nathan Harris <nathan.harris@endeavorsystems.com>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: IRWorkflowController.php 2149 2009-08-25 23:34:02Z nathanrharris $
+ * @version   $Id: IrWorkflowController.php 2149 2009-08-25 23:34:02Z nathanrharris $
  * @package   Controller
  */
 
@@ -31,7 +31,7 @@
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
  */
-class IRWorkflowController extends SecurityController
+class IrWorkflowController extends SecurityController
 {
 
     private $_paging = array(
@@ -155,7 +155,7 @@ class IRWorkflowController extends SecurityController
         /* Get all categories */ 
         $q = Doctrine_Query::create()
              ->select('w.name')
-             ->from('IRWorkflowDef w');
+             ->from('IrWorkflowDef w');
         
         $wfs = $q->execute()->toArray();        
 
@@ -191,7 +191,7 @@ class IRWorkflowController extends SecurityController
         if ($wfValues) {
             if ($form->isValid($wfValues)) {
                 $wfValues = $form->getValues();
-                $irworkflow = new IRWorkflowDef();
+                $irworkflow = new IrWorkflowDef();
                 $irworkflow->merge($wfValues);
                 
                 // save the data, if failure then return false
@@ -248,7 +248,7 @@ class IRWorkflowController extends SecurityController
         $id = $this->_request->getParam('id');
         $v = $this->_request->getParam('v', 'view');
         
-        $irworkflow = Doctrine::getTable('IRWorkflowDef')->find($id);
+        $irworkflow = Doctrine::getTable('IrWorkflowDef')->find($id);
         
         $form = $this->_getWorkflowForm($irworkflow);
         
@@ -285,7 +285,7 @@ class IRWorkflowController extends SecurityController
     {
         Fisma_Acl::requirePrivilege('irworkflow', 'update'); 
         $id = $this->_request->getParam('id', 0);
-        $irworkflow = new IRWorkflowDef();
+        $irworkflow = new IrWorkflowDef();
         $irworkflow = $irworkflow->getTable()->find($id);
 
         if (!$irworkflow) {
@@ -384,7 +384,7 @@ class IRWorkflowController extends SecurityController
         /* Get all workflows */ 
         $q = Doctrine_Query::create()
              ->select('w.id, w.name')
-             ->from('IRWorkflowDef w')
+             ->from('IrWorkflowDef w')
              ->orderby('w.name');          
  
         $wfs = $q->execute()->toArray();        
@@ -496,7 +496,7 @@ class IRWorkflowController extends SecurityController
     {
         Fisma_Acl::requirePrivilege('irworkflow', 'delete');
         $id = $this->_request->getParam('id');
-        $irworkflow = Doctrine::getTable('IRWorkflowDef')->find($id);
+        $irworkflow = Doctrine::getTable('IrWorkflowDef')->find($id);
         if ($irworkflow) {
             if ($irworkflow->delete()) {
                 $msg = "Workflow deleted successfully";
