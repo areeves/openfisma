@@ -156,7 +156,7 @@ class IRCategoryController extends SecurityController
         /* Get all categories */ 
         $q = Doctrine_Query::create()
              ->select('c.name, c.category')
-             ->from('IRCategory c');
+             ->from('IrCategory c');
         
         $cats = $q->execute()->toArray();        
 
@@ -188,7 +188,7 @@ class IRCategoryController extends SecurityController
         $id = $this->_request->getParam('id');
         $v = $this->_request->getParam('v', 'view');
         
-        $ircategory = Doctrine::getTable('IRCategory')->find($id);
+        $ircategory = Doctrine::getTable('IrCategory')->find($id);
         
         $form = $this->_getCategoryForm($ircategory);
         
@@ -228,7 +228,7 @@ class IRCategoryController extends SecurityController
         if ($catValues) {
             if ($form->isValid($catValues)) {
                 $catValues = $form->getValues();
-                $ircategory = new IRCategory();
+                $ircategory = new IrCategory();
                 $ircategory->merge($catValues);
                 
                 // save the data, if failure then return false
@@ -272,7 +272,7 @@ class IRCategoryController extends SecurityController
     {
         Fisma_Acl::requirePrivilege('ircategory', 'update'); 
         $id = $this->_request->getParam('id', 0);
-        $ircategory = new IRCategory();
+        $ircategory = new IrCategory();
         $ircategory = $ircategory->getTable()->find($id);
 
         if (!$ircategory) {
@@ -344,7 +344,7 @@ class IRCategoryController extends SecurityController
     {
         Fisma_Acl::requirePrivilege('ircategory', 'delete');
         $id = $this->_request->getParam('id');
-        $ircategory = Doctrine::getTable('IRCategory')->find($id);
+        $ircategory = Doctrine::getTable('IrCategory')->find($id);
         if ($ircategory) {
             if ($ircategory->delete()) {
                 $msg = "Category deleted successfully";
@@ -421,7 +421,7 @@ class IRCategoryController extends SecurityController
         /* Get all categories */ 
         $q = Doctrine_Query::create()
              ->select('c.name, c.category')
-             ->from('IRCategory c')
+             ->from('IrCategory c')
              ->orderby('c.category');          
  
         $cats = $q->execute()->toArray();        
