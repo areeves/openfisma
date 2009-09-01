@@ -107,7 +107,7 @@ class PanelController extends SecurityController
     {
         $req = $this->getRequest();
         $sub = $req->getParam('sub');
-        $this->_helper->actionStack($sub, 'Ircategory');
+        $this->_helper->actionStack($sub, 'IRCategory');
         $this->_helper->actionStack('header');
     }
     
