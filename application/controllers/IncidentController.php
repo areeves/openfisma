@@ -226,103 +226,117 @@ class IncidentController extends BaseController
         $subCategoryId = $this->_request->getParam('classification');
         $comment       =  $this->_request->getParam('comment');
 
-        
-        if ($this->_request->getParam('reject') == 'reject') {
-            $this->message('Incident Rejected', self::M_NOTICE);
-            
-            $incident = new Incident();
-            $incident = $incident->getTable()->find($id);
-            $incident->status = 'rejected';
-            $incident->save();
-        
-            
-            /* Add rejected step to workflow table*/
-            $iw = new IrIncidentWorkflow();    
-           
-            $iw->incidentId  = $id; 
-            $iw->name        = 'Incident Rejected';
-            $iw->comments    = $comment;
-            $iw->sortorder   = 0;
-            $iw->userId      = Zend_Auth::getInstance()->getIdentity()->id;
-            $iw->completeTs = date('Y-m-d H:i:s');
+        /*  check to make sure nothing has been added to the incident workflow table for this incident already
+            this will prevent duplicate entries if the classify page is refreshed
+        */
+        $q  = Doctrine_Query::create()
+            ->select('count(*) as count')
+            ->from('IrIncidentWorkflow iw')
+            ->where('iw.incidentId = ?', $id);
 
-            $iw->status      = 'completed';
-
-            $iw->save();
-
-            /* Add final close step to incident workflow table*/
-            $iw = new IrIncidentWorkflow();    
-           
-            $iw->incidentId  = $id; 
-            $iw->name        = 'Close Incident';
-            $iw->sortorder   = 1;
-
-            $iw->status      = 'queued';
-
-            $iw->save();
-
-        } elseif ($this->_request->getParam('open') == 'open')  {
-            $this->message('Incident Opened', self::M_NOTICE);
-
-            /* update incident status and category */
-            $incident                 = new Incident();
-            $incident                 = $incident->getTable()->find($id);
-            $incident->status         = 'open';
-            $incident->classification = $subCategoryId;
-            
-            $incident->save();
+        $count = $q->execute();
+        $count = $count->toArray();    
+        $count = $count[0]['count'];
 
 
-            /* Add opened step to workflow table*/
-            $iw = new IrIncidentWorkflow();    
-           
-            $iw->incidentId  = $id; 
-            $iw->name        = 'Incident Opened';
-            $iw->comments    = $comment;
-            $iw->sortorder   = 0;
-            $iw->userId      = Zend_Auth::getInstance()->getIdentity()->id;
-            $iw->completeTs = date('Y-m-d H:i:s');
-
-            $iw->status      = 'completed';
-
-            $iw->save();
-
-            /* create snapshot of workflow and add it to the ir_incident_workflow table */
-            $subcat = Doctrine::getTable('IrSubCategory')->find($subCategoryId);
-           
-            $q = Doctrine_Query::create()
-                 ->select('s.id, s.roleid, s.sortorder, s.name, s.description')
-                 ->from('IrSteps s')
-                 ->where('s.workflowid = ?', $subcat->workflowId)
-                 ->orderby('s.sortorder');
+        if($count == 0) {    
+            if ($this->_request->getParam('reject') == 'reject') {
+                $this->message('Incident Rejected', self::M_NOTICE);
                 
-            $steps = $q->execute();
- 
-            $steps = $steps->toArray();
-
-            foreach($steps as $step) {
+                $incident = new Incident();
+                $incident = $incident->getTable()->find($id);
+                $incident->status = 'rejected';
+                $incident->save();
+            
+                
+                /* Add rejected step to workflow table*/
                 $iw = new IrIncidentWorkflow();    
                
                 $iw->incidentId  = $id; 
-                $iw->name        = $step['name'];
-                $iw->description = $step['description'];
-                $iw->sortorder   = $step['sortorder'];
+                $iw->name        = 'Incident Rejected';
+                $iw->comments    = $comment;
+                $iw->sortorder   = 0;
+                $iw->userId      = Zend_Auth::getInstance()->getIdentity()->id;
+                $iw->completeTs = date('Y-m-d H:i:s');
 
-                $iw->status      = ($step['sortorder'] == 1) ? 'current' : 'queued';
-                                
+                $iw->status      = 'completed';
+
+                $iw->save();
+
+                /* Add final close step to incident workflow table*/
+                $iw = new IrIncidentWorkflow();    
+               
+                $iw->incidentId  = $id; 
+                $iw->name        = 'Close Incident';
+                $iw->sortorder   = 1;
+
+                $iw->status      = 'queued';
+
+                $iw->save();
+
+            } elseif ($this->_request->getParam('open') == 'open')  {
+                $this->message('Incident Opened', self::M_NOTICE);
+
+                /* update incident status and category */
+                $incident                 = new Incident();
+                $incident                 = $incident->getTable()->find($id);
+                $incident->status         = 'open';
+                $incident->classification = $subCategoryId;
+                
+                $incident->save();
+
+
+                /* Add opened step to workflow table*/
+                $iw = new IrIncidentWorkflow();    
+               
+                $iw->incidentId  = $id; 
+                $iw->name        = 'Incident Opened';
+                $iw->comments    = $comment;
+                $iw->sortorder   = 0;
+                $iw->userId      = Zend_Auth::getInstance()->getIdentity()->id;
+                $iw->completeTs = date('Y-m-d H:i:s');
+
+                $iw->status      = 'completed';
+
+                $iw->save();
+
+                /* create snapshot of workflow and add it to the ir_incident_workflow table */
+                $subcat = Doctrine::getTable('IrSubCategory')->find($subCategoryId);
+               
+                $q = Doctrine_Query::create()
+                     ->select('s.id, s.roleid, s.sortorder, s.name, s.description')
+                     ->from('IrSteps s')
+                     ->where('s.workflowid = ?', $subcat->workflowId)
+                     ->orderby('s.sortorder');
+                    
+                $steps = $q->execute();
+     
+                $steps = $steps->toArray();
+
+                foreach($steps as $step) {
+                    $iw = new IrIncidentWorkflow();    
+                   
+                    $iw->incidentId  = $id; 
+                    $iw->name        = $step['name'];
+                    $iw->description = $step['description'];
+                    $iw->sortorder   = $step['sortorder'];
+
+                    $iw->status      = ($step['sortorder'] == 1) ? 'current' : 'queued';
+                                    
+                    $iw->save();
+                }
+
+                /* Add final close step to incident workflow table*/
+                $iw = new IrIncidentWorkflow();    
+               
+                $iw->incidentId  = $id; 
+                $iw->name        = 'Close Incident';
+                $iw->sortorder   = $step['sortorder'] + 1;
+
+                $iw->status      = 'queued';
+
                 $iw->save();
             }
-
-            /* Add final close step to incident workflow table*/
-            $iw = new IrIncidentWorkflow();    
-           
-            $iw->incidentId  = $id; 
-            $iw->name        = 'Close Incident';
-            $iw->sortorder   = $step['sortorder'] + 1;
-
-            $iw->status      = 'queued';
-
-            $iw->save();
         }
 
         $this->_forward('view');
