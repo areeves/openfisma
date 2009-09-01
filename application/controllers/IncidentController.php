@@ -74,7 +74,7 @@ class IncidentController extends BaseController
         
         $q  = Doctrine_Query::create()
             ->select('i.*')
-            ->from('incident i')
+            ->from('Incident i')
             ->where('i.id = ?', $incident_id);
 
         $incident = $q->execute();
