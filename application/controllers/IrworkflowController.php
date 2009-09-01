@@ -31,7 +31,7 @@
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
  */
-class IrWorkflowController extends SecurityController
+class IRWorkflowController extends SecurityController
 {
 
     private $_paging = array(
