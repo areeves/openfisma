@@ -88,7 +88,7 @@ class MenuController extends SecurityController
             $incidents = new Fisma_Yui_Menu('Incidents');
           
             if (Fisma_Acl::hasPrivilege('incident', 'read', '*')) {
-                $incidents->add(new Fisma_Yui_MenuItem('Incident Dashboard', '/panel/incident/dashboard'));
+                $incidents->add(new Fisma_Yui_MenuItem('Incident Dashboard', '/panel/incident/sub/dashboard'));
                 $incidents->add(new Fisma_Yui_MenuItem('Search', '/panel/incident/sub/search'));
             }
             $incidents->add(new Fisma_Yui_MenuItem('Report Incident', '/panel/incident/sub/create'));
