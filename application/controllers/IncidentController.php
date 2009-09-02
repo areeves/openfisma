@@ -152,7 +152,9 @@ class IncidentController extends BaseController
             $steps = $steps->toArray();
             
             foreach($steps as $key => $step) {
-                $steps[$key]['user'] = $this->_getUser($step['userId']);
+                if($step['userId']) {
+                    $steps[$key]['user'] = $this->_getUser($step['userId']);
+                }
             }
 
             $this->view->assign('steps', $steps);
@@ -171,7 +173,9 @@ class IncidentController extends BaseController
             $steps = $steps->toArray();
             
             foreach($steps as $key => $step) {
-                $steps[$key]['user'] = $this->_getUser($step['userId']);
+                if($step['userId']) {
+                    $steps[$key]['user'] = $this->_getUser($step['userId']);
+                }
             }
 
             $this->view->assign('steps', $steps);
@@ -254,6 +258,7 @@ class IncidentController extends BaseController
     public function closeAction() {
         $incident_id = $this->_request->getParam('id');
         $step_id     = $this->_request->getParam('step_id');
+        $comment     = $this->_request->getParam('comment');
 
         $incident = new Incident();
         $incident = $incident->getTable()->find($incident_id);
@@ -265,7 +270,7 @@ class IncidentController extends BaseController
         $step = $step->getTable()->find($step_id);
 
         $step->status     = 'completed';
-        $step->comments   = $comments;
+        $step->comments   = $comment;
         $step->userId     = Zend_Auth::getInstance()->getIdentity()->id;
         $step->completeTs = date('Y-m-d H:i:s');
 
