@@ -726,6 +726,8 @@ class IncidentController extends BaseController
 
         $values['reportTs'] = date('Y-m-d G:i:s');
         $values['reportTz'] = date('T');
+        
+        $values['status'] = 'new';
 
         if ($values['incidentHour'] && $values['incidentMinute'] && $values['incidentAmpm']) {
             if ($values['incidentAmpm'] == 'PM') {
