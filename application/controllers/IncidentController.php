@@ -192,10 +192,13 @@ class IncidentController extends BaseController
         $steps = $q->execute();
 
         $steps = $steps->toArray();
-        
+       
         foreach($steps as $key => $step) {
-            $steps[$key]['user'] = $this->_getUser($step['userId']);
+            if($step['userId']) {
+                $steps[$key]['user'] = $this->_getUser($step['userId']);
+            }
         }
+        
 
         $this->view->assign('id', $incident_id);
         $this->view->assign('steps', $steps);
