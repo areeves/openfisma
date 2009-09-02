@@ -50,9 +50,6 @@ class IncidentController extends BaseController
     {
         parent::init();
     }
-   
-
-
 
     public function dashboardAction() 
     {
@@ -91,6 +88,15 @@ class IncidentController extends BaseController
         } elseif ($status == 'new') {
             $form = Fisma_Form_Manager::loadForm('incident_classify');
 
+            $this->_createBoolean(&$form, array('pii', 'oig'));
+        
+            $form->setDisplayGroupDecorators(array(
+                new Zend_Form_Decorator_FormElements(),
+                new Fisma_Form_CreateIncidentDecorator()
+            ));
+
+            $form->setElementDecorators(array(new Fisma_Form_ClassifyIncidentDecorator()));
+
             foreach($this->_getCategories() as $id => $cat) {
                 $form->getElement('classification')
                      ->addMultiOptions(array($id => $cat));
@@ -112,7 +118,7 @@ class IncidentController extends BaseController
             $element->setValue($incident_id);
             
             $form->addElement($element);
-            
+        
             $q  = Doctrine_Query::create()
                 ->select('s.id')
                 ->from('IrIncidentWorkflow s')
@@ -126,12 +132,51 @@ class IncidentController extends BaseController
             $element2->setValue($step[0]['id']);
      
             $form->addElement($element2);
+            
+            $form->setDisplayGroupDecorators(array(
+                new Zend_Form_Decorator_FormElements(),
+                new Fisma_Form_CreateIncidentDecorator()
+            ));
+
+            $form->setElementDecorators(array(new Fisma_Form_ClassifyIncidentDecorator()));
 
             $this->view->assign('form', $form);
+
+            $q  = Doctrine_Query::create()
+                ->select('iw.*')
+                ->from('IrIncidentWorkflow iw')
+                ->where('iw.incidentId = ?', $incident_id);
+
+            $steps = $q->execute();
+
+            $steps = $steps->toArray();
+            
+            foreach($steps as $key => $step) {
+                $steps[$key]['user'] = $this->_getUser($step['userId']);
+            }
+
+            $this->view->assign('steps', $steps);
 
             $this->render('close');
 
         } elseif($status == 'closed') {
+            
+            $q  = Doctrine_Query::create()
+                ->select('iw.*')
+                ->from('IrIncidentWorkflow iw')
+                ->where('iw.incidentId = ?', $incident_id);
+
+            $steps = $q->execute();
+
+            $steps = $steps->toArray();
+            
+            foreach($steps as $key => $step) {
+                $steps[$key]['user'] = $this->_getUser($step['userId']);
+            }
+
+            $this->view->assign('steps', $steps);
+            
+
             $this->render('history');
         }
     }
@@ -144,10 +189,16 @@ class IncidentController extends BaseController
             ->from('IrIncidentWorkflow iw')
             ->where('iw.incidentId = ?', $incident_id);
 
-        $incident = $q->execute();
+        $steps = $q->execute();
+
+        $steps = $steps->toArray();
+        
+        foreach($steps as $key => $step) {
+            $steps[$key]['user'] = $this->_getUser($step['userId']);
+        }
 
         $this->view->assign('id', $incident_id);
-        $this->view->assign('incident', $incident->toArray());
+        $this->view->assign('steps', $steps);
 
         $this->render('workflow-interface');
     }
@@ -240,7 +291,7 @@ class IncidentController extends BaseController
 
 
         if($count == 0) {    
-            if ($this->_request->getParam('reject') == 'reject') {
+            if ($this->_request->getParam('Reject') == 'Reject') {
                 $this->message('Incident Rejected', self::M_NOTICE);
                 
                 $incident = new Incident();
@@ -274,7 +325,7 @@ class IncidentController extends BaseController
 
                 $iw->save();
 
-            } elseif ($this->_request->getParam('open') == 'open')  {
+            } elseif ($this->_request->getParam('Open') == 'Open')  {
                 $this->message('Incident Opened', self::M_NOTICE);
 
                 /* update incident status and category */
@@ -354,9 +405,38 @@ class IncidentController extends BaseController
 
         $comments = $q->execute();
 
-        $this->view->assign('comments', $comments->toArray());
+        $comments = $comments->toArray();
+
+        foreach($comments as $key => $comment) {
+            $comments[$key]['user'] = $this->_getUser($comment['userId']);
+        }
+
+        $this->view->assign('comments', $comments);
 
         $this->render('comments');   
+    }
+    
+    function commentsnoformAction() {
+        $incident_id = $this->_request->getParam('id');
+        $this->view->assign('id', $incident_id);
+
+        $q  = Doctrine_Query::create()
+            ->select('c.*')
+            ->from('IrComment c')
+            ->where('c.incidentId = ?', $incident_id)
+            ->orderBy('createdTs DESC');
+
+        $comments = $q->execute();
+
+        $comments = $comments->toArray();
+
+        foreach($comments as $key => $comment) {
+            $comments[$key]['user'] = $this->_getUser($comment['userId']);
+        }
+
+        $this->view->assign('comments', $comments);
+
+        $this->render('comments-noform');   
     }
 
     function addcommentAction() {
@@ -386,10 +466,12 @@ class IncidentController extends BaseController
         $id = $this->_request->getParam('id');
 
         $q = Doctrine_Query::create()
-             ->select('u.id, u.nameFirst, u.nameLast')
+             ->select('u.id, u.nameFirst, u.nameLast, u.username')
              ->from('user u')
              ->where('u.id NOT IN (SELECT ia.userId FROM IrIncidentActor ia WHERE ia.incidentid = ?)', $id)
-             ->andWhere('u.id NOT IN (SELECT io.userId FROM IrIncidentObserver io WHERE io.incidentid = ?)', $id);
+             ->andWhere('u.id NOT IN (SELECT io.userId FROM IrIncidentObserver io WHERE io.incidentid = ?)', $id)
+             ->andWhere('NOT (u.username = ?)', 'root')
+             ->orderBy('u.nameLast');
 
         $users = $q->execute();
 
@@ -397,18 +479,20 @@ class IncidentController extends BaseController
         $this->view->assign('users',$users->toArray());
 
         $q = Doctrine_Query::create()
-             ->select('u.id, u.nameFirst, u.nameLast')
+             ->select('u.id, u.nameFirst, u.nameLast, u.username')
              ->from('user u')
-             ->where('u.id IN (SELECT ia.userId FROM IrIncidentActor ia WHERE ia.incidentid = ?)', $id);
+             ->where('u.id IN (SELECT ia.userId FROM IrIncidentActor ia WHERE ia.incidentid = ?)', $id)
+             ->orderBy('u.nameLast');
 
         $users = $q->execute();
 
         $this->view->assign('actors',$users->toArray());
         
         $q = Doctrine_Query::create()
-             ->select('u.id, u.nameFirst, u.nameLast')
+             ->select('u.id, u.nameFirst, u.nameLast, u.username')
              ->from('user u')
-             ->where('u.id IN (SELECT io.userId FROM IrIncidentObserver io WHERE io.incidentid = ?)', $id);
+             ->where('u.id IN (SELECT io.userId FROM IrIncidentObserver io WHERE io.incidentid = ?)', $id)
+             ->orderBy('u.nameLast');
 
         $users = $q->execute();
 
@@ -787,5 +871,18 @@ class IncidentController extends BaseController
         }
 
         return $ret_val;
+    }
+
+    private function _getUser($id) {
+        $q = Doctrine_Query::create()
+             ->select('u.*')
+             ->from('User u')
+             ->where("u.id = ?", $id);
+
+        $user = $q->execute();
+        
+        $user = $user->toArray();
+
+        return $user[0];
     }
 }
