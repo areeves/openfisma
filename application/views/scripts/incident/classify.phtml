@@ -30,7 +30,7 @@ var callback = {
         }
     } 
 
-var transaction = YAHOO.util.Connect.asyncRequest('GET', '/incident/actor/id/1', callback, null);
+var transaction = YAHOO.util.Connect.asyncRequest('GET', '/incident/actor/id/<?php print $this->id; ?>', callback, null);
 
 //this funciton will be called by onclick events defined in actors.phtml
 function callAJAX(url) {
