@@ -27,10 +27,18 @@ elements.comment.options.rows = "7"
 elements.comment.options.required = true
 displayGroups.incident.elements.comment = "comment"
 
-elements.open.type = "Form_Button_Submit"
-elements.open.options.value = "Open Incident"
-displayGroups.incdient.elements.open = "open"
+elements.pii.type="select"
+elements.pii.options.label="Assign Privacy Advocate"
+displayGroups.incident.elements.pii="pii"
 
-elements.reject.type = "Form_Button_Submit"
-elements.reject.options.value = "Reject Incident"
-displayGroups.incdient.elements.reject = "reject"
+elements.oig.type="select"
+elements.oig.options.label="Contact OIG"
+displayGroups.incident.elements.oig="oig"
+
+elements.Open.type = "Form_Button_Submit"
+elements.Open.options.value = "Open Incident"
+displayGroups.incdient.elements.Open = "Open"
+
+elements.Reject.type = "Form_Button_Submit"
+elements.Reject.options.value = "Reject Incident"
+displayGroups.incdient.elements.Reject = "Reject"
