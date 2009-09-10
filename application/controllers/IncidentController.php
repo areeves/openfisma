@@ -51,6 +51,11 @@ class IncidentController extends BaseController
         parent::init();
     }
 
+    /**
+     * Displays incident dashboard
+     *
+     * @return string the rendered page
+     */
     public function dashboardAction() 
     {
         Fisma_Acl::requirePrivilege('incident', 'read'); 
@@ -64,6 +69,11 @@ class IncidentController extends BaseController
         $this->render('dashboard');
     }   
 
+    /**
+     * Displays information for editing or viewing a particular incident
+     *
+     * @return string the rendered page
+     */
     public function viewAction() 
     { 
         $incident_id = $this->_request->getParam('id');
@@ -80,7 +90,10 @@ class IncidentController extends BaseController
 
         $incident = $incident->toArray();
         $status = $incident[0]['status'];
-    
+
+        /* depending on the status of the incident, certain data needs to be retrieved 
+           and a particular view script needs to be rendered 
+        */    
         if ($status == 'open') {
             
             $this->render('workflow');
@@ -101,6 +114,8 @@ class IncidentController extends BaseController
                 $form->getElement('classification')
                      ->addMultiOptions(array($id => $cat));
             }
+
+            $form->getElement('classification')->setValue($incident[0]['classification']);
 
             $element = new Zend_Form_Element_Hidden('id');
             $element->setValue($incident_id);
@@ -185,6 +200,11 @@ class IncidentController extends BaseController
         }
     }
 
+    /**
+     * Displays the incident workflow interface
+     *
+     * @return string the rendered page
+     */
     public function workflowAction() {
         $incident_id = $this->_request->getParam('id');
         
@@ -210,6 +230,11 @@ class IncidentController extends BaseController
         $this->render('workflow-interface');
     }
 
+    /**
+     * Updates incident to show that a particular step has been completed
+     *
+     * @return null
+     */
     public function completestepAction() {
         $incident_id = $this->_request->getParam('id');
         $step_id     = $this->_request->getParam('step_id');
@@ -255,6 +280,11 @@ class IncidentController extends BaseController
         $this->_forward('workflow');
     }
 
+    /**
+     * Updates incident to show it has been closed
+     *
+     * @return null
+     */
     public function closeAction() {
         $incident_id = $this->_request->getParam('id');
         $step_id     = $this->_request->getParam('step_id');
@@ -280,6 +310,11 @@ class IncidentController extends BaseController
         $this->_forward('dashboard');
     }
 
+    /**
+     * Updates incident to show it has been opened and assigned to a category
+     *
+     * @return Zend_Form
+     */
     public function classifyAction() {
         $id            = $this->_request->getParam('id');
         $subCategoryId = $this->_request->getParam('classification');
@@ -401,6 +436,11 @@ class IncidentController extends BaseController
         $this->_forward('view');
     }
 
+    /**
+     * Displays the incident comment interface
+     *
+     * @return Zend_Form
+     */
     function commentsAction() {
         $incident_id = $this->_request->getParam('id');
         $this->view->assign('id', $incident_id);
@@ -424,6 +464,11 @@ class IncidentController extends BaseController
         $this->render('comments');   
     }
     
+    /**
+     * Displays just comments, no comment form
+     *
+     * @return Zend_Form
+     */
     function commentsnoformAction() {
         $incident_id = $this->_request->getParam('id');
         $this->view->assign('id', $incident_id);
@@ -447,6 +492,12 @@ class IncidentController extends BaseController
         $this->render('comments-noform');   
     }
 
+    
+    /**
+     * Adds a comment to the database and associates it with an incident
+     *
+     * @return Zend_Form
+     */
     function addcommentAction() {
         $incident_id = $this->_request->getParam('id');
         $comments    = $this->_request->getParam('comments');
@@ -509,6 +560,11 @@ class IncidentController extends BaseController
         $this->render('actors');
     }
 
+    /**
+     * Associates a user with an incident as an actor
+     *
+     * @return Zend_Form
+     */
     public function actoraddAction() {
         $id     = $this->_request->getParam('id');
         $userid = $this->_request->getParam('userid');
@@ -523,6 +579,11 @@ class IncidentController extends BaseController
         $this->_forward('actor'); 
     }
     
+    /**
+     * Unassociates a user with an incident
+     *
+     * @return Zend_Form
+     */
     public function actorremoveAction() {
         $id     = $this->_request->getParam('id');
         $userid = $this->_request->getParam('userid');
@@ -537,6 +598,11 @@ class IncidentController extends BaseController
         $this->_forward('actor'); 
     }
 
+    /**
+     * Associates a user with an incident as an observer
+     *
+     * @return Zend_Form
+     */
     public function observeraddAction() {
         $id     = $this->_request->getParam('id');
         $userid = $this->_request->getParam('userid');
@@ -551,6 +617,11 @@ class IncidentController extends BaseController
         $this->_forward('actor'); 
     }
 
+    /**
+     * Associates a user with the action and associates them as an actor
+     *
+     * @return Zend_Form
+     */
     public function observerremoveAction() {
         $id     = $this->_request->getParam('id');
         $userid = $this->_request->getParam('userid');
