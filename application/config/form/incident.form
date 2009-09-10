@@ -105,6 +105,7 @@ displayGroups.incident.elements.incidentTz = "incidentTz"
 
 elements.classification.type = "select"
 elements.classification.options.label = "Incident Classification"
+elements.classification.options.tooltip = "<ul><li>CAT0 - Exercise / Network Defense Testing</li><li>CAT1 - Unauthorized Access</li><li>CAT2 - Denial of Service</li><li>CAT3 - Malicious Code</li><li>CAT4 - Improper Usage</li><li>CAT5 - Scans / Probes / Attempted Access</li><li>CAT6 - Investigation</li></ul>"
 displayGroups.incident.elements.classification = "classification"
 
 elements.additionalInfo.type = "textarea"

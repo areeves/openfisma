@@ -25,6 +25,7 @@ displayGroups.irworkflowstep.elements.sortorder = "sortorder"
 
 elements.name.type = "text"
 elements.name.options.label = "Name"
+elements.name.options.size = "65"
 elements.name.options.validators.alnum.validator = "NotEmpty"
 elements.name.options.required = true
 displayGroups.irworkflowstep.elements.name = "name"
