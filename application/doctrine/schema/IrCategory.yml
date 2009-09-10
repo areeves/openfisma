@@ -21,14 +21,6 @@ IrCategory:
             length: 4
             values: ['CAT0','CAT1','CAT2','CAT3','CAT4','CAT5','CAT6']
 
-    relations:
-        # IrSubCategories is a one-many relation
-        IrSubCategories:
-            type: many
-            class: IrSubCategory
-            local: id
-            foreign: id 
-
     actAs:
         SoftDelete:
         Timestampable:
