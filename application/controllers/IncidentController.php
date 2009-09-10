@@ -613,15 +613,35 @@ class IncidentController extends BaseController
         }
         $totalRecords = $q->count();
         $incidents = $q->execute();
-        
+    
+        $incidents = $incidents->toArray();
+   
+        foreach ($incidents as $key => $val) {
+            $q2 = Doctrine_Query::create()
+                  ->select('sc.name')
+                  ->from('IrSubCategory sc')
+                  ->where('sc.id = ?', $val['classification']);
+            
+            $cat = $q2->execute()->toArray();            
+
+            $incidents[$key]['category'] = $cat[0]['name'];
+
+            if ($incidents[$key]['piiInvolved'] == 1) {
+                $incidents[$key]['piiInvolved'] = '&#10004;';
+            } else {
+                $incidents[$key]['piiInvolved'] = '&#10007;';
+            }
+
+        }
+ 
         $tableData = array('table' => array(
-            'recordsReturned' => count($incidents->toArray()),
+            'recordsReturned' => count($incidents),
             'totalRecords' => $totalRecords,
             'startIndex' => $this->_paging['startIndex'],
             'sort' => $sortBy,
             'dir' => $order,
             'pageSize' => $this->_paging['count'],
-            'records' => $incidents->toArray()
+            'records' => $incidents,
         ));
         
         echo json_encode($tableData);
@@ -681,7 +701,7 @@ class IncidentController extends BaseController
                  ->addMultiOptions(array($key => $mm));
         }
 
-        $form->getElement('classification')->addMultiOptions(array(0 => ' will be populated from category table ')); 
+        $form->getElement('classification')->addMultiOptions($this->_getCategories()); 
         
         $form->getElement('assessmentSensitivity')->addMultiOptions(array(   'low' => ' LOW ')); 
         $form->getElement('assessmentSensitivity')->addMultiOptions(array('medium' => ' MEDIUM ')); 
@@ -870,14 +890,23 @@ class IncidentController extends BaseController
 
     private function _getCategories() {
         $q = Doctrine_Query::create()
-             ->select('s.id, s.name')
-             ->from('IrSubCategory s')
-             ->orderBy("s.name");
+             ->select('c.id, c.category')
+             ->from('IrCategory c')
+             ->orderBy("c.category");
 
-        $categories = $q->execute();
+        $categories = $q->execute()->toArray();
         
-        foreach($categories->toArray() as $cat) {
-            $ret_val[$cat['id']] = $cat['name'];
+        foreach($categories as $key => $val) {
+                $q2 = Doctrine_Query::create()
+                     ->select('s.id, s.name')
+                     ->from('IrSubCategory s')
+                     ->where('s.categoryId = ?', $val['id'])
+                     ->orderBy("s.name");
+
+                $subCats = $q2->execute()->toArray();
+                foreach($subCats as $key2 => $val2) {
+                    $ret_val[$val2['id']] = "{$val['category']} - {$val2['name']}";
+                }
         }
 
         return $ret_val;
