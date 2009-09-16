@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<project name="OpenFISMA" default="init" basedir=".">
+    <description>OpenFISMA is an open, customizable application sponsored by Endeavor Systems, Inc. that greatly reduces the cost and complexity associated with FISMA compliance and risk management for U.S. Federal agencies.</description>
+    <property file="config.properties"/>
+
+    <target name="init">
+        <property name="sample" value="Hello World!"/>
+        <echo message="${package.version}"/>
+    </target>
+</project>
