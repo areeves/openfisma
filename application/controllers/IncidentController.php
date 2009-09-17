@@ -67,7 +67,58 @@ class IncidentController extends BaseController
         $this->view->assign('link', $link);
         
         $this->render('dashboard');
-    }   
+    }  
+
+    public function commentdashboardAction() {
+        $q  = Doctrine_Query::create()
+            ->select('c.*')
+            ->from('IrComment c')
+            ->orderBy('c.createdTs DESC')
+            ->limit('10');
+
+        $comments = $q->execute()->toArray();
+
+        foreach ($comments as $key => $comment) {
+            $comments[$key]['user'] = $this->_getUser($comment['userId']);
+        }
+
+
+        $this->view->assign('comments', $comments);
+
+        $this->render('commentsdashboard');
+    } 
+
+    /**
+     * Displays the data related to a particular incident - will be called by ajax on all the incident interfaces
+     *
+     * @return string the rendered page
+     */
+    public function incidentdataAction() 
+    {
+        $incident_id = $this->_request->getParam('id');
+        $this->view->assign('id', $incident_id);
+        
+        $q  = Doctrine_Query::create()
+            ->select('i.*')
+            ->from('Incident i')
+            ->where('i.id = ?', $incident_id);
+
+        $incident = $q->execute()->toArray();
+            
+        $q2 = Doctrine_Query::create()
+              ->select('sc.name')
+              ->from('IrSubCategory sc')
+              ->where('sc.id = ?', $incident[0]['classification']);
+        
+        $cat = $q2->execute()->toArray();            
+
+        $incident[0]['category'] = $cat[0]['name'];
+        
+        $association = $this->_getAssociation($incident_id);
+        $this->view->assign('association', $association);
+
+        $this->view->assign('incident', $incident);
+    }
 
     /**
      * Displays information for editing or viewing a particular incident
@@ -76,6 +127,8 @@ class IncidentController extends BaseController
      */
     public function viewAction() 
     { 
+        Fisma_Acl::requirePrivilege('incident', 'read');
+
         $incident_id = $this->_request->getParam('id');
         $this->view->assign('id', $incident_id);
         
@@ -86,7 +139,7 @@ class IncidentController extends BaseController
 
         $incident = $q->execute();
 
-        $this->view->assign('incident', $incident);
+        $this->view->assign('incident', $incident->toArray());
 
         $incident = $incident->toArray();
         $status = $incident[0]['status'];
@@ -221,9 +274,17 @@ class IncidentController extends BaseController
             if($step['userId']) {
                 $steps[$key]['user'] = $this->_getUser($step['userId']);
             }
+            else {
+                $steps[$key]['role'] = $this->_getRole($step['roleId']);
+            }
         }
+       
+        $user = User::currentUser();
+        $this->view->assign('user_roleId', $user['UserRole'][0]['roleId']);
         
-
+        $association = $this->_getAssociation($incident_id);
+        $this->view->assign('association', $association);
+        
         $this->view->assign('id', $incident_id);
         $this->view->assign('steps', $steps);
 
@@ -319,6 +380,9 @@ class IncidentController extends BaseController
         $id            = $this->_request->getParam('id');
         $subCategoryId = $this->_request->getParam('classification');
         $comment       =  $this->_request->getParam('comment');
+        $pa            =  $this->_request->getParam('pii');
+        $oig           =  $this->_request->getParam('oig');
+
 
         /*  check to make sure nothing has been added to the incident workflow table for this incident already
             this will prevent duplicate entries if the classify page is refreshed
@@ -398,7 +462,7 @@ class IncidentController extends BaseController
                 $subcat = Doctrine::getTable('IrSubCategory')->find($subCategoryId);
                
                 $q = Doctrine_Query::create()
-                     ->select('s.id, s.roleid, s.sortorder, s.name, s.description')
+                     ->select('s.id, s.roleId, s.sortorder, s.name, s.description')
                      ->from('IrSteps s')
                      ->where('s.workflowid = ?', $subcat->workflowId)
                      ->orderby('s.sortorder');
@@ -411,6 +475,7 @@ class IncidentController extends BaseController
                     $iw = new IrIncidentWorkflow();    
                    
                     $iw->incidentId  = $id; 
+                    $iw->roleId      = $step['roleId'];
                     $iw->name        = $step['name'];
                     $iw->description = $step['description'];
                     $iw->sortorder   = $step['sortorder'];
@@ -430,6 +495,26 @@ class IncidentController extends BaseController
                 $iw->status      = 'queued';
 
                 $iw->save();
+       
+                if ($pa == 1) { 
+                    $userid = $this->_getPA();
+                    
+                    $actor = new IrIncidentActor();
+
+                    $actor->incidentId = $id;
+                    $actor->userId = $userid;
+                    $actor->save();
+                }
+                if ($oig == 1) { 
+                    $userid = $this->_getOIG();
+                    
+                    $actor = new IrIncidentActor();
+
+                    $actor->incidentId = $id;
+                    $actor->userId = $userid;
+                    $actor->save();
+                }
+
             }
         }
 
@@ -445,15 +530,16 @@ class IncidentController extends BaseController
         $incident_id = $this->_request->getParam('id');
         $this->view->assign('id', $incident_id);
 
+        $association = $this->_getAssociation($incident_id);
+        $this->view->assign('association', $association);
+
         $q  = Doctrine_Query::create()
             ->select('c.*')
             ->from('IrComment c')
             ->where('c.incidentId = ?', $incident_id)
             ->orderBy('createdTs DESC');
 
-        $comments = $q->execute();
-
-        $comments = $comments->toArray();
+        $comments = $q->execute()->toArray();
 
         foreach($comments as $key => $comment) {
             $comments[$key]['user'] = $this->_getUser($comment['userId']);
@@ -525,21 +611,25 @@ class IncidentController extends BaseController
         $id = $this->_request->getParam('id');
 
         $q = Doctrine_Query::create()
-             ->select('u.id, u.nameFirst, u.nameLast, u.username')
-             ->from('user u')
+             ->select('u.id, u.nameFirst, u.nameLast, u.username, ur.*, r.nickname as role')
+             ->from('User u')
+             ->innerJoin('u.UserRole ur')
+             ->innerJoin('ur.Role r')
              ->where('u.id NOT IN (SELECT ia.userId FROM IrIncidentActor ia WHERE ia.incidentid = ?)', $id)
              ->andWhere('u.id NOT IN (SELECT io.userId FROM IrIncidentObserver io WHERE io.incidentid = ?)', $id)
              ->andWhere('NOT (u.username = ?)', 'root')
              ->orderBy('u.nameLast');
 
-        $users = $q->execute();
+        $users = $q->execute()->toArray();
 
         $this->view->assign('id',$id);
-        $this->view->assign('users',$users->toArray());
+        $this->view->assign('users',$users);
 
         $q = Doctrine_Query::create()
-             ->select('u.id, u.nameFirst, u.nameLast, u.username')
+             ->select('u.id, u.nameFirst, u.nameLast, u.username, ur.*, r.nickname as role')
              ->from('user u')
+             ->innerJoin('u.UserRole ur')
+             ->innerJoin('ur.Role r')
              ->where('u.id IN (SELECT ia.userId FROM IrIncidentActor ia WHERE ia.incidentid = ?)', $id)
              ->orderBy('u.nameLast');
 
@@ -548,14 +638,22 @@ class IncidentController extends BaseController
         $this->view->assign('actors',$users->toArray());
         
         $q = Doctrine_Query::create()
-             ->select('u.id, u.nameFirst, u.nameLast, u.username')
+             ->select('u.id, u.nameFirst, u.nameLast, u.username, ur.*, r.nickname as role')
              ->from('user u')
+             ->innerJoin('u.UserRole ur')
+             ->innerJoin('ur.Role r')
              ->where('u.id IN (SELECT io.userId FROM IrIncidentObserver io WHERE io.incidentid = ?)', $id)
              ->orderBy('u.nameLast');
 
         $users = $q->execute();
 
         $this->view->assign('observers',$users->toArray());
+
+        $association = $this->_getAssociation($id);
+        $this->view->assign('association', $association);
+        
+        $user = User::currentUser();
+        $this->view->assign('user_id', $user['id']);
 
         $this->render('actors');
     }
@@ -574,7 +672,6 @@ class IncidentController extends BaseController
         $actor->incidentId = $id;
         $actor->userId = $userid;
         $actor->save();
-
 
         $this->_forward('actor'); 
     }
@@ -643,6 +740,12 @@ class IncidentController extends BaseController
      */
     public function searchAction()
     {
+        $ids = $this->_userIncidents();
+
+        if (empty($ids)) {
+            $ids = array(-1);
+        }
+
         Fisma_Acl::requirePrivilege('incident', 'read');
         $value = trim($this->_request->getParam('keywords'));
 
@@ -671,17 +774,11 @@ class IncidentController extends BaseController
              ->select('*')
              ->from('Incident i')
              ->whereIn('i.status', $status)
+             ->whereIn('i.id', $ids)
              ->orderBy("i.$sortBy $order")
              ->limit($this->_paging['count'])
              ->offset($this->_paging['startIndex']);
 
-        if (!empty($value)) {
-            $incidentIds = Fisma_Lucene::search($value, 'incident');
-            if (empty($incidentIds)) {
-                $incidentIds = array(-1);
-            }
-            $q->whereIn('i.id', $incidentIds);
-        }
         $totalRecords = $q->count();
         $incidents = $q->execute();
     
@@ -718,7 +815,6 @@ class IncidentController extends BaseController
         echo json_encode($tableData);
     }
 
-    
     /**
      * Returns the standard form for creating an incident
      *
@@ -806,6 +902,67 @@ class IncidentController extends BaseController
         return $form;
     }
 
+    public function editAction() 
+    {
+        $incident_id = $this->_request->getParam('id');
+        $this->view->assign('id', $incident_id);
+
+        $incident = Doctrine::getTable('Incident')->find($incident_id);       
+
+
+        $form = $this->getForm();
+        $form->setAction("/panel/incident/sub/update/id/$incident_id");
+
+        $incident = $incident->toArray();
+
+        $form->setDefaults($incident);
+
+        $this->view->form = $form;
+        $this->render('edit');
+    }
+
+    public function updateAction() 
+    {
+       Fisma_Acl::requirePrivilege('incident', 'update');
+        $id = $this->_request->getParam('id', 0);
+        $incident = new Incident();
+        $incident = $incident->getTable()->find($id);
+
+        if (!$incident) {
+            throw new Exception_General("Invalid Incident ID");
+        }
+
+        $form = $this->getForm($incident);
+        $incidentValues = $this->_request->getPost();
+
+        if ($form->isValid($incidentValues)) {
+            $isModify = false;
+            $incidentValues = $form->getValues();
+            $incident->merge($incidentValues);
+
+            if ($incident->isModified()) {
+                $incident->save();
+                $isModify = true;
+            }
+
+            if ($isModify) {
+                $msg = "The incident is saved";
+                $model = self::M_NOTICE;
+            } else {
+                $msg = "Nothing changed";
+                $model = self::M_WARNING;
+            }
+            $this->message($msg, $model);
+            $this->_forward('view', null, null, array('id' => $incident->id));
+        } else {
+            $errorString = Fisma_Form_Manager::getErrors($form);
+            // Error message
+            $this->message("Unable to update incident<br>$errorString", self::M_WARNING);
+            // On error, redirect back to the edit action.
+            $this->_forward('view', null, null, array('id' => $id, 'v' => 'edit'));
+        }
+    }
+
     /** 
      * Overriding Hooks
      *
@@ -837,6 +994,22 @@ class IncidentController extends BaseController
 
         $subject->merge($values);
         $subject->save();
+
+        $actor = new IrIncidentActor();
+
+        $user = User::currentUser();
+        $actor->userId = $user['id']; 
+        
+        $actor->incidentId = $subject['id'];
+        $actor->save();
+        
+        $actor = new IrIncidentActor();
+
+        $actor->incidentId = $subject['id'];
+        $actor->userId = $this->_getEDCIRC();
+        $actor->save();
+            
+        $this->_forward('dashboard');
     }
 
 
@@ -993,6 +1166,116 @@ class IncidentController extends BaseController
         
         $user = $user->toArray();
 
+
+        $q = Doctrine_Query::create()
+             ->select('r.*')
+             ->from('Role r')
+             ->innerJoin('r.UserRole ur')
+             ->where('ur.userId = ?', $user[0]['id']);   
+        
+        $role = $q->execute()->toArray();
+
+        $user[0]['role'] = $role[0]['nickname'];
+
         return $user[0];
     }
+
+    private function _getRole($id) 
+    {
+        $q = Doctrine_Query::create()
+             ->select('r.name, r.nickname')
+             ->from('Role r')
+             ->where("r.id = ?", $id);
+
+        $role = $q->execute();
+        
+        $role = $role->toArray();
+
+        return $role[0];
+    }
+
+    private function _getEDCIRC()
+    {
+        $q = Doctrine_Query::create()
+             ->select('u.id, ur.*')
+             ->from('User u')
+             ->innerJoin('u.UserRole ur')
+             ->innerJoin('ur.Role r')
+             ->where('r.nickname = ?', 'ED-CIRC');
+
+        $user = $q->execute()->toArray();
+                
+        return $user[0]['id'];
+    }
+
+    private function _getOIG()
+    {
+        $q = Doctrine_Query::create()
+             ->select('u.id, ur.*')
+             ->from('User u')
+             ->innerJoin('u.UserRole ur')
+             ->innerJoin('ur.Role r')
+             ->where('r.nickname = ?', 'OIG');
+
+        $user = $q->execute()->toArray();
+                
+        return $user[0]['id'];
+    }
+    
+    private function _getPA()
+    {
+        $q = Doctrine_Query::create()
+             ->select('u.id, ur.*')
+             ->from('User u')
+             ->innerJoin('u.UserRole ur')
+             ->innerJoin('ur.Role r')
+             ->where('r.nickname = ?', 'PA');
+
+        $user = $q->execute()->toArray();
+                
+        return $user[0]['id'];
+    }
+
+    private function _userIncidents() 
+    {
+        $user = User::currentUser();
+        
+        $q = Doctrine_Query::create()
+             ->select('i.incidentid')
+             ->from('IrIncidentActor i')
+             ->where('i.userid = ?', $user['id']);
+
+        $id_data = $q->execute()->toArray();
+       
+        foreach ($id_data as $item) {
+            $ret_val[] = $item['incidentId'];
+        }
+
+        $q = Doctrine_Query::create()
+             ->select('i.incidentid')
+             ->from('IrIncidentObserver i')
+             ->where('i.userid = ?', $user['id']);
+
+        $id_data = $q->execute()->toArray();
+
+        foreach ($id_data as $item) {
+            $ret_val[] = $item['incidentId'];
+        }
+    
+        return $ret_val;
+    }
+
+    private function _getAssociation($incident_id) {
+        $user = User::currentUser();
+        
+        $q = Doctrine_Query::create()
+             ->select('count(*) as count')
+             ->from('IrIncidentActor i')
+             ->where('i.userid = ?', $user['id'])
+             ->andWhere('i.incidentid = ?', $incident_id);
+
+        $actor = $q->execute()->toArray();
+
+        return ($actor[0]['count'] == 1) ? 'actor' : 'viewer';
+    }   
 }
