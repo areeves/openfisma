@@ -279,6 +279,8 @@ class IRReportController extends SecurityController
         if(preg_match('/CAT/',$category)) {
             $subCats = $this->_getSubCats($category); 
             
+            $description = '';   
+         
             foreach($subCats as $key => $val) {
                 $cats[] = $val['id'];
                 $description .= "{$val['name']}<br />";
