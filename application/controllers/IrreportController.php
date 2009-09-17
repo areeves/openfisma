@@ -519,7 +519,7 @@ class IRReportController extends SecurityController
 
 
         //604,800 seconds in a week
-        for($x == 0; $x < 51; $x+= 1) {
+        for($x=0; $x<51; $x+=1) {
             $interval_1 = $x * 604800;
             $interval_2 = ($x + 1) * 604800;
 
