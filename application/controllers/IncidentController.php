@@ -274,7 +274,7 @@ class IncidentController extends BaseController
             if($step['userId']) {
                 $steps[$key]['user'] = $this->_getUser($step['userId']);
             }
-            else {
+            elseif ($step['roleId']) {
                 $steps[$key]['role'] = $this->_getRole($step['roleId']);
             }
         }
