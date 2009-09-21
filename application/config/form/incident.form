@@ -132,13 +132,6 @@ elements.locationRoom.options.label = "What room did the incident occur in"
 elements.locationRoom.options.style = "width:200px"
 displayGroups.incident.elements.locationRoom = "locationRoom"
 
-elements.locationRack.type = "text"
-elements.locationRack.options.label = "What rack did the incident occur in"
-elements.locationRack.options.style = "width:200px"
-displayGroups.incident.elements.locationRack = "locationRack"
-
-
-
 elements.hostName.type="text"
 elements.hostName.options.label="Host Name"
 elements.hostName.options.style="width:200px"
