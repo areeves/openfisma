@@ -35,9 +35,30 @@
         <echo message="Stylesheets minified."/>
     </target>
 
+    <target name="-js.clean">
+        <echo message="Removing minified scripts..."/>
+        <delete>
+            <fileset dir="${location.js}" includes="**/*-min.js"/>
+        </delete>
+        <echo message="Minified scripts removed."/>
+    </target>
+
+    <target name="-css.clean">
+        <echo message="Removing minified style sheets..."/>
+        <delete>
+            <fileset dir="${location.css}" includes="**/*-min.css"/>
+        </delete>
+        <echo message="Minified style sheets removed."/>
+    </target>
+
     <target name="minify" depends="-load.properties">
         <antcall target="-css.minify"/>
         <antcall target="-js.minify"/>
+    </target>
+
+    <target name="clean" depends="-load.properties">
+        <antcall target="-css.clean"/>
+        <antcall target="-js.clean"/>
     </target>
 
     <target name="init" depends="-load.properties">
