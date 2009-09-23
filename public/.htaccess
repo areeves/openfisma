@@ -2,13 +2,23 @@
 # privileges for this htaccess file to work, this is set in the
 # apache httpd.conf file.
 
+RewriteEngine On
+
+# This rewrite rule allow us to version static files
+# within the application, but not have to create symlinks or new
+# versions of the files themselves. It'd be nice to be able to insert
+# version numbers into the query string, but some browsers don't obey
+# this for caching purposes.
+
+RewriteRule ^(javascripts|stylesheets|images)/(.+)\.(.+)\.(js|css|jpg|gif|png)$ $1/$2.$4 [L]
+
 # This set of rewrite rules specify that if the file exists 
 # under the document root directory, it should simply be served 
 # as a static resource. Otherwise, the request is for dynamic 
 # content and should be rewritten to our index.php script. Since 
 # all requests for non-static content will be rewritten to it, 
-# the index.php script serves as the entry point to our application. 
-RewriteEngine On
+# the index.php script serves as the entry point to our application.
+
 RewriteCond %{REQUEST_FILENAME} -s [OR]
 RewriteCond %{REQUEST_FILENAME} -l [OR]
 RewriteCond %{REQUEST_FILENAME} -d
