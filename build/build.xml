@@ -1,10 +1,45 @@
 <?xml version="1.0"?>
 <project name="OpenFISMA" default="init" basedir=".">
     <description>OpenFISMA is an open, customizable application sponsored by Endeavor Systems, Inc. that greatly reduces the cost and complexity associated with FISMA compliance and risk management for U.S. Federal agencies.</description>
-    <property file="config.properties"/>
 
-    <target name="init">
-        <property name="sample" value="Hello World!"/>
-        <echo message="${package.version}"/>
+    <target name="-load.properties">
+        <property file="config.properties"/>
+    </target>
+
+    <target name="-js.minify">
+        <echo message="Minifying JavaScript..."/>
+        <apply executable="java" parallel="false">
+            <fileset dir="${location.js}" includes="**/*.js" excludes="**/tiny_mce/**,**/*-min.js"/>
+            <arg line="-jar"/>
+            <arg path="bin/yuicompressor.jar"/>
+            <srcfile/>
+            <arg line="-o"/>
+            <mapper type="glob" from="*.js" to="${location.js}/*-min.js"/>
+            <targetfile/>
+        </apply>
+        <echo message="JavaScript minified."/>
+    </target>
+
+    <target name="-css.minify">
+        <echo message="Minifying stylesheets..."/>
+        <apply executable="java" parallel="false">
+            <fileset dir="${location.css}" includes="*.css" excludes="**/*-min.css"/>
+            <arg line="-jar"/>
+            <arg path="bin/yuicompressor.jar"/>
+            <arg line="--line-break 0"/>
+            <srcfile/>
+            <arg line="-o"/>
+            <mapper type="glob" from="*.css" to="${location.css}/*-min.css"/>
+            <targetfile/>
+        </apply>
+        <echo message="Stylesheets minified."/>
+    </target>
+
+    <target name="minify" depends="-load.properties">
+        <antcall target="-css.minify"/>
+        <antcall target="-js.minify"/>
+    </target>
+
+    <target name="init" depends="-load.properties">
     </target>
 </project>
