@@ -1,4 +1,3 @@
-<div id="foo" style="width: 48%; float: left;">
 <?php Fisma_Format_Section::startSection("New Incidents: <span id='newSearchResultsTotalFound'></span>"); ?>
 
 <div id="newList"></div>
@@ -82,9 +81,6 @@ var myColumnDefs = [
 </script>
 
 <?php Fisma_Format_Section::stopSection(); ?>
-</div>
-
-<div id="foo" style="width: 48%; float: right;">
 
 <?php Fisma_Format_Section::startSection("Open Incidents: <span id='openSearchResultsTotalFound'></span>"); ?>
 <div id="openList"></div>
@@ -167,11 +163,7 @@ var myColumnDefs = [
     <?php } ?>
 </script>
 <?php Fisma_Format_Section::stopSection(); ?>
-</div>
 
-<div class="clear"></div>
-
-<div id="foo" style="width: 48%; float: left;">
 <?php Fisma_Format_Section::startSection("Resolved / Rejected Incidents: <span id='resolvedSearchResultsTotalFound'></span>"); ?>
 <div id="resolvedList"></div>
 <script type="text/javascript">
@@ -253,10 +245,7 @@ var myColumnDefs = [
     <?php } ?>
 </script>
 <?php Fisma_Format_Section::stopSection(); ?>
-</div>
 
-
-<div id="foo" style="width: 48%; float: right;">
 <?php Fisma_Format_Section::startSection("Recently Closed Incidents: <span id='closedSearchResultsTotalFound'></span>"); ?>
 <div id="closedList"></div>
 <script type="text/javascript">
@@ -338,11 +327,7 @@ var myColumnDefs = [
     <?php } ?>
 </script>
 <?php Fisma_Format_Section::stopSection(); ?>
-</div>
 
-<div class="clear"></div>
-
-<div id="foo" style="width: 48%; float: left;">
 <?php Fisma_Format_Section::startSection("Comments"); ?>
 <div id="commentData">Loading...</div>
 
@@ -362,9 +347,7 @@ var transaction = YAHOO.util.Connect.asyncRequest('GET', '/incident/commentdashb
 </script>
 
 <?php Fisma_Format_Section::stopSection(); ?>
-</div>
 
-<div id="foo" style="width: 48%; float: right;">
 <?php Fisma_Format_Section::startSection("Stats"); ?>
 
 <div id="reportData">Loading...</div>
@@ -385,5 +368,4 @@ var transaction = YAHOO.util.Connect.asyncRequest('GET', '/irreport/incidentdash
 </script>
 
 <?php Fisma_Format_Section::stopSection(); ?>
-</div>
 <div class="clear"></div>

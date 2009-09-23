@@ -91,8 +91,14 @@ class SecurityController extends MessageController
     public function preDispatch()
     {
         parent::preDispatch();
-        if (empty($this->_me)) {
-            throw new Fisma_Exception_InvalidAuthentication('Your session has expired. Please log in again to begin a new session.');
+   
+        $cont = $this->_request->controller; 
+        $act  = $this->_request->action; 
+
+        if (!(($cont == 'incident') && (in_array($act, array('anonreport','anoncreate','anonsuccess'))))) {
+            if (empty($this->_me)) {
+                throw new Fisma_Exception_InvalidAuthentication('Your session has expired. Please log in again to begin a new session.');
+            }
         }
     }
 }

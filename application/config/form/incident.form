@@ -184,12 +184,13 @@ elements.piiPoliceReport.options.label="Was a police report filed"
 displayGroups.pii.elements.piiPoliceReport="piiPoliceReport"
 
 elements.piiIndividualsCount.type="text"
-elements.piiIndividualsCount.options.label="Home many individuals were affected"
+elements.piiIndividualsCount.options.label="How many individuals were effected"
 elements.piiIndividualsCount.options.style="width:100px"
+elements.piiIndividualsCount.options.validators.alnum.validator = "Digits"
 displayGroups.pii.elements.piiIndividualsCount="piiIndividualsCount"
 
 elements.piiIndividualsNotification.type="select"
-elements.piiIndividualsNotification.options.label="Were affected individuals contacted"
+elements.piiIndividualsNotification.options.label="Were effected individuals contacted"
 displayGroups.pii.elements.piiIndividualsNotification="piiIndividualsNotification"
 
 elements.piiShipment.type="select"

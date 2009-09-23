@@ -51,6 +51,69 @@ class IncidentController extends BaseController
         parent::init();
     }
 
+
+    /**
+     * Displays a incident report form for users who aren't logged into the system
+     *
+     * @return string the rendered page
+     */
+    public function anonreportAction() {
+        $this->_helper->layout->setLayout('anonlayout'); 
+
+        $form = $this->getForm();
+        $form->setAction('/incident/anoncreate');
+ 
+        $this->view->assign('form', $form);
+
+        $this->render('anonreport');
+    }   
+
+    /**
+     * Inserts an incident record and forwards to the success page
+     *
+     * @return string the rendered page
+     */
+    public function anoncreateAction() {
+        $values = $this->_request->getPost();
+
+        $values['sourceIp'] = $_SERVER['REMOTE_ADDR'];
+
+        $values['reportTs'] = date('Y-m-d G:i:s');
+        $values['reportTz'] = date('T');
+        
+        $values['status'] = 'new';
+
+        if ($values['incidentHour'] && $values['incidentMinute'] && $values['incidentAmpm']) {
+            if ($values['incidentAmpm'] == 'PM') {
+                $values['incidentHour'] += 12;
+            }
+            $values['incidentTs'] .= " {$values['incidentHour']}:{$values['incidentMinute']}:00";
+        }
+
+        $incident = new Incident();
+
+        $incident->merge($values);
+        $incident->save();
+
+        $actor = new IrIncidentActor();
+
+        $actor->incidentId = $incident['id'];
+        $actor->userId = $this->_getEDCIRC();
+        $actor->save();
+            
+        $this->_forward('anonsuccess'); 
+    }
+
+    /**
+     * Displays a incident report form for users who aren't logged into the system
+     *
+     * @return string the rendered page
+     */
+    public function anonsuccessAction() {
+        $this->_helper->layout->setLayout('anonlayout'); 
+        $this->render('anonsuccess');
+    }   
+   
     /**
      * Displays incident dashboard
      *
@@ -89,6 +152,47 @@ class IncidentController extends BaseController
     } 
 
     /**
+     * Displays the incident search page
+     *
+     * @return string the rendered page
+     */
+    public function listAction() 
+    {
+        $this->searchboxAction();
+        
+        $value = trim($this->_request->getParam('keywords'));
+        empty($value) ? $link = '' : $link = '/keywords/' . $value;
+        
+        $this->view->assign('pageInfo', $this->_paging);
+        $this->view->assign('link', $link);
+        
+        $status = ($this->_request->getParam('status')) ? $this->_request->getParam('status') : 'new';
+        $this->view->assign('status', $status);
+        
+        $this->view->assign('startDt', $this->_request->getParam('startDt'));
+        
+        $this->view->assign('endDt',   $this->_request->getParam('endDt'));
+        
+        $this->view->assign('keywords',   $this->_request->getParam('keywords'));
+
+        $this->render('list');
+    }
+
+    public function searchboxAction() 
+    {
+        $status = ($this->_request->getParam('status')) ? $this->_request->getParam('status') : 'new';
+        $this->view->assign('status', $status);
+        
+        $this->view->assign('startDt', $this->_request->getParam('startDt'));
+        
+        $this->view->assign('endDt',   $this->_request->getParam('endDt'));
+        
+        $this->view->assign('keywords',   $this->_request->getParam('keywords'));
+    
+        $this->render('searchbox');
+    }
+
+    /**
      * Displays the data related to a particular incident - will be called by ajax on all the incident interfaces
      *
      * @return string the rendered page
@@ -97,6 +201,11 @@ class IncidentController extends BaseController
     {
         $incident_id = $this->_request->getParam('id');
         $this->view->assign('id', $incident_id);
+       
+        $this->view->assign('cloneId', $this->_getClone($incident_id));
+
+        $closed = $this->_request->getParam('closed');
+        $this->view->assign('closed', $closed);
         
         $q  = Doctrine_Query::create()
             ->select('i.*')
@@ -252,6 +361,48 @@ class IncidentController extends BaseController
             $this->render('history');
         }
     }
+    
+    /**
+     * Clones a closed incident, assigns it to the EDCIRC, and returns the user to the dashboard
+     *
+     * @return string the rendered dashboard page
+     */
+    public function cloneAction() 
+    {
+        $inc_obj = new Incident();        
+
+        $incident_id = $this->_request->getParam('id');
+        $incident = $inc_obj->getTable()->find($incident_id);
+
+        /* create a clone of the incident object */
+        $clone = $incident->copy(false);
+        $clone->status = 'new';
+        $clone->save();
+
+
+        /* add relationship to the cloned incident table */
+        $clone_inc = new IrClonedIncident();
+
+        $user = User::currentUser();
+        
+        $clone_inc->origIncidentId  = $incident_id;
+        $clone_inc->cloneIncidentId = $clone->id;
+        $clone_inc->createdTs       = date('Y-d-m H:i:s');
+        $clone_inc->userId          = $user['id'];
+
+        $clone_inc->save();
+
+        /* associate edcirc with cloned incident as actor */
+        $actor = new IrIncidentActor();
+
+        $actor->incidentId = $clone->id;
+        $actor->userId = $this->_getEDCIRC();
+        $actor->save();
+
+        $this->message('The incident has been cloned.', self::M_NOTICE);
+        $this->_forward('dashboard');
+    }
+        
 
     /**
      * Displays the incident workflow interface
@@ -751,7 +902,7 @@ class IncidentController extends BaseController
 
         $this->_helper->layout->setLayout('ajax');
         $this->_helper->viewRenderer->setNoRender();
-        $sortBy = $this->_request->getParam('sortby', 'reporttsname');
+        $sortBy = $this->_request->getParam('sortby', 'reportTs');
         $order = $this->_request->getParam('order');
         $status = array($this->_request->getParam('status'));
 
@@ -773,11 +924,27 @@ class IncidentController extends BaseController
         $q = Doctrine_Query::create()
              ->select('*')
              ->from('Incident i')
-             ->whereIn('i.status', $status)
              ->whereIn('i.id', $ids)
              ->orderBy("i.$sortBy $order")
              ->limit($this->_paging['count'])
              ->offset($this->_paging['startIndex']);
+             
+        if ($status[0] != 'all') {
+            $q->whereIn('i.status', $status);
+        }
+
+        if ($this->_request->getParam('startDt')) {
+            $q->andWhere('i.reportTs > ?', $this->_request->getParam('startDt'));
+        }
+        
+        if ($this->_request->getParam('endDt')) {
+            $q->andWhere('i.reportTs < ?', $this->_request->getParam('endDt'));
+        }
+        
+        if ($this->_request->getParam('keywords')) {
+            $keywords = $this->_request->getParam('keywords');
+            $q->andWhere('i.additionalInfo LIKE ?', '%'.$keywords[0].'%');
+        }
 
         $totalRecords = $q->count();
         $incidents = $q->execute();
@@ -1008,7 +1175,7 @@ class IncidentController extends BaseController
         $actor->incidentId = $subject['id'];
         $actor->userId = $this->_getEDCIRC();
         $actor->save();
-            
+ 
         $this->_forward('dashboard');
     }
 
@@ -1196,16 +1363,22 @@ class IncidentController extends BaseController
 
     private function _getEDCIRC()
     {
+        /* not sure what the deal is here.. not working on anon incident form submit */
         $q = Doctrine_Query::create()
-             ->select('u.id, ur.*')
-             ->from('User u')
-             ->innerJoin('u.UserRole ur')
-             ->innerJoin('ur.Role r')
-             ->where('r.nickname = ?', 'ED-CIRC');
+             ->select('r.id')
+             ->from('Role r')
+             ->where('r.nickname = ?', 'EDCIRC');
+       
+        $data = $q->execute()->toArray();
+
+        $q = Doctrine_Query::create()
+             ->select('u.userId')
+             ->from('UserRole u')
+             ->where('u.roleId = ?', $data[0]['id']);
 
         $user = $q->execute()->toArray();
-                
-        return $user[0]['id'];
+ 
+        return $user[0]['userId'];
     }
 
     private function _getOIG()
@@ -1278,4 +1451,20 @@ class IncidentController extends BaseController
 
         return ($actor[0]['count'] == 1) ? 'actor' : 'viewer';
     }   
+
+    private function _getClone($incident_id) {
+
+        $q = Doctrine_Query::create()
+             ->select('i.origincidentid')
+             ->from('IrClonedIncident i')
+             ->where('i.cloneincidentid = ?', $incident_id);
+
+        $data = $q->execute()->toArray();
+
+        if ($data[0]['origIncidentId']) {
+            return $data[0]['origIncidentId'];
+        } else {
+            return false;
+        }
+    }
 }

@@ -33,6 +33,27 @@ var callback = {
             document.getElementById('actors').innerHTML =  o.responseText;
             actor_useridTooltip = new YAHOO.widget.Tooltip("actor_useridTooltipObj", { context:"actor_useridTooltip", showdelay: 150, hidedelay: 150, autodismissdelay: 25000, text:"<b>Actors</b> can add/remove users to/from an incident, complete workflow steps, and submit comments to an incident.", effect:{effect:YAHOO.widget.ContainerEffect.FADE,duration:0.25}, width: "50%"});
             observer_useridTooltip = new YAHOO.widget.Tooltip("observer_useridTooltipObj", { context:"observer_useridTooltip", showdelay: 150, hidedelay: 150, autodismissdelay: 25000, text:"<b>Observers</b> can view an incident, and will be notified when the incident is updated.  They cannot perform any actions on the incident.", effect:{effect:YAHOO.widget.ContainerEffect.FADE,duration:0.25}, width: "50%"});
+            var actorButton = new YAHOO.widget.Button({
+                                       type: "submit",
+                                       label: "Add Actor",
+                                       id: "actorButton",
+                                       name: "actorButton",
+                                       value: "Add Actor",
+                                       container: "actorButtonContainer",
+                                       disabled: false
+                                       
+                                   });
+            var observerButton = new YAHOO.widget.Button({
+                                       type: "submit",
+                                       label: "Add Observer",
+                                       id: "observerButton",
+                                       name: "observerButton",
+                                       value: "Add Observer",
+                                       container: "observerButtonContainer",
+                                       disabled: false
+                                       
+                                   });
+
         },
         failure: function(o) {
             alert("Error loading Actors/Observers");
