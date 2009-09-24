@@ -383,7 +383,7 @@ class Fisma
 
     /**
      *
-     * Returns the version number specified in the configuration file.
+     * Returns the version number of the application specified in the configuration file.
      *
      * @return string
      */
@@ -392,7 +392,24 @@ class Fisma
             throw new Fisma_Exception('The Fisma object has not been initialized.');
         }
 
-        return (self::$_appConf->version);
+        $version = self::$_appConf->version->toArray();
+
+        return ($version['app']);
+    }
+
+    /**
+     *
+     * Returns the version number of the YUI library to use specified in the configuration file.
+     *
+     * @return string
+     */
+    public static function yuiVersion() {
+        if (!self::$_initialized) {
+            throw new Fisma_Exception('The Fisma object has not been initialized.');
+        }
+
+        $version = self::$_appConf->version->toArray();
+        return ($version['yui']);
     }
 
     /**

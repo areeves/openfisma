@@ -4,10 +4,22 @@
         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
         <?php
             echo $this->headTitle()->prepend(Configuration::getConfig('system_name'));
+            /* @todo remove Fisma_Yui calls
             Fisma_Yui::includeLibrary('yahoo-dom-event');
             Fisma_Yui::includeLibrary('element');
             Fisma_Yui::includeLibrary('button');    
         	echo Fisma_Yui::printIncludes();
+            */
+
+            $yuiComponents = array( 'yahoo', 'dom', 'event', 'element',
+                                    'button');
+
+            $loader = new Fisma_Loader();
+            $loader->load($yuiComponents);
+            echo $loader->script();
+            echo $loader->css();
+
+            // @todo move into Fisma_Loader
             echo $this->headLink()->appendStylesheet('/yui/assets/skins/sam/skin.css')
                                   ->appendStylesheet('/stylesheets/main.css', 'screen,print')
                                   ->headLink(array('rel' => 'icon', 'href' => '/images/favicon.ico'));

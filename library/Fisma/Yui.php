@@ -32,6 +32,7 @@
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
  * @package   Fisma_Yui
+ * @deprecated Deprecated since version 2.5
  */
 class Fisma_Yui
 {

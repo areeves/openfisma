@@ -8,6 +8,8 @@
     <?php 
     $this->headTitle()->prepend(Configuration::getConfig('system_name'));
     echo $this->headTitle();
+/*  @todo Remove Fisma_Yui includes
+
     Fisma_Yui::includeLibrary('yahoo-dom-event');
     Fisma_Yui::includeLibrary('element');
     Fisma_Yui::includeLibrary('container');
@@ -29,8 +31,20 @@
     Fisma_Yui::includeLibrary('selector');
     Fisma_Yui::includeLibrary('treeview');
     Fisma_Yui::includeLibrary('uploader');
-    echo Fisma_Yui::printIncludes();
+    echo Fisma_Yui::printIncludes();*/
+
+    $yuiComponents = array( 'yahoo', 'dom', 'event', 'element', 'container',
+                            'json', 'cookie', 'get', 'dragdrop', 'animation',
+                            'menu', 'button', 'json', 'connection', 'logger',
+                            'tabview', 'calendar', 'paginator', 'datasource',
+                            'datatable', 'selector', 'treeview', 'uploader' );
+
+    $loader = new Fisma_Loader();
+    $loader->load($yuiComponents);
+    echo $loader;
+    // @todo move below scripts into Fisma_Loader
     ?>
+
 
     <script type="text/javascript" src="/javascripts/fisma.js"></script>
     <script type="text/javascript" src="/javascripts/TreeTable.js"></script>
@@ -43,6 +57,7 @@
     <script type="text/javascript" src="/javascripts/deleteconfirm.js"></script>
 
     <?php 
+    // @todo move into Fisma_Loader
     echo $this->headLink()->appendStylesheet('/yui/reset-fonts-grids/reset-fonts-grids.css')
                           ->appendStylesheet('/yui/assets/skins/sam/skin.css', 'screen,print')
                           ->appendStylesheet('/stylesheets/main.css', 'screen,print')
