@@ -380,7 +380,21 @@ class Fisma
         
         return (self::$_appConf->debug == 1);
     }
-    
+
+    /**
+     *
+     * Returns the version number specified in the configuration file.
+     *
+     * @return string
+     */
+    public static function version() {
+        if (!self::$_initialized) {
+            throw new Fisma_Exception('The Fisma object has not been initialized.');
+        }
+
+        return (self::$_appConf->version);
+    }
+
     /**
      * Returns the path to a special part of the application, based on the provided key. 
      * 
