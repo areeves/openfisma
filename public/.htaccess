@@ -25,6 +25,14 @@ RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^.*$ - [NC,L]
 RewriteRule ^.*$ /index.php [NC,L]
 
+# Enable expirations
+ExpiresActive On
+
+# Expire static content by type
+
+ExpiresByType application/javascript "access plus 10 years"
+ExpiresByType text/css "access plus 10 years"
+
 # Overrides current PHP server settings to harden the server by
 # turning off unwanted options which may be harmful. There are 
 # several Apache directives that allow you to change the PHP 
