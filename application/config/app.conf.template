@@ -30,6 +30,9 @@
 ; Environment can be "production" or "development"
 environment = production
 
+; Version number of application
+version = 2.5.0
+
 ; Most deployments should run in production mode
 [production]
 session.name = OpenFISMA
