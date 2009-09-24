@@ -33,14 +33,6 @@ try {
     // A zend config exception indicates that the application may not be installed properly
     echo '<h1>The application is not installed correctly</h1>';
     echo '<p>If you have not run the installer, you should do that now.</p>';
-    echo '<p>' 
-         . get_class($exception) 
-         . '</p><p>' 
-         . $zce->getMessage() 
-         . '</p><p>'
-         . "<p><pre>Stack Trace:\n" 
-         . $zce->getTraceAsString() 
-         . '</pre></p>';
 } catch (Exception $exception) {
     // If a bootstrap exception occurs, that indicates a serious problem, such as a syntax error.
     // At this point, we can't rely on any application code, so rather than check for debug mode,
