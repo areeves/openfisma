@@ -47,13 +47,13 @@
         <td>
             <?php if ($this->association == 'actor') { ?>
                 <?php if ($incident['status'] == 'closed' ) { ?>
-                    <input type="button" value="Clone" onclick="window.location = '/panel/incident/sub/clone/id/<?php print $incident['id']; ?>';">
+                    <span id="cloneButtonContainer"></span>
                 <?php } else { ?>
-                    <input type="button" value="Edit" onclick="window.location = '/panel/incident/sub/edit/id/<?php print $incident['id']; ?>';">
+                    <span id="editButtonContainer"></span>
                 <?php } ?>
             <?php } ?>
-            <input type="button" value="View Details" onclick="document.getElementById('incident_details').style.display = 'block'; document.getElementById('hide_details_button').style.display = 'inline'; return false;">
-            <input id="hide_details_button" type="button" value="Hide Details" onclick="document.getElementById('incident_details').style.display = 'none'; document.getElementById('hide_details_button').style.display = 'none'; return false;" style="display:none;">
+            <span id="viewDetailsButtonContainer"></span>
+            <span id="hideDetails1ButtonContainer" style="display: none;"></span>
         </td>
     </tr>
 </table>
@@ -210,7 +210,7 @@
     <tr>
         <td>&nbsp;</td>
         <td>
-            <input type="button" value="Hide Details" onclick="document.getElementById('incident_details').style.display = 'none'; document.getElementById('hide_details_button').style.display = 'none'; return false;">
+            <span id="hideDetails2ButtonContainer"></span>
         </td>
     </tr>
 </table>

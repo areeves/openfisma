@@ -49,6 +49,89 @@ class IncidentController extends BaseController
     public function init()
     {
         parent::init();
+
+        $this->_paging['count'] = 10;
+        $this->_paging['startIndex'] = 0;
+    }
+
+   /**
+     * preDispatch() - invoked before each Actions
+     */
+    function preDispatch()
+    {
+        parent::preDispatch();
+
+        if (in_array($this->_request->action, array('totalstatus','totalcategory'))) {
+
+            $contextSwitch = $this->_helper->getHelper('contextSwitch');
+            // Headers Required for IE+SSL (see bug #2039290) to stream XML
+            $contextSwitch->addHeader('xml', 'Pragma', 'private')
+                          ->addHeader('xml', 'Cache-Control', 'private')
+                          ->addActionContext('totalstatus', 'xml')
+                          ->addActionContext('totalcategory', 'xml')
+                          ->initContext();
+        }
+    }
+
+   /**
+     * statistics per status 
+     */
+    public function totalstatusAction()
+    {
+        Fisma_Acl::requirePrivilege('incident', 'read');
+        
+        $arrTotal = array (
+                        'new'      => 0,
+                        'open'     => 0,
+                        'resolved' => 0,
+                        'rejected' => 0,
+                        'closed'   => 0,
+                    );
+
+        $q = Doctrine_Query::create() 
+             ->select('count(*) as count, i.status ')
+             ->from('Incident i')
+             ->groupBy('i.status');       
+
+        $data = $q->execute()->toArray();
+        foreach ($data as $key => $item) {
+            $arrTotal[$item['status']] = $item['count'];
+        }
+
+        $this->view->summary = $arrTotal;
+    }
+
+   /**
+     * statistics per status 
+     */
+    public function totalcategoryAction()
+    {
+        Fisma_Acl::requirePrivilege('incident', 'read');
+        
+        $arrTotal = array (
+                        'CAT0'      => 0,
+                        'CAT1'      => 0,
+                        'CAT2'      => 0,
+                        'CAT3'      => 0,
+                        'CAT4'      => 0,
+                        'CAT5'      => 0,
+                        'CAT6'      => 0,
+                    );
+
+        $cats = $this->_getCategoriesArr();
+
+        foreach($cats as $cat => $ids) {
+            $q = Doctrine_Query::create() 
+                 ->select('count(*) as count')
+                 ->from('Incident i')
+                 ->whereIn('i.classification', $ids)
+                 ->whereIn('i.status', array('open','resolved','closed'));       
+
+            $data = $q->execute()->toArray();
+            $arrTotal[$cat] = $data[0]['count'];
+        }
+
+        $this->view->summary = $arrTotal;
     }
 
 
@@ -462,6 +545,9 @@ class IncidentController extends BaseController
         $step->completeTs = date('Y-m-d H:i:s');
         $step->save();
         
+        $step_completed      = $step_id;
+        $step_completed_sort = $step->sortorder;
+
         /* update next step to make it current */
         $step = $step->getTable()->find($step_id + 1);
         $step->status     = 'current';
@@ -488,6 +574,9 @@ class IncidentController extends BaseController
             print 'redirect'; 
             exit;
         }
+
+        $this->view->assign('step_completed', $step_completed);
+        $this->view->assign('step_completed_sort', $step_completed_sort);
 
         $this->_forward('workflow');
     }
@@ -993,9 +1082,9 @@ class IncidentController extends BaseController
 
         /* setting up state dropdown */
         $form->getElement('reporterState')->addMultiOptions(array(0 => '--select--'));
-        foreach ($this->_getStates() as $state) {
+        foreach ($this->_getStates() as $key => $val) {
             $form->getElement('reporterState')
-                 ->addMultiOptions(array($state => $state));
+                 ->addMultiOptions(array($key => $val));
         }
 
         /* setting up timestamp and timezone dropdowns */
@@ -1019,9 +1108,9 @@ class IncidentController extends BaseController
                  ->addMultiOptions(array($ampm => $ampm));
         }
         
-        foreach($this->_getTz() as $tz) {
+        foreach($this->_getTz() as $key => $val) {
             $form->getElement('incidentTz')
-                 ->addMultiOptions(array($tz => $tz));
+                 ->addMultiOptions(array($key => $val));
         }
 
         foreach($this->_getOS() as $key => $os) {
@@ -1175,6 +1264,13 @@ class IncidentController extends BaseController
         $actor->incidentId = $subject['id'];
         $actor->userId = $this->_getEDCIRC();
         $actor->save();
+
+        $mail = new Zend_Mail();
+        $mail->setBodyText('A new inicdent has been reported.')
+            ->setFrom('somebody@example.com', 'Some Sender')
+            ->addTo('nathanrharris@gmailcom', 'Me')
+            ->setSubject('New Incident Report')
+            ->send();
  
         $this->_forward('dashboard');
     }
@@ -1322,6 +1418,30 @@ class IncidentController extends BaseController
 
         return $ret_val;
     }
+    
+    private function _getCategoriesArr() {
+        $q = Doctrine_Query::create()
+             ->select('c.id, c.category')
+             ->from('IrCategory c')
+             ->orderBy("c.category");
+
+        $categories = $q->execute()->toArray();
+        
+        foreach($categories as $key => $val) {
+                $q2 = Doctrine_Query::create()
+                     ->select('s.id, s.name')
+                     ->from('IrSubCategory s')
+                     ->where('s.categoryId = ?', $val['id'])
+                     ->orderBy("s.name");
+
+                $subCats = $q2->execute()->toArray();
+                foreach($subCats as $key2 => $val2) {
+                    $ret_val[$val['category']][] = $val2['id'];
+                }
+        }
+
+        return $ret_val;
+    }
 
     private function _getUser($id) {
         $q = Doctrine_Query::create()
@@ -1449,7 +1569,7 @@ class IncidentController extends BaseController
 
         $actor = $q->execute()->toArray();
 
-        return ($actor[0]['count'] == 1) ? 'actor' : 'viewer';
+        return ($actor[0]['count'] >= 1) ? 'actor' : 'viewer';
     }   
 
     private function _getClone($incident_id) {
