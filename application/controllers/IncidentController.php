@@ -1262,16 +1262,13 @@ class IncidentController extends BaseController
         $actor = new IrIncidentActor();
 
         $actor->incidentId = $subject['id'];
-        $actor->userId = $this->_getEDCIRC();
+        $edcirc = $this->_getEDCIRC();
+        $actor->userId = $edcirc;
         $actor->save();
 
-        $mail = new Zend_Mail();
-        $mail->setBodyText('A new inicdent has been reported.')
-            ->setFrom('somebody@example.com', 'Some Sender')
-            ->addTo('nathanrharris@gmail.com', 'Me')
-            ->setSubject('New Incident Report')
-            ->send();
- 
+        $mail = new Fisma_Mail();
+        $mail->IRReport($edcirc, $subject['id']);
+
         $this->_forward('dashboard');
     }
 
