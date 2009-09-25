@@ -1268,7 +1268,7 @@ class IncidentController extends BaseController
         $mail = new Zend_Mail();
         $mail->setBodyText('A new inicdent has been reported.')
             ->setFrom('somebody@example.com', 'Some Sender')
-            ->addTo('nathanrharris@gmailcom', 'Me')
+            ->addTo('nathanrharris@gmail.com', 'Me')
             ->setSubject('New Incident Report')
             ->send();
  
