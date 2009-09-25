@@ -30,7 +30,7 @@ require_once (realpath(dirname(__FILE__) . '/../../public/phploader/loader.php')
  * Loader class for loading JS and CSS via the YUI phploader library 
  *
  * @copyright (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/mw/index.php?title=License
+ * @license    http://openfisma.org/content/license
  * @package    Fisma_Loader
  */
 class Fisma_Loader
@@ -67,10 +67,15 @@ class Fisma_Loader
             $this->_loader->combine      = FALSE;
             $this->_loader->base         = "/lib/" . $this->_yuiVersion . "/build/";
         }
-        else {
+        elseif($this->_loader->embedAvail) {
             $this->_loader->allowRollups = TRUE;
             $this->_loader->combine      = TRUE;
             $this->_loader->comboBase    = "/phploader/combo.php?";
+        }
+        else {
+            $this->_loader->allowRollups    = TRUE;
+            $this->_loader->combine         = FALSE;
+            $this->_loader->base            = "/lib/" . $this->_yuiVersion . "build/";
         }
     }
 
@@ -127,9 +132,30 @@ class Fisma_Loader
      */
     private function _prepareConfig($config)
     {
-        // @todo Parse array into phploader correct array
-        // @todo Grab debug level, put -min into script names if not in debug
+        foreach($config as $type => $assets)
+        {
+            if($type == 'JS')
+            {
+                $base = 'javascripts';
+            }
+            elseif($type == 'CSS')
+            {
+                $base = 'stylesheets';
+            }
+            else
+            {
+                throw new Fisma_Exception('Invalid type included in Fisma_Loader');
+            }
 
-        $this->_config = $config;
+            foreach($assets as $asset)
+            {
+                $this->_config["${asset}${type}"] = array( 
+                    "name" => $asset . $type,
+                    "type" => strtolower($type),
+                    "fullpath" => "./${base}/${asset}.js",
+                    "global" => true );
+            }
+        }
     }
+
 }
