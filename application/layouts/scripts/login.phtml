@@ -4,14 +4,6 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
 <?php
     echo $this->headTitle()->prepend(Configuration::getConfig('system_name'));
-/* @todo remove Fisma_YUI includes
-
-    Fisma_Yui::includeLibrary('yahoo-dom-event');
-    Fisma_Yui::includeLibrary('element');
-    Fisma_Yui::includeLibrary('container');
-    Fisma_Yui::includeLibrary('button');
-	echo Fisma_Yui::printIncludes();
-*/
 
     $yuiComponents = array( 'yahoo',
                             'dom',
