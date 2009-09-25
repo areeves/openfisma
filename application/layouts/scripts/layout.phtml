@@ -8,70 +8,100 @@
     <?php 
     $this->headTitle()->prepend(Configuration::getConfig('system_name'));
     echo $this->headTitle();
-/*  @todo Remove Fisma_Yui includes
 
-    Fisma_Yui::includeLibrary('yahoo-dom-event');
-    Fisma_Yui::includeLibrary('element');
-    Fisma_Yui::includeLibrary('container');
-    Fisma_Yui::includeLibrary('json');
-    Fisma_Yui::includeLibrary('cookie');
-    Fisma_Yui::includeLibrary('get');
-    Fisma_Yui::includeLibrary('dragdrop');
-    Fisma_Yui::includeLibrary('animation');
-    Fisma_Yui::includeLibrary('menu');
-    Fisma_Yui::includeLibrary('button');
-    Fisma_Yui::includeLibrary('json');
-    Fisma_Yui::includeLibrary('connection');
-    Fisma_Yui::includeLibrary('logger');
-    Fisma_Yui::includeLibrary('tabview');
-    Fisma_Yui::includeLibrary('calendar');
-    Fisma_Yui::includeLibrary('paginator');
-    Fisma_Yui::includeLibrary('datasource');
-    Fisma_Yui::includeLibrary('datatable');
-    Fisma_Yui::includeLibrary('selector');
-    Fisma_Yui::includeLibrary('treeview');
-    Fisma_Yui::includeLibrary('uploader');
-    echo Fisma_Yui::printIncludes();*/
+    $yuiComponents = array( 0 => 'yahoo', 1 => 'dom', 2 => 'event', 3 => 'element',
+                            4 => 'container', 5 => 'json', 6 => 'cookie', 
+                            7 => 'get', 8 => 'dragdrop', 9 => 'animation',
+                            10 => 'menu', 11 => 'button', 12 => 'json', 
+                            13 => 'connection', 'logger', 14 =>'tabview', 
+                            15 => 'calendar', 16 => 'paginator', 17 => 'datasource',
+                            18 => 'datatable', 19 => 'selector', 20 => 'treeview', 
+                            21 => 'uploader', 22 => 'reset-fonts-grids'
+                           );
 
-    $yuiComponents = array( 'yahoo', 'dom', 'event', 'element', 'container',
-                            'json', 'cookie', 'get', 'dragdrop', 'animation',
-                            'menu', 'button', 'json', 'connection', 'logger',
-                            'tabview', 'calendar', 'paginator', 'datasource',
-                            'datatable', 'selector', 'treeview', 'uploader' );
+    $components = array(
+        "fismaJS" => array(
+            "name" => 'fismaJS',
+            "type" => 'js',
+            "fullpath" => '/javascripts/fisma.js',
+            "global" => true,
+            "requires" => $yuiComponents
+        ),
+        "treetableJS" => array(
+            "name" => 'treetableJS',
+            "type" => 'js',
+            "fullpath" => '/javascripts/TreeTable.js',
+            "global" => true,
+            "requires" => array (0 => 'fisma')
+        ),
+        "checkboxtreeJS" => array(
+            "name" => 'checkboxtreeJS',
+            "type" => 'js',
+            "fullpath" => '/javascripts/CheckboxTree.js',
+            "global" => true,
+            "requires" => array (0 => 'treetable' )
+        ),
+        "editableJS" => array(
+            "name" => 'editableJS',
+            "type" => 'js',
+            "fullpath" => '/javascripts/CheckboxTree.js',
+            "global" => true,
+            "requires" => array (0 => 'checkboxtree')
+        ),
+        "helpJS" => array(
+            "name" => 'helpJS',
+            "type" => 'js',
+            "fullpath" => '/javascripts/help.js',
+            "global" => true,
+            "requires" => array (0 => 'editable')
+        ),
+        "selectallselectnoneJS" => array(
+            "name" => 'selectallselectnoneJS',
+            "type" => 'js',
+            "fullpath" => '/javascripts/selectallselectnone.js',
+            "global" => true,
+            "requires" => array (0 => 'help')
+        ),
+        "deleteconfirmJS" => array(
+            "name" => 'deleteconfirmJS',
+            "type" => 'js',
+            "fullpath" => '/javascripts/deleteconfirm.js',
+            "global" => true,
+            "requires" => array (0 => 'selectallselectnone')
+        ),
+        "mainCSS" => array(
+            "name" => 'mainCSS',
+            "type" => 'css',
+            "fullpath" => '/stylesheets/main.css',
+            "global" => true
+        ),
+        "treetableCSS" => array(
+            "name" => 'treetableCSS',
+            "type" => 'css',
+            "fullpath" => '/stylesheets/TreeTable.css',
+            "global" => true
+        )
+    );
 
-    $loader = new Fisma_Loader();
-    $loader->load($yuiComponents);
+
+    $loader = new Fisma_Loader($components);
+    $loader->load(array_keys($components));
     echo $loader;
     // @todo move below scripts into Fisma_Loader
     ?>
 
 
-    <script type="text/javascript" src="/javascripts/fisma.js"></script>
-    <script type="text/javascript" src="/javascripts/TreeTable.js"></script>
-    <script type="text/javascript" src="/javascripts/CheckboxTree.js"></script>
-    <script type="text/javascript" src="/javascripts/editable.js"></script>
-    <script type="text/javascript" src="/javascripts/help.js"></script>
     <script type="text/javascript" src="/javascripts/tiny_mce/tiny_mce.js"></script>
     <script type="text/javascript" src="/javascripts/tiny_mce_config.js"></script>
-    <script type="text/javascript" src="/javascripts/selectallselectnone.js"></script>
-    <script type="text/javascript" src="/javascripts/deleteconfirm.js"></script>
 
     <?php 
     // @todo move into Fisma_Loader
-    echo $this->headLink()->appendStylesheet('/yui/reset-fonts-grids/reset-fonts-grids.css')
-                          ->appendStylesheet('/yui/assets/skins/sam/skin.css', 'screen,print')
-                          ->appendStylesheet('/stylesheets/main.css', 'screen,print')
+    echo $this->headLink()->appendStylesheet('/yui/assets/skins/sam/skin.css', 'screen,print')
                           ->appendStylesheet('/stylesheets/print.css', 'print')
-                          ->appendStylesheet('/stylesheets/TreeTable.css', 'screen,print')
+                          ->appendStylesheet('/stylesheets/ie7hacks.css', 'screen', 'IE 7')
+                          ->appendStylesheet('/stylesheets/ie6hacks.css', 'screen', 'IE 6')
                           ->headLink(array('rel' => 'icon', 'href' => '/images/favicon.ico'));
     ?>
-        <!--[if IE 7]>
-        <link rel="stylesheet" type="text/css" href="/stylesheets/ie7hacks.css">
-        <![endif]-->
-        
-        <!--[if IE 6]>
-        <link rel="stylesheet" type="text/css" href="/stylesheets/ie6hacks.css">
-        <![endif]-->
     </head>
     <body class="yui-skin-sam">
         <div id='header' >

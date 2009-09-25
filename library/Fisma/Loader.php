@@ -51,12 +51,13 @@ class Fisma_Loader
         $this->_appVersion   = Fisma::version();
         $this->_yuiVersion   = Fisma::yuiVersion();
         $this->_debug        = Fisma::debug();
+        $this->_debug        = FALSE;
 
         if(is_null($config)) {
             $this->_loader = new YAHOO_util_Loader($this->_yuiVersion);
         }
         else {
-            $this->_prepareConfig($config);
+            $this->_config = $config;
             $this->_loader = new YAHOO_util_Loader($this->_yuiVersion, 
                 'custom_config_'.$this->_appVersion, $this->_config);
         }
@@ -67,15 +68,15 @@ class Fisma_Loader
             $this->_loader->combine      = FALSE;
             $this->_loader->base         = "/lib/" . $this->_yuiVersion . "/build/";
         }
-        elseif($this->_loader->embedAvail) {
+        /*elseif($this->_loader->embedAvail) {
             $this->_loader->allowRollups = TRUE;
             $this->_loader->combine      = TRUE;
             $this->_loader->comboBase    = "/phploader/combo.php?";
-        }
+        }*/
         else {
             $this->_loader->allowRollups    = TRUE;
             $this->_loader->combine         = FALSE;
-            $this->_loader->base            = "/lib/" . $this->_yuiVersion . "build/";
+            $this->_loader->base            = "/lib/" . $this->_yuiVersion . "/build/";
         }
     }
 
@@ -123,39 +124,4 @@ class Fisma_Loader
         $css    = $this->css();
         return $script . $css;
     }
-
-    /**
-     * Sets custom configuration for JS/CSS specific to the application
-     *
-     * @param array Array of basic custom configuration information
-     * @return array Custom configuration array for application JS/CSS
-     */
-    private function _prepareConfig($config)
-    {
-        foreach($config as $type => $assets)
-        {
-            if($type == 'JS')
-            {
-                $base = 'javascripts';
-            }
-            elseif($type == 'CSS')
-            {
-                $base = 'stylesheets';
-            }
-            else
-            {
-                throw new Fisma_Exception('Invalid type included in Fisma_Loader');
-            }
-
-            foreach($assets as $asset)
-            {
-                $this->_config["${asset}${type}"] = array( 
-                    "name" => $asset . $type,
-                    "type" => strtolower($type),
-                    "fullpath" => "./${base}/${asset}.js",
-                    "global" => true );
-            }
-        }
-    }
-
 }
