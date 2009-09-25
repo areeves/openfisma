@@ -45,7 +45,6 @@ class Fisma_Loader
      * Set up and initialize the phploader object
      *
      * @param array $config Custom module metadata set for YUI phploader
-     * @todo Change to use local combo loader
      */
     public function __construct($config = NULL)
     {
@@ -66,10 +65,12 @@ class Fisma_Loader
             $this->_loader->allowRollups = FALSE;
             $this->_loader->filter       = YUI_DEBUG;
             $this->_loader->combine      = FALSE;
+            $this->_loader->base         = "/lib/" . $this->_yuiVersion . "/build/";
         }
         else {
             $this->_loader->allowRollups = TRUE;
             $this->_loader->combine      = TRUE;
+            $this->_loader->comboBase    = "/phploader/combo.php?";
         }
     }
 
