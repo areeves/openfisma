@@ -9,97 +9,58 @@
     $this->headTitle()->prepend(Configuration::getConfig('system_name'));
     echo $this->headTitle();
 
-    $yuiComponents = array( 0 => 'yahoo', 1 => 'dom', 2 => 'event', 3 => 'element',
-                            4 => 'container', 5 => 'json', 6 => 'cookie', 
-                            7 => 'get', 8 => 'dragdrop', 9 => 'animation',
-                            10 => 'menu', 11 => 'button', 12 => 'json', 
-                            13 => 'connection', 'logger', 14 =>'tabview', 
-                            15 => 'calendar', 16 => 'paginator', 17 => 'datasource',
-                            18 => 'datatable', 19 => 'selector', 20 => 'treeview', 
-                            21 => 'uploader', 22 => 'reset-fonts-grids'
+    // Check for debug status, and set the JS/CSS postfix appropriately
+    if(Fisma::debug())
+    {
+        $postfix = "";
+    }
+    else
+    {
+        $postfix = "-min." . Fisma::version();
+    }
+
+    // Initialize and load the YUI components needed
+    $yuiComponents = array('yahoo','dom','event','element',
+                            'container','json','cookie', 
+                            'get','dragdrop','animation',
+                            'menu','button','json', 
+                            'connection','logger','tabview', 
+                            'calendar','paginator','datasource',
+                            'datatable','selector','treeview', 
+                            'uploader','reset-fonts-grids'
                            );
 
-    $components = array(
-        "fismaJS" => array(
-            "name" => 'fismaJS',
-            "type" => 'js',
-            "fullpath" => '/javascripts/fisma.js',
-            "global" => true,
-            "requires" => $yuiComponents
-        ),
-        "treetableJS" => array(
-            "name" => 'treetableJS',
-            "type" => 'js',
-            "fullpath" => '/javascripts/TreeTable.js',
-            "global" => true,
-            "requires" => array (0 => 'fisma')
-        ),
-        "checkboxtreeJS" => array(
-            "name" => 'checkboxtreeJS',
-            "type" => 'js',
-            "fullpath" => '/javascripts/CheckboxTree.js',
-            "global" => true,
-            "requires" => array (0 => 'treetable' )
-        ),
-        "editableJS" => array(
-            "name" => 'editableJS',
-            "type" => 'js',
-            "fullpath" => '/javascripts/editable.js',
-            "global" => true,
-            "requires" => array (0 => 'checkboxtree')
-        ),
-        "helpJS" => array(
-            "name" => 'helpJS',
-            "type" => 'js',
-            "fullpath" => '/javascripts/help.js',
-            "global" => true,
-            "requires" => array (0 => 'editable')
-        ),
-        "selectallselectnoneJS" => array(
-            "name" => 'selectallselectnoneJS',
-            "type" => 'js',
-            "fullpath" => '/javascripts/selectallselectnone.js',
-            "global" => true,
-            "requires" => array (0 => 'help')
-        ),
-        "deleteconfirmJS" => array(
-            "name" => 'deleteconfirmJS',
-            "type" => 'js',
-            "fullpath" => '/javascripts/deleteconfirm.js',
-            "global" => true,
-            "requires" => array (0 => 'selectallselectnone')
-        ),
-        "mainCSS" => array(
-            "name" => 'mainCSS',
-            "type" => 'css',
-            "fullpath" => '/stylesheets/main.css',
-            "global" => true
-        ),
-        "treetableCSS" => array(
-            "name" => 'treetableCSS',
-            "type" => 'css',
-            "fullpath" => '/stylesheets/TreeTable.css',
-            "global" => true
-        )
-    );
+    $yui = new Fisma_Loader();
+    $yui->load($yuiComponents);
+    echo $yui;
 
+    // If we're in debug mode, we need to load the JS and CSS files individually
+    if(Fisma::debug())
+    {
+        echo $this->headScript()->appendFile('/javascripts/fisma.js')
+                                ->appendFile('/javascripts/TreeTable.js')
+                                ->appendFile('/javascripts/CheckboxTree.js')
+                                ->appendFile('/javascripts/editable.js')
+                                ->appendFile('/javascripts/help.js')
+                                ->appendFile('/javascripts/selectallselectnone.js')
+                                ->appendFile('/javascripts/deleteconfirm.js');
 
-    $loader = new Fisma_Loader($components);
-    $loader->load(array_keys($components));
-    echo $loader;
-    // @todo move below scripts into Fisma_Loader
-    ?>
+        echo $this->headLink()->appendStylesheet('/stylesheets/main.css')
+                              ->appendStylesheet('/stylesheets/TreeTable.css');
+    }
+    // Otherwise, load the combined and minified versions of these files 
+    else
+    {
+        echo $this->headScript()->appendFile("/javascripts/combined$postfix.js");
+        echo $this->headLink()->appendStylesheet("/stylesheets/combined$postfix.css");
+    }
 
+    echo $this->headScript()->appendFile("/javascripts/tiny_mce/tiny_mce.js")
+                            ->appendFile("/javascripts/tiny_mce_config$postfix.js");
 
-    <script type="text/javascript" src="/javascripts/tiny_mce/tiny_mce.js"></script>
-    <script type="text/javascript" src="/javascripts/tiny_mce_config.js"></script>
-
-    <?php 
-    // @todo move into Fisma_Loader
-    echo $this->headLink()->appendStylesheet('/yui/assets/skins/sam/skin.css', 'screen,print')
-                          ->appendStylesheet('/stylesheets/print.css', 'print')
-                          ->appendStylesheet('/stylesheets/ie7hacks.css', 'screen', 'IE 7')
-                          ->appendStylesheet('/stylesheets/ie6hacks.css', 'screen', 'IE 6')
+    echo $this->headLink()->appendStylesheet("/stylesheets/print$postfix.css", 'print')
+                          ->appendStylesheet("/stylesheets/ie7hacks$postfix.css", 'screen', 'IE 7')
+                          ->appendStylesheet("/stylesheets/ie6hacks$postfix.css", 'screen', 'IE 6')
                           ->headLink(array('rel' => 'icon', 'href' => '/images/favicon.ico'));
     ?>
     </head>

@@ -5,21 +5,27 @@
 <?php
     echo $this->headTitle()->prepend(Configuration::getConfig('system_name'));
 
+    // Check for debug status, and set the JS/CSS postfix appropriately
+    if(Fisma::debug()) {
+        $postfix = "";
+    }
+    else {
+        $postfix = "-min." . Fisma::version();
+    }
+
+    // Initialize and load the YUI components needed for login
     $yuiComponents = array( 'yahoo',
                             'dom',
                             'event',
                             'element',
                             'container',
-                            'button' );
+                            'button');
 
-    $loader = new Fisma_Loader();
-    $loader->load($yuiComponents);
-    echo $loader->script();
-    echo $loader->css();
+    $yui = new Fisma_Loader();
+    $yui->load($yuiComponents);
+    echo $yui;
 
-    // @todo move into Fisma_Loader
-    echo $this->headLink()->appendStylesheet('/yui/assets/skins/sam/skin.css')
-                          ->appendStylesheet('/stylesheets/login.css', 'screen,print')
+    echo $this->headLink()->appendStylesheet("/stylesheets/login$postfix.css", 'screen,print')
                           ->headLink(array('rel' => 'icon', 'href' => '/images/favicon.ico'));
 ?>
 
