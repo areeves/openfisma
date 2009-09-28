@@ -6,7 +6,23 @@
         <property file="config.properties"/>
     </target>
 
-    <target name="-js.minify">
+    <target name="-js.concat">
+        <echo message="Concatenating JavaScript..."/>
+        <concat destfile="${location.js}/combined.js" force="no">
+            <filelist dir="${location.js}" files="fisma.js,TreeTable.js,CheckboxTree.js,editable.js,help.js,selectallselectnone.js,deleteconfirm.js"/>
+        </concat>
+        <echo message="JavaScript concatenated."/>
+    </target>
+
+    <target name="-css.concat">
+        <echo message="Concatenating stylesheets..."/>
+        <concat destfile="${location.css}/combined.css" force="no">
+            <filelist dir="${location.css}" files="main.css,TreeTable.css"/>
+        </concat>
+        <echo message="Stylesheets concatenated."/>
+    </target>
+
+    <target name="-js.minify" depends="-js.concat">
         <echo message="Minifying JavaScript..."/>
         <apply executable="java" parallel="false">
             <fileset dir="${location.js}" includes="**/*.js" excludes="**/tiny_mce/**,**/*-min.js"/>
@@ -20,7 +36,7 @@
         <echo message="JavaScript minified."/>
     </target>
 
-    <target name="-css.minify">
+    <target name="-css.minify" depends="-css.concat">
         <echo message="Minifying stylesheets..."/>
         <apply executable="java" parallel="false">
             <fileset dir="${location.css}" includes="*.css" excludes="**/*-min.css"/>
