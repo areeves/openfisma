@@ -51,8 +51,8 @@ class Fisma_Loader
         $this->_appVersion   = Fisma::version();
         $this->_yuiVersion   = Fisma::yuiVersion();
         $this->_debug        = Fisma::debug();
-        $this->_debug        = FALSE;
 
+        // Create the loader object. Pass custom configuration options if available.
         if(is_null($config)) {
             $this->_loader = new YAHOO_util_Loader($this->_yuiVersion);
         }
@@ -62,17 +62,21 @@ class Fisma_Loader
                 'custom_config_'.$this->_appVersion, $this->_config);
         }
 
+        // If we're in debug mode, turn off rollups and combines, switch to DEBUG filter.
         if($this->_debug) {
             $this->_loader->allowRollups = FALSE;
             $this->_loader->filter       = YUI_DEBUG;
             $this->_loader->combine      = FALSE;
             $this->_loader->base         = "/lib/" . $this->_yuiVersion . "/build/";
         }
-        /*elseif($this->_loader->embedAvail) {
+        // If embedding is available, we turn on rollups and local combo loader
+        elseif($this->_loader->embedAvail) {
             $this->_loader->allowRollups = TRUE;
             $this->_loader->combine      = TRUE;
             $this->_loader->comboBase    = "/phploader/combo.php?";
-        }*/
+        }
+        // If embedding isn't available, rollups are turned on, but the combo loader is off
+        // Embedding requires that both APC and cURL are available.
         else {
             $this->_loader->allowRollups    = TRUE;
             $this->_loader->combine         = FALSE;
