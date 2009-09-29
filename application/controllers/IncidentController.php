@@ -579,7 +579,7 @@ class IncidentController extends BaseController
             foreach($this->_getAssociatedUsers($incident_id) as $userid) {
                 /* Must instantiate object for each message to prevent exceptions */
                 $mail = new Fisma_Mail();
-                $mail->IRReslove($userid, $incident_id);
+                $mail->IRResolve($userid, $incident_id);
             }
  
             print 'redirect'; 
