@@ -575,19 +575,19 @@ class IncidentController extends BaseController
 
             $incident->save();
            
-            $mail = new Fisma_Mail();
     
             foreach($this->_getAssociatedUsers($incident_id) as $userid) {
+                /* Must instantiate object for each message to prevent exceptions */
+                $mail = new Fisma_Mail();
                 $mail->IRReslove($userid, $incident_id);
             }
  
             print 'redirect'; 
             exit;
         }
-    
-        $mail = new Fisma_Mail();
 
         foreach($this->_getAssociatedUsers($incident_id) as $userid) {
+            $mail = new Fisma_Mail();
             $mail->IRStep($userid, $incident_id);
         }
 
@@ -622,10 +622,9 @@ class IncidentController extends BaseController
         $step->completeTs = date('Y-m-d H:i:s');
 
         $step->save();
-           
-        $mail = new Fisma_Mail();
         
         foreach($this->_getAssociatedUsers($incident_id) as $userid) {
+            $mail = new Fisma_Mail();
             $mail->IRClose($userid, $incident_id);
         }
 
@@ -778,9 +777,8 @@ class IncidentController extends BaseController
                     $actor->save();
                 }
         
-                $mail = new Fisma_Mail();
-        
                 foreach($this->_getAssociatedUsers($id) as $userid) {
+                    $mail = new Fisma_Mail();
                     $mail->IROpen($userid, $id);
                 }
             }
@@ -865,9 +863,8 @@ class IncidentController extends BaseController
 
         $comment->save();
         
-        $mail = new Fisma_Mail();
-        
         foreach($this->_getAssociatedUsers($incident_id) as $userid) {
+            $mail = new Fisma_Mail();
             $mail->IRComment($userid, $incident_id);
         }
 
@@ -1307,6 +1304,8 @@ class IncidentController extends BaseController
 
         $mail = new Fisma_Mail();
         $mail->IRReport($edcirc, $subject['id']);
+        
+        $mail = new Fisma_Mail();
         $mail->IRReport($user['id'], $subject['id']);
 
         $this->_forward('dashboard');
