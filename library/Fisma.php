@@ -394,7 +394,7 @@ class Fisma
 
         $version = self::$_appConf->version->toArray();
 
-        return ($version['app']);
+        return $version['app'];
     }
 
     /**
@@ -409,7 +409,8 @@ class Fisma
         }
 
         $version = self::$_appConf->version->toArray();
-        return ($version['yui']);
+
+        return $version['yui'];
     }
 
     /**

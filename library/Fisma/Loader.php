@@ -55,11 +55,10 @@ class Fisma_Loader
         // Create the loader object. Pass custom configuration options if available.
         if(is_null($config)) {
             $this->_loader = new YAHOO_util_Loader($this->_yuiVersion);
-        }
-        else {
+        } else {
             $this->_config = $config;
             $this->_loader = new YAHOO_util_Loader($this->_yuiVersion, 
-                'custom_config_'.$this->_appVersion, $this->_config);
+                'custom_config_' . $this->_appVersion, $this->_config);
         }
 
         // If we're in debug mode, turn off rollups and combines, switch to DEBUG filter.
@@ -68,16 +67,14 @@ class Fisma_Loader
             $this->_loader->filter       = YUI_DEBUG;
             $this->_loader->combine      = FALSE;
             $this->_loader->base         = "/lib/" . $this->_yuiVersion . "/build/";
-        }
-        // If embedding is available, we turn on rollups and local combo loader
-        elseif($this->_loader->embedAvail) {
+        } elseif($this->_loader->embedAvail) {
+            // If embedding is available, we turn on rollups and local combo loader
             $this->_loader->allowRollups = TRUE;
             $this->_loader->combine      = TRUE;
             $this->_loader->comboBase    = "/phploader/combo.php?";
-        }
-        // If embedding isn't available, rollups are turned on, but the combo loader is off
-        // Embedding requires that both APC and cURL are available.
-        else {
+        } else {
+            // If embedding isn't available, rollups are turned on, but the combo loader is off
+            // Embedding requires that both APC and cURL are available.
             $this->_loader->allowRollups    = TRUE;
             $this->_loader->combine         = FALSE;
             $this->_loader->base            = "/lib/" . $this->_yuiVersion . "/build/";
@@ -91,8 +88,7 @@ class Fisma_Loader
      */
     public function load($components)
     {
-        foreach($components as $component)
-        {
+        foreach($components as $component) {
             $this->_loader->load($component);
         }
     }
