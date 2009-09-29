@@ -6,18 +6,14 @@
     echo $this->headTitle()->prepend(Configuration::getConfig('system_name'));
 
     // Initialize and load the YUI components needed for login
-    $yuiComponents = array( 'yahoo',
-                            'dom',
-                            'event',
-                            'element',
-                            'container',
-                            'button');
+    $yuiComponents = array('yahoo', 'dom', 'event', 'element', 'container',
+                           'button');
 
     $yui = new Fisma_Loader();
     $yui->load($yuiComponents);
     echo $yui;
 
-    $this->injectAsset('/stylesheets/login.css','css',false,'screen,print');
+    $this->injectAsset('/stylesheets/login.css', 'css', false, 'screen,print');
 
     echo $this->headLink()->headLink(array('rel' => 'icon', 'href' => '/images/favicon.ico'));
 ?>

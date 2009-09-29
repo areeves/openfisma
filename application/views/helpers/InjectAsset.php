@@ -56,16 +56,16 @@ class View_Helper_InjectAsset
      * @param string $media Media settings for CSS files
      * @param string $conditional Conditional settings for CSS files
      */
-    public function injectAsset($asset,$type,$combo=FALSE,$media='screen',$conditional=FALSE)
-    {
+    public function injectAsset($asset, $type, $combo = FALSE,
+        $media = 'screen', $conditional = FALSE
+    ) {
         // This asset is a Combo, and the application is in debug mode, so we need to output
         // each of the individual pieces of the combo.
         if($combo && Fisma::debug()) {
             $this->comboSetUp();
             $assets = $this->depMap[$asset];
-        }
-        // This is just a single asset, throw it into an array for easier processing
-        else {
+        } else {
+            // This is just a single asset, throw it into an array for easier processing
             $assets = array($asset);
         }
 
@@ -76,8 +76,13 @@ class View_Helper_InjectAsset
                 foreach($assets as &$asset) {
                     $asset = str_replace(".$type","-min.".Fisma::version().".$type",$asset);
                 }
+
                 break;
+
             case TRUE:
+                break;
+
+            default:
                 break;
         }
 
@@ -86,11 +91,17 @@ class View_Helper_InjectAsset
                 foreach($assets as $asset) {
                     $this->view->headScript()->appendFile($asset);
                 }
+
                 break;
+
             case 'css':
                 foreach($assets as $asset) {
                     $this->view->headLink()->appendStylesheet($asset,$media,$conditional);
                 }
+
+                break;
+
+            default:
                 break;
         }
 

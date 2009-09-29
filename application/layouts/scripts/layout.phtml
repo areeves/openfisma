@@ -11,26 +11,25 @@
 
     // Initialize and load the YUI components needed
     $yuiComponents = array('yahoo','dom','event','element',
-                            'container','json','cookie', 
-                            'get','dragdrop','animation',
-                            'menu','button','json', 
-                            'connection','logger','tabview', 
-                            'calendar','paginator','datasource',
-                            'datatable','selector','treeview', 
-                            'uploader','reset-fonts-grids'
-                           );
+                           'container','json','cookie', 
+                           'get','dragdrop','animation',
+                           'menu','button','json', 
+                           'connection','logger','tabview', 
+                           'calendar','paginator','datasource',
+                           'datatable','selector','treeview', 
+                           'uploader','reset-fonts-grids');
 
     $yui = new Fisma_Loader();
     $yui->load($yuiComponents);
     echo $yui;
 
-    $this->injectAsset('/javascripts/combined.js','js',true);
-    echo $this->headScript()->appendFile("/javascripts/tiny_mce/tiny_mce.js");
-    $this->injectAsset('/javascripts/tiny_mce_config.js','js');
-    $this->injectAsset('/stylesheets/combined.css','css',true);
-    $this->injectAsset('/stylesheets/print.css','css',false,'print');
-    $this->injectAsset('/stylesheets/ie7hacks.css','css',false,'screen','IE 7');
-    $this->injectAsset('/stylesheets/ie6hacks.css','css',false,'screen','IE 6');
+    $this->injectAsset('/javascripts/combined.js', 'js', true);
+    echo $this->headScript()->appendFile('/javascripts/tiny_mce/tiny_mce.js');
+    $this->injectAsset('/javascripts/tiny_mce_config.js', 'js');
+    $this->injectAsset('/stylesheets/combined.css', 'css', true);
+    $this->injectAsset('/stylesheets/print.css', 'css', false, 'print');
+    $this->injectAsset('/stylesheets/ie7hacks.css', 'css', false, 'screen', 'IE 7');
+    $this->injectAsset('/stylesheets/ie6hacks.css', 'css', false, 'screen', 'IE 6');
 
     echo $this->headLink()->headLink(array('rel' => 'icon', 'href' => '/images/favicon.ico'));
     ?>
