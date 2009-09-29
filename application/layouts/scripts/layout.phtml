@@ -9,16 +9,6 @@
     $this->headTitle()->prepend(Configuration::getConfig('system_name'));
     echo $this->headTitle();
 
-    // Check for debug status, and set the JS/CSS postfix appropriately
-    if(Fisma::debug())
-    {
-        $postfix = "";
-    }
-    else
-    {
-        $postfix = "-min." . Fisma::version();
-    }
-
     // Initialize and load the YUI components needed
     $yuiComponents = array('yahoo','dom','event','element',
                             'container','json','cookie', 
@@ -34,34 +24,15 @@
     $yui->load($yuiComponents);
     echo $yui;
 
-    // If we're in debug mode, we need to load the JS and CSS files individually
-    if(Fisma::debug())
-    {
-        echo $this->headScript()->appendFile('/javascripts/fisma.js')
-                                ->appendFile('/javascripts/TreeTable.js')
-                                ->appendFile('/javascripts/CheckboxTree.js')
-                                ->appendFile('/javascripts/editable.js')
-                                ->appendFile('/javascripts/help.js')
-                                ->appendFile('/javascripts/selectallselectnone.js')
-                                ->appendFile('/javascripts/deleteconfirm.js');
+    $this->injectAsset('/javascripts/combined.js','js',true);
+    echo $this->headScript()->appendFile("/javascripts/tiny_mce/tiny_mce.js");
+    $this->injectAsset('/javascripts/tiny_mce_config.js','js');
+    $this->injectAsset('/stylesheets/combined.css','css',true);
+    $this->injectAsset('/stylesheets/print.css','css',false,'print');
+    $this->injectAsset('/stylesheets/ie7hacks.css','css',false,'screen','IE 7');
+    $this->injectAsset('/stylesheets/ie6hacks.css','css',false,'screen','IE 6');
 
-        echo $this->headLink()->appendStylesheet('/stylesheets/main.css')
-                              ->appendStylesheet('/stylesheets/TreeTable.css');
-    }
-    // Otherwise, load the combined and minified versions of these files 
-    else
-    {
-        echo $this->headScript()->appendFile("/javascripts/combined$postfix.js");
-        echo $this->headLink()->appendStylesheet("/stylesheets/combined$postfix.css");
-    }
-
-    echo $this->headScript()->appendFile("/javascripts/tiny_mce/tiny_mce.js")
-                            ->appendFile("/javascripts/tiny_mce_config$postfix.js");
-
-    echo $this->headLink()->appendStylesheet("/stylesheets/print$postfix.css", 'print')
-                          ->appendStylesheet("/stylesheets/ie7hacks$postfix.css", 'screen', 'IE 7')
-                          ->appendStylesheet("/stylesheets/ie6hacks$postfix.css", 'screen', 'IE 6')
-                          ->headLink(array('rel' => 'icon', 'href' => '/images/favicon.ico'));
+    echo $this->headLink()->headLink(array('rel' => 'icon', 'href' => '/images/favicon.ico'));
     ?>
     </head>
     <body class="yui-skin-sam">

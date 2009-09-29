@@ -5,14 +5,6 @@
         <?php
             echo $this->headTitle()->prepend(Configuration::getConfig('system_name'));
 
-            // Check for debug status, and set the JS/CSS postfix appropriately
-            if(Fisma::debug()) {
-                $postfix = "";
-            }
-            else {
-                $postfix = "-min." . Fisma::version();
-            }
-
             // Initialize and load the YUI components needed for this page
             $yuiComponents = array( 'yahoo', 'dom', 'event', 'element',
                                     'button');
@@ -21,8 +13,9 @@
             $yui->load($yuiComponents);
             echo $yui;
 
-            echo $this->headLink()->appendStylesheet("/stylesheets/main$postfix.css", 'screen,print')
-                                  ->headLink(array('rel' => 'icon', 'href' => '/images/favicon.ico'));
+            $this->injectAsset('/stylesheets/main.css','css',false,'screen,print');
+
+            echo $this->headLink()->headLink(array('rel' => 'icon', 'href' => '/images/favicon.ico'));
         ?>
     </head>
     <body class="yui-skin-sam">

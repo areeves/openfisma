@@ -1,20 +1,12 @@
 <?php
     echo $this->doctype();
-
-    // Check for debug status, and set the JS/CSS postfix appropriately
-    if(Fisma::debug()) {
-        $postfix = "";
-    }
-    else {
-        $postfix = "-min. " . Fisma::version();
-    }
 ?>
 <html>
 <head>
   <title>OpenFISMA Custom Installation</title>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-  <? echo $this->headScript()->appendFile("/javascripts/fisma$postfix.js"); ?>
-  <? echo $this->headScript()->appendStylesheet("/stylesheets/install$postfix.css"); ?>
+  <? $this->injectAsset("/javascripts/fisma.js",'js',false); ?>
+  <? $this->injectAsset("/stylesheets/install.css",'css',false); ?>
   <link rel="icon"
         type="image/ico"
         href="/images/favicon.ico" />

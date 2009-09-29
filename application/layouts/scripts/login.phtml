@@ -5,14 +5,6 @@
 <?php
     echo $this->headTitle()->prepend(Configuration::getConfig('system_name'));
 
-    // Check for debug status, and set the JS/CSS postfix appropriately
-    if(Fisma::debug()) {
-        $postfix = "";
-    }
-    else {
-        $postfix = "-min." . Fisma::version();
-    }
-
     // Initialize and load the YUI components needed for login
     $yuiComponents = array( 'yahoo',
                             'dom',
@@ -25,8 +17,9 @@
     $yui->load($yuiComponents);
     echo $yui;
 
-    echo $this->headLink()->appendStylesheet("/stylesheets/login$postfix.css", 'screen,print')
-                          ->headLink(array('rel' => 'icon', 'href' => '/images/favicon.ico'));
+    $this->injectAsset('/stylesheets/login.css','css',false,'screen,print');
+
+    echo $this->headLink()->headLink(array('rel' => 'icon', 'href' => '/images/favicon.ico'));
 ?>
 
 <script type="text/javascript">
