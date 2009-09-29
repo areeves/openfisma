@@ -181,8 +181,12 @@ class IncidentController extends BaseController
         $actor = new IrIncidentActor();
 
         $actor->incidentId = $incident['id'];
-        $actor->userId = $this->_getEDCIRC();
+        $edcirc = $this->_getEDCIRC();
+        $actor->userId = $edcirc;
         $actor->save();
+        
+        $mail = new Fisma_Mail();
+        $mail->IRReport($edcirc, $subject['id']);
             
         $this->_forward('anonsuccess'); 
     }
@@ -570,9 +574,21 @@ class IncidentController extends BaseController
             $incident->status = 'resolved';
 
             $incident->save();
-            
+           
+            $mail = new Fisma_Mail();
+    
+            foreach($this->_getAssociatedUsers($incident_id) as $userid) {
+                $mail->IRReslove($userid, $incident_id);
+            }
+ 
             print 'redirect'; 
             exit;
+        }
+    
+        $mail = new Fisma_Mail();
+
+        foreach($this->_getAssociatedUsers($incident_id) as $userid) {
+            $mail->IRStep($userid, $incident_id);
         }
 
         $this->view->assign('step_completed', $step_completed);
@@ -606,7 +622,14 @@ class IncidentController extends BaseController
         $step->completeTs = date('Y-m-d H:i:s');
 
         $step->save();
-            
+           
+        $mail = new Fisma_Mail();
+        
+        foreach($this->_getAssociatedUsers($incident_id) as $userid) {
+            $mail->IRClose($userid, $incident_id);
+        }
+
+ 
         $this->message('Incident Closed', self::M_NOTICE);
         $this->_forward('dashboard');
     }
@@ -754,7 +777,12 @@ class IncidentController extends BaseController
                     $actor->userId = $userid;
                     $actor->save();
                 }
-
+        
+                $mail = new Fisma_Mail();
+        
+                foreach($this->_getAssociatedUsers($id) as $userid) {
+                    $mail->IROpen($userid, $id);
+                }
             }
         }
 
@@ -836,6 +864,12 @@ class IncidentController extends BaseController
         $comment->comment    = $comments;
 
         $comment->save();
+        
+        $mail = new Fisma_Mail();
+        
+        foreach($this->_getAssociatedUsers($incident_id) as $userid) {
+            $mail->IRComment($userid, $incident_id);
+        }
 
         $this->_forward('comments');
     }
@@ -870,7 +904,7 @@ class IncidentController extends BaseController
              ->from('user u')
              ->innerJoin('u.UserRole ur')
              ->innerJoin('ur.Role r')
-             ->where('u.id IN (SELECT ia.userId FROM IrIncidentActor ia WHERE ia.incidentid = ?)', $id)
+             ->where('u.id IN (SELECT ia.userId FROM IrIncidentActor ia WHERE ia.incidentId = ?)', $id)
              ->orderBy('u.nameLast');
 
         $users = $q->execute();
@@ -882,7 +916,7 @@ class IncidentController extends BaseController
              ->from('user u')
              ->innerJoin('u.UserRole ur')
              ->innerJoin('ur.Role r')
-             ->where('u.id IN (SELECT io.userId FROM IrIncidentObserver io WHERE io.incidentid = ?)', $id)
+             ->where('u.id IN (SELECT io.userId FROM IrIncidentObserver io WHERE io.incidentId = ?)', $id)
              ->orderBy('u.nameLast');
 
         $users = $q->execute();
@@ -912,6 +946,9 @@ class IncidentController extends BaseController
         $actor->incidentId = $id;
         $actor->userId = $userid;
         $actor->save();
+
+        $mail = new Fisma_Mail();
+        $mail->IRAssign($userid, $id);
 
         $this->_forward('actor'); 
     }
@@ -949,7 +986,9 @@ class IncidentController extends BaseController
         $actor->incidentId = $id;
         $actor->userId = $userid;
         $actor->save();
-
+        
+        $mail = new Fisma_Mail();
+        $mail->IRAssign($userid, $id);
 
         $this->_forward('actor'); 
     }
@@ -1268,6 +1307,7 @@ class IncidentController extends BaseController
 
         $mail = new Fisma_Mail();
         $mail->IRReport($edcirc, $subject['id']);
+        $mail->IRReport($user['id'], $subject['id']);
 
         $this->_forward('dashboard');
     }
@@ -1569,19 +1609,50 @@ class IncidentController extends BaseController
         return ($actor[0]['count'] >= 1) ? 'actor' : 'viewer';
     }   
 
-    private function _getClone($incident_id) {
-
+    private function _getClone($incident_id = null) {
         $q = Doctrine_Query::create()
              ->select('i.origincidentid')
              ->from('IrClonedIncident i')
              ->where('i.cloneincidentid = ?', $incident_id);
 
         $data = $q->execute()->toArray();
-
-        if ($data[0]['origIncidentId']) {
-            return $data[0]['origIncidentId'];
-        } else {
-            return false;
+        
+       
+        if ($data ) { 
+            if ($data[0]['origIncidentId']) {
+                return $data[0]['origIncidentId'];
+            } 
         }
+            
+        return false;
     }
+
+    private function _getAssociatedUsers($incident_id) {
+        $q = Doctrine_Query::create()
+             ->select('u.userId')
+             ->from('IrIncidentActor u')   
+             ->where('u.incidentId = ?', $incident_id)
+             ->groupBy('u.userId');
+
+        $data = $q->execute()->toArray();
+        
+        foreach($data as $key => $val) {
+            $ret_val[] = $val['userId'];
+        }
+    
+        $q = Doctrine_Query::create()
+             ->select('u.userId')
+             ->from('IrIncidentObserver u')   
+             ->where('u.incidentId = ?', $incident_id)
+             ->groupBy('u.userId');
+
+        $data = $q->execute()->toArray();
+        
+        foreach($data as $key => $val) {
+            $ret_val[] = $val['userId'];
+        }    
+
+        return $ret_val;
+    }
+    
 }
