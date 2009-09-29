@@ -74,7 +74,7 @@ class View_Helper_InjectAsset
             // the path.
             case FALSE:
                 foreach($assets as &$asset) {
-                    $asset = str_replace(".$type","-min.".Fisma::version().".$type",$asset);
+                    $asset = str_replace(".$type", "-min." . Fisma::version() . ".$type", $asset);
                 }
 
                 break;
@@ -96,7 +96,7 @@ class View_Helper_InjectAsset
 
             case 'css':
                 foreach($assets as $asset) {
-                    $this->view->headLink()->appendStylesheet($asset,$media,$conditional);
+                    $this->view->headLink()->appendStylesheet($asset, $media, $conditional);
                 }
 
                 break;
