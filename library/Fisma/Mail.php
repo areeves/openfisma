@@ -235,7 +235,7 @@ class Fisma_Mail extends Zend_Mail
      * @param int $step       the sortorder of the workflow step that has been completed 
      * 
      */
-    public function IRStep($userId, $incidentId, $step)
+    public function IRStep($userId, $incidentId)
     {
         $user = new User();
         $user = $user->getTable()->find($userId);
@@ -245,7 +245,6 @@ class Fisma_Mail extends Zend_Mail
         
         $this->_contentTpl->host       = Zend_Controller_Front::getInstance()->getRequest()->getHttpHost();
         $this->_contentTpl->incidentId = $incidentId;
-        $this->_contentTpl->step       = $step;
         
         $content = $this->_contentTpl->render('IRStep.phtml');
         
