@@ -34,6 +34,8 @@
  */
 class IncidentController extends BaseController
 {
+    static $dashboardRendered = false;
+    
     
     /**
      * The main name of the model.
@@ -215,7 +217,7 @@ class IncidentController extends BaseController
         
         $this->view->assign('pageInfo', $this->_paging);
         $this->view->assign('link', $link);
-        
+     
         $this->render('dashboard');
     }  
 
@@ -235,7 +237,7 @@ class IncidentController extends BaseController
 
         $this->view->assign('comments', $comments);
 
-        $this->render('commentsdashboard');
+        $this->render('commentdashboard');
     } 
 
     /**
@@ -1308,7 +1310,8 @@ class IncidentController extends BaseController
         $mail = new Fisma_Mail();
         $mail->IRReport($user['id'], $subject['id']);
 
-        $this->_forward('dashboard');
+        /* Not sure what is happening here.. if the method is called the dashboard renders twice */
+        //$this->render('dashboard');
     }
 
 
