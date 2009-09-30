@@ -258,6 +258,18 @@ class Fisma
         $manager = Doctrine_Manager::getInstance();
         $manager->setAttribute(Doctrine::ATTR_USE_DQL_CALLBACKS, true);
         $manager->setAttribute(Doctrine::ATTR_USE_NATIVE_ENUM, true);
+
+        // Set up the cache driver and connect to the manager
+        if(function_exists('apc_fetch')) {
+            $cacheDriver = new Doctrine_Cache_Apc();
+
+            // initialize the global query cache
+            $manager->setAttribute(Doctrine::ATTR_QUERY_CACHE, $cacheDriver);
+
+            // initialize the global result cache
+            $manager->setAttribute(Doctrine::ATTR_RESULT_CACHE, $cacheDriver);
+        }
+
         Zend_Registry::set('doctrine_config', array(
                'data_fixtures_path'  =>  self::getPath('fixture'),
                'models_path'         =>  self::getPath('model'),
