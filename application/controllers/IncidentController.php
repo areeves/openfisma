@@ -255,7 +255,7 @@ class IncidentController extends BaseController
         
         $status = ($this->_request->getParam('status')) ? $this->_request->getParam('status') : 'new';
         $this->view->assign('status', $status);
-        
+
         $this->view->assign('startDt', $this->_request->getParam('startDt'));
         
         $this->view->assign('endDt',   $this->_request->getParam('endDt'));
