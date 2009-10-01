@@ -34,9 +34,6 @@
  */
 class IncidentController extends BaseController
 {
-    static $dashboardRendered = false;
-    
-    
     /**
      * The main name of the model.
      * 
@@ -159,38 +156,47 @@ class IncidentController extends BaseController
      * @return string the rendered page
      */
     public function anoncreateAction() {
+        $form = $this->getForm();
         $values = $this->_request->getPost();
 
-        $values['sourceIp'] = $_SERVER['REMOTE_ADDR'];
+        if ($form->isValid($values)) {
+            $values['sourceIp'] = $_SERVER['REMOTE_ADDR'];
 
-        $values['reportTs'] = date('Y-m-d G:i:s');
-        $values['reportTz'] = date('T');
-        
-        $values['status'] = 'new';
-
-        if ($values['incidentHour'] && $values['incidentMinute'] && $values['incidentAmpm']) {
-            if ($values['incidentAmpm'] == 'PM') {
-                $values['incidentHour'] += 12;
-            }
-            $values['incidentTs'] .= " {$values['incidentHour']}:{$values['incidentMinute']}:00";
-        }
-
-        $incident = new Incident();
-
-        $incident->merge($values);
-        $incident->save();
-
-        $actor = new IrIncidentActor();
-
-        $actor->incidentId = $incident['id'];
-        $edcirc = $this->_getEDCIRC();
-        $actor->userId = $edcirc;
-        $actor->save();
-        
-        $mail = new Fisma_Mail();
-        $mail->IRReport($edcirc, $subject['id']);
+            $values['reportTs'] = date('Y-m-d G:i:s');
+            $values['reportTz'] = date('T');
             
-        $this->_forward('anonsuccess'); 
+            $values['status'] = 'new';
+
+            if ($values['incidentHour'] && $values['incidentMinute'] && $values['incidentAmpm']) {
+                if ($values['incidentAmpm'] == 'PM') {
+                    $values['incidentHour'] += 12;
+                }
+                $values['incidentTs'] .= " {$values['incidentHour']}:{$values['incidentMinute']}:00";
+            }
+
+            $incident = new Incident();
+
+            $incident->merge($values);
+            $incident->save();
+
+            $actor = new IrIncidentActor();
+
+            $actor->incidentId = $incident['id'];
+            $edcirc = $this->_getEDCIRC();
+            $actor->userId = $edcirc;
+            $actor->save();
+            
+            $mail = new Fisma_Mail();
+            $mail->IRReport($edcirc, $subject['id']);
+                
+            $this->_forward('anonsuccess'); 
+
+        } else {
+            $errorString = Fisma_Form_Manager::getErrors($form);
+            $this->message("Unable to create the {$this->_modelName}:<br>$errorString", self::M_WARNING);    
+  
+            $this->_forward('anonreport'); 
+        }
     }
 
     /**
@@ -217,7 +223,20 @@ class IncidentController extends BaseController
         
         $this->view->assign('pageInfo', $this->_paging);
         $this->view->assign('link', $link);
-     
+       
+        /* NATHAN: This seems like it should work, but I am out of time to debug. When you submit a form the 
+            dashboard is getting rendered two times.  
+         */
+
+        /* 
+        $front = Zend_Controller_Front::getInstance();
+        if ($stack = $front->getPlugin('Zend_Controller_Plugin_ActionStack')) {
+            //clear the action stack to prevent additional exceptions would be throwed
+            while($stack->popStack()) { print 'poping<br>'; } 
+        }
+        $this->_helper->actionStack('header', 'panel');
+        */     
+
         $this->render('dashboard');
     }  
 
@@ -1309,9 +1328,10 @@ class IncidentController extends BaseController
         
         $mail = new Fisma_Mail();
         $mail->IRReport($user['id'], $subject['id']);
+        
 
         /* Not sure what is happening here.. if the method is called the dashboard renders twice */
-        //$this->render('dashboard');
+        $this->_forward('dashboard');
     }
 
 

@@ -15,6 +15,7 @@ elements.name.type = "text"
 elements.name.options.label = "Name"
 elements.name.options.validators.alnum.validator = "NotEmpty"
 elements.name.options.required = true
+elements.name.options.size = "50"
 displayGroups.irworkflow.elements.name = "name"
 
 elements.description.type = "textarea"
