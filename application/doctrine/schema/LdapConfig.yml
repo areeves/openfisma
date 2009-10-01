@@ -1,5 +1,5 @@
 LdapConfig:
-    listeners: [XssListener]
+    listeners: [XssListener, CacheListener]
 
     columns:
         host:

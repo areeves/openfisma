@@ -1,5 +1,5 @@
 FindingEvaluation:
-    listeners: [XssListener]
+    listeners: [XssListener, CacheListener]
     
     columns:
         createdTs: timestamp

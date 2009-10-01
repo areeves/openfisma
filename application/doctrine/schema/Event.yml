@@ -1,4 +1,6 @@
 Event:
+    listeners: [CacheListener]
+
     columns:
         name:
             type: string(255)

@@ -1,4 +1,6 @@
 Privilege:
+    listeners: [CacheListener]
+
     columns:
         resource:
             type: string(255)

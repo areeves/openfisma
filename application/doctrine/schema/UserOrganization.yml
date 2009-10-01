@@ -1,4 +1,6 @@
 UserOrganization:
+    listeners: [CacheListener]
+
     columns:
         userId:
             type: integer

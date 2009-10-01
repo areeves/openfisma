@@ -1,4 +1,6 @@
 UserRole:
+    listeners: [CacheListener]
+
     columns:
         userId:
             type: integer

@@ -1,4 +1,6 @@
 RolePrivilege:
+    listeners: [CacheListener]
+
     columns:
         roleId:
             type: integer

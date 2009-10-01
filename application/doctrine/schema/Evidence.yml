@@ -1,4 +1,6 @@
 Evidence:
+    listeners: [CacheListener]
+
     columns:
         createdTs: timestamp
         filename:

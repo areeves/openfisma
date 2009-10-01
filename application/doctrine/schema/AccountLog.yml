@@ -1,5 +1,5 @@
 AccountLog:
-    listeners: [XssListener]
+    listeners: [XssListener, CacheListener]
     
     columns:
         createdTs: 
