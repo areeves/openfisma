@@ -1,6 +1,4 @@
 Notification:
-    listeners: [CacheListener]
-
     columns:
         createdTs: timestamp
         eventText:

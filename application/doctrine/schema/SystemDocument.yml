@@ -1,5 +1,5 @@
 SystemDocument:
-    listeners: [XssListener, CacheListener]
+    listeners: [XssListener]
     
     indexes: 
         uniqueTypePerSystem:

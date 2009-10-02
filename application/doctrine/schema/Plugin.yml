@@ -1,5 +1,5 @@
 Plugin:
-    listeners: [XssListener, CacheListener]
+    listeners: [XssListener]
 
     columns:
         name: 

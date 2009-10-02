@@ -1,5 +1,5 @@
 Asset:
-    listeners: [XssListener, CacheListener, BaseListener]
+    listeners: [XssListener, BaseListener]
         
     columns:
         createdTs: timestamp

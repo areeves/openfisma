@@ -1,5 +1,5 @@
 Product:
-    listeners: [XssListener, BaseListener, CacheListener]
+    listeners: [XssListener, BaseListener]
     
     columns:
         vendor:

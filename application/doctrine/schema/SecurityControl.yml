@@ -1,6 +1,4 @@
 SecurityControl:
-    listeners: [CacheListener]
-
     columns:
         code: 
             type: string(5)

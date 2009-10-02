@@ -275,23 +275,13 @@ class Fisma
         $manager->setAttribute(Doctrine::ATTR_USE_NATIVE_ENUM, true);
 
         // Set up the cache driver and connect to the manager.
-        // Make sure that we only cache in web app mode, and that the application
-        // is installed. Since the command line mode and the installer execute
-        // a fair amount of queries that don't get caught by the record level listeners,
-        // we need to turn off caching all together so that inconsitencies don't occur
-        // in web app mode.
-        if(function_exists('apc_fetch') && self::isInstall() && 
-            self::$_mode == RUN_MODE_WEB_APP) 
-        {
+        if(function_exists('apc_fetch') {
             self::$_isCacheable = true;
 
             $cacheDriver = new Doctrine_Cache_Apc();
 
             // initialize the global query cache
             $manager->setAttribute(Doctrine::ATTR_QUERY_CACHE, $cacheDriver);
-
-            // initialize the global result cache
-            $manager->setAttribute(Doctrine::ATTR_RESULT_CACHE, $cacheDriver);
         }
 
         Zend_Registry::set('doctrine_config', array(

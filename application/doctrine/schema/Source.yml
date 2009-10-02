@@ -1,5 +1,5 @@
 Source:
-    listeners: [XssListener, BaseListener, CacheListener]
+    listeners: [XssListener, BaseListener]
         
     columns:
         name: 
