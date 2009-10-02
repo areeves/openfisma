@@ -40,8 +40,10 @@ class CacheListener extends Doctrine_Record_Listener
      */
     public function preDqlSelect(Doctrine_Event $event)
     {
-        $q = $event->getQuery();
-        $q->useResultCache(true);
+        if(Fisma::isCacheable()) {
+            $q = $event->getQuery();
+            $q->useResultCache(true);
+        }
     }
 
     /**
@@ -52,8 +54,10 @@ class CacheListener extends Doctrine_Record_Listener
      */
     public function preDqlUpdate(Doctrine_Event $event)
     {
-        $q = $event->getQuery();
-        $q->expireResultCache(true);
+        if(Fisma::isCacheable()) {
+            $q = $event->getQuery();
+            $q->expireResultCache(true);
+        }
     }
 
     /**
@@ -64,7 +68,9 @@ class CacheListener extends Doctrine_Record_Listener
      */
     public function preDqlDelete(Doctrine_Event $event)
     {
-        $q = $event->getQuery();
-        $q->expireResultCache(true);
+        if(FIsma::isCacheable()) {
+            $q = $event->getQuery();
+            $q->expireResultCache(true);
+        }
     }
 }

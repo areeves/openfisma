@@ -132,6 +132,11 @@ class Fisma
      * A flag that indicates whether the Fisma system has been installed yet
      */
     private static $_isInstall = false;
+
+    /**
+     * A flag that indicates rather caching is enabled or not
+     */
+    private static $_isCacheable = false;
     
     /**
      * Initialize the FISMA object
@@ -243,7 +248,17 @@ class Fisma
     {
         return self::$_isInstall;
     }
-    
+
+    /**
+     * To determine whether caching is available
+     *
+     * @return boolean $_isCacheable
+     */
+    public static function isCacheable()
+    {
+        return self::$_isCacheable;
+    }
+
     /**
      * Connect to the database
      */
@@ -260,7 +275,9 @@ class Fisma
         $manager->setAttribute(Doctrine::ATTR_USE_NATIVE_ENUM, true);
 
         // Set up the cache driver and connect to the manager
-        if(function_exists('apc_fetch')) {
+        if(function_exists('apc_fetch') && self::isInstall()) {
+            self::$_isCacheable = true;
+
             $cacheDriver = new Doctrine_Cache_Apc();
 
             // initialize the global query cache
