@@ -275,7 +275,7 @@ class Fisma
         $manager->setAttribute(Doctrine::ATTR_USE_NATIVE_ENUM, true);
 
         // Set up the cache driver and connect to the manager.
-        if(function_exists('apc_fetch') {
+        if(function_exists('apc_fetch')) {
             self::$_isCacheable = true;
 
             $cacheDriver = new Doctrine_Cache_Apc();
