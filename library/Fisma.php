@@ -514,10 +514,18 @@ class Fisma
                 'cache_dir' => Fisma::getPath('cache'),
                 'file_name_prefix' => $identify
             );
-            self::$_cache = Zend_Cache::factory('Core',
-                                                'File',
-                                                $frontendOptions,
-                                                $backendOptions);
+
+            if(self::isCacheable()) {
+                self::$_cache = Zend_Cache::factory('Core',
+                                                    'Apc',
+                                                    $frontendOptions);
+            }
+            else {
+                self::$_cache = Zend_Cache::factory('Core',
+                                                    'File',
+                                                    $frontendOptions,
+                                                    $backendOptions);
+            }
         }
         return self::$_cache;
     }
