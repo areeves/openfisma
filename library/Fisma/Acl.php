@@ -56,11 +56,14 @@ class Fisma_Acl extends Zend_Acl
         if ('root' == $identity) {
             return true;
         }
+
+        $cache = Fisma::getCacheInstance();
         
         // Otherwise, check the ACL
         try {
             $resource = strtolower($resource);
-            $acl = Zend_Registry::get('acl');
+            $acl      = $cache->load("acl_$identity");
+
             if (isset($organization)) {
                 // See User::acl() for explanation of how $organization is used
                 return $acl->isAllowed($identity, "$organization/$resource", $privilege);

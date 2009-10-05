@@ -157,7 +157,9 @@ class User extends BaseUser
      */
     public function acl()
     {
-        if (!Zend_Registry::isRegistered('acl')) {
+        $cache = Fisma::getCacheInstance();
+
+        if(!$acl = $cache->load("acl_$this->username")) {
             $acl = new Fisma_Acl();
             
             // For each role, add its privileges to the ACL
@@ -207,10 +209,10 @@ class User extends BaseUser
             $userRole = new Zend_Acl_Role($this->username);
             $acl->addRole($userRole, $roleArray);
 
-            Zend_Registry::set('acl', $acl);
+            $cache->save($acl, "acl_$this->username");
         }
-        
-        return Zend_Registry::get('acl');
+
+        return $acl;
     }
     
     /**
