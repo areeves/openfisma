@@ -20,7 +20,7 @@
  * @author    Ryan Yang <ryanyang@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id:$
+ * @version   $Id$
  * @package   Model
  */
  
@@ -42,6 +42,20 @@ class System extends BaseSystem
      * @see _initThreatLikelihoodMatrix()
      */
     private $_threatLikelihoodMatrix;
+
+    /**
+     * Declares fields stored in related records that should be indexed along with records in this table
+     * 
+     * @see Asset.php
+     * @todo Doctrine 2.0 might provide a nicer approach for this
+     */
+    public $relationIndex = array(
+        'Organization' => array(
+            'name' => array('type' => 'unstored', 'alias' => 'name'),
+            'nickname' => array('type' => 'unstored', 'alias' => 'nickname'),
+            'description' => array('type' => 'unstored', 'alias' => 'description')
+        )
+    );
 
     /**
      * Map the values to Organization table
@@ -75,7 +89,7 @@ class System extends BaseSystem
         // if the object hasn't identity,
         // then we think it is under the insert status.
         // otherwise it is update status
-        if (empty($this->Organization[0]->id)) {
+        if (empty($this->Organization->id)) {
             $this->state(Doctrine_Record::STATE_TDIRTY);
         } else {
             $this->state(Doctrine_Record::STATE_DIRTY);
@@ -93,7 +107,7 @@ class System extends BaseSystem
         // if the object hasn't identity,
         // then we think it is under the insert status.
         // otherwise it is update status
-        if (empty($this->Organization[0]->id)) {
+        if (empty($this->Organization->id)) {
             $this->state(Doctrine_Record::STATE_TDIRTY);
         } else {
             $this->state(Doctrine_Record::STATE_DIRTY);
@@ -111,7 +125,7 @@ class System extends BaseSystem
         // if the object hasn't identity,
         // then we think it is under the insert status.
         // otherwise it is update status
-        if (empty($this->Organization[0]->id)) {
+        if (empty($this->Organization->id)) {
             $this->state(Doctrine_Record::STATE_TDIRTY);
         } else {
             $this->state(Doctrine_Record::STATE_DIRTY);
@@ -249,7 +263,7 @@ class System extends BaseSystem
      */
     public function delete(Doctrine_Connection $conn = null)
     {
-        $org = $this->Organization[0];
+        $org = $this->Organization;
         return $org->delete($conn);
     }
     
@@ -258,6 +272,16 @@ class System extends BaseSystem
      */
     public function getName() 
     {
-        return $this->Organization[0]->nickname . ' - ' . $this->Organization[0]->name;
+        return $this->Organization->nickname . ' - ' . $this->Organization->name;
+    }
+    
+    /**
+     * A post-update hook to send notifications
+     * 
+     * @param Doctrine_Event $event
+     */
+    public function postUpdate(Doctrine_Event $event)
+    {
+        Notification::notify('SYSTEM_UPDATED', $this->Organization, User::currentUser(), $this->Organization->id);
     }
 }

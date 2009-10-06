@@ -20,7 +20,7 @@
  * @author    Ryan Yang <ryan@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id:$
+ * @version   $Id$
  * @package   Listener
  */
 
@@ -65,7 +65,7 @@ Class SystemListener extends Doctrine_Record_Listener
     public function postSave(Doctrine_Event $event) 
     {
         $system = $event->getInvoker();
-        $org = $system->Organization[0];
+        $org = $system->Organization;
         if ($system->name) {
             $org->name = $system->name;
         }
@@ -81,7 +81,7 @@ Class SystemListener extends Doctrine_Record_Listener
     public function postInsert(Doctrine_Event $event)
     {
         $system = $event->getInvoker();
-        $org = $system->Organization[0];
+        $org = $system->Organization;
         $org->getNode()->insertAsLastChildOf($org->getTable()->find($system->organizationId));
     }
     

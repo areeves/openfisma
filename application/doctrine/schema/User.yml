@@ -1,5 +1,5 @@
 User:
-    listeners: [XssListener, BaseListener, UserListener]
+    listeners: [XssListener, UserListener, IndexListener, NotificationListener]
     
     columns:
         createdTs: timestamp
@@ -11,13 +11,14 @@ User:
             extra:
                 logicalName: User Name
                 purify: plaintext
-                template: true
+                searchIndex: unstored
+                notify: true
             comment: This users unique authentication credential
         password: 
             type: string(255)
             extra: 
                 logicalName: Password
-                template: "true"
+                notify: true
         passwordSalt:
             type: string(10)
             fixed: true
@@ -34,6 +35,8 @@ User:
         locked: 
             type: boolean
             default: false
+            extra:
+                notify: true
         lockTs: timestamp
         lockType: 
             type: enum
@@ -61,28 +64,32 @@ User:
             extra:
                 logicalName: Title
                 purify: plaintext
-                template: true
+                searchIndex: unstored
+                notify: true
             comment: The users position or title within the agency
         nameFirst: 
             type: string(255)
             extra:
                 logicalName: First Name
-                template: true
                 purify: plaintext
+                searchIndex: unstored
+                notify: true
             comment: The users first name
         nameLast: 
             type: string(255)
             extra:
                 logicalName: Last Name
-                template: true
                 purify: plaintext
+                searchIndex: unstored
+                notify: true
             comment: The users last name
         email: 
             type: string(255)
             extra:
                 logicalName: E-mail Address
-                template: true
                 purify: plaintext
+                searchIndex: unstored
+                notify: true
             email: true
             comment: The users primary e-mail address
         emailValidate: 
@@ -94,16 +101,18 @@ User:
             fixed: true
             extra:
                 logicalName: Office Phone
-                template: true
                 purify: plaintext
+                searchIndex: keyword
+                notify: true
             comment: U.S. 10 digit phone number; stored without punctuation
         phoneMobile:
             type: string(10)
             fixed: true
             extra:
                 logicalName: Mobile Phone
-                template: true
                 purify: plaintext
+                searchIndex: keyword
+                notify: true
             comment: U.S. 10 digit phone number, stored as 10 digits without punctuation
         searchColumnsPref:
             type: integer

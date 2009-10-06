@@ -20,7 +20,7 @@
  * @author    Ryan Yang <ryanyang@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id:$
+ * @version   $Id$
  * @package   Model
  */
  
@@ -44,7 +44,7 @@ class SystemDocument extends BaseSystemDocument
     {
         $path = Fisma::getPath('systemDocument')
               . '/'
-              . $this->System->Organization[0]->id
+              . $this->System->Organization->id
               . '/'
               . $this->fileName;
               
