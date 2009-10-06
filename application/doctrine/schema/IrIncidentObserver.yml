@@ -4,5 +4,3 @@ IrIncidentObserver:
             type: integer
         userId: 
             type: integer
-
-

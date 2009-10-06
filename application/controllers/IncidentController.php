@@ -746,7 +746,7 @@ class IncidentController extends BaseController
                
                 $q = Doctrine_Query::create()
                      ->select('s.id, s.roleId, s.sortorder, s.name, s.description')
-                     ->from('IrSteps s')
+                     ->from('IrStep s')
                      ->where('s.workflowid = ?', $subcat->workflowId)
                      ->orderby('s.sortorder');
                     

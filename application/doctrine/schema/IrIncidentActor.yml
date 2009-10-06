@@ -4,4 +4,3 @@ IrIncidentActor:
             type: integer
         userId: 
             type: integer
-

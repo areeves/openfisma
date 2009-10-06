@@ -2,115 +2,184 @@ Incident:
     listeners: [XssListener]
     
     columns:
-        id: 
-            type: integer
-            primary: true
-            autoincrement: true
-
         reporterFirstName: 
             type: string(255)
+            extra:
+                purify: plaintext
+            comment: >
+                The reporter is the user who reports the incident to the organization. The report can be made directly
+                (by logging into OpenFISMA) or can be made indirectly by reporting to an intermediary authority (such
+                as the customer service desk) which has the privilege to enter data into OpenFISMA.
         reporterLastName: 
             type: string(255)
+            extra:
+                purify: plaintext
         reporterTitle: 
             type: string(255)
+            extra:
+                purify: plaintext
         reporterOrganization: 
             type: string(255)
+            extra:
+                purify: plaintext
 
         reporterAddress1: 
             type: string(255)
+            extra:
+                purify: plaintext
         reporterAddress2: 
             type: string(255)
+            extra:
+                purify: plaintext
         reporterCity: 
             type: string(255)
+            extra:
+                purify: plaintext
         reporterState: 
-            type: string(255)
+            type: string(2)
+            extra:
+                purify: plaintext
         reporterZip: 
-            type: string(255)
+            type: string(10)
+            extra:
+                purify: plaintext
 
         reporterPhone: 
-            type: string(255)
+            type: string(10)
+            extra:
+                purify: plaintext
+            comment: 10 digit US number with no symbols (dashes, dots, parentheses, etc.)
         reporterFax: 
-            type: string(255)
+            type: string(10)
+            extra:
+                purify: plaintext
+            comment: 10 digit US number with no symbols (dashes, dots, parentheses, etc.)
         reporterEmail: 
             type: string(255)
+            email: true
+            extra:
+                purify: plaintext
         
         locationBuilding: 
             type: string(255)
+            extra:
+                purify: plaintext
+            comment: The building in which the incident is believed to have occurred
         locationRoom: 
             type: string(255)
+            extra:
+                purify: plaintext
+            comment: The room in which the incident is believed to have occurred
         locationRack: 
             type: string(255)
+            extra:
+                purify: plaintext
+            comment: The server rack where the affected assets are located
 
         incidentTs: 
             type: timestamp
+            comment: The time at which the incident was known or believed to have occurred
         incidentTz: 
             type: enum
             values: [AST, ADT, EST, EDT, CST, CDT, MST, MDT, PST, PDT, AKST, AKDT, HAST, HADT]
+            comment: The timezone in which the incident timestamp belongs
         
         reportTs: 
             type: timestamp
+            comment: The time at which the incident was reported
         reportTz: 
             type: enum
             values: [AST, ADT, EST, EDT, CST, CDT, MST, MDT, PST, PDT, AKST, AKDT, HAST, HADT]
+            comment: The timezone in which the report timestamp belongs
 
         classification:
             type: integer(8)
             unsigned: true
             
         additionalInfo:
-            type: string(1000) 
+            type: string
             extra: 
                 purify: html
 
-
         piiInvolved:
-            boolean
+            type: boolean
+            comment: Indicates whether personally identifiable information was involved
         piiAdditional:
-            type: string(1000) 
+            type: string
+            extra:
+                purify: html
+            comment: Additional space to explain the nature of PII involved
         piiMobileMedia:
-            boolean
+            type: boolean
+            comment: Was the PII stored on mobile media, such as a disc or removable drive?
         piiModileMediaType:
             type: enum
             values: [laptop, disc, document, usb, tape, other]
         piiEncrypted:
             type: boolean
+            comment: Was PII data encrypted on the lost media?
         piiAuthoritiesContacted:
             type: boolean
+            comment: Have the relevant authorities been contacted?
         piiPoliceReport:
             type: boolean
+            comment: Has a police report been filed?
         piiIndividualsCount:
             type: int(10)
+            comment: "The number of individuals potentially compromised by this incident\'s loss of PII"
         piiIndividualsNotification:
             type: boolean
+            comment: Have the affected individuals been contacted?
         piiShipment:
             type: boolean
+            comment: Was the loss of PII due to a shipment?
         piiShipmentSenderContact:
             type: string(255)
+            extra:
+                purify: plaintext
+            comment: Contact information for the company responsible for shipping the PII
         piiShipmentSenderCompany:
             type: string(255)
+            extra:
+                purify: plaintext
         piiShipmentTimeline:
             type: string(255)
+            extra:
+                purify: plaintext
         piiShipmentTrackingNumbers:
             type: string(255)
+            extra:
+                purify: plaintext
 
         hostIp:
-            type: string(255)
+            type: string(15)
+            ip: true
+            extra:
+                purify: plaintext
+            comment: The IP address of the affected host
         hostName:
             type: string(255)
+            extra:
+                purify: plaintext
         hostOs:
             type: enum
             values: [win7, vista, xp, macos, linux, unix]
         hostAdditional:
-            type: string(1000)
+            type: string
             extra: 
                 purify: html
         
         sourceIp:
-            type: string(255)
+            type: string(15)
+            ip: true
+            extra:
+                purify: plaintext
+            comment: The IP address from which the incident is believed to have originated
         sourceAdditional:
-            type: string(1000)
+            type: string
             extra: 
                 purify: html
+            comment: Additional description of the source or origin of the incident
         
         assessmentCritical:
             type: boolean
@@ -119,22 +188,14 @@ Incident:
             values: [low, medium, high]
         
         actionsTaken:
-            type: string(1000)
+            type: string
             extra: 
                 purify: html
+            comment: What actions were taken prior to reporting the incident?
         
         files:
             type: string(255)
-        
-        oigId:
-            type: int(10)
 
         status:
             type: enum
             values: [new, open, resolved, rejected, closed]
-
-
-
-
-
-
