@@ -85,25 +85,6 @@ class MenuController extends SecurityController
             $menubar->add($findings);
         }
 
-            $incidents = new Fisma_Yui_Menu('Incidents');
-          
-            if (Fisma_Acl::hasPrivilege('incident', 'read')) {
-                $incidents->add(new Fisma_Yui_MenuItem('Incident Dashboard', '/panel/incident/sub/dashboard'));
-                $incidents->add(new Fisma_Yui_MenuItem('Search', '/panel/incident/sub/list'));
-            }
-            $incidents->add(new Fisma_Yui_MenuItem('Report Incident', '/panel/incident/sub/create'));
-            if (Fisma_Acl::hasPrivilege('ircategory', 'read')) {
-                $incidents->add(new Fisma_Yui_MenuItem('Manage Categories', '/panel/ircategory/sub/list'));
-            }
-            if (Fisma_Acl::hasPrivilege('irworkflowdef', 'read')) {
-                $incidents->add(new Fisma_Yui_MenuItem('Manage Workflows', '/panel/irworkflow/sub/list'));
-            }
-            if (Fisma_Acl::hasPrivilege('irreport', 'read')) {
-                $incidents->add(new Fisma_Yui_MenuItem('Incident Reports', '/panel/irreport/sub/list'));
-            }
-
-            $menubar->add($incidents);
-
         if (Fisma_Acl::hasPrivilege('system', 'read', '*')) {
             $systems = new Fisma_Yui_Menu('System Inventory');
 
@@ -121,7 +102,26 @@ class MenuController extends SecurityController
             
             $menubar->add($systems);
         }
-        
+
+        $incidents = new Fisma_Yui_Menu('Incidents');
+      
+        if (Fisma_Acl::hasPrivilege('incident', 'read')) {
+            $incidents->add(new Fisma_Yui_MenuItem('Incident Dashboard', '/panel/incident/sub/dashboard'));
+            $incidents->add(new Fisma_Yui_MenuItem('Search', '/panel/incident/sub/list'));
+        }
+        $incidents->add(new Fisma_Yui_MenuItem('Report Incident', '/panel/incident/sub/create'));
+        if (Fisma_Acl::hasPrivilege('ircategory', 'read')) {
+            $incidents->add(new Fisma_Yui_MenuItem('Manage Categories', '/panel/ircategory/sub/list'));
+        }
+        if (Fisma_Acl::hasPrivilege('irworkflowdef', 'read')) {
+            $incidents->add(new Fisma_Yui_MenuItem('Manage Workflows', '/panel/irworkflow/sub/list'));
+        }
+        if (Fisma_Acl::hasPrivilege('irreport', 'read')) {
+            $incidents->add(new Fisma_Yui_MenuItem('Incident Reports', '/panel/irreport/sub/list'));
+        }
+
+        $menubar->add($incidents);
+
         if (Fisma_Acl::hasPrivilege('area','reports')) {
             $reports = new Fisma_Yui_Menu('Reports');
             

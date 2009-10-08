@@ -39,6 +39,7 @@ var readyFunc = function () {
     var calendars = YAHOO.util.Selector.query('.date');
     for(var i = 0; i < calendars.length; i ++) {
         YAHOO.util.Event.on(calendars[i].getAttribute('id')+'_show', 'click', callCalendar, calendars[i].getAttribute('id'));
+        YAHOO.util.Event.on(calendars[i], 'focus', callCalendar, calendars[i].getAttribute('id'));
     }
     
     // switch Aging Totals or Date Opened and End 
@@ -790,4 +791,57 @@ function showCalendar(block, trigger) {
         calendar.render();
     }
     dialog.show();
+}
+
+function updateTimeField(id) {
+    var hiddenEl = document.getElementById(id);
+    var hourEl = document.getElementById(id + 'Hour');
+    var minuteEl = document.getElementById(id + 'Minute');
+    var ampmEl = document.getElementById(id + 'Ampm');
+    
+    var hour = hourEl.value;
+    var minute = minuteEl.value;
+    var ampm = ampmEl.value;
+    
+    if ('PM' == ampm) {
+        hour = parseInt(hour) + 12;
+    }
+    
+    hour = padleft(hour, '0', 2);
+    minute = padleft(minute, '0', 2);    
+    
+    var time = hour + ':' + minute + ':00';
+    hiddenEl.value = time;
+}
+
+function ltrim(str){
+    return str.replace(/^\s+/, '');
+}
+
+function rtrim(str) {
+    return str.replace(/\s+$/, '');
+}
+
+function alltrim(str) {
+    return str.replace(/^\s+|\s+$/g, '');
+}
+
+function padleft(val, ch, num) {
+   var re = new RegExp(".{" + num + "}$");
+   var pad = "";
+   if (!ch) ch = " ";
+   do  {
+       pad += ch;
+   }while(pad.length < num);
+   return re.exec(pad + val)[0];
+}
+
+function padright(val, ch, num){
+   var re = new RegExp("^.{" + num + "}");
+   var pad = "";
+   if (!ch) ch = " ";
+   do {
+       pad += ch;
+   } while (pad.length < num);
+   return re.exec(val + pad)[0];
 }

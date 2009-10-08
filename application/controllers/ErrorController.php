@@ -57,9 +57,9 @@ class ErrorController extends Zend_Controller_Action
             //remind the user to login
             $this->_forward('logout', 'Auth');
         // if the user want to access an empty path.  
-        } elseif (!$auth->hasIdentity()) {
-            $this->view->assign('error', 'Access denied. Please login first.');
-            $this->_forward('logout', 'Auth');
+       // } elseif (!$auth->hasIdentity()) {
+    //        $this->view->assign('error', 'Access denied. Please login first.');
+      //      $this->_forward('logout', 'Auth');
         // if the user has login and meeted an exception.
         } else {
             $this->getResponse()->clearBody();
@@ -87,7 +87,11 @@ class ErrorController extends Zend_Controller_Action
                 //clear the action stack to prevent additional exceptions would be throwed
                 while($stack->popStack());
             }
-            $this->_helper->actionStack('header', 'panel');
+            
+            // Add headers and footers for logged in users
+            if ($auth->hasIdentity()) {
+                $this->_helper->actionStack('header', 'panel');
+            }
         }
     }
 

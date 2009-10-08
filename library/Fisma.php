@@ -134,6 +134,14 @@ class Fisma
     private static $_isInstall = false;
     
     /**
+     * A zend session that OpenFISMA can use without worries about collisions to other frameworks that may
+     * be running.
+     * 
+     * @var Zend_Session_Namespace
+     */
+    private static $_session;
+    
+    /**
      * Initialize the FISMA object
      * 
      * This sets up the root path, include paths, application paths, and then loads the application configuration.
@@ -263,6 +271,7 @@ class Fisma
         $manager = Doctrine_Manager::getInstance();
         $manager->setAttribute(Doctrine::ATTR_USE_DQL_CALLBACKS, true);
         $manager->setAttribute(Doctrine::ATTR_USE_NATIVE_ENUM, true);
+        $manager->setAttribute(Doctrine::ATTR_AUTO_ACCESSOR_OVERRIDE, true);
         Zend_Registry::set('doctrine_config', array(
                'data_fixtures_path'  =>  self::getPath('fixture'),
                'models_path'         =>  self::getPath('model'),
@@ -481,5 +490,20 @@ class Fisma
      */
     public static function now() {
         return date('Y-m-d H:i:s');
+    }
+    
+    /**
+     * Return a Zend_Session_Namespace which is unique to OpenFISMA (won't collide with any other framework
+     * that may be running.)
+     * 
+     * @return Zend_Session_Namespace
+     */
+    public static function getSession()
+    {
+        if (!self::$_session) {
+            self::$_session = new Zend_Session_Namespace('OpenFISMA');
+        }
+        
+        return self::$_session;
     }
 }
