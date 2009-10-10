@@ -306,5 +306,4 @@ class Finding extends BaseFinding
         $auditLog->description = html_entity_decode($description);
         $this->AuditLogs[]     = $auditLog;
     }
-
 }

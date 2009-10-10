@@ -232,7 +232,6 @@ class Fisma_Mail extends Zend_Mail
      *
      * @param int $userId     id of the user that will receive the email
      * @param int $incidentId id of the incident that the email is referencing 
-     * @param int $step       the sortorder of the workflow step that has been completed 
      * 
      */
     public function IRStep($userId, $incidentId)

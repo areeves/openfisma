@@ -15,9 +15,9 @@ elementPrefixPath.type = Validate
 method = "post"
 action = "/panel/incident/sub/classify"
 
-elements.classification.type = "select"
-elements.classification.options.label = "Incident Classification"
-displayGroups.incident.elements.classification = "classification"
+elements.classificationId.type = "select"
+elements.classificationId.options.label = "Incident Classification"
+displayGroups.incident.elements.classificationId = "classificationId"
 
 elements.comment.type = "textarea"
 elements.comment.options.validators.mce.validator = "MceNotEmpty"

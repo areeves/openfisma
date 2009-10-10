@@ -74,8 +74,9 @@ class IRReportController extends SecurityController
         $week_end   = date("Y-m-d", (mktime(0, 0, 0, $month, $day, $year) + ((7-$day_of_week) * 86400)));
 
         $q = Doctrine_Query::create()
-             ->select('i.id, i.classification, i.status')
-             ->from('Incident i')
+            ->select('i.id, i.status, c.name, c.id AS classification')
+            ->from('Incident i')
+            ->leftJoin('i.Classification c')
              ->whereIn('i.status', array('open','resolved','closed'))
              ->andWhere('i.reportTs > ?', $week_start)
              ->andWhere('i.reportTs <= ?', $week_end);
@@ -103,8 +104,9 @@ class IRReportController extends SecurityController
         $month_end   = "$year-$month-$last_day";
 
         $q = Doctrine_Query::create()
-             ->select('i.id, i.classification, i.status')
-             ->from('Incident i')
+            ->select('i.id, i.status, c.name, c.id AS classification')
+            ->from('Incident i')
+            ->leftJoin('i.Classification c')
              ->whereIn('i.status', array('open','resolved','closed'))
              ->andWhere('i.reportTs > ?', $month_start)
              ->andWhere('i.reportTs <= ?', $month_end);
@@ -131,8 +133,9 @@ class IRReportController extends SecurityController
         $year_end   = "$next_year-01-01 00:00:00";
 
         $q = Doctrine_Query::create()
-             ->select('i.id, i.classification, i.status')
-             ->from('Incident i')
+            ->select('i.id, i.status, c.name, c.id AS classification')
+            ->from('Incident i')
+            ->leftJoin('i.Classification c')
              ->whereIn('i.status', array('open','resolved','closed'))
              ->andWhere('i.reportTs > ?', $year_start)
              ->andWhere('i.reportTs <= ?', $year_end);
@@ -165,8 +168,9 @@ class IRReportController extends SecurityController
             }
       
             $q = Doctrine_Query::create()
-                 ->select('i.id, i.classification')
-                 ->from('Incident i')
+                ->select('i.id, i.status, c.name, c.id AS classification')
+                ->from('Incident i')
+                ->leftJoin('i.Classification c')
                  ->whereIn('i.status', array('open','resolved','closed'))
                  ->andWhere('i.reportTs > ?', $weeks[$x]['start'])
                  ->andWhere('i.reportTs <= ?', $weeks[$x]['end']);
@@ -200,8 +204,9 @@ class IRReportController extends SecurityController
             }
       
             $q = Doctrine_Query::create()
-                 ->select('i.id, i.classification')
-                 ->from('Incident i')
+                ->select('i.id, i.status, c.name, c.id AS classification')
+                ->from('Incident i')
+                ->leftJoin('i.Classification c')
                  ->whereIn('i.status', array('open','resolved','closed'))
                  ->andWhere('i.reportTs > ?', '2009-'.$x.'-01')
                  ->andWhere('i.reportTs <= ?', '2009-'.str_pad(($x+1), 2, "0", STR_PAD_LEFT).'-01');
@@ -232,8 +237,9 @@ class IRReportController extends SecurityController
             }
       
             $q = Doctrine_Query::create()
-                 ->select('i.id, i.classification')
-                 ->from('Incident i')
+                ->select('i.id, i.status, c.name, c.id AS classification')
+                ->from('Incident i')
+                ->leftJoin('i.Classification c')
                  ->whereIn('i.status', array('open','resolved','closed'))
                  ->andWhere('i.reportTs > ?', $x.'-01-01')
                  ->andWhere('i.reportTs <= ?', ($x+1).'-01-01');
@@ -309,9 +315,10 @@ class IRReportController extends SecurityController
         }
 
         $q = Doctrine_Query::create()
-             ->select('i.id, i.status, i.additionalInfo, i.piiInvolved, i.reportTs, i.classification')
+             ->select('i.id, i.status, c.name, c.id AS classification')
              ->from('Incident i')
-             ->Where('i.reportTs > ?',     $start_date)
+             ->leftJoin('i.Classification c')
+             ->where('i.reportTs > ?',     $start_date)
              ->andWhere('i.reportTs <= ?', $end_date)
              ->whereIn('i.classification', $cats)
              ->whereIn('i.status', $status_arr)
@@ -394,8 +401,9 @@ class IRReportController extends SecurityController
         $week_end   = date("Y-m-d", (mktime(0, 0, 0, $month, $day, $year) + ((7-$day_of_week) * 86400)));
 
         $q = Doctrine_Query::create()
-             ->select('i.id, i.classification, i.status')
+             ->select('i.id, i.status, c.name, c.id AS classification')
              ->from('Incident i')
+             ->leftJoin('i.Classification c')
              ->whereIn('i.status', array('open','resolved','closed'))
              ->andWhere('i.reportTs > ?', $week_start)
              ->andWhere('i.reportTs <= ?', $week_end);
@@ -424,8 +432,9 @@ class IRReportController extends SecurityController
         $month_end   = "$year-$month-$last_day";
 
         $q = Doctrine_Query::create()
-             ->select('i.id, i.classification, i.status')
-             ->from('Incident i')
+            ->select('i.id, i.status, c.name, c.id AS classification')
+            ->from('Incident i')
+            ->leftJoin('i.Classification c')
              ->whereIn('i.status', array('open','resolved','closed'))
              ->andWhere('i.reportTs > ?', $month_start)
              ->andWhere('i.reportTs <= ?', $month_end);
@@ -453,8 +462,9 @@ class IRReportController extends SecurityController
         $year_end   = "$next_year-01-01 00:00:00";
 
         $q = Doctrine_Query::create()
-             ->select('i.id, i.classification, i.status')
-             ->from('Incident i')
+            ->select('i.id, i.status, c.name, c.id AS classification')
+            ->from('Incident i')
+            ->leftJoin('i.Classification c')
              ->whereIn('i.status', array('open','resolved','closed'))
              ->andWhere('i.reportTs > ?', $year_start)
              ->andWhere('i.reportTs <= ?', $year_end);

@@ -52,7 +52,9 @@ class Incident extends BaseIncident
      */
     public function setReportingUser($user)
     {
-        die('it worked!');
+        // Since we're overridding the setter, we have to manipulate the ids directly
+        $this->reportingUserId = $user->id;
+        
         unset($this->reporterTitle);
         unset($this->reporterFirstName);
         unset($this->reporterLastName);

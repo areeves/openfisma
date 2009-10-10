@@ -253,6 +253,9 @@ Incident:
         reportingUserId:
             type: integer
             comment: Foreign key to the user who reported this incident
+        classificationId:
+            type: integer
+            comment: Foreign key to the IR sub category in which this incident belongs
 
     relations:
         ReportingUser:
@@ -260,3 +263,17 @@ Incident:
             local: reportingUserId
             foreign: id
             foreignType: one
+        Classification:
+            class: IrSubCategory
+            local: classificationId
+            foreign: id
+        Actors:
+            class: User
+            local: incidentId
+            foreign: userId
+            refClass: IrIncidentActor
+        Observers:
+            class: User
+            local: incidentId
+            foreign: userId
+            refClass: IrIncidentObserver

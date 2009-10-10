@@ -55,7 +55,7 @@ class LoadSampleData
     
         print "This may take several minutes...\n";
         $sampleDataPath = Fisma::getPath('sampleData');
-        Doctrine::loadData($sampleDataPath);
+        Doctrine::loadData($sampleDataPath, true);
         
         $stopTime = time();
         print("Elapsed time: " . ($stopTime - $startTime) . " seconds\n");

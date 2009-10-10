@@ -164,10 +164,10 @@ class IRWorkflowController extends SecurityController
             $wfs[$key]['children'] =  ''; 
 
             $q2 = Doctrine_Query::create()
-                  ->select('s.name, s.sortorder, s.workflowId')
+                  ->select('s.name, s.cardinality, s.workflowId')
                   ->from('IrStep s')
                   ->where('s.workflowId = ?', $val['id'])
-                  ->orderBy('s.sortorder');
+                  ->orderBy('s.cardinality');
 
             $wfs[$key]['children'] = $q2->execute()->toArray();
             foreach($wfs[$key]['children'] as $key2 => $val2) {
@@ -411,22 +411,22 @@ class IRWorkflowController extends SecurityController
         
         $form->getElement('roleId')->addMultiOptions($roles);
 
-        /* Get max sortorder */ 
+        /* Get max cardinality */ 
         $q = Doctrine_Query::create()
-             ->select('max(s.sortorder) as sortorder')
+             ->select('max(s.cardinality) as cardinality')
              ->from('IrStep s');
  
         $max = $q->execute()->toArray();        
 
-        for ($x==1; $x<=$max[0]['sortorder']; $x+=1) {
-            $sortorders[$x] = $x;
+        for ($x==1; $x<=$max[0]['cardinality']; $x+=1) {
+            $cardinalitys[$x] = $x;
         }
 
         foreach($wfs as $key => $val) {
             $workflows[$val['id']] = $val['name']; 
         } 
         
-        $form->getElement('sortorder')->addMultiOptions($sortorders);
+        $form->getElement('cardinality')->addMultiOptions($cardinalitys);
 
         return Fisma_Form_Manager::prepareForm($form);
     }
@@ -570,7 +570,7 @@ class IRWorkflowController extends SecurityController
         $q = Doctrine_Query::create()
              ->select('s.id, s.workflowId')
              ->from('IrStep s')
-             ->orderBy('s.workflowId, s.sortorder, s.modifiedTs DESC');
+             ->orderBy('s.workflowId, s.cardinality, s.modifiedTs DESC');
 
         $wfs = $q->execute()->toArray();
 
@@ -590,7 +590,7 @@ class IRWorkflowController extends SecurityController
            
         foreach($updates as $key => $val) {
             $irworkflow = Doctrine::getTable('IrStep')->find($key);
-            $irworkflow->sortorder = $val;
+            $irworkflow->cardinality = $val;
             $irworkflow->save();
         }
     }

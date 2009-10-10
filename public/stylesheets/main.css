@@ -214,7 +214,7 @@ table.keyValues tr:nth-child(even) {
 
 table.keyValues td {
     padding: 2px 5px;
-    vertical-align: top;
+    vertical-align: middle;
 }
 
 /* The first column in a keyValues table is bold text */

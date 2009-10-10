@@ -19,9 +19,9 @@ elements.roleId.type = "select"
 elements.roleId.options.label = "Role"
 displayGroups.irworkflowstep.elements.roleId = "roleId"
 
-elements.sortorder.type = "select"
-elements.sortorder.options.label = "Sort Order"
-displayGroups.irworkflowstep.elements.sortorder = "sortorder"
+elements.cardinality.type = "select"
+elements.cardinality.options.label = "Sort Order"
+displayGroups.irworkflowstep.elements.cardinality = "cardinality"
 
 elements.name.type = "text"
 elements.name.options.label = "Name"
