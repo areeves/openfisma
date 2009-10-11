@@ -439,4 +439,20 @@ class User extends BaseUser
         
         return $query;      
     }
+
+    /**
+     * Renders a user object to HTML
+     * 
+     * @return string
+     */
+    public function __toString()
+    {
+        $render = $this->username;
+
+        if (Fisma_Acl::hasPrivilege('user', 'read')) {
+            $render = "<a href='/panel/user/sub/view/id/{$this->id}'>$render</a>";
+        }
+
+        return $render;
+    }
 }

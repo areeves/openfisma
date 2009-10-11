@@ -250,6 +250,9 @@ Incident:
             type: enum
             values: [new, open, resolved, rejected, closed]
 
+        workflowId:
+            type: integer
+            comment: Foreign key to the workflow for this incident
         reportingUserId:
             type: integer
             comment: Foreign key to the user who reported this incident
@@ -258,6 +261,15 @@ Incident:
             comment: Foreign key to the IR sub category in which this incident belongs
 
     relations:
+        Workflow:
+            class: IrIncidentWorkflow
+            local: irIncidentWorkflowId
+            foreign: id
+        ClonedFromIncident:
+            class: Incident
+            local: origIncidentId
+            foreign: cloneIncidentId
+            refClass: IrClonedIncident
         ReportingUser:
             class: User
             local: reportingUserId

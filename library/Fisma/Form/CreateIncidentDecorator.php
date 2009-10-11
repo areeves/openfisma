@@ -43,6 +43,8 @@ class Fisma_Form_CreateIncidentDecorator extends Fisma_Form_FismaDecorator
     public function render($content) 
     {
         $element = $this->getElement();
+        
+        $content = trim($content);
  
         // Render the HTML 4.01 strict markup for the form and form elements.
         if ($element instanceof Zend_Form_Element) {
@@ -101,9 +103,11 @@ class Fisma_Form_CreateIncidentDecorator extends Fisma_Form_FismaDecorator
                 . '</td></tr>';
             }
         } elseif ($element instanceof Zend_Form_DisplayGroup) {
-            $render = '<div class=\'subform\'><table class=\'fisma_crud\'>'
-            . $content
-            . '</table></div><br clear="all" />';
+            if (!empty($content)) {
+                $render = '<div class=\'subform\'><table class=\'fisma_crud\'>'
+                        . $content
+                        . '</table></div><br clear="all" />';
+            }
         } elseif ($element instanceof Zend_Form) {
             $enctype = $element->getAttrib('enctype');
             $id      = $element->getAttrib('id');
