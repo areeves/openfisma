@@ -608,7 +608,7 @@ class IncidentController extends MessageController
         $this->_helper->layout->disableLayout();
         $incidentId = $this->_request->getParam('id');
         $this->_assertCurrentUserCanViewIncident($incidentId);
-        $this->view->assign('id', $incident_id);
+        $this->view->assign('id', $incidentId);
        
         $this->view->assign('cloneId', $this->_getClone($incidentId));
 
