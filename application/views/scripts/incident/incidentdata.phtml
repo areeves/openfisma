@@ -55,7 +55,7 @@
         <td colspan="3" style="text-align: left"><h1>Incident Details:</h1></td>
     </tr>
     <?php
-    if ($this->incident->ReportingUser):
+    if (isset($this->incident->ReportingUser)):
     ?>
         <tr>
             <td>Reporting User:</td>
