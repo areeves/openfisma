@@ -21,12 +21,12 @@ Configuration:
 
     sender:
         name: sender
-        value: 
+        value: openfisma@agency.gov
         description: Send Email Address
 
     subject:
         name: subject
-        value: 
+        value: OpenFISMA Notification
         description: Email Subject
 
     smtp_host:

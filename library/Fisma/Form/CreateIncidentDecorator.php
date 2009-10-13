@@ -47,7 +47,9 @@ class Fisma_Form_CreateIncidentDecorator extends Fisma_Form_FismaDecorator
         $content = trim($content);
  
         // Render the HTML 4.01 strict markup for the form and form elements.
-        if ($element instanceof Zend_Form_Element) {
+        if ($element instanceof Zend_Form_Element_Hidden) {
+            $render = $this->buildInput();
+        } elseif ($element instanceof Zend_Form_Element) {
             if (in_array($element->getName(), array('reporterTitle','reporterFirstName','reporterLastName'))) {
                 $render = '<td>'
                 .   $this->buildLabel()

@@ -256,14 +256,14 @@ Incident:
         reportingUserId:
             type: integer
             comment: Foreign key to the user who reported this incident
-        classificationId:
+        categoryId:
             type: integer
             comment: Foreign key to the IR sub category in which this incident belongs
 
     relations:
         Workflow:
             class: IrIncidentWorkflow
-            local: irIncidentWorkflowId
+            local: workflowId
             foreign: id
         ClonedFromIncident:
             class: Incident
@@ -275,9 +275,9 @@ Incident:
             local: reportingUserId
             foreign: id
             foreignType: one
-        Classification:
+        Category:
             class: IrSubCategory
-            local: classificationId
+            local: categoryId
             foreign: id
         Actors:
             class: User

@@ -15,9 +15,9 @@ elementPrefixPath.type = Validate
 method = "post"
 action = "/panel/incident/sub/classify"
 
-elements.classificationId.type = "select"
-elements.classificationId.options.label = "Incident Classification"
-displayGroups.incident.elements.classificationId = "classificationId"
+elements.categoryId.type = "select"
+elements.categoryId.options.label = "Incident Category"
+displayGroups.incident.elements.categoryId = "categoryId"
 
 elements.comment.type = "textarea"
 elements.comment.options.validators.mce.validator = "MceNotEmpty"
@@ -32,13 +32,13 @@ elements.pii.options.label="Assign Privacy Advocate"
 displayGroups.incident.elements.pii="pii"
 
 elements.oig.type="select"
-elements.oig.options.label="Contact OIG"
+elements.oig.options.label="Assign OIG"
 displayGroups.incident.elements.oig="oig"
 
 elements.Open.type = "Form_Button_Submit"
 elements.Open.options.value = "Open Incident"
-displayGroups.incdient.elements.Open = "Open"
+displayGroups.incident.elements.Open = "Open"
 
 elements.Reject.type = "Form_Button_Submit"
 elements.Reject.options.value = "Reject Incident"
-displayGroups.incdient.elements.Reject = "Reject"
+displayGroups.incident.elements.Reject = "Reject"
