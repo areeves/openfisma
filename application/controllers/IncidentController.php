@@ -578,69 +578,14 @@ class IncidentController extends MessageController
         
         $status = ($this->_request->getParam('status')) ? $this->_request->getParam('status') : 'new';
         $this->view->assign('status', $status);
+
+        $this->view->assign('startDt', $this->_request->getParam('startDt'));
+        
+        $this->view->assign('endDt',   $this->_request->getParam('endDt'));
         
         $this->view->assign('keywords',   $this->_request->getParam('keywords'));
 
         $this->render('list');
-    }
-
-    /** 
-     * Search the subject 
-     *
-     * This outputs a json object. Allowing fulltext search from each record enpowered by lucene
-     */
-    public function searchAction()
-    {
-        Fisma_Acl::requirePrivilege('incident', 'read');
-        $sortBy = $this->_request->getParam('sortby', 'id');
-        $order  = $this->_request->getParam('order');
-        $keywords  = $this->_request->getParam('keywords'); 
-
-        //filter the sortby to prevent sqlinjection
-        $subjectTable = Doctrine::getTable($this->_modelName);
-        if (!in_array(strtolower($sortBy), $subjectTable->getColumnNames())) {
-            return $this->_helper->json('Invalid "sortBy" parameter');
-        }
-
-        $order = strtoupper($order);
-        if ($order != 'DESC') {
-            $order = 'ASC'; //ignore other values
-        }
-        
-        $query  = Doctrine_Query::create()
-                    ->select('*')->from($this->_modelName)
-                    ->orderBy("$sortBy $order")
-                    ->limit($this->_paging['count'])
-                    ->offset($this->_paging['startIndex']);
-
-        //initialize the data rows
-        $tableData    = array('table' => array(
-                            'recordsReturned' => 0,
-                            'totalRecords'    => 0,
-                            'startIndex'      => $this->_paging['startIndex'],
-                            'sort'            => $sortBy,
-                            'dir'             => $order,
-                            'pageSize'        => $this->_paging['count'],
-                            'records'         => array()
-                        ));
-        if (!empty($keywords)) {
-            // lucene search 
-            $index = new Fisma_Index($this->_modelName);
-            $ids = $index->findIds($keywords);
-            if (!empty($ids)) {
-                $query->whereIn('id', $ids);
-            } else {
-                //no data
-                return $this->_helper->json($tableData);
-            }
-        }
-        
-        $totalRecords = $query->count();
-        $rows         = $query->execute()->toArray();
-        $tableData['table']['recordsReturned'] = count($rows);
-        $tableData['table']['totalRecords'] = $totalRecords;
-        $tableData['table']['records'] = $rows;
-        return $this->_helper->json($tableData);
     }
 
     public function searchboxAction() 
@@ -1282,6 +1227,90 @@ class IncidentController extends MessageController
         $this->_forward('actor'); 
     }
  
+    /**
+     * list the incidents from the search, 
+     * if search none, list all incidents
+     */
+    public function searchAction()
+    {
+        Fisma_Acl::requirePrivilege('incident', 'read');
+        $keywords = trim($this->_request->getParam('keywords'));
+
+        $this->_helper->layout->setLayout('ajax');
+        $this->_helper->viewRenderer->setNoRender();
+        $sortBy = $this->_request->getParam('sortby', 'reportTs');
+        $order = $this->_request->getParam('order');
+        $status = array($this->_request->getParam('status'));
+
+        if($status[0] == 'resolved') {
+            $status[] = 'rejected';
+        }  
+       
+        $organization = Doctrine::getTable('Incident');
+        if (!in_array(strtolower($sortBy), $organization->getColumnNames())) {
+            throw new Fisma_Exception('Invalid "sortBy" parameter');
+        }
+        
+        $order = strtoupper($order);
+        if ($order != 'DESC') {
+            $order = 'ASC'; //ignore other values
+        }
+        
+        $q = $this->_getUserIncidentQuery()
+             ->select('i.id, i.additionalInfo, i.status, i.piiInvolved, i.reportTs, c.name')
+             ->leftJoin('i.Category c')
+             ->orderBy("i.$sortBy $order")
+             ->offset($this->_paging['startIndex'])
+             ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+
+        if ($status[0] != 'all') {
+            $q->whereIn('i.status', $status);
+        }
+
+        if ($this->_request->getParam('startDt')) {
+            $q->andWhere('i.reportTs > ?', $this->_request->getParam('startDt'));
+        }
+        
+        if ($this->_request->getParam('endDt')) {
+            $q->andWhere('i.reportTs < ?', $this->_request->getParam('endDt'));
+        }
+        
+        if ($keywords) {
+            // lucene search 
+            $index = new Fisma_Index('Incident');
+            $ids = $index->findIds($keywords);
+            if (!empty($ids)) {
+                $q->whereIn('id', $ids);
+            }
+        }
+
+        $totalRecords = $q->count();
+        $incidents = $q->execute();
+
+        foreach ($incidents as $key => $val) {
+            $incidents[$key]['category'] = $incidents[$key]['Category']['name'];
+
+            if ($incidents[$key]['piiInvolved']) {
+                $incidents[$key]['piiInvolved'] = '&#10004;';
+            } else {
+                $incidents[$key]['piiInvolved'] = '&#10007;';
+            }
+
+        }
+ 
+        $tableData = array('table' => array(
+            'recordsReturned' => count($incidents),
+            'totalRecords' => $totalRecords,
+            'startIndex' => $this->_paging['startIndex'],
+            'sort' => $sortBy,
+            'dir' => $order,
+            'pageSize' => $this->_paging['count'],
+            'records' => $incidents,
+        ));
+        
+        echo json_encode($tableData);
+    }
+
     public function editAction() 
     {        
         $incident_id = $this->_request->getParam('id');
