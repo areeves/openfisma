@@ -107,7 +107,7 @@ class PanelController extends SecurityController
     {
         $req = $this->getRequest();
         $sub = $req->getParam('sub');
-        $this->_helper->actionStack($sub, 'IRCategory');
+        $this->_helper->actionStack($sub, 'ir-category');
         $this->_helper->actionStack('header');
     }
     
@@ -118,7 +118,7 @@ class PanelController extends SecurityController
     {
         $req = $this->getRequest();
         $sub = $req->getParam('sub');
-        $this->_helper->actionStack($sub, 'IRWorkflow');
+        $this->_helper->actionStack($sub, 'ir-workflow');
         $this->_helper->actionStack('header');
     }
 
@@ -129,7 +129,7 @@ class PanelController extends SecurityController
     {
         $req = $this->getRequest();
         $sub = $req->getParam('sub');
-        $this->_helper->actionStack($sub, 'IRReport');
+        $this->_helper->actionStack($sub, 'ir-report');
         $this->_helper->actionStack('header');
     }
 
