@@ -340,6 +340,9 @@ class IRWorkflowController extends SecurityController
             if ($form->isValid($wfsValues)) {
                 $wfsValues = $form->getValues();
                 $irworkflowstep = new IrStep();
+                if (empty($wfsValues['roleId'])) {
+                    unset($wfsValues['roleId']);
+                }
                 $irworkflowstep->merge($wfsValues);
                 
                 // save the data, if failure then return false
@@ -494,6 +497,9 @@ class IRWorkflowController extends SecurityController
        
         if ($form->isValid($wfsValues)) {
             $isModify = false;
+            if (empty($wfsValues['roleId'])) {
+                unset($wfsValues['roleId']);
+            }
             $irworkflowstep->merge($wfsValues);
 
             if ($irworkflowstep->isModified()) {
@@ -532,6 +538,8 @@ class IRWorkflowController extends SecurityController
         $id = $this->_request->getParam('id');
         $irworkflow = Doctrine::getTable('IrWorkflowDef')->find($id);
         if ($irworkflow) {
+            $irworkflow->Steps->delete();
+            $irworkflow->unlink('SubCategories');
             if ($irworkflow->delete()) {
                 $msg = "Workflow deleted successfully";
                 $model = self::M_NOTICE;
@@ -575,7 +583,7 @@ class IRWorkflowController extends SecurityController
         $q = Doctrine_Query::create()
              ->select('s.id, s.workflowId')
              ->from('IrStep s')
-             ->orderBy('s.workflowId, s.cardinality, s.modifiedTs DESC');
+             ->orderBy('s.workflowId, s.cardinality DESC');
 
         $wfs = $q->execute()->toArray();
 
