@@ -31,7 +31,7 @@
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
  */
-class IRCategoryController extends SecurityController
+class IrCategoryController extends SecurityController
 {
     private $_paging = array(
         'startIndex' => 0,
@@ -125,7 +125,6 @@ class IRCategoryController extends SecurityController
         echo json_encode($tableData);
     }
     
-
     /**
      *  Render the form for searching the ircategories.
      */
@@ -142,6 +141,7 @@ class IRCategoryController extends SecurityController
      */
     public function treeAction() 
     {
+        Fisma_Acl::requirePrivilege('ircategory', 'read');
         $this->searchbox();
         $this->render('tree');        
     }
