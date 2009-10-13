@@ -44,6 +44,7 @@ class OptimizeIndexes
         'AccountLog',
         'Asset',
         'Finding',
+        'Incident',
         'Network',
         'Organization',
         'Product',
