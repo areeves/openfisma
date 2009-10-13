@@ -71,10 +71,6 @@ function contextMenuHandler(event, eventArgs) {
     // To get the ID of the workflow related to this event, we have to do some circuitous logic:
     // First, get the parent item in the treeview (it is identified by having the class 'ygtvitem')
     parent = YAHOO.util.Dom.getAncestorByClassName(target, "ygtvitem");
-
-    // Now the workflow id
-
-    console.log(treeMap[parent.id]);
  
     var wfid = treeMap[parent.id]['workflow_id'];
     var id   = treeMap[parent.id]['id'];
