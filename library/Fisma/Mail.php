@@ -37,9 +37,10 @@ class Fisma_Mail extends Zend_Mail
 
     public function __construct()
     {
-        $view       = new Zend_View();
-        $contentTpl = $view->setScriptPath(Fisma::getPath('application') . '/views/scripts/mail');
-        $this->_contentTpl = $contentTpl;
+        $view = new Zend_View();
+        $this->_contentTpl = $view->setScriptPath(Fisma::getPath('application') . '/views/scripts/mail');
+        $view->addHelperPath(Fisma::getPath('viewHelper'), 'View_Helper_');
+        
         $this->setFrom(Configuration::getConfig('sender'), Configuration::getConfig('system_name'));
     }
 
@@ -158,7 +159,6 @@ class Fisma_Mail extends Zend_Mail
         $this->addTo($user->email, $user->nameFirst . ' ' . $user->nameLast);
         $this->setSubject("A new incident has been reported.");
         
-        $this->_contentTpl->host       = Zend_Controller_Front::getInstance()->getRequest()->getHttpHost();
         $this->_contentTpl->incidentId = $incidentId;
         
         $content = $this->_contentTpl->render('IRReported.phtml');
@@ -186,7 +186,6 @@ class Fisma_Mail extends Zend_Mail
         $this->addTo($user->email, $user->nameFirst . ' ' . $user->nameLast);
         $this->setSubject("You have been assigned to a new incident.");
         
-        $this->_contentTpl->host       = Zend_Controller_Front::getInstance()->getRequest()->getHttpHost();
         $this->_contentTpl->incidentId = $incidentId;
         
         $content = $this->_contentTpl->render('IRAssign.phtml');
@@ -214,7 +213,6 @@ class Fisma_Mail extends Zend_Mail
         $this->addTo($user->email, $user->nameFirst . ' ' . $user->nameLast);
         $this->setSubject("An incident has been opened.");
         
-        $this->_contentTpl->host       = Zend_Controller_Front::getInstance()->getRequest()->getHttpHost();
         $this->_contentTpl->incidentId = $incidentId;
         
         $content = $this->_contentTpl->render('IROpen.phtml');
@@ -228,13 +226,14 @@ class Fisma_Mail extends Zend_Mail
     }
 
     /**
-     * Notify users that an incident workflow step has been completed
+     * Notify a user that an incident workflow step has been completed
      *
-     * @param int $userId     id of the user that will receive the email
-     * @param int $incidentId id of the incident that the email is referencing 
-     * 
+     * @param int $userId ID of the user that will receive the email
+     * @param int $incidentId
+     * @param string $workflowStep Description of the completed step
+     * @param string $workflowCompletedBy Name of user who completed the step
      */
-    public function IRStep($userId, $incidentId)
+    public function IRStep($userId, $incidentId, $workflowStep, $workflowCompletedBy)
     {
         $user = new User();
         $user = $user->getTable()->find($userId);
@@ -242,7 +241,8 @@ class Fisma_Mail extends Zend_Mail
         $this->addTo($user->email, $user->nameFirst . ' ' . $user->nameLast);
         $this->setSubject("A workflow step has been completed.");
         
-        $this->_contentTpl->host       = Zend_Controller_Front::getInstance()->getRequest()->getHttpHost();
+        $this->_contentTpl->workflowStep = $workflowStep;
+        $this->_contentTpl->workflowCompletedBy = $workflowCompletedBy;
         $this->_contentTpl->incidentId = $incidentId;
         
         $content = $this->_contentTpl->render('IRStep.phtml');
@@ -270,7 +270,6 @@ class Fisma_Mail extends Zend_Mail
         $this->addTo($user->email, $user->nameFirst . ' ' . $user->nameLast);
         $this->setSubject("A comment has been added to an incident.");
         
-        $this->_contentTpl->host       = Zend_Controller_Front::getInstance()->getRequest()->getHttpHost();
         $this->_contentTpl->incidentId = $incidentId;
         
         $content = $this->_contentTpl->render('IRComment.phtml');
@@ -298,7 +297,6 @@ class Fisma_Mail extends Zend_Mail
         $this->addTo($user->email, $user->nameFirst . ' ' . $user->nameLast);
         $this->setSubject("An incident has been resolved.");
         
-        $this->_contentTpl->host       = Zend_Controller_Front::getInstance()->getRequest()->getHttpHost();
         $this->_contentTpl->incidentId = $incidentId;
         
         $content = $this->_contentTpl->render('IRResolve.phtml');
@@ -326,7 +324,6 @@ class Fisma_Mail extends Zend_Mail
         $this->addTo($user->email, $user->nameFirst . ' ' . $user->nameLast);
         $this->setSubject("An incident has been closed.");
         
-        $this->_contentTpl->host       = Zend_Controller_Front::getInstance()->getRequest()->getHttpHost();
         $this->_contentTpl->incidentId = $incidentId;
         
         $content = $this->_contentTpl->render('IRClose.phtml');

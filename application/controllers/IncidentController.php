@@ -812,8 +812,6 @@ class IncidentController extends MessageController
 
     /**
      * Updates incident to show that a particular step has been completed
-     *
-     * @return null
      */
     public function completestepAction() {
         $incident_id = $this->_request->getParam('id');
@@ -829,6 +827,8 @@ class IncidentController extends MessageController
         $step->User       = User::currentUser();
         $step->completeTs = date('Y-m-d H:i:s');
         $step->save();
+        $workflowDescription = $step->name;
+        $workflowCompletedBy = $step->User->username;
         
         $step_completed      = $step_id;
         $step_completed_sort = $step->cardinality;
@@ -868,7 +868,7 @@ class IncidentController extends MessageController
 
         foreach($this->_getAssociatedUsers($incident_id) as $userid) {
             $mail = new Fisma_Mail();
-            $mail->IRStep($userid, $incident_id);
+            $mail->IRStep($userid, $incident_id, $workflowDescription, $workflowCompletedBy);
         }
 
         $this->view->assign('step_completed', $step_completed);
