@@ -25,22 +25,44 @@
  */
 
 /**
+ * A "section" is a rectangular area on an HTML page that has a title bar and a content area
+ * 
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
  * @package   Fisma_Format
  */
-class Fisma_Format_Section {
-    /** @yui document this class */
-    static function startSection($title, $editableTarget = null) {
-        if (isset($editableTarget)) {
-            print "<div class='sectionHeader'><span class='editable' target='$editableTarget'>$title</span></div>\n"
+class Fisma_Format_Section 
+{
+    /**
+     * Starts a web page section.
+     * 
+     * This emits a rectangular box on the page with a title bar and a content area.
+     * 
+     * @param string $title Text that appears in the title bar
+     * @param string $editableTarget Set to the id of an editable field (optional)
+     * @param string $anchorName An anchor name attribute (optional)
+     */
+    static function startSection($title, $editableTarget = null, $anchorName = null) 
+    {
+        $anchorStartTag = isset($anchorName) ? "<a name='$anchorName'>" : '';
+        $anchorEndTag = isset($anchorName) ? "</a>" : '';
+
+        $editableText = isset($editableTarget) ? "class='editable' target='$editableTarget'" : '';
+
+        $render = "<div class='sectionHeader'>"
+                . "<span $editableText>{$anchorStartTag}{$title}{$anchorEndTag}</span></div>"
                 . "<div class='section'>";
-        } else {
-            print "<div class='sectionHeader'>$title</div>\n<div class='section'>";
-        } 
+
+        print $render;
     }
     
-    static function stopSection() {
+    /**
+     * Ends a web page section
+     * 
+     * This method must always be called once for each startSection() call in order to close each section correctly
+     */
+    static function stopSection() 
+    {
         print "<div class='clear'></div></div>\n";
     }
 }

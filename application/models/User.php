@@ -160,6 +160,11 @@ class User extends BaseUser
         if (!Zend_Registry::isRegistered('acl')) {
             $acl = new Fisma_Acl();
             
+            // If the user doesn't have any roles, then they don't have any privileges, either                
+            if (count($this->Roles) <= 0) {
+                return $acl;
+            }
+
             // For each role, add its privileges to the ACL
             $roleArray = array();
             foreach ($this->Roles as $role) {

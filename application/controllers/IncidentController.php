@@ -120,7 +120,6 @@ class IncidentController extends MessageController
                         'open'     => 0,
                         'resolved' => 0,
                         'rejected' => 0,
-                        'closed'   => 0,
                     );
 
         $q = Doctrine_Query::create() 
@@ -130,7 +129,9 @@ class IncidentController extends MessageController
 
         $data = $q->execute()->toArray();
         foreach ($data as $key => $item) {
-            $arrTotal[$item['status']] = $item['count'];
+            if (isset($arrTotal[$item['status']])) {
+                $arrTotal[$item['status']] = $item['count'];
+            }
         }
 
         $this->view->summary = $arrTotal;
@@ -138,6 +139,8 @@ class IncidentController extends MessageController
 
    /**
      * statistics per status 
+     * 
+     * @todo this has horrendous performance
      */
     public function totalcategoryAction()
     {
@@ -160,7 +163,7 @@ class IncidentController extends MessageController
                  ->select('count(*) as count')
                  ->from('Incident i')
                  ->whereIn('i.categoryId', $ids)
-                 ->whereIn('i.status', array('open','resolved','closed'));       
+                 ->andWhere('i.status <> ?', array('closed'));
 
             $data = $q->execute()->toArray();
             $arrTotal[$cat] = $data[0]['count'];

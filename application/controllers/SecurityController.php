@@ -62,9 +62,6 @@ class SecurityController extends MessageController
         
         // Verify that the user is authenticated, and store a reference to the authenticated user credentials
         $auth = Zend_Auth::getInstance();
-        //use the consistent storage
-        $auth->setStorage(new Fisma_Auth_Storage_Session());
-
         if ($auth->hasIdentity()) {
             if (isset($redirectInfo->page)) {
                 unset($redirectInfo->page);

@@ -320,6 +320,11 @@ class Fisma
                         'action' => 'error'));
             $frontController->registerPlugin($eHandler);
         }
+        
+        // Configure authentication storage
+        $auth = Zend_Auth::getInstance();
+        $auth->setStorage(new Fisma_Auth_Storage_Session());
+        
         // Configure the views
         $view = Zend_Layout::getMvcInstance()->getView();
         $view->addHelperPath(self::getPath('viewHelper'), 'View_Helper_');
