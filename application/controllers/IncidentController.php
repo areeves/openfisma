@@ -772,7 +772,7 @@ class IncidentController extends MessageController
         $cloneLink->save();
 
         $this->message('The incident has been cloned.', self::M_NOTICE);
-        $this->_forward('dashboard');
+        $this->_redirect('/panel/incident/sub/dashboard');
     }
         
 
