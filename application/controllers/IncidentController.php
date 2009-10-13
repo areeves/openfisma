@@ -340,10 +340,10 @@ class IncidentController extends MessageController
                 }
                 break;
             case 4:
-                $this->_createBoolean(&$formPart, array('piiInvolved'));
+                $this->_createBoolean($formPart, array('piiInvolved'));
                 break;
             case 5:
-                $this->_createBoolean(&$formPart, array('piiMobileMedia', 
+                $this->_createBoolean($formPart, array('piiMobileMedia', 
                                                         'piiEncrypted', 
                                                         'piiAuthoritiesContacted', 
                                                         'piiPoliceReport',
@@ -356,7 +356,7 @@ class IncidentController extends MessageController
                 }
                 break;
             case 6:
-                $this->_createBoolean(&$formPart, array('piiShipmentSenderContact'));
+                $this->_createBoolean($formPart, array('piiShipmentSenderContact'));
                 break;
         }
 
@@ -653,7 +653,7 @@ class IncidentController extends MessageController
         } elseif ($status == 'new') {
             $form = Fisma_Form_Manager::loadForm('incident_classify');
 
-            $this->_createBoolean(&$form, array('pii', 'oig'));
+            $this->_createBoolean($form, array('pii', 'oig'));
        
             /**
              * @todo this is driving me crazy... if you add all the options at once, it generates a bunch
