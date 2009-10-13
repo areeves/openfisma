@@ -150,7 +150,7 @@ class IRWorkflowController extends SecurityController
      */
     public function treeDataAction() 
     {
-        Fisma_Acl::requirePrivilege('irworkflowdef', 'read', '*');
+        Fisma_Acl::requirePrivilege('irworkflowdef', 'read');
        
         /* Get all categories */ 
         $q = Doctrine_Query::create()
@@ -325,6 +325,9 @@ class IRWorkflowController extends SecurityController
     
     /**
      * Display the form for creating a new workflow step.
+     * 
+     * @todo there is a bug in this method. it doesn't move other steps around in order to make room for adding
+     * this one into the middle of a workflow
      */
     public function stepcreateAction()
     {
@@ -409,16 +412,18 @@ class IRWorkflowController extends SecurityController
             $roles[$val['id']] = $val['name']; 
         } 
         
-        $form->getElement('roleId')->addMultiOptions($roles);
+        $form->getElement('roleId')
+             ->addMultiOptions(array('' => ''))
+             ->addMultiOptions($roles);
 
-        /* Get max cardinality */ 
+        /** @todo bug here also... it gets the table's max cardinality, not the workflow's */ 
         $q = Doctrine_Query::create()
              ->select('max(s.cardinality) as cardinality')
              ->from('IrStep s');
  
         $max = $q->execute()->toArray();        
 
-        for ($x==1; $x<=$max[0]['cardinality']; $x+=1) {
+        for ($x=1; $x <= $max[0]['cardinality']; $x+=1) {
             $cardinalitys[$x] = $x;
         }
 

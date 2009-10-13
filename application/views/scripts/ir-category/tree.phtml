@@ -1,4 +1,4 @@
-<?php Fisma_Format_Section::startSection("IR Categories: Tree View <span id='searchResultsTotalFound'></span>"); ?>
+<?php Fisma_Format_Section::startSection("IR Categories: Tree View"); ?>
 
 <div class="toolbar">
 <?php
@@ -23,7 +23,7 @@ print $collapseAll;
 <script type="text/javascript">
 YAHOO.util.Event.onDOMReady(function () {
     YAHOO.util.Connect.asyncRequest('GET', 
-                                    '/ircategory/tree-data/format/json', 
+                                    '/ir-category/tree-data/format/json', 
                                     {
                                         success: function(o) {
                                             var json = YAHOO.lang.JSON.parse(o.responseText);

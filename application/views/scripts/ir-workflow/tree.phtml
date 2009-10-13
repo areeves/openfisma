@@ -23,7 +23,7 @@ print $collapseAll;
 <script type="text/javascript">
 YAHOO.util.Event.onDOMReady(function () {
     YAHOO.util.Connect.asyncRequest('GET', 
-                                    '/irworkflow/tree-data/format/json', 
+                                    '/ir-workflow/tree-data/format/json', 
                                     {
                                         success: function(o) {
                                             var json = YAHOO.lang.JSON.parse(o.responseText);

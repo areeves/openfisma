@@ -151,7 +151,7 @@ class IrCategoryController extends SecurityController
      */
     public function treeDataAction() 
     {
-        Fisma_Acl::requirePrivilege('ircategory', 'read', '*');
+        Fisma_Acl::requirePrivilege('ircategory', 'read');
        
         /* Get all categories */ 
         $q = Doctrine_Query::create()
@@ -454,7 +454,7 @@ class IrCategoryController extends SecurityController
      */
     public function subviewAction()
     {
-        Fisma_Acl::requirePrivilege('iricategory', 'read'); 
+        Fisma_Acl::requirePrivilege('ircategory', 'read'); 
         $this->searchbox();
         $id = $this->_request->getParam('id');
         $v = $this->_request->getParam('v', 'subview');
@@ -495,8 +495,7 @@ class IrCategoryController extends SecurityController
     {
         Fisma_Acl::requirePrivilege('ircategory', 'update'); 
         $id = $this->_request->getParam('id', 0);
-        $irsubcategory = new IrSubCategory();
-        $irsubcategory = $irsubcategory->getTable()->find($id);
+        $irsubcategory = Doctrine::getTable('IrSubCategory')->find($id);
 
         if (!$irsubcategory) {
             throw new Exception_General("Invalid category ID");
