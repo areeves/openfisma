@@ -583,7 +583,7 @@ class IRWorkflowController extends SecurityController
         $q = Doctrine_Query::create()
              ->select('s.id, s.workflowId')
              ->from('IrStep s')
-             ->orderBy('s.workflowId, s.cardinality DESC');
+             ->orderBy('s.workflowId, s.cardinality');
 
         $wfs = $q->execute()->toArray();
 
