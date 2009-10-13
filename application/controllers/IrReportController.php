@@ -33,8 +33,12 @@
  */
 class IrReportController extends SecurityController
 {
-
-    public function listAction() 
+    /**
+     * Breakdown of incidents by category, status (open, resolved, closed), and time frame (week, month, year)
+     * 
+     * @todo this is copied from the old listAction and probably has unneeded code
+     */
+    public function categoryAction()
     {
         Fisma_Acl::requirePrivilege('irreport', 'read');
 
@@ -259,15 +263,8 @@ class IrReportController extends SecurityController
         /*  END GENERATE YEARS BREAKDOWN */
         
         $this->view->assign('incident_year', $incident_year);
-      
-        
- 
-     
-        $this->render('list');
-
-        
     }
-    
+
 
     public function reportAction() 
     {
@@ -489,6 +486,238 @@ class IrReportController extends SecurityController
         $this->view->assign('incident_current', $incident_current);
 
         $this->render('incidentdashboard');
+    }
+
+    /**
+     * Breakdown of incidents by category and month for the current year
+     * 
+     * @todo this is copied from the old listAction and probably has unneeded code
+     */
+    public function monthAction()
+    {
+        Fisma_Acl::requirePrivilege('irreport', 'read');
+
+        $cats  = $this->_getCats();
+
+        /* SETUP CURRENT INCIDENTS ARRAY */
+        foreach ($cats as $key => $cat) {
+            foreach($cat['children'] as $key => $subcat) {
+                $incident_current['week'][$cat['category']][$subcat['id']]['name'] = $subcat['name'];
+                $incident_current['week'][$cat['category']][$subcat['id']]['open'] = 0;
+                $incident_current['week'][$cat['category']][$subcat['id']]['resolved'] = 0;
+                $incident_current['week'][$cat['category']][$subcat['id']]['closed'] = 0;
+                
+                $incident_current['month'][$cat['category']][$subcat['id']]['name'] = $subcat['name'];
+                $incident_current['month'][$cat['category']][$subcat['id']]['open'] = 0;
+                $incident_current['month'][$cat['category']][$subcat['id']]['resolved'] = 0;
+                $incident_current['month'][$cat['category']][$subcat['id']]['closed'] = 0;
+                
+                $incident_current['year'][$cat['category']][$subcat['id']]['name'] = $subcat['name'];
+                $incident_current['year'][$cat['category']][$subcat['id']]['open'] = 0;
+                $incident_current['year'][$cat['category']][$subcat['id']]['resolved'] = 0;
+                $incident_current['year'][$cat['category']][$subcat['id']]['closed'] = 0;
+            }
+       } 
+        /* END SETUP CURRENT INCIDENTS ARRAY */
+
+
+        /*  GENERATE THIS WEEK'S BREAKDOWN */
+        $month = date('m');
+        $day   = date('d');
+        $year  = date('Y');
+
+        $day_of_week = date('w');
+
+        //86400 seconds in a day
+        $week_start = date("Y-m-d", (mktime(0, 0, 0, $month, $day, $year) - ($day_of_week * 86400)));
+        $week_end   = date("Y-m-d", (mktime(0, 0, 0, $month, $day, $year) + ((7-$day_of_week) * 86400)));
+
+        $q = Doctrine_Query::create()
+            ->select('i.id, i.status, c.name, c.id AS classification')
+            ->from('Incident i')
+            ->leftJoin('i.Category c')
+             ->whereIn('i.status', array('open','resolved','closed'))
+             ->andWhere('i.reportTs > ?', $week_start)
+             ->andWhere('i.reportTs <= ?', $week_end);
+
+        $incidents = $q->execute()->toArray();
+
+        foreach ($incidents as $key => $incident) {
+            foreach ($incident_current['week'] as $CAT => $subcats) {
+                foreach ($subcats as $id => $subcat) {
+                    if ($id == $incident['classification']) {
+                        $incident_current['week'][$CAT][$id][$incident['status']] += 1;
+                    } 
+                }
+            }          
+        }
+
+        /*  END THIS WEEK'S BREAKDOWN */
+
+        /*  GENERATE THIS MONTH'S BREAKDOWN */
+        $month = date('m');
+        $year  = date('Y');
+        $last_day = date('t');
+    
+        $month_start = "$year-$month-01";
+        $month_end   = "$year-$month-$last_day";
+
+        $q = Doctrine_Query::create()
+            ->select('i.id, i.status, c.name, c.id AS classification')
+            ->from('Incident i')
+            ->leftJoin('i.Category c')
+             ->whereIn('i.status', array('open','resolved','closed'))
+             ->andWhere('i.reportTs > ?', $month_start)
+             ->andWhere('i.reportTs <= ?', $month_end);
+
+        $incidents = $q->execute()->toArray();
+
+        foreach ($incidents as $key => $incident) {
+            foreach ($incident_current['month'] as $CAT => $subcats) {
+                foreach ($subcats as $id => $subcat) {
+                    if ($id == $incident['classification']) {
+                        $incident_current['month'][$CAT][$id][$incident['status']] += 1;
+                    } 
+                }
+            }          
+        }
+
+        /*  END THIS MONTHS'S BREAKDOWN */
+        
+        /*  GENERATE THIS YEAR'S BREAKDOWN */
+        $year  = date('Y');
+        $next_year = $year + 1;
+ 
+        $year_start = "$year-01-01";
+        $year_end   = "$next_year-01-01 00:00:00";
+
+        $q = Doctrine_Query::create()
+            ->select('i.id, i.status, c.name, c.id AS classification')
+            ->from('Incident i')
+            ->leftJoin('i.Category c')
+             ->whereIn('i.status', array('open','resolved','closed'))
+             ->andWhere('i.reportTs > ?', $year_start)
+             ->andWhere('i.reportTs <= ?', $year_end);
+
+        $incidents = $q->execute()->toArray();
+
+        foreach ($incidents as $key => $incident) {
+            foreach ($incident_current['year'] as $CAT => $subcats) {
+                foreach ($subcats as $id => $subcat) {
+                    if ($id == $incident['classification']) {
+                        $incident_current['year'][$CAT][$id][$incident['status']] += 1;
+                    } 
+                }
+            }          
+        }
+
+        /*  END THIS YEAR'S BREAKDOWN */
+        
+        $this->view->assign('incident_current', $incident_current);
+
+        $weeks = $this->_getWeeks();
+        
+        /* GENERATE WEEKS BREAKDOWN */ 
+        for($x = 1; $x < 54; $x += 1) {
+            foreach ($cats as $key => $cat) {
+                foreach($cat['children'] as $key => $subcat) {
+                    $incident_week[$x][$cat['category']][$subcat['id']]['name'] = $subcat['name'];
+                    $incident_week[$x][$cat['category']][$subcat['id']]['count'] = 0;
+                }
+            }
+      
+            $q = Doctrine_Query::create()
+                ->select('i.id, i.status, c.name, c.id AS classification')
+                ->from('Incident i')
+                ->leftJoin('i.Category c')
+                 ->whereIn('i.status', array('open','resolved','closed'))
+                 ->andWhere('i.reportTs > ?', $weeks[$x]['start'])
+                 ->andWhere('i.reportTs <= ?', $weeks[$x]['end']);
+
+            $incidents = $q->execute()->toArray();
+
+            foreach ($incidents as $key => $incident) {
+                foreach ($incident_week[$x] as $CAT => $subcats) {
+                    foreach ($subcats as $id => $subcat) {
+                        if ($id == $incident['classification']) {
+                            $incident_week[$x][$CAT][$id]['count'] += 1;
+                        } 
+                    }
+                }          
+            }
+        } 
+        /*  END GENERATE WEEKS BREAKDOWN */
+   
+ 
+        $this->view->assign('cats', $cats);
+        $this->view->assign('weeks', $weeks);
+        $this->view->assign('incident_week', $incident_week);
+ 
+        /* GENERATE MONTHS BREAKDOWN */ 
+        for($x = 1; $x <= 12; $x += 1) {
+            foreach ($cats as $key => $cat) {
+                foreach($cat['children'] as $key => $subcat) {
+                    $incident_month[$x][$cat['category']][$subcat['id']]['name'] = $subcat['name'];
+                    $incident_month[$x][$cat['category']][$subcat['id']]['count'] = 0;
+                }
+            }
+      
+            $q = Doctrine_Query::create()
+                ->select('i.id, i.status, c.name, c.id AS classification')
+                ->from('Incident i')
+                ->leftJoin('i.Category c')
+                 ->whereIn('i.status', array('open','resolved','closed'))
+                 ->andWhere('i.reportTs > ?', '2009-'.$x.'-01')
+                 ->andWhere('i.reportTs <= ?', '2009-'.str_pad(($x+1), 2, "0", STR_PAD_LEFT).'-01');
+
+            $incidents = $q->execute()->toArray();
+
+            foreach ($incidents as $key => $incident) {
+                foreach ($incident_month[$x] as $CAT => $subcats) {
+                    foreach ($subcats as $id => $subcat) {
+                        if ($id == $incident['classification']) {
+                            $incident_month[$x][$CAT][$id]['count'] += 1;
+                        } 
+                    }
+                }          
+            }
+        } 
+        /*  END GENERATE MONTHS BREAKDOWN */
+        
+        $this->view->assign('incident_month', $incident_month);
+        
+        /* GENERATE YEARS BREAKDOWN */ 
+        for($x = 2008; $x <= 2010; $x += 1) {
+            foreach ($cats as $key => $cat) {
+                foreach($cat['children'] as $key => $subcat) {
+                    $incident_year[$x][$cat['category']][$subcat['id']]['name'] = $subcat['name'];
+                    $incident_year[$x][$cat['category']][$subcat['id']]['count'] = 0;
+                }
+            }
+      
+            $q = Doctrine_Query::create()
+                ->select('i.id, i.status, c.name, c.id AS classification')
+                ->from('Incident i')
+                ->leftJoin('i.Category c')
+                 ->whereIn('i.status', array('open','resolved','closed'))
+                 ->andWhere('i.reportTs > ?', $x.'-01-01')
+                 ->andWhere('i.reportTs <= ?', ($x+1).'-01-01');
+
+            $incidents = $q->execute()->toArray();
+
+            foreach ($incidents as $key => $incident) {
+                foreach ($incident_year[$x] as $CAT => $subcats) {
+                    foreach ($subcats as $id => $subcat) {
+                        if ($id == $incident['classification']) {
+                            $incident_year[$x][$CAT][$id]['count'] += 1;
+                        } 
+                    }
+                }          
+            }
+        } 
+        /*  END GENERATE YEARS BREAKDOWN */
+        
+        $this->view->assign('incident_year', $incident_year);
     }
 
     private function _getCats() {

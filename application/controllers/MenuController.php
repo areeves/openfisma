@@ -103,21 +103,37 @@ class MenuController extends SecurityController
             $menubar->add($systems);
         }
 
+        // Incidents main menu
         $incidents = new Fisma_Yui_Menu('Incidents');
+
+        $incidents->add(new Fisma_Yui_MenuItem('Report An Incident', '/panel/incident/sub/report'));
       
         if (Fisma_Acl::hasPrivilege('incident', 'read')) {
-            $incidents->add(new Fisma_Yui_MenuItem('Incident Dashboard', '/panel/incident/sub/dashboard'));
             $incidents->add(new Fisma_Yui_MenuItem('Search', '/panel/incident/sub/list'));
+            $incidents->add(new Fisma_Yui_MenuItem('Incident Dashboard', '/panel/incident/sub/dashboard'));
         }
-        $incidents->add(new Fisma_Yui_MenuItem('Report An Incident', '/panel/incident/sub/report'));
-        if (Fisma_Acl::hasPrivilege('ircategory', 'read')) {
-            $incidents->add(new Fisma_Yui_MenuItem('Manage Categories', '/panel/ircategory/sub/list'));
+
+        // Incident Administration submenu
+        if (Fisma_Acl::hasPrivilege('ircategory', 'read')
+            || Fisma_Acl::hasPrivilege('irworkflowdef', 'read')) {
+                $incidentAdminSubmenu = new Fisma_Yui_Menu('Administration');
+
+                if (Fisma_Acl::hasPrivilege('ircategory', 'read')) {
+                    $incidentAdminSubmenu->add(new Fisma_Yui_MenuItem('Categories', '/panel/ircategory/sub/list'));
+                }
+                if (Fisma_Acl::hasPrivilege('irworkflowdef', 'read')) {
+                    $incidentAdminSubmenu->add(new Fisma_Yui_MenuItem('Workflows', '/panel/irworkflow/sub/list'));
+                }
+
+                $incidents->add($incidentAdminSubmenu);
         }
-        if (Fisma_Acl::hasPrivilege('irworkflowdef', 'read')) {
-            $incidents->add(new Fisma_Yui_MenuItem('Manage Workflows', '/panel/irworkflow/sub/list'));
-        }
+        
+        // Incident reports submenu
         if (Fisma_Acl::hasPrivilege('irreport', 'read')) {
-            $incidents->add(new Fisma_Yui_MenuItem('Incident Reports', '/panel/irreport/sub/list'));
+            $reportsSubmenu = new Fisma_Yui_Menu('Reports');
+            $reportsSubmenu->add(new Fisma_Yui_MenuItem('Incidents By Category', '/panel/irreport/sub/category'));
+            $reportsSubmenu->add(new Fisma_Yui_MenuItem('Incidents By Month', '/panel/irreport/sub/month'));
+            $incidents->add($reportsSubmenu);
         }
 
         $menubar->add($incidents);

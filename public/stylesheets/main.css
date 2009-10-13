@@ -516,10 +516,8 @@ table.ir_report {
 table.ir_report tr td, table.ir_report tr td input {
     font-family: 'Verdana', 'Arial', 'Helvetica';
     color: #404040;
-    font-size: 8px;
     padding: 3px 2px;
 }
-
 
 table.ir_report td {
     text-align: center;
