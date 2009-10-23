@@ -78,10 +78,10 @@ class Fisma_Mail extends Zend_Mail
      */
     public function sendNotification($notifications)
     {
-        $user   = new User();
-        $userId = $notifications[0]->userId;
-        $user   = $user->getTable()->find($userId);
-        $receiveEmail = $user->notifyEmail ? $user->notifyEmail : $user->email;
+        $user = $notifications[0]->User;
+        $receiveEmail = empty($user->notifyEmail)
+                      ? $user->email
+                      : $user->notifyEmail;
 
         $this->addTo($receiveEmail, $user->nameFirst . $user->nameLast);
         $this->setSubject("Your notifications for " . Configuration::getConfig('system_name'));
@@ -153,12 +153,23 @@ class Fisma_Mail extends Zend_Mail
     {
         $transport = null;
         if ( 'smtp' == Configuration::getConfig('send_type')) {
-            $config = array('auth' => 'login',
-                'username' => Configuration::getConfig('smtp_username'),
-                'password' => Configuration::getConfig('smtp_password'),
-                'port' => Configuration::getConfig('smtp_port'));
-            $transport = new Zend_Mail_Transport_Smtp(
-                Configuration::getConfig('smtp_host'), $config);
+            $username = Configuration::getConfig('smtp_username');
+            $password = Configuration::getConfig('smtp_password');
+            $port     = Configuration::getConfig('smtp_port');
+            $tls      = Configuration::getConfig('smtp_tls');
+            if (empty($username) && empty($password)) {
+                //Un-authenticated SMTP configuration
+                $config = array('port' => $port);
+            } else {
+                $config = array('auth'     => 'login',
+                                'port'     => $port,
+                                'username' => $username,
+                                'password' => $password);
+                if ($tls == 1){
+                    $config['ssl'] = 'tls';
+                }
+            }
+            $transport = new Zend_Mail_Transport_Smtp(Configuration::getConfig('smtp_host'), $config);
         } else {
             $transport = new Zend_Mail_Transport_Sendmail();
         }

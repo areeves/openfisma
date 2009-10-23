@@ -90,7 +90,7 @@ class FindingListener extends Doctrine_Record_Listener
     {
         $finding = $event->getInvoker();
         $duplicateFinding  = $finding->getTable()
-                                     ->findByDql('description LIKE ?', "%{$finding->description}%");
+                                     ->findByDql('description LIKE ?', $finding->description);
         if (!empty($duplicateFinding[0])) {
             $finding->DuplicateFinding = $duplicateFinding[0];
             $finding->status           = 'PEND';
@@ -105,11 +105,42 @@ class FindingListener extends Doctrine_Record_Listener
     }
 
     /**
+     * Check ACL before updating a record. See if any notifications need to be sent.
+     * 
+     * @param Doctrine_Event $event
+     */
+    public function preUpdate(Doctrine_Event $event) 
+    {
+        $finding = $event->getInvoker();
+        $modified = $finding->getModified(true);
+
+        if (!empty($modified)) {
+            foreach ($modified as $key => $value) {
+                // Check whether the user has the privilege to update this column
+                if (isset(self::$_requiredPrivileges[$key])) {
+                    Fisma_Acl::requirePrivilege('finding', 
+                                                self::$_requiredPrivileges[$key], 
+                                                $finding->ResponsibleOrganization->nickname);
+                }
+            
+                // Check whether this field generates any notification events
+                if (array_key_exists($key, self::$notificationKeys)) {
+                    $type = self::$notificationKeys[$key];
+                }
+
+                if (isset($type)) {
+                    Notification::notify($type, $finding, User::currentUser(), $finding->responsibleOrganizationId);
+                }
+            }
+        }       
+    }
+
+    /**
      * Write the audit logs
      * @todo the log need to get the user who did it
      * @param Doctrine_Event $event
      */
-    public function preUpdate(Doctrine_Event $event)
+    public function preSave(Doctrine_Event $event)
     {
         $finding = $event->getInvoker();
         $modifyValues = $finding->getModified(true);
@@ -117,22 +148,6 @@ class FindingListener extends Doctrine_Record_Listener
         if (!empty($modifyValues)) {
             foreach ($modifyValues as $key => $value) {
                 $newValue = $finding->$key;
-                $type     = null;
-
-                // Check whether the user has the privilege to update this column
-                if (isset(self::$_requiredPrivileges[$key])) {
-                    Fisma_Acl::requirePrivilege('finding', 
-                                                self::$_requiredPrivileges[$key], 
-                                                $finding->ResponsibleOrganization->nickname);
-                }
-
-                // Check whether this field generates any notification events
-                if (array_key_exists($key, self::$notificationKeys)) {
-                    $type = self::$notificationKeys[$key];
-                }
-                if (!empty($type)) {
-                    Notification::notify($type, $finding, User::currentUser(), $finding->responsibleOrganizationId);
-                }
 
                 // Now address business rules for each field individually
                 switch ($key) {
@@ -249,40 +264,17 @@ class FindingListener extends Doctrine_Record_Listener
     }
 
     /**
-     * Notify the finding creation, the finding id exists now.
-     */
-    public function postInsert(Doctrine_Event $event)
-    {
-        $finding = $event->getInvoker();
-        if ('scan' == $finding->Asset->source) {
-            $notifyType = 'FINDING_INJECTED';
-        } else {
-            $notifyType = 'FINDING_CREATED';
-        }
-
-        Notification::notify($notifyType, $finding, User::currentUser(), $finding->responsibleOrganizationId);
-    }
-
-    /**
      * Insert or Update finding lucene index
      */
     public function postSave(Doctrine_Event $event)
     {
         $finding  = $event->getInvoker();
         $modified = $finding->getModified($old=false, $last=true);
-        Fisma_Lucene::updateIndex('finding', $finding->id, $modified);
+        $index = new Fisma_Index('Finding');
+        $index->update($finding);
         
         // Invalidate the caches that contain this finding. This will ensure that users always see
         // accurate summary counts on the finding summary screen.
         $finding->ResponsibleOrganization->invalidateCache();
-    }
-
-    /**
-     * Delete a finding lucene index
-     */
-    public function postDelete(Doctrine_Event $event)
-    {
-        $finding  = $event->getInvoker();
-        Fisma_Lucene::deleteIndex('finding', $finding->id);
     }
 }
