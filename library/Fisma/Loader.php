@@ -27,7 +27,8 @@
 require_once (realpath(dirname(__FILE__) . '/../../public/phploader/loader.php'));
 
 /**
- * Loader class for loading JS and CSS via the YUI phploader library 
+ * Fisma_Loader - Loader class for loading JS and CSS via the YUI phploader library. phploader is a YUI PHP library that
+ * allows us to load all of the necessary YUI components in a single HTTP request, rather than many seperate requests.
  *
  * @copyright (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
  * @license    http://openfisma.org/content/license
@@ -42,9 +43,11 @@ class Fisma_Loader
     private $_config;
 
     /**
-     * Set up and initialize the phploader object
+     * __construct - Set up and initialize the phploader object
      *
      * @param array $config Custom module metadata set for YUI phploader
+     * @access public
+     * @return void
      */
     public function __construct($config = NULL)
     {
@@ -57,8 +60,7 @@ class Fisma_Loader
             $this->_loader = new YAHOO_util_Loader($this->_yuiVersion);
         } else {
             $this->_config = $config;
-            $this->_loader = new YAHOO_util_Loader($this->_yuiVersion, 
-                'custom_config_' . $this->_appVersion, $this->_config);
+            $this->_loader = new YAHOO_util_Loader($this->_yuiVersion, 'custom_config_' . $this->_appVersion, $this->_config);
         }
 
         // If we're in debug mode, turn off rollups and combines, switch to DEBUG filter.
@@ -82,9 +84,11 @@ class Fisma_Loader
     }
 
     /**
-     * Load components into the YUI phploader
+     * load - Load components into the YUI phploader
      *
      * @param array $components Array of components to load
+     * @access public
+     * @return void
      */
     public function load($components)
     {
@@ -94,8 +98,9 @@ class Fisma_Loader
     }
 
     /**
-     * Wrapper for phploader script tags
+     * script - Wrapper for phploader script tags
      *
+     * @access public
      * @return string Script tags
      */
     public function script()
@@ -104,8 +109,9 @@ class Fisma_Loader
     }
 
     /**
-     * Wrapper for phploader CSS link tags
+     * css - Wrapper for phploader CSS link tags
      *
+     * @access public
      * @return string CSS link tags
      */
     public function css()
@@ -114,9 +120,10 @@ class Fisma_Loader
     }
 
     /**
-     * toString method Wrapper for script() and css()
+     * __toString - toString method Wrapper for script() and css()
      *
-     * @return string
+     * @access public
+     * @return string Combined script and CSS tags
      */
     public function __toString()
     {
