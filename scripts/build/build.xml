@@ -77,6 +77,12 @@
         <antcall target="-js.clean"/>
     </target>
 
-    <target name="init" depends="-load.properties">
+    <target name="init">
+        <echo message="Usage:"/>
+        <echo message="===================="/>
+        <echo message="ant minify"/>
+        <echo message=" -- Minifies and combines JS/CSS"/>
+        <echo message="ant clean"/>
+        <echo message=" -- Removes all files created by the minifiy task"/>
     </target>
 </project>

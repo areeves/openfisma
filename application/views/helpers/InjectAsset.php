@@ -30,16 +30,35 @@
  * @copyright (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
  * @license http://openfisma.org/content/license
  * @package View_Helper
+ * @var Zend_View_Interface $view
+ * @var array $_depMap An array of dependencies for Fisma specific assets
  */
 class View_Helper_InjectAsset
 {
     public $view;
-    private $depMap;
+    private static $_depMap = array(
+                                '/javascripts/combined.js' => 
+                                array('/javascripts/fisma.js',
+                                      '/javascripts/TreeTable.js',
+                                      '/javascripts/CheckboxTree.js',
+                                      '/javascripts/editable.js',
+                                      '/javascripts/help.js',
+                                      '/javascripts/selectallselectnone.js',
+                                      '/javascripts/deleteconfirm.js'
+                                 ),
+                                '/stylesheets/combined.css' =>
+                                array('/stylesheets/main.css',
+                                      '/stylesheets/TreeTable.css'
+                                )
+                            );
+
 
     /**
-     * Gives access to the current Zend_View object
+     * setView - Gives access to the current Zend_View object
      *
      * @param Zend_View_Interface $view
+     * @access public
+     * @return void
      */
     public function setView(Zend_View_Interface $view)
     {
@@ -47,7 +66,7 @@ class View_Helper_InjectAsset
     }
 
     /**
-     * Manages the injection of CSS or JS assets into a layout or view. Takes into account
+     * injectAsset - Manages the injection of CSS or JS assets into a layout or view. Takes into account
      * rollups/combined files, and the currently running debug level.
      *
      * @param string $asset Path to the asset
@@ -55,35 +74,27 @@ class View_Helper_InjectAsset
      * @param boolean $combo Whether the asset is a combo package or not
      * @param string $media Media settings for CSS files
      * @param string $conditional Conditional settings for CSS files
+     * @access public
+     * @return void
      */
     public function injectAsset($asset, $type, $combo = FALSE,
         $media = 'screen', $conditional = FALSE
     ) {
         // This asset is a Combo, and the application is in debug mode, so we need to output
         // each of the individual pieces of the combo.
-        if($combo && Fisma::debug()) {
-            $this->comboSetUp();
-            $assets = $this->depMap[$asset];
+        if ($combo && Fisma::debug()) {
+            $assets = self::$_depMap[$asset];
         } else {
             // This is just a single asset, throw it into an array for easier processing
             $assets = array($asset);
         }
 
-        switch(Fisma::debug()) {
-            // If we're not in debug mode, then insert the application version and -min into
-            // the path.
-            case FALSE:
-                foreach($assets as &$asset) {
-                    $asset = str_replace(".$type", "-min." . Fisma::version() . ".$type", $asset);
-                }
-
-                break;
-
-            case TRUE:
-                break;
-
-            default:
-                break;
+        // If we're not in debug mode, then insert the application version and -min into
+        // the path.
+        if (!Fisma::debug()) {
+            foreach($assets as &$asset) {
+                $asset = str_replace(".$type", "-min." . Fisma::version() . ".$type", $asset);
+            }
         }
 
         switch($type) {
@@ -104,28 +115,5 @@ class View_Helper_InjectAsset
             default:
                 break;
         }
-
-    }
-
-    /**
-     * Sets up the dependency map of combos to individual assets.
-     */
-    private function comboSetUp()
-    {
-        $this->depMap = array(
-                            '/javascripts/combined.js' => 
-                                array('/javascripts/fisma.js',
-                                      '/javascripts/TreeTable.js',
-                                      '/javascripts/CheckboxTree.js',
-                                      '/javascripts/editable.js',
-                                      '/javascripts/help.js',
-                                      '/javascripts/selectallselectnone.js',
-                                      '/javascripts/deleteconfirm.js'
-                                 ),
-                            '/stylesheets/combined.css' =>
-                                array('/stylesheets/main.css',
-                                      '/stylesheets/TreeTable.css'
-                                ),
-                            );
     }
 }
