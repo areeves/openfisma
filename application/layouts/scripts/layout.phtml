@@ -51,4 +51,5 @@
                 <?php echo $this->layout()->footer; ?>
         </div>
     </body>
+    <?php echo $this->partial('priorityMessage.phtml', array('messages' => $this->priorityMessenger())); ?>
 </html>
