@@ -135,6 +135,7 @@ class Fisma
 
     /**
      * A flag that indicates rather caching is enabled or not
+     * @var boolean
      */
     private static $_isCacheable = false;
     
@@ -270,7 +271,7 @@ class Fisma
     /**
      * To determine whether caching is available
      *
-     * @return boolean $_isCacheable
+     * @return boolean 
      */
     public static function isCacheable()
     {
