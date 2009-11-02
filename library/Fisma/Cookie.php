@@ -55,6 +55,10 @@ class Fisma_Cookie
         }
     }
 
+    public static function set($name, $value) {
+        call_user_func_array("setcookie", self::prepare($name,$value));
+    }
+
    /**
     * prepare - Prepares a cookie for sending to the client. 
     * 
