@@ -261,7 +261,7 @@ class User extends BaseUser
     {
         $cache = Fisma::getCacheInstance('acl');
 
-        if(!$acl = $cache->load("$this->username")) {
+        if (!$acl = $cache->load("$this->username")) {
             $acl = new Fisma_Acl();
             
             // For each role, add its privileges to the ACL
@@ -323,7 +323,8 @@ class User extends BaseUser
      * @access public
      * @return void
      */
-    public function clearAclCache() {
+    public function clearAclCache() 
+    {
         $cache = Fisma::getCacheInstance('acl');
         $cache->clear("$this->username");
     }

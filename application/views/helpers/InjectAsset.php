@@ -52,7 +52,6 @@ class View_Helper_InjectAsset
                                 )
                             );
 
-
     /**
      * setView - Gives access to the current Zend_View object
      *
@@ -78,35 +77,41 @@ class View_Helper_InjectAsset
      * @return void
      */
     public function injectAsset($asset, $type, $combo = FALSE,
-        $media = 'screen', $conditional = FALSE
-    ) {
-        // This asset is a Combo, and the application is in debug mode, so we need to output
-        // each of the individual pieces of the combo.
+        $media = 'screen', $conditional = FALSE) 
+    {
+        /**
+         * This asset is a Combo, and the application is in debug mode, so we need to output
+         * each of the individual pieces of the combo.
+         */
         if ($combo && Fisma::debug()) {
             $assets = self::$_depMap[$asset];
         } else {
-            // This is just a single asset, throw it into an array for easier processing
+            /**
+             * This is just a single asset, throw it into an array for easier processing
+             */
             $assets = array($asset);
         }
 
-        // If we're not in debug mode, then insert the application version and -min into
-        // the path.
+        /**
+         * If we're not in debug mode, then insert the application version and -min into
+         * the path.
+         */
         if (!Fisma::debug()) {
-            foreach($assets as &$asset) {
+            foreach ($assets as &$asset) {
                 $asset = str_replace(".$type", "-min." . Fisma::version() . ".$type", $asset);
             }
         }
 
-        switch($type) {
+        switch ($type) {
             case 'js':
-                foreach($assets as $asset) {
+                foreach ($assets as $asset) {
                     $this->view->headScript()->appendFile($asset);
                 }
 
                 break;
 
             case 'css':
-                foreach($assets as $asset) {
+                foreach ($assets as $asset) {
                     $this->view->headLink()->appendStylesheet($asset, $media, $conditional);
                 }
 

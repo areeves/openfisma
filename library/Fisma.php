@@ -285,10 +285,10 @@ class Fisma
         $manager = Doctrine_Manager::getInstance();
         $manager->setAttribute(Doctrine::ATTR_USE_DQL_CALLBACKS, true);
         $manager->setAttribute(Doctrine::ATTR_USE_NATIVE_ENUM, true);
-	$manager->setAttribute(Doctrine::ATTR_AUTOLOAD_TABLE_CLASSES, true);
+        $manager->setAttribute(Doctrine::ATTR_AUTOLOAD_TABLE_CLASSES, true);
 
         // Set up the cache driver and connect to the manager.
-        if(function_exists('apc_fetch')) {
+        if (function_exists('apc_fetch')) {
             self::$_isCacheable = true;
 
             $cacheDriver = new Doctrine_Cache_Apc();
@@ -448,7 +448,8 @@ class Fisma
      *
      * @return string
      */
-    public static function version() {
+    public static function version() 
+    {
         if (!self::$_initialized) {
             throw new Fisma_Exception('The Fisma object has not been initialized.');
         }
@@ -464,7 +465,8 @@ class Fisma
      *
      * @return string
      */
-    public static function yuiVersion() {
+    public static function yuiVersion() 
+    {
         if (!self::$_initialized) {
             throw new Fisma_Exception('The Fisma object has not been initialized.');
         }
