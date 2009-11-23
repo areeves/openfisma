@@ -157,9 +157,9 @@ class User extends BaseUser
      */
     public function acl()
     {
-        $cache = Fisma::getCacheInstance();
+        $cache = Fisma::getCacheInstance('acl');
 
-        if(!$acl = $cache->load("acl_$this->username")) {
+        if(!$acl = $cache->load("$this->username")) {
             $acl = new Fisma_Acl();
             
             // For each role, add its privileges to the ACL
@@ -209,10 +209,21 @@ class User extends BaseUser
             $userRole = new Zend_Acl_Role($this->username);
             $acl->addRole($userRole, $roleArray);
 
-            $cache->save($acl, "acl_$this->username");
+            $cache->save($acl, "$this->username");
         }
 
         return $acl;
+    }
+
+    /**
+     * clearAclCache - Clears the user's ACL cache 
+     * 
+     * @access public
+     * @return void
+     */
+    public function clearAclCache() {
+        $cache = Fisma::getCacheInstance('acl');
+        $cache->clear("$this->username");
     }
     
     /**
