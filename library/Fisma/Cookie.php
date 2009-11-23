@@ -1,39 +1,33 @@
 <?php
 /**
- * Copyright (c) 2009 Endeavor Systems, Inc.
+ * Copyright (c) 2008 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
  *
- * OpenFISMA is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  *
- * OpenFISMA is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with OpenFISMA.  If not, see <http://www.gnu.org/licenses/>.
- *
- * @author    Josh Boyd <joshua.boyd@endeavorsystems.com> 
- * @copyright (c) Endeavor Systems, Inc. 2009 ({@link http://www.endeavorsystems.com})
- * @license   {@link http://openfisma.org/content/license}
- * @version   $Id$
- * @package   Fisma_Cookie
+ * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
+ * <http://www.gnu.org/licenses/>.
  */
 
  /**
   * Fisma_Cookie
   *
-  * Fisma_Cookie manages cookies for OpenFISMA. 
+  * Fisma_Cookie manages cookies for OpenFISMA.
   * 
-  * @package Fisma_Cookie 
-  * @copyright (c) Endeavor Systems, Inc. 2009 ({@link http://www.endeavorsystems.com})
-  * @author Josh Boyd <joshua.boyd@endeavorsystems.com> 
-  * @license {@link http://www.openfisma.org/content/license}
-  */
+ * @author     Josh Boyd <joshua.boyd@endeavorsystems.com>
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
+ * @package    Fisma
+ * @subpackage Fisma_Cookie
+ * @version    $Id$
+ */
 class Fisma_Cookie
 {
    /**
@@ -45,10 +39,11 @@ class Fisma_Cookie
     * @access public
     * @return string The value of the requested cookie
     */
-    public static function get(array $cookie, $key) {
+    public static function get(array $cookie, $key) 
+    {
         // If the cookie is available, return it. Otherwise,  throw an 
         // exception to be handled by the caller.
-        if(isset($cookie[$key])) {
+        if (isset($cookie[$key])) {
             return $cookie[$key];
         } else {
             throw new Fisma_Exception("Cookie $key not found.");
@@ -65,8 +60,9 @@ class Fisma_Cookie
     * @access public
     * @return array 
     */
-    public static function prepare($name, $value, $secure = null) {
-        if(is_null($secure)) {
+    public static function prepare($name, $value, $secure = null) 
+    {
+        if (is_null($secure)) {
             $secure = Zend_Session::getOptions('cookie_secure');
         }
 
@@ -78,5 +74,19 @@ class Fisma_Cookie
                        ); 
 
         return $cookie;
+    }
+
+   /**
+    * set - Sets a cookie by calling prepare to build the cookie.
+    *
+    * @param string $name
+    * @param string $value
+    * @static
+    * @access public
+    * @return void
+    */
+    public static function set($name, $value) 
+    {
+        call_user_func_array("setcookie", self::prepare($name, $value));
     }
 }

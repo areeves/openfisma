@@ -4,38 +4,26 @@
  *
  * This file is part of OpenFISMA.
  *
- * OpenFISMA is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  *
- * OpenFISMA is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with OpenFISMA.  If not, see <http://www.gnu.org/licenses/>.
- *
- * @author    Jim Chen <xhorse@users.sourceforge.net>
- * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
- * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id$
- * @package   Controller
+ * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
- * @see Zend_View_Helper_Abstract
- */
-
-/**
- * The asset controller deals with creating, updating, and managing assets
- * on the system.
+ * The asset controller deals with creating, updating, and managing assets on the system.
  *
- * @package   Controller
- * @see application/controller/PoamBaseController.php
- * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
- * @license   http://www.openfisma.org/mw/index.php?title=License
+ * @author     Jim Chen <xhorse@users.sourceforge.net>
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
+ * @package    Controller
+ * @version    $Id$
  */
 class AssetController extends BaseController
 {
@@ -73,18 +61,24 @@ class AssetController extends BaseController
         
         $swCtx = $this->_helper->contextSwitch();
         if (!$swCtx->hasContext('pdf')) {
-            $swCtx->addContext('pdf', array(
-                'suffix' => 'pdf',
-                'headers' => array(
-                    'Content-Disposition' =>'attachement;filename="export.pdf"',
-                    'Content-Type' => 'application/pdf'
+            $swCtx->addContext(
+                'pdf', 
+                array(
+                    'suffix' => 'pdf',
+                    'headers' => array(
+                        'Content-Disposition' =>'attachement;filename="export.pdf"',
+                        'Content-Type' => 'application/pdf'
+                    )
                 )
-            ));
+            );
         }
         if (!$swCtx->hasContext('xls')) {
-            $swCtx->addContext('xls', array(
-                'suffix' => 'xls'
-            ));
+            $swCtx->addContext(
+                'xls', 
+                array(
+                    'suffix' => 'xls'
+                )
+            );
         }
     }
 
@@ -96,10 +90,14 @@ class AssetController extends BaseController
         parent::preDispatch();
         $this->req = $this->getRequest();
         $swCtx = $this->_helper->contextSwitch();
-        $swCtx->addActionContext('search', array(
-            'pdf',
-            'xls'
-        ))->initContext();
+        $swCtx->addActionContext(
+            'search', 
+            array(
+                'pdf',
+                'xls'
+            )
+        );
+        $swCtx->initContext();
     }
     
     /**
@@ -163,7 +161,8 @@ class AssetController extends BaseController
      * Enter description here...
      *
      */
-    private function parseCriteria(){
+    private function parseCriteria()
+    {
         static $params;
         if ($params == null) {
             $req = $this->getRequest();
@@ -307,10 +306,9 @@ class AssetController extends BaseController
             $this->_helper->json($tableData);
         } else {
             $this->view->assetColumns = $this->_assetColumns;
-            $this->view->asset_list = $assetArray;
+            $this->view->assetList = $assetArray;
         }
     }
-    
 
     /**
      * View detail information of the subject model

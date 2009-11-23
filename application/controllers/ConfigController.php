@@ -4,33 +4,27 @@
  *
  * This file is part of OpenFISMA.
  *
- * OpenFISMA is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  *
- * OpenFISMA is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with OpenFISMA.  If not, see <http://www.gnu.org/licenses/>.
- *
- * @author    Jim Chen <xhorse@users.sourceforge.net>
- * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
- * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id$
- * @package   Controller
+ * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
  * The configuration controller deals with displaying and updating system
  * configuration items through the user interface.
  *
- * @package   Controller
- * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
- * @license   http://www.openfisma.org/mw/index.php?title=License
+ * @author     Jim Chen <xhorse@users.sourceforge.net>
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
+ * @package    Controller
+ * @version    $Id$
  */
 class ConfigController extends SecurityController
 {
@@ -47,6 +41,7 @@ class ConfigController extends SecurityController
         parent::init();
         $ajaxContext = $this->_helper->getHelper('AjaxContext');
         $ajaxContext->addActionContext('ldapvalid', 'html')
+                    ->addActionContext('test-email-config', 'html')
                     ->initContext();
     }
 
@@ -56,7 +51,8 @@ class ConfigController extends SecurityController
      * @param string $formName The name of the form to load
      * @return Zend_Form
      */
-    public function getConfigForm($formName) {
+    public function getConfigForm($formName)
+    {
         // Load the form and populate the dynamic pull downs
         $form = Fisma_Form_Manager::loadForm($formName);
         $form = Fisma_Form_Manager::prepareForm($form);
@@ -144,7 +140,6 @@ class ConfigController extends SecurityController
         $this->view->form = $form;
     }
 
-
     /**
      *  Add/Update LDAP configurations
      */
@@ -218,9 +213,10 @@ class ConfigController extends SecurityController
                     unset($data['SaveLdap']);
                     unset($data['Reset']);
                     if (empty($data['password'])) {
+                        $dql = 'host = ? AND port = ? AND username = ?';
+                        $params = array($data['host'], $data['port'], $data['username']);
                         $ldap = Doctrine::getTable('LdapConfig')
-                                ->findByDql('host = ? AND port = ? AND username = ?',
-                                        array($data['host'], $data['port'], $data['username']));
+                                ->findByDql($dql, $params);
                         if (!empty($ldap[0])) {
                             $data['password'] = $ldap[0]->password;
                         }
@@ -252,7 +248,8 @@ class ConfigController extends SecurityController
         Fisma_Acl::requirePrivilege('area', 'configuration');
         
         $form = $this->getConfigForm('notification_config');
-        $columns = array('sender', 'subject', 'send_type', 'smtp_host', 'smtp_port', 'smtp_tls', 'smtp_username', 'smtp_password');
+        $columns = array('sender', 'subject', 'send_type', 'smtp_host', 'smtp_port',
+                         'smtp_tls', 'smtp_username', 'smtp_password');
         foreach ($columns as $column) {
             $configs[$column] = Configuration::getConfig($column);
         }
@@ -260,6 +257,81 @@ class ConfigController extends SecurityController
         $this->view->form = $form;
     }
 
+    /**
+     * Validate the email configuration
+     *
+     * This is only happens in ajax context
+     */
+    public function testEmailConfigAction()
+    {
+        Fisma_Acl::requirePrivilege('area', 'configuration');
+        
+        $form = $this->getConfigForm('notification_config');
+        if ($this->_request->isPost()) {
+            $data = $this->_request->getPost();
+            if ($form->isValid($data)) {
+                try{
+                    $data = $form->getValues();
+                    unset($data['id']);
+                    unset($data['saveEmailConfig']);
+                    unset($data['Reset']);
+                    if (empty($data['smtp_password'])) {
+                        $password = Doctrine::getTable('Configuration')
+                                         ->findByDql('name = ?', 'smtp_password');
+                        if (!empty($password[0])) {
+                            $data['smtp_password'] = $password[0]->value;
+                        }
+                    }
+                    if (empty($data['smtp_tls'])) {
+                        $tls = Doctrine::getTable('Configuration')
+                                    ->findByDql('name = ?', 'smtp_tls');
+                        if (!empty($tls[0])) {
+                            $data['smtp_tls'] = $tls[0]->value;
+                        }
+                    }                    
+                    $mailContent="This is a test e-mail from OpenFISMA. This is sent by the" 
+                                ." administrator to determine if the e-mail configuration is" 
+                                ." working correctly. There is no need to reply to this e-mail.";
+                    
+                    if ($data['send_type'] == 'sendmail') {
+                        $mail = new Zend_Mail();
+                        $mail->setBodyText($mailContent)
+                             ->setFrom($data['sender'])
+                             ->addTo($data['addto'])
+                             ->setSubject($data['subject'])
+                             ->send();
+                    } elseif ($data['send_type'] == 'smtp') {
+                        $emailconfig = array('auth' => 'login',
+                                             'username' => $data['smtp_username'],
+                                             'password' => $data['smtp_password'],
+                                             'port' => $data['smtp_port']);
+                       if ($data['smtp_tls'] == 1) {
+                           $emailconfig['ssl'] = 'tls';
+                       }
+                        $transport = new Zend_Mail_Transport_Smtp($data['smtp_host'], $emailconfig);
+                        
+                        // send messages
+                        $mail = new Zend_Mail();
+                        $mail->addTo($data['addto']);
+                        $mail->setFrom($data['sender']);
+                        $mail->setSubject($data['subject']);
+                        $mail->setBodyText($mailContent);
+                        $mail->send($transport);
+                    }
+                    echo "Sent to '".$data['addto']."' test successfully !";
+                } catch (Zend_Mail_Exception $e) {
+                    echo $e->getMessage();
+                }
+            } else {
+                $errorString = Fisma_Form_Manager::getErrors($form);
+                echo $errorString;
+            }
+        } else {
+            echo "<b>Invalid Parameters</b>";
+        }
+        $this->_helper->viewRenderer->setNoRender();
+    }
+    
     /**
      *  Add/Update Privacy Policy configurations
      */

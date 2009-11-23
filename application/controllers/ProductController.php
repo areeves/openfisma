@@ -4,32 +4,26 @@
  *
  * This file is part of OpenFISMA.
  *
- * OpenFISMA is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  *
- * OpenFISMA is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with OpenFISMA.  If not, see <http://www.gnu.org/licenses/>.
- *
- * @author    Ryan Yang <ryan@users.sourceforge.net>
- * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
- * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id$
- * @package   Controller
+ * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
+ * <http://www.gnu.org/licenses/>.
  */
- 
+
 /**
  * Handles CRUD for product objects.
  *
- * @package   Controller
- * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
- * @license   http://www.openfisma.org/mw/index.php?title=License
+ * @author     Ryan Yang <ryan@users.sourceforge.net>
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
+ * @package    Controller
+ * @version    $Id$
  */
 class ProductController extends BaseController
 {
@@ -72,10 +66,10 @@ class ProductController extends BaseController
         $this->_helper->layout->setLayout('ajax');
         $product = new Product();
         $req = $this->getRequest();
-        $prodId = $req->getParam('prod_list', '');
-        $prodName = $req->getParam('prod_name', '');
-        $prodVendor = $req->getParam('prod_vendor', '');
-        $prodVersion = $req->getParam('prod_version', '');
+        $prodId = $req->getParam('prodList', '');
+        $prodName = $req->getParam('prodName', '');
+        $prodVendor = $req->getParam('prodVendor', '');
+        $prodVersion = $req->getParam('prodVersion', '');
         $qry = Doctrine_Query::create()
                ->select()
                ->from('Product');
@@ -93,6 +87,6 @@ class ProductController extends BaseController
         }
         $qry->limit(100)
             ->offset(0);
-        $this->view->prod_list = $qry->execute()->toArray();
+        $this->view->prodList = $qry->execute()->toArray();
     }
 }

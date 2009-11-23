@@ -4,32 +4,27 @@
  *
  * This file is part of OpenFISMA.
  *
- * OpenFISMA is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  *
- * OpenFISMA is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with OpenFISMA.  If not, see <http://www.gnu.org/licenses/>.
- *
- * @author    Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
- * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: CheckboxMatrix.php -1M 2009-04-15 18:04:56Z (local) $
- * @package   Fisma_Form
+ * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
  * Renders multiple checkboxes in column format.
- *
- * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
- * @license   http://www.openfisma.org/mw/index.php?title=License
- * @package   Fisma_Form
+ * 
+ * @author     Mark E. Haase <mhaase@endeavorsystems.com>
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
+ * @package    Fisma
+ * @subpackage Fisma_Form
+ * @version    $Id$ 
  */
 class Fisma_Form_Element_CheckboxMatrix extends Zend_Form_Element
 {
@@ -43,7 +38,8 @@ class Fisma_Form_Element_CheckboxMatrix extends Zend_Form_Element
      * the form)
      * @param string $label The label that is placed next to the checkbox
      */
-    function addCheckbox($name, $label) {
+    function addCheckbox($name, $label) 
+    {
         $this->_checkboxes[] = array('name' => $name, 'label' => $label);
     }
     
@@ -52,7 +48,8 @@ class Fisma_Form_Element_CheckboxMatrix extends Zend_Form_Element
      *
      * @param array $value
      */
-    function setValue($value) {
+    function setValue($value) 
+    {
         $this->_defaults = $value;
     }
 
@@ -62,7 +59,8 @@ class Fisma_Form_Element_CheckboxMatrix extends Zend_Form_Element
      *
      * @return array The checked checkboxes
      */
-    function getValue() {
+    function getValue() 
+    {
         return $this->_defaults;
     }
 
@@ -72,7 +70,8 @@ class Fisma_Form_Element_CheckboxMatrix extends Zend_Form_Element
      *
      * @return boolean Always returns true
      */
-    function isValid($dataItem) {
+    function isValid($dataItem) 
+    {
         $this->_defaults = $dataItem;
         return true;
     }
@@ -82,7 +81,8 @@ class Fisma_Form_Element_CheckboxMatrix extends Zend_Form_Element
      *
      * @return string The rendered matrix
      */
-    function render() {
+    function render() 
+    {
         $render = '';
         // @todo ideally this would be configurable in the constructor
         $columnCount = 4;
@@ -125,13 +125,21 @@ class Fisma_Form_Element_CheckboxMatrix extends Zend_Form_Element
             $render .= "</tr>\n";
         }
 
-        $selectAllButton = new Fisma_Yui_Form_Button('SelectAll',
-											   array('value' => 'Select All',
-											    	 'onClickFunction' => 'selectAllUnsafe'));
+        $selectAllButton = new Fisma_Yui_Form_Button(
+            'SelectAll',
+            array(
+                'value' => 'Select All',
+                'onClickFunction' => 'selectAllUnsafe'
+            )
+        );
 
-        $selectNoneButton = new Fisma_Yui_Form_Button('SelectNone',
-												array('value' => 'Select None',
-												      'onClickFunction' => 'selectNoneUnsafe'));
+        $selectNoneButton = new Fisma_Yui_Form_Button(
+            'SelectNone',
+            array(
+                'value' => 'Select None',
+                'onClickFunction' => 'selectNoneUnsafe'
+            )
+        );
         
         $render .= "<tr><td colspan='$columnCount'>"
                  . '<script type="text/javascript" src="/javascripts/selectallselectnone.js"></script>'

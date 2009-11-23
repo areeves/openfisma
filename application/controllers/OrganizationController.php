@@ -4,32 +4,26 @@
  *
  * This file is part of OpenFISMA.
  *
- * OpenFISMA is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  *
- * OpenFISMA is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with OpenFISMA.  If not, see <http://www.gnu.org/licenses/>.
- *
- * @author    Ryan Yang <ryan@users.sourceforge.net>
- * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
- * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: OrganizationController.php 940 2008-09-27 13:40:22Z ryanyang $
- * @package   Controller
+ * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
  * Handles CRUD for organization objects.
  *
- * @package   Controller
- * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
- * @license   http://www.openfisma.org/mw/index.php?title=License
+ * @author     Ryan Yang <ryan@users.sourceforge.net>
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
+ * @package    Controller
+ * @version    $Id$
  */
 class OrganizationController extends SecurityController
 {
@@ -222,16 +216,14 @@ class OrganizationController extends SecurityController
         }
 
         if ($v == 'edit') {
-            $this->view->assign('viewLink',
-                                "/panel/organization/sub/view/id/$id");
+            $this->view->assign('viewLink', "/panel/organization/sub/view/id/$id");
             $form->setAction("/panel/organization/sub/update/id/$id");
         } else {
             // In view mode, disable all of the form controls
-            $this->view->assign('editLink',
-                                "/panel/organization/sub/view/id/$id/v/edit");
+            $this->view->assign('editLink', "/panel/organization/sub/view/id/$id/v/edit");
             $form->setReadOnly(true);
         }
-        $this->view->assign('deleteLink',"/panel/organization/sub/delete/id/$id");
+        $this->view->assign('deleteLink', "/panel/organization/sub/delete/id/$id");
         $form->setDefaults($organization);
         $this->view->form = $form;
         $this->view->assign('id', $id);
@@ -265,7 +257,8 @@ class OrganizationController extends SecurityController
                     // the organization which has parent
                     } else {
                         // insert as a child to a specify parent organization
-                        $organization->getNode()->insertAsLastChildOf($organization->getTable()->find($orgValues['parent']));
+                        $organization->getNode()
+                                     ->insertAsLastChildOf($organization->getTable()->find($orgValues['parent']));
                     }
                     $msg = "The organization is created";
                     $model = 'notice';

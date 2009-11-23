@@ -4,24 +4,16 @@
  *
  * This file is part of OpenFISMA.
  *
- * OpenFISMA is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  *
- * OpenFISMA is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with OpenFISMA.  If not, see <http://www.gnu.org/licenses/>.
- *
- * @author    Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
- * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id$
- * @package   Model
+ * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
@@ -29,9 +21,11 @@
  * Organizations can be nested inside of each other in order to flexibly model management
  * structures at any federal agency.
  *
- * @package   Model
- * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
- * @license   http://www.openfisma.org/mw/index.php?title=License
+ * @author     Mark E. Haase <mhaase@endeavorsystems.com>
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
+ * @package    Model
+ * @version    $Id$
  */
 class Organization extends BaseOrganization
 {
@@ -59,7 +53,8 @@ class Organization extends BaseOrganization
      * 
      * @return string
      */
-    public function getType() {
+    public function getType() 
+    {
         if ('system' == $this->orgType) {
             return $this->System->type;
         } else {
@@ -72,7 +67,8 @@ class Organization extends BaseOrganization
      * 
      * @return string
      */
-    public function getOrgTypeLabel() {
+    public function getOrgTypeLabel() 
+    {
         if ('system' == $this->orgType) {
             return $this->System->getTypeLabel();
         } else {
@@ -106,7 +102,8 @@ class Organization extends BaseOrganization
      * 
      * @return array 
      */
-    public function getSummaryCounts($type = null, $source = null) {
+    public function getSummaryCounts($type = null, $source = null) 
+    {
         $cache = Fisma::getCacheInstance('finding_summary');
         $cacheId = $this->getCacheId(array('type' => $type, 'source' => $source));
                      
@@ -225,8 +222,7 @@ class Organization extends BaseOrganization
     {
         $cache = Fisma::getCacheInstance($identify = 'finding_summary');
         
-        $cache->clean(Zend_Cache::CLEANING_MODE_MATCHING_TAG,
-                      array($this->getCacheTag()));
+        $cache->clean(Zend_Cache::CLEANING_MODE_MATCHING_TAG, array($this->getCacheTag()));
                       
         $parent = $this->getNode()->getParent();
         if ($parent) {
@@ -256,7 +252,6 @@ class Organization extends BaseOrganization
             
         return $cacheId;
     }
-
 
     /**
      * Returns a cache tag that is unique to this organization
@@ -399,7 +394,10 @@ class Organization extends BaseOrganization
                 // Was the system C&A'ed in the last 3 years? 
                 $currentCaDate = new Zend_Date($system->securityAuthorizationDt, 'Y-m-d');
                 $nextCaDate = $currentCaDate->addYear(3);
-                /** @todo should have used isEarlier and isLater() instead of compare() -- compare is not very readable */
+                /** 
+                 * @todo should have used isEarlier and isLater() instead of compare()
+                 * compare is not very readable 
+                 */
                 if (1 == $nextCaDate->compare($today)) {
                     $securityStats[$fipsCategory]['TOTAL_CERTIFIED']++;
                 }

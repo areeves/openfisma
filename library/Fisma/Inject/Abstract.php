@@ -1,36 +1,30 @@
-<?php 
+<?php
 /**
  * Copyright (c) 2008 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
  *
- * OpenFISMA is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  *
- * OpenFISMA is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with OpenFISMA.  If not, see <http://www.gnu.org/licenses/>.
- *
- * @author    Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
- * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: Abstract.php 1560 2009-04-13 14:59:12Z mehaase $
- * @package   Fisma_Inject
- *
+ * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
  * An abstract class for creating injection plug-ins
- *
- * @package   Fisma_Inject
- * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
- * @license   http://www.openfisma.org/mw/index.php?title=License
+ * 
+ * @author     Mark E. Haase <mhaase@endeavorsystems.com>
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
+ * @package    Fisma
+ * @subpackage Fisma_Inject
+ * @version    $Id$
  */
 abstract class Fisma_Inject_Abstract
 {
@@ -108,7 +102,8 @@ abstract class Fisma_Inject_Abstract
      * @param array $findingData Column data for the new finding object
      * action was taken.
      */
-    protected function _commit($findingData) {
+    protected function _commit($findingData) 
+    {
         Doctrine_Manager::connection()->beginTransaction();
         $finding = new Finding();
         $finding->merge($findingData);
@@ -153,7 +148,8 @@ abstract class Fisma_Inject_Abstract
      * @param string $field
      * @return mixed
      */
-    public function __get($field) {
+    public function __get($field) 
+    {
         if (array_key_exists($field, $this->_totalFindings)) {
             return $this->_totalFindings[$field];
         } else {
@@ -242,7 +238,8 @@ abstract class Fisma_Inject_Abstract
      * @param string $plainText Plain text that needs to be marked up
      * @return string HTML version of $plainText
      */
-    protected function textToHtml($plainText) {
+    protected function textToHtml($plainText) 
+    {
         $html = '<p>' . trim($plainText) . '</p>';
         $html = str_replace("\\n\\n", '</p><p>', $html);
         $html = str_replace("\\n", '<br>', $html);

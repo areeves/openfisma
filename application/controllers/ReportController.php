@@ -4,33 +4,27 @@
  *
  * This file is part of OpenFISMA.
  *
- * OpenFISMA is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  *
- * OpenFISMA is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with OpenFISMA.  If not, see <http://www.gnu.org/licenses/>.
- *
- * @author    Ryan Yang <ryan@users.sourceforge.net>
- * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
- * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id$
- * @package   Controller
+ * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
  * The report controller creates the multitude of reports available in
  * OpenFISMA.
  *
- * @package   Controller
- * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
- * @license   http://www.openfisma.org/mw/index.php?title=License
+ * @author     Ryan Yang <ryan@users.sourceforge.net>
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
+ * @package    Controller
+ * @version    $Id$
  */
 class ReportController extends SecurityController
 {
@@ -45,23 +39,28 @@ class ReportController extends SecurityController
         parent::init();
         $swCtx = $this->_helper->contextSwitch();
         if (!$swCtx->hasContext('pdf')) {
-            $swCtx->addContext('pdf', array(
-                'suffix' => 'pdf',
-                'headers' => array(
-                    'Content-Disposition' => 
-                        'attachement;filename="export.pdf"',
-                    'Content-Type' => 'application/pdf'
+            $swCtx->addContext(
+                'pdf', 
+                array(
+                    'suffix' => 'pdf',
+                    'headers' => array(
+                        'Content-Disposition' => 'attachement;filename="export.pdf"',
+                        'Content-Type' => 'application/pdf'
+                    )
                 )
-            ));
+            );
         }
         if (!$swCtx->hasContext('xls')) {
-            $swCtx->addContext('xls', array(
-                'suffix' => 'xls',
-                'headers' => array(
-                    'Content-type' => 'application/vnd.ms-excel',
-                    'Content-Disposition' => 'filename=Fisma_Report.xls'
+            $swCtx->addContext(
+                'xls', 
+                array(
+                    'suffix' => 'xls',
+                    'headers' => array(
+                        'Content-type' => 'application/vnd.ms-excel',
+                        'Content-Disposition' => 'filename=Fisma_Report.xls'
+                    )
                 )
-            ));
+            );
         }
     }
     
@@ -210,20 +209,40 @@ class ReportController extends SecurityController
         $params['overdueDay'] = $req->getParam('overdueDay');
         $params['year'] = $req->getParam('year');
 
-        $this->view->assign('source_list', Doctrine::getTable('Source')->findAll()->toKeyValueArray('id', 'name'));
-        $this->view->assign('system_list', $this->_me->getOrganizations()->toKeyValueArray('id', 'name'));
-        $this->view->assign('network_list', Doctrine::getTable('Network')->findAll()->toKeyValueArray('id', 'name'));
+        $this->view->assign('sourceList', Doctrine::getTable('Source')->findAll()->toKeyValueArray('id', 'name'));
+        $this->view->assign('systemList', $this->_me->getOrganizations()->toKeyValueArray('id', 'name'));
+        $this->view->assign('networkList', Doctrine::getTable('Network')->findAll()->toKeyValueArray('id', 'name'));
         $this->view->assign('params', $params);
         $this->view->assign('url', '/report/overdue' . $this->_helper->makeUrlParams($params));
         $isExport = $req->getParam('format');
-        
+
         if ('search' == $req->getParam('s') || isset($isExport)) {
-            // Search for overdue items according to the criteria
             $q = Doctrine_Query::create()
-                    ->select('f.*')
-                    ->addSelect('DATEDIFF(NOW(), f.nextDueDate) diffDay')
-                    ->from('Finding f')
-                    ->where('DATEDIFF(NOW(), f.nextDueDate) > 0');
+                 ->select('f.id') // unused, but Doctrine requires a field to be selected from the parent object
+                 ->addSelect("CONCAT_WS(' - ', o.nickname, o.name) orgSystemName")
+                 ->addSelect(
+                     "QUOTE(
+                         IF (f.status IN ('NEW', 'DRAFT', 'MSA'), 
+                             'Mitigation Strategy', 
+                             IF (f.status IN ('EN', 'EA'), 
+                                'Corrective Action', 
+                                NULL
+                             )
+                         )
+                      ) actionType"
+                 )
+                 ->addSelect('SUM(IF(DATEDIFF(NOW(), f.nextduedate) BETWEEN 0 AND 29, 1, 0)) lessThan30')
+                 ->addSelect('SUM(IF(DATEDIFF(NOW(), f.nextduedate) BETWEEN 30 AND 59, 1, 0)) moreThan30')
+                 ->addSelect('SUM(IF(DATEDIFF(NOW(), f.nextduedate) BETWEEN 60 AND 89, 1, 0)) moreThan60')
+                 ->addSelect('SUM(IF(DATEDIFF(NOW(), f.nextduedate) BETWEEN 90 AND 119, 1, 0)) moreThan90')
+                 ->addSelect('SUM(IF(DATEDIFF(NOW(), f.nextduedate) >= 120, 1, 0)) moreThan120')
+                 ->addSelect('COUNT(f.id) total')
+                 ->addSelect('ROUND(AVG(DATEDIFF(NOW(), f.nextduedate))) average')
+                 ->addSelect('MAX(DATEDIFF(NOW(), f.nextduedate)) max')
+                 ->from('Finding f')
+                 ->leftJoin('f.ResponsibleOrganization o')
+                 ->where('f.nextduedate < NOW()');
+
             if (!empty($params['orgSystemId'])) {
                 $q->andWhere('f.responsibleOrganizationId = ?', $params['orgSystemId']);
             }
@@ -237,13 +256,23 @@ class ReportController extends SecurityController
             } else {
                 $q->whereIn('f.status', array('NEW', 'DRAFT', 'MSA', 'EN', 'EA'));
             }
+
+            $q->groupBy('orgSystemName, actionType');
+            $q->setHydrationMode(Doctrine::HYDRATE_ARRAY);
             $list = $q->execute();
+
             // Assign view outputs
-            $this->view->assign('poam_list', $this->_helper->overdueStatistic($list));
+            $this->view->assign('poam_list', $list);
             $this->view->criteria = $params;
-            $this->view->columns = array('orgSystemName' => 'System', 'type' => 'Overdue Action Type', 'lessThan30' => '<30 Days',
-                                         'moreThan30' => '30-59 Days', 'moreThan60' => '60-89 Days', 'moreThan90' => '90-119 Days',
-                                         'moreThan120' => '120+ Days', 'total' => 'Total Overdue', 'average' => 'Average (days)',
+            $this->view->columns = array('orgSystemName' => 'System', 
+                                         'actionType' => 'Overdue Action Type', 
+                                         'lessThan30' => '< 30 Days',
+                                         'moreThan30' => '30-59 Days', 
+                                         'moreThan60' => '60-89 Days', 
+                                         'moreThan90' => '90-119 Days',
+                                         'moreThan120' => '120+ Days', 
+                                         'total' => 'Total Overdue', 
+                                         'average' => 'Average (days)',
                                          'max' => 'Maximum (days)');
         }
     }
@@ -269,19 +298,20 @@ class ReportController extends SecurityController
                 $fname = tempnam('/tmp/', "RAFs");
                 @unlink($fname);
                 $rafs = new Archive_Tar($fname, true);
-                $path = $this->_helper->viewRenderer
-                        ->getViewScript('raf', array(
-                                        'controller' => 'remediation',
-                                        'suffix' => 'pdf.phtml'));
+                $path = $this->_helper
+                             ->viewRenderer
+                             ->getViewScript('raf', array('controller' => 'remediation', 'suffix' => 'pdf.phtml'));
                 try {
                     foreach ($findings as $finding) {
                         $poamDetail = & $this->_poam->getDetail($id);
                         $this->view->assign('poam', $poamDetail);
                         $ret = $system->find($poamDetail['system_id']);
                         $actOwner = $ret->current()->toArray();
-                        $securityCategorization = $system->calcSecurityCategory($actOwner['confidentiality'],
-                                                                                $actOwner['integrity'],
-                                                                                $actOwner['availability']);
+                        $securityCategorization = $system->calcSecurityCategory(
+                            $actOwner['confidentiality'],
+                            $actOwner['integrity'],
+                            $actOwner['availability']
+                        );
                         if (NULL == $securityCategorization) {
                             throw new Fisma_Exception('The security categorization for ('.$actOwner['id'].')'.
                                 $actOwner['name'].' is not defined. An analysis of risk cannot be generated '.
@@ -297,8 +327,7 @@ class ReportController extends SecurityController
                     header("Content-Disposition: attachment; filename=RAFs.tgz");
                     header("Content-Transfer-Encoding: binary");
                     header("Expires: 0");
-                    header("Cache-Control: must-revalidate, post-check=0,".
-                        " pre-check=0");
+                    header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
                     header("Pragma: public");
                     echo file_get_contents($fname);
                     @unlink($fname);
