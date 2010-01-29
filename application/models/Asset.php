@@ -13,19 +13,19 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 /**
  * Assets are IT hardware, software, and documentation components that comprise information systems
  * 
  * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Model
  * @version    $Id$
  */
-class Asset extends BaseAsset
+class Asset extends BaseAsset implements Fisma_Acl_OrganizationDependency
 {
     /**
      * Declares fields stored in related records that should be indexed along with records in this table
@@ -36,6 +36,7 @@ class Asset extends BaseAsset
      * 
      * Each class that takes advantage of this must declare a public array called $relationIndex
      * 
+     * @var array
      * @todo Doctrine 2.0 might provide a nicer approach for this
      */
     public $relationIndex = array(
@@ -43,4 +44,14 @@ class Asset extends BaseAsset
                            'name' => array('type' => 'unstored'),
                            'version' => array('type' => 'unstored'))
     );
+    
+    /**
+     * Implement the required method for Fisma_Acl_OrganizationDependency
+     * 
+     * @return int
+     */
+    public function getOrganizationDependencyId()
+    {
+        return $this->orgSystemId;
+    }
 }

@@ -11,7 +11,7 @@ Configuration:
 
     session_inactivity_period:
         name: session_inactivity_period
-        value: 90
+        value: 5400
         description: Session Timeout (seconds)
 
     auth_type:
@@ -161,5 +161,5 @@ Configuration:
         
     host_url:
         name: host_url
-        value: "openfisma.agency.gov"
+        value: "https://openfisma.agency.gov:443"
         description: This is used to construct self-referencing URLs in non-HTTP contexts. The installer should overwrite this value.

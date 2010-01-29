@@ -13,17 +13,19 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 /**
  * The asset controller deals with creating, updating, and managing assets on the system.
  *
  * @author     Jim Chen <xhorse@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Controller
  * @version    $Id$
+ * 
+ * @see        Zend_View_Helper_Abstract
  */
 class AssetController extends BaseController
 {
@@ -31,11 +33,15 @@ class AssetController extends BaseController
      * The main name of the model.
      * 
      * This model is the main subject which the controller operates on.
+     * 
+     * @var string
      */
     protected $_modelName = 'Asset';
 
     /**
-     * asset columns which need to displayed on the list page, PDF and Excel
+     * Asset columns which need to displayed on the list page, PDF and Excel
+     * 
+     * @var array
      */
     protected $_assetColumns = array('name'  => 'Asset Name',
                                      'orgsys_name' => 'System',
@@ -46,14 +52,17 @@ class AssetController extends BaseController
                                      'pro_version'=> 'Version');
 
     /**
-     * Invokes a contract with BaseController regarding privileges. 
-     * @link http://jira.openfisma.org/browse/OFJ-24
+     * Invokes a contract with BaseController regarding privileges.
+     * 
      * @var string
+     * @link http://jira.openfisma.org/browse/OFJ-24
      */
     protected $_organizations = '*';
 
     /**
-     * init() - Initialize internal members.
+     * Initialize internal members.
+     * 
+     * @return void
      */
     function init()
     {
@@ -83,7 +92,9 @@ class AssetController extends BaseController
     }
 
     /**
-     * preDispatch() - invoked before each Actions
+     * Invoked before each Actions
+     * 
+     * @return void
      */
     public function preDispatch()
     {
@@ -101,12 +112,15 @@ class AssetController extends BaseController
     }
     
     /**
-     * Get the specific form of the subject model
+     * Get the specified form of the subject model
+     * 
+     * @param string|null $formName The name of the specified form
+     * @return Zend_Form The specified form of the subject model
      */
     public function getForm($formName=null)
     {
-        $form = Fisma_Form_Manager::loadForm($this->_modelName);
-        
+        $formName = (!empty($formName)) ? $formName : $this->_modelName;
+        $form = Fisma_Form_Manager::loadForm($formName);
         $systems = $this->_me->getOrganizations();
         $selectArray = $this->view->treeToSelect($systems, 'nickname');
         $form->getElement('orgSystemId')->addMultiOptions($selectArray);
@@ -117,31 +131,36 @@ class AssetController extends BaseController
             $networkList[$network['id']] = $network['nickname'].'-'.$network['name'];
         }
         $form->getElement('networkId')->addMultiOptions($networkList);
-        $form->getElement('productId')->setRegisterInArrayValidator(false);
         $form = Fisma_Form_Manager::prepareForm($form);
         return $form;
     }
     
-    /** 
+    /**
      * Hooks for manipulating the values before setting to a form
-     *
-     * @param Zend_Form $form
-     * @param Doctrine_Record|null $subject
-     * @return Zend_Form
+     * 
+     * @param Doctrine_Record $subject The specified subject model
+     * @param Zend_Form $form The specified form
+     * @return Zend_Form The manipulated form
      */
     protected function setForm($subject, $form)
     {
         $product = $subject->Product;
-        $form->getElement('productId')->addMultiOptions(array($product->id => $product->name));
+        $form->getElement('product')->setValue($product->name);
+
+        if ($this->getRequest()->getParam('sub') != 'edit') 
+            $form->getElement('product')->setAttrib('readonly', true);
+    
         $form->setDefaults($subject->toArray());
         return $form;
     }
-    
-    /** 
-     * Hooks for manipulating and saveing the values retrieved by Forms
+
+    /**
+     * Hooks for manipulating and saving the values retrieved by Forms
      *
-     * @param Zend_Form $form
-     * @param Doctrine_Record|null $subject
+     * @param Zend_Form $form The specified form
+     * @param Doctrine_Record|null $subject The specified subject model
+     * @return void
+     * @throws Fisma_Exception if the subject is not instance of Doctrine_Record
      */
     protected function saveValue($form, $subject=null)
     {
@@ -151,15 +170,15 @@ class AssetController extends BaseController
             throw new Fisma_Exception('Invalid parameter: Expected a Doctrine_Record');
         }
         $values = $form->getValues();
-        $product = Doctrine::getTable('Product')->find($values['productId']);
-        $form->getElement('productId')->addMultiOptions(array($product->id => $product->name));
+
         $subject->merge($values);
         $subject->save();
     }
     
     /**
-     * Enter description here...
-     *
+     * Extract specified criteria parameters from request and assemble them
+     * 
+     * @return array The array of criteria parameters
      */
     private function parseCriteria()
     {
@@ -178,10 +197,12 @@ class AssetController extends BaseController
     }
     
     /**
-     *  Searching the asset and list them.
-     *
-     *  it is the ajax version of searchbox action
-     *  @todo merge the two actions into one
+     * Searching the asset and list them
+     * 
+     * It is the ajax version of searchbox action
+     * 
+     * @return void
+     * @todo merge the two actions into one
      */
     public function listAction()
     {
@@ -199,21 +220,25 @@ class AssetController extends BaseController
     }
     
     /**
-     *  Create an asset
+     * Create an asset
+     * 
+     * @return void
      */
     public function createAction()
     {
-        Fisma_Acl::requirePrivilege('asset', 'create', '*');
+        Fisma_Acl::requirePrivilegeForClass('create', 'Asset');
         $this->_request->setParam('source', 'MANUAL');
         parent::createAction();
     }
-    
+
     /**
      * Search assets and list them
+     * 
+     * @return void
      */
     public function searchboxAction()
     {
-        Fisma_Acl::requirePrivilege('asset', 'read', '*');
+        Fisma_Acl::requirePrivilegeForClass('read', 'Asset');
         
         $params = $this->parseCriteria();
         $systems = $this->_me->getOrganizations();
@@ -227,14 +252,16 @@ class AssetController extends BaseController
     }
     
     /**
-     *  Searching the asset and list them.
-     *
-     *  it is the ajax version of searchbox action
-     *  @todo merge the two actions into one
+     * Searching the asset and list them.
+     * 
+     * It is the ajax version of searchbox action
+     * 
+     * @return void
+     * @todo merge the two actions into one
      */
     public function searchAction()
     {
-        Fisma_Acl::requirePrivilege('asset', 'read', '*');
+        Fisma_Acl::requirePrivilegeForClass('read', 'Asset');
 
         $params = $this->parseCriteria();
         $q = Doctrine_Query::create()
@@ -281,19 +308,25 @@ class AssetController extends BaseController
         $i = 0;
         foreach ($assets as $asset) {
             $assetArray[$i] = $asset->toArray();
-            foreach ($asset->Organization as $k => $v) {
-                if ($v instanceof Doctrine_Null) {
-                    $v = '';
+
+            if ($asset->Organization) {
+                foreach ($asset->Organization as $k => $v) {
+                    if ($v instanceof Doctrine_Null) {
+                        $v = '';
+                    }
+                    $assetArray[$i]['orgsys_'.$k] = $v;
                 }
-                $assetArray[$i]['orgsys_'.$k] = $v;
             }
-            foreach ($asset->Product as $k => $v) {
-                if ($v instanceof Doctrine_Null) {
-                    $v = '';
+
+            if ($asset->Product) {
+                foreach ($asset->Product as $k => $v) {
+                    if ($v instanceof Doctrine_Null) {
+                        $v = '';
+                    }
+                    $assetArray[$i]['pro_'.$k] = $v;
                 }
-                $assetArray[$i]['pro_'.$k] = $v;
             }
-            $i ++;
+            $i++;
         }
         if ($this->_request->getParam('format') == null) {
             $tableData = array('table' => array(
@@ -312,7 +345,9 @@ class AssetController extends BaseController
 
     /**
      * View detail information of the subject model
-     *
+     * 
+     * @return void
+     * @throws Fisma_Exception if the asset id is invalid
      */
     public function viewAction()
     {
@@ -338,13 +373,15 @@ class AssetController extends BaseController
     }
     
     /**
-     * Delete a asset
+     * Delete an asset
+     * 
+     * @return void
      */
     public function deleteAction()
     {
         $id = $this->_request->getParam('id');
         $asset = Doctrine::getTable($this->_modelName)->find($id);
-        Fisma_Acl::requirePrivilege($this->_modelName, 'delete', $asset->Organization->nickname);
+        Fisma_Acl::requirePrivilegeForObject('delete', $asset);
         
         if (!$asset) {
             $msg   = "Invalid {$this->_modelName} ID";
@@ -374,13 +411,12 @@ class AssetController extends BaseController
     }
     
     /**
-     *  Delete assets
+     * Delete assets
+     * 
+     * @return void
      */
     public function multideleteAction()
     {
-        /** @todo this isn't right... the delete should check each asset individually */
-        Fisma_Acl::requirePrivilege('asset', 'delete', '*');
-
         $req = $this->getRequest();
         $post = $req->getPost();
         $errno = 0;
@@ -388,14 +424,15 @@ class AssetController extends BaseController
             $aids = $post['aid'];
             foreach ($aids as $id) {
                 $assetIds[] = $id;
-                $res = Doctrine::getTable('Asset')->find($id);
-                if (!$res) {
+                $asset = Doctrine::getTable('Asset')->find($id);
+                Fisma_Acl::requirePrivilegeForObject('delete', $asset);
+                if (!$asset) {
                     $errno++;
                 } else {
-                    if (count($res->Findings)) {
+                    if (count($asset->Findings)) {
                         $errno++;
                     } else {
-                        $res->delete();
+                        $asset->delete();
                     }
                 }
             }
@@ -413,5 +450,81 @@ class AssetController extends BaseController
             $this->view->priorityMessenger($msg, 'notice');
         }
         $this->_forward('list');
+    }
+
+    public function importAction()
+    {
+        Fisma_Acl::requirePrivilegeForClass('create', 'Asset');
+
+        $uploadForm = $this->getForm('asset_upload');
+
+        // Configure the file select
+        $uploadForm->setAttrib('enctype', 'multipart/form-data');
+        $uploadForm->selectFile->setDestination(Fisma::getPath('data') . '/uploads/scanreports');
+
+        $this->view->assign('uploadForm', $uploadForm);
+
+        // Handle the file upload
+        if ($postValues = $this->_request->getPost()) {
+            $msgs = array();
+            $err = FALSE;
+            $filesReceived = ($uploadForm->selectFile->receive()) ? TRUE: FALSE;
+
+            if (!$uploadForm->isValid($postValues)) {
+                $msgs[] = array('warning' => Fisma_Form_Manager::getErrors($uploadForm));
+                $err = TRUE;
+            } elseif (!$filesReceived) {
+                $msgs[] = array('warning' => "File not received.");
+                $err = TRUE;
+            } else {
+                $values = $uploadForm->getValues();
+                $filePath = $uploadForm->selectFile->getTransferAdapter()->getFileName('selectFile');
+
+                // get original file name
+                $originalName = pathinfo(basename($filePath), PATHINFO_FILENAME);
+                // get current time and set to a format like '_2009-05-04_11_22_02'
+                $dateTime = date('_Y-m-d_H_i_s', time());
+                // define new file name
+                $newName = str_replace($originalName, $originalName . $dateTime, basename($filePath));
+                rename($filePath, $filePath = dirname($filePath) . '/' . $newName);
+
+                $values['filePath'] = $filePath;
+
+                $upload = new Upload();
+                $upload->userId = $this->_me->id;
+                $upload->fileName = basename($filePath);
+                $upload->save();
+                    
+                $import = Fisma_Import_Factory::create('asset', $values);
+                $success = $import->parse();
+                if (!$success) {
+                    foreach ($import->getErrors() as $error) {
+                        $msgs[] = array('warning' => $error);
+                    }
+
+                    $err = TRUE;
+                } else {
+                    $numCreated = $import->getNumImported();
+                    $numSuppressed = $import->getNumSuppressed();
+                    $this->view->priorityMessenger(
+                        array('notice' => "{$numCreated} asset(s) were imported successfully.")
+                    );
+                    $this->view->priorityMessenger(array('notice' => "{$numSuppressed} asset(s) were not imported."));
+                }
+            }
+
+            if ($err) {
+                if (!empty($upload)) {
+                    unlink($filePath);
+                    $upload->delete();
+                }
+
+                if (!$msgs) {
+                    $msgs[] = array('notice' => 'An unrecoverable error has occured.');
+                }
+
+                $this->view->priorityMessenger($msgs);
+            }
+        }
     }
 }

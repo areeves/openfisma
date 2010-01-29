@@ -13,23 +13,40 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 /**
  * An object which represents a tooltip in YUI
  *
  * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Fisma
  * @subpackage Fisma_Yui
  * @version    $Id$
  */
 class Fisma_Yui_Tooltip
 {
+    /**
+     * The unique ID of the tooltip in DOM
+     * 
+     * @var string
+     */
     private $_id;
+    
+    /**
+     * The title of the tooptip
+     * 
+     * @var string
+     */
     private $_title;
+    
+    /**
+     * Tip content
+     * 
+     * @var string
+     */
     private $_content;
     
     /**
@@ -38,6 +55,7 @@ class Fisma_Yui_Tooltip
      * @param string $id A unique ID for this page to represent the tooltip in the DOM
      * @param string $title The label for the tooltip
      * @param string $content The content displayed when the tooltip is displayed
+     * @return void
      */
     function __construct($id, $title, $content) 
     {
@@ -47,6 +65,8 @@ class Fisma_Yui_Tooltip
     }
 
     /**
+     * Returns the HTML snippet of this rendered tooltip
+     * 
      * @return string An HTML rendering of the tooltip
      */
     function __toString() 

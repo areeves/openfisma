@@ -14,6 +14,7 @@ function discardChanges(event) {
 <div id="tabContainer">
     <!-- YUI will load the tabview into this div -->
 </div>
+<script type="text/javascript" src="/javascripts/Fisma/Email.js"></script>
 <script type="text/javascript">
     /* Configuration for the tabview */
     YAHOO.util.Event.onDOMReady(function () {
@@ -76,7 +77,7 @@ function discardChanges(event) {
 
         var notificationTab = new YAHOO.widget.Tab({
             label: 'E-mail Configuration',
-            dataSrc: '/config/notification',
+            dataSrc: '/config/email',
             cacheData: true
         });
         notificationTab.subscribe("dataLoadedChange", prepareTab);                
@@ -91,7 +92,7 @@ function discardChanges(event) {
         tabView.addTab(passwordTab);
 
         <?php 
-        if ('ldap' == Configuration::getConfig('auth_type', true)) { 
+        if ('ldap' == Fisma::configuration()->getConfig('auth_type', true)) { 
         ?>
             var ldapTab = new YAHOO.widget.Tab({
                 label: 'LDAP Configurations',

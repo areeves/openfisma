@@ -13,15 +13,15 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 /**
  * A YUI button for submitting forms
  * 
  * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Fisma
  * @subpackage Fisma_Yui
  * @version    $Id$
@@ -33,7 +33,7 @@ class Fisma_Yui_Form_Button_Submit extends Fisma_Yui_Form_Button
      * This saves the trouble of creating a separate view helper and allows the element to simply draw
      * itself.
      * 
-     * @return string
+     * @return string The HTML snippet of the YUI submit button rendered
      */
     function renderSelf()
     {

@@ -13,22 +13,34 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 /**
  * The role controller handles CRUD for role objects.
  *
  * @author     Ryan Yang <ryan@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Controller
  * @version    $Id$
  */
 class RoleController extends BaseController
 {
+    /**
+     * The main name of the model.
+     * 
+     * This model is the main subject which the controller operates on.
+     * 
+     * @var string
+     */
     protected $_modelName = 'Role';
     
+    /**
+     * View a role
+     * 
+     * @return void
+     */
     public function viewAction()
     {
         $id = $this->_request->getParam('id');
@@ -38,11 +50,11 @@ class RoleController extends BaseController
     
     /**
      * Delete a role
+     * 
+     * @return void
      */
     public function deleteAction()
-    {
-        Fisma_Acl::requirePrivilege('role', 'delete');
-        
+    {        
         $req = $this->getRequest();
         $id = $req->getParam('id');
         $role = Doctrine::getTable('Role')->find($id);
@@ -50,6 +62,8 @@ class RoleController extends BaseController
             $msg   = "Invalid Role ID";
             $type = 'warning';
         } else {
+            Fisma_Acl::requirePrivilegeForObject('delete', $role);
+            
             $users = $role->Users->toArray();
             if (!empty($users)) {
                 $msg = 'This role cannot be deleted because it is in use by one or more users';
@@ -69,20 +83,23 @@ class RoleController extends BaseController
     }
 
     /**
-     * assign privileges to a single role
+     * Assign privileges to a single role
+     * 
+     * @return void
      */
     public function rightAction()
-    {
-        Fisma_Acl::requirePrivilege('role', 'assignPrivileges');
+    {   
         $req = $this->getRequest();
         $do = $req->getParam('do');
         $roleId = $req->getParam('id');
         $screenName = $req->getParam('screen_name');
         
         $role = Doctrine::getTable('Role')->find($roleId);
+        Fisma_Acl::requirePrivilegeForObject('assignPrivileges', $role);
+                
         $existFunctions = $role->Privileges->toArray();
-        if ('available_functions' == $do) {
-            $existFunctionIds = explode(',', $req->getParam('exist_functions'));
+        if ('availableFunctions' == $do) {
+            $existFunctionIds = explode(',', $req->getParam('existFunctions'));
             $q = Doctrine_Query::create()
                  ->from('Privilege');
             if (!empty($screenName)) {
@@ -98,12 +115,12 @@ class RoleController extends BaseController
             $this->_helper->layout->setLayout('ajax');
             $this->view->assign('functions', $availableFunctions);
             $this->render('funcoptions');
-        } elseif ('exist_functions' == $do) {
+        } elseif ('existFunctions' == $do) {
             $this->_helper->layout->setLayout('ajax');
             $this->view->assign('functions', $existFunctions);
             $this->render('funcoptions');
         } elseif ('update' == $do) {
-            $functionIds = $req->getParam('exist_functions');
+            $functionIds = $req->getParam('existFunctions');
             $errno = 0;
             if (!Doctrine::getTable('RolePrivilege')->findByRoleId($roleId)->delete()) {
                 $errno++;

@@ -9,6 +9,12 @@ Fisma_Format_Section::startSection("Asset Inventory <span id='searchResultsTotal
 <form id="assetresult" method="post" action="/panel/asset/sub/multidelete">
 <div class="toolbar">
     <?php
+        if (Fisma_Acl::hasPrivilegeForClass('create', 'Asset')) {
+            echo new Fisma_Yui_Form_Button_Link('import',
+                                                array('value' => 'Import Assets',
+                                                      'href' => '/panel/asset/sub/import'));
+        }
+
         echo new Fisma_Yui_Form_Button_Link('pdf', 
                                       array('value' => 'Export PDF', 
                                             'href' => "/asset/search$this->url/format/pdf",
@@ -17,7 +23,7 @@ Fisma_Format_Section::startSection("Asset Inventory <span id='searchResultsTotal
                                       array('value' => 'Export Excel', 
                                             'href' => "/asset/search$this->url/format/xls", 
                                             'imageSrc' => '/images/xls.gif'));
-        if (Fisma_Acl::hasPrivilege('asset', 'delete', '*')) {
+        if (Fisma_Acl::hasPrivilegeForClass('delete', 'Asset')) {
             $selectAllButton = new Fisma_Yui_Form_Button('selectAll', 
                                                    array('label' => 'Select All', 
                                                          'onClickFunction' => 'selectAllUnsafe'));
@@ -33,7 +39,7 @@ Fisma_Format_Section::startSection("Asset Inventory <span id='searchResultsTotal
                                                       'onClickFunction' => 'deleteSelectedAssets'));
             echo $deleteButton;
         }
-        if (Fisma_Acl::hasPrivilege('asset', 'create', '*')) {
+        if (Fisma_Acl::hasPrivilegeForClass('create', 'Asset')) {
             echo new Fisma_Yui_Form_Button_Link(
                 'createAsset', 
                 array(
@@ -51,7 +57,7 @@ Fisma_Format_Section::startSection("Asset Inventory <span id='searchResultsTotal
     };
     var operation = function(elCell, oRecord, oColumn, sData) {
         elCell.innerHTML = "<a href='/panel/asset/sub/view/id/"+oRecord.getData("id")+"'>"
-                         . "<img src='/images/view.gif' /></a>";
+                         + "<img src='/images/view.gif' /></a>";
     };
     // Column definitions
     var myColumnDefs = [{key: 'id', label:'', formatter: checkboxList}

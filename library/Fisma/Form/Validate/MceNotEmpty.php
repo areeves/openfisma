@@ -13,23 +13,31 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 /**
  * Validate if the MCE editor has content
  *
  * @author     Jim Chen <xhorse@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Fisma
  * @subpackage Fisma_Form
  * @version    $Id$
  */
 class Fisma_Form_Validate_MceNotEmpty extends Fisma_Form_Validate_NotBlank
 {
+    /**
+     * Constance error message key 'notempty'
+     */
     const NOTEMPTY = "notempty";
 
+    /**
+     * Error message templates
+     * 
+     * @var array
+     */
     protected $_messageTemplates = array(
         self::NOTEMPTY => "cannot be empty."
     );
@@ -37,8 +45,8 @@ class Fisma_Form_Validate_MceNotEmpty extends Fisma_Form_Validate_NotBlank
     /** 
      * Returns true if the mce editor has none empty value after removing the wrapper tags
      *
-     * @param string $value
-     * @return true|false
+     * @param string $value The specified value to be validated
+     * @return boolean True if not empty, false otherwise
      */
     public function isValid($value)
     {

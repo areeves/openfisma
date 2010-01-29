@@ -13,7 +13,7 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 /**
@@ -21,16 +21,17 @@
  * OpenFISMA.
  *
  * @author     Ryan Yang <ryan@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Controller
  * @version    $Id$
  */
 class ReportController extends SecurityController
 {
     /**
-     * init() - Create the additional pdf and xls contexts for this class.
-     *
+     * Create the additional pdf and xls contexts for this class.
+     * 
+     * @return void
      * @todo Why are the contexts duplicated in init() and predispatch()? I think the init() method is the right place
      * for it.
      */
@@ -65,11 +66,14 @@ class ReportController extends SecurityController
     }
     
     /**
-     * preDispatch() - Add the action contexts for this controller.
+     * Add the action contexts for this controller.
+     * 
+     * @return void
      */
     public function preDispatch()
     {
-        parent::preDispatch();
+        Fisma_Acl::requireArea('reports');
+
         $this->req = $this->getRequest();
         $swCtx = $this->_helper->contextSwitch();
         $swCtx->addActionContext('overdue', array('pdf', 'xls'))
@@ -82,7 +86,7 @@ class ReportController extends SecurityController
     /**
      * Returns the due date for the next quarterly FISMA report
      * 
-     * @return Zend_Date
+     * @return Zend_Date The next quarterly OpenFISMA report date
      */
     public function getNextQuarterlyFismaReportDate()
     {
@@ -121,7 +125,7 @@ class ReportController extends SecurityController
     /**
      * Returns the due date for the next annual FISMA report
      * 
-     * @return Zend_Date
+     * @return Zend_Date The next annual OpenFISMA report date
      */
     public function getNextAnnualFismaReportDate()
     {
@@ -136,12 +140,12 @@ class ReportController extends SecurityController
     }
 
     /**
-     * fismaAction() - Genenerate fisma report
+     * Genenerate fisma report
+     * 
+     * @return void
      */
     public function fismaAction()
-    {
-        Fisma_Acl::requirePrivilege('area', 'reports');
-        
+    {        
         $this->view->nextQuarterlyReportDate = $this->getNextQuarterlyFismaReportDate()->toString('Y-m-d');
         $this->view->nextAnnualReportDate = $this->getNextAnnualFismaReportDate()->toString('Y-m-d');
     }
@@ -150,11 +154,11 @@ class ReportController extends SecurityController
      * Generate the quarterly FISMA report
      * 
      * The data in this action is calculated in roughly the same order as it is laid out in the report itself.
+     * 
+     * @return void
      */
     public function fismaQuarterlyAction()
     {
-        Fisma_Acl::requirePrivilege('area', 'reports');
-
         // Agency Name
         $agency = Organization::getAgency();
         $this->view->agencyName = $agency->name;
@@ -173,11 +177,11 @@ class ReportController extends SecurityController
     
     /**
      * Generate the annual FISMA report
+     * 
+     * @return void
      */
     public function fismaAnnualAction()
     {
-        Fisma_Acl::requirePrivilege('area', 'reports');
-
         // Agency Name
         $agency = Organization::getAgency();
         $this->view->agencyName = $agency->name;
@@ -195,12 +199,12 @@ class ReportController extends SecurityController
     }
         
     /**
-     * overdueAction() - Overdue report
+     * Overdue report
+     * 
+     * @return void
      */
     public function overdueAction()
-    {
-        Fisma_Acl::requirePrivilege('area', 'reports');
-        
+    {        
         // Get request variables
         $req = $this->getRequest();
         $params['orgSystemId'] = $req->getParam('orgSystemId');
@@ -208,6 +212,13 @@ class ReportController extends SecurityController
         $params['overdueType'] = $req->getParam('overdueType');
         $params['overdueDay'] = $req->getParam('overdueDay');
         $params['year'] = $req->getParam('year');
+
+        if (!empty($params['orgSystemId'])) {
+            $organization = Doctrine::getTable('Organization')->find($params['orgSystemId']);
+            Fisma_Acl::requirePrivilegeForObject('read', $organization);
+        } else {
+            Fisma_Acl::requirePrivilegeForClass('read', 'Organization');
+        }
 
         $this->view->assign('sourceList', Doctrine::getTable('Source')->findAll()->toKeyValueArray('id', 'name'));
         $this->view->assign('systemList', $this->_me->getOrganizations()->toKeyValueArray('id', 'name'));
@@ -221,15 +232,8 @@ class ReportController extends SecurityController
                  ->select('f.id') // unused, but Doctrine requires a field to be selected from the parent object
                  ->addSelect("CONCAT_WS(' - ', o.nickname, o.name) orgSystemName")
                  ->addSelect(
-                     "QUOTE(
-                         IF (f.status IN ('NEW', 'DRAFT', 'MSA'), 
-                             'Mitigation Strategy', 
-                             IF (f.status IN ('EN', 'EA'), 
-                                'Corrective Action', 
-                                NULL
-                             )
-                         )
-                      ) actionType"
+                     "QUOTE(IF(f.status IN ('NEW', 'DRAFT', 'MSA'), 'Mitigation Strategy', IF(f.status IN ('EN', 'EA'),
+                     'Corrective Action', NULL))) actionType"
                  )
                  ->addSelect('SUM(IF(DATEDIFF(NOW(), f.nextduedate) BETWEEN 0 AND 29, 1, 0)) lessThan30')
                  ->addSelect('SUM(IF(DATEDIFF(NOW(), f.nextduedate) BETWEEN 30 AND 59, 1, 0)) moreThan30')
@@ -245,7 +249,11 @@ class ReportController extends SecurityController
 
             if (!empty($params['orgSystemId'])) {
                 $q->andWhere('f.responsibleOrganizationId = ?', $params['orgSystemId']);
+            } else {
+                $organizations = $this->_me->getOrganizations()->toKeyValueArray('id', 'id');
+                $q->whereIn('f.responsibleOrganizationId', $organizations);    
             }
+
             if (!empty($params['sourceId'])) {
                 $q->andWhere('f.sourceId = ?', $params['sourceId']);
             }
@@ -262,7 +270,7 @@ class ReportController extends SecurityController
             $list = $q->execute();
 
             // Assign view outputs
-            $this->view->assign('poam_list', $list);
+            $this->view->assign('poamList', $list);
             $this->view->criteria = $params;
             $this->view->columns = array('orgSystemName' => 'System', 
                                          'actionType' => 'Overdue Action Type', 
@@ -279,10 +287,11 @@ class ReportController extends SecurityController
 
     /**
      * Batch generate RAFs for each system
+     * 
+     * @return void
      */
     public function rafsAction()
     {
-        Fisma_Acl::requirePrivilege('area', 'reports');
         $sid = $this->getRequest()->getParam('system_id', 0);
         $organizations = User::currentUser()->getOrganizations();
         $this->view->assign('organizations', $organizations->toKeyValueArray('id', 'name'));
@@ -346,23 +355,40 @@ class ReportController extends SecurityController
     }
     
     /**
-     * pluginAction() - Display the available plugin reports
-     *
+     * Display the available plugin reports
+     * 
+     * @return void
      * @todo Use Zend_Cache for the report menu
      */         
     public function pluginAction() 
-    {
-        Fisma_Acl::requirePrivilege('area', 'reports');
-        
+    {        
         // Build up report menu
         $reportsConfig = new Zend_Config_Ini(Fisma::getPath('application') . '/config/reports.conf');
         $reports = $reportsConfig->toArray();
+        
+        // Filter unauthorized plugin report items since actually user does not have rights to visit it.
+        if ($this->_me->username != 'root') {
+            $userRolesResult = $this->_me->getRoles();
+            $userRoleNicknames = array();
+            foreach ($userRolesResult as $row) {
+                $userRoleNicknames[] = $row['r_nickname'];
+            }
+            foreach ($reports as $reportName => $report) {
+                $roleNicknameIntersection = array_intersect($userRoleNicknames, $report['roles']);
+                if (empty($roleNicknameIntersection)) {
+                    unset($reports[$reportName]);
+                }
+            }
+        }
+        
         $this->view->assign('reports', $reports);
     }
 
     /**
-     * pluginReportAction() - Execute and display the specified plug-in report
-     */         
+     * Execute and display the specified plug-in report
+     * 
+     * @return void
+     */
     public function pluginReportAction()
     {
         // Verify a plugin report name was passed to this action

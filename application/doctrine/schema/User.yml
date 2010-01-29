@@ -1,5 +1,5 @@
 User:
-    listeners: [XssListener, UserListener, IndexListener, NotificationListener]
+    listeners: [XssListener, IndexListener, NotificationListener]
     
     columns:
         createdTs: timestamp
@@ -46,17 +46,10 @@ User:
             type: integer
             default: 0
             comment: How many times the user entered the wrong password before successfully logging in
-        oldFailureCount:
-            type: integer
-            default: 0
-            comment: Used to store the failure count throughout the session
     
         lastLoginIp:
             type: string(15)
-            ip: true
-        currentLoginIp:
-            type: string(15)
-            ip: true
+            Fisma_Validator_Ip: true
         lastLoginTs: timestamp
     
         title: 
@@ -90,7 +83,8 @@ User:
                 purify: plaintext
                 searchIndex: unstored
                 notify: true
-            email: true
+            email: 
+                check_mx: false
             comment: The users primary e-mail address
         emailValidate: 
             type: boolean
@@ -122,7 +116,6 @@ User:
         mostRecentNotifyTs: timestamp
         notifyEmail:
             type: string(255)
-            email: true
             
     relations:
         # Roles is a many-to-many relation
@@ -155,3 +148,7 @@ User:
             updated:
                 name: modifiedTs
                 type: timestamp
+        Fisma_Behavior_AuditLoggable:
+            logCreateObject: true
+            logUpdateObject: true
+            logDeleteObject: true

@@ -13,7 +13,7 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 require_once 'Zend/View/Helper/Abstract.php';
@@ -22,19 +22,19 @@ require_once 'Zend/View/Helper/Abstract.php';
  * Helper for determining if the specified poam is on time. 
  *
  * @author     Woody Lee <woody712@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    View_Helper
  * @version    $Id$
  */
 class View_Helper_IsOnTime extends Zend_View_Helper_Abstract
 {
     /**
-     * To determind if the specified poam is on time. 
-     * Return 'N/A','Overdue' or 'On Time'.
-     *
-     * @param string $dueTime overdue time
-     * @return string 'on time',' overdue','N/A'
+     * To determine if the specified finding (also known as poam) is on time.
+     * 
+     * @param string $dueTime The specified due time text of finding
+     * @return string One of 'on time','overdue' and 'N/A'
+     * @todo rename this method name to isOnTime
      */
     public function IsOnTime($dueTime)
     {

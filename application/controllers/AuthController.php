@@ -13,15 +13,15 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 /**
  * Handles CRUD for Authentication objects.
  *
  * @author     Jim Chen <xhorse@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Controller
  * @version    $Id$
  */
@@ -46,6 +46,8 @@ class AuthController extends Zend_Controller_Action
      * be performed against the database or LDAP provider, according to the application's 
      * configuration. Also, it enforces the security policies set by the
      * application.
+     * 
+     * @return void
      */
     public function loginAction()
     {
@@ -83,7 +85,7 @@ class AuthController extends Zend_Controller_Action
 
             // Check if account has expired
             $accountExpiration = new Zend_Date($user->lastLoginTs, Zend_Date::ISO_8601);
-            $expirationPeriod = Configuration::getConfig('account_inactivity_period');
+            $expirationPeriod = Fisma::configuration()->getConfig('account_inactivity_period');
             $accountExpiration->addDay($expirationPeriod);
             $now = Zend_Date::now();
             if ($accountExpiration->isEarlier($now)) {
@@ -100,16 +102,21 @@ class AuthController extends Zend_Controller_Action
 
             // Generate log entries and notifications
             if (!$authResult->isValid()) {
-                $user->log(User::LOGIN_FAILURE, "Login failure");
+                $user->getAuditLog()->write("Failed login ({$_SERVER['REMOTE_ADDR']})");
                 Notification::notify('LOGIN_FAILURE', $user, $user);
                 throw new Zend_Auth_Exception(self::CREDENTIAL_ERROR_MESSAGE);
             }
             
             // At this point, authentication is successful. Log in the user to update last login time, last login IP,
             // etc.
+            $lastLoginInfo = new Zend_Session_Namespace('last_login_info');
+            $lastLoginInfo->lastLoginTs = $user->lastLoginTs;
+            $lastLoginInfo->lastLoginIp = $user->lastLoginIp;
+            $lastLoginInfo->failureCount = $user->failureCount;
+                        
             $user->login();
             Notification::notify('LOGIN_SUCCESS', $user, $user);
-            $user->log(User::LOGIN, "Successful Login");
+            $user->getAuditLog()->write("Logged in ({$_SERVER['REMOTE_ADDR']})");
             
             // Set cookie for 'column manager' to control the columns visible on the search page
             // Persistent cookies are prohibited on U.S. government web servers by federal law. 
@@ -117,9 +124,9 @@ class AuthController extends Zend_Controller_Action
             Fisma_Cookie::set(User::SEARCH_PREF_COOKIE, $user->searchColumnsPref);
 
             // Check whether the user's password is about to expire (for database authentication only)
-            if ('database' == Configuration::getConfig('auth_type')) {
-                $passExpirePeriod = Configuration::getConfig('pass_expire');
-                $passWarningPeriod = Configuration::getConfig('pass_warning');
+            if ('database' == Fisma::configuration()->getConfig('auth_type')) {
+                $passExpirePeriod = Fisma::configuration()->getConfig('pass_expire');
+                $passWarningPeriod = Fisma::configuration()->getConfig('pass_warning');
                 $passWarningTs = new Zend_Date($user->passwordTs, 'Y-m-d');
                 $passWarningTs->add($passExpirePeriod - $passWarningPeriod, Zend_Date::DAY);
                 $now = Zend_Date::now();
@@ -135,7 +142,7 @@ class AuthController extends Zend_Controller_Action
             }
             
             // Check if the user is using the system standard hash function
-            if (Configuration::getConfig('hash_type') != $user->hashType) {
+            if (Fisma::configuration()->getConfig('hash_type') != $user->hashType) {
                 $message = 'This version of the application uses an improved password storage scheme.'
                          . ' You will need to change your password in order to upgrade your account.';
                 $this->view->priorityMessenger($message, 'warning');
@@ -148,7 +155,7 @@ class AuthController extends Zend_Controller_Action
             // If they do, then send them to that page. Otherwise, send them to
             // the dashboard.
             $nextRobReview = new Zend_Date($user->lastRob);
-            $nextRobReview->add(Configuration::getConfig('rob_duration'), Zend_Date::DAY);
+            $nextRobReview->add(Fisma::configuration()->getConfig('rob_duration'), Zend_Date::DAY);
             if (is_null($user->lastRob) || $nextRobReview->isEarlier(new Zend_Date())) {
                 $this->_helper->layout->setLayout('notice');
                 return $this->render('rule');
@@ -175,14 +182,14 @@ class AuthController extends Zend_Controller_Action
      * Returns a suitable authentication adapter based on system configuration and current user
      * 
      * @param User $user Authentication adapters may be different for different users
-     * @param string $password
-     * @return Zend_Auth_Adapter_Interface
+     * @param string $password The corresponding password of the specified user
+     * @return Zend_Auth_Adapter_Interface The suitable authentication adapter
      */
     public function getAuthAdapter(User $user, $password)
     {
         // Determine authentication method (based on system configuration, except root is always authenticated against
         // the database)
-        $method = Configuration::getConfig('auth_type');
+        $method = Fisma::configuration()->getConfig('auth_type');
 
         if ('root' == $user->username) {
             $method = 'database';
@@ -206,15 +213,17 @@ class AuthController extends Zend_Controller_Action
     }
 
     /**
-     * Close out the current user's session.
+     * Close out the current user's session
+     * 
+     * @return void
      */
     public function logoutAction() 
     {
         $currentUser = User::currentUser();
 
         if ($currentUser) {
+            $currentUser->getAuditLog()->write('Logged out');
             Notification::notify('LOGOUT', $currentUser, $currentUser);
-            $currentUser->log(User::LOGOUT, 'Log out');
         }
 
         $auth = Zend_Auth::getInstance();
@@ -224,8 +233,9 @@ class AuthController extends Zend_Controller_Action
     }
 
     /**
-     * privacyAction() - Display the system's privacy policy.
-     *
+     * Display the system's privacy policy.
+     * 
+     * @return void
      * @todo the business logic is stored in the view instead of the controller
      */
     public function privacyAction()
@@ -233,8 +243,9 @@ class AuthController extends Zend_Controller_Action
     }
 
     /**
-     * robAction() - Display the system's Rules Of Behavior.
-     *
+     * Display the system's Rules Of Behavior.
+     * 
+     * @return void
      * @todo the business logic is stored in the view instead of the controller
      * @todo rename this function to rulesOfBehaviorAction -- that name is
      * easier to understand
@@ -245,7 +256,8 @@ class AuthController extends Zend_Controller_Action
 
     /**
      * Validate the user's e-mail change.
-     *
+     * 
+     * @return void
      * @todo Cleanup this method: comments and formatting
      */
     public function emailvalidateAction()
@@ -258,7 +270,7 @@ class AuthController extends Zend_Controller_Action
         if (!empty($user)) {
             if ($user->validateEmail($code)) {
                 $message =  'Your e-mail address has been validated. You may close this window ' .
-                  'or click <a href="/">here</a> to enter ' . Configuration::getConfig('system_name');
+                  'or click <a href="/">here</a> to enter ' . Fisma::configuration()->getConfig('system_name');
                 $error = false;
             }
         }

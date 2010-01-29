@@ -14,7 +14,7 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 require_once(realpath(dirname(__FILE__) . '/../../library/Fisma.php'));
@@ -28,23 +28,27 @@ ConvertCpeDictionary::run($argv);
  * to the standard output.
  * 
  * @author     Ryan Yang <ryan@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Scripts
  * @version    $Id$
+ * 
+ * @see        http://nvd.nist.gov/cpe.cfm
  */
-class ConvertCpeDictionary 
+class ConvertCpeDictionary
 {
     /**
      * Run the command line application
      * 
      * @param array $argv PHP's command line arguments
+     * @return void
+     * @throws Exception if fail to initialize SimpleXMLElement
      */
     public static function run($argv) 
     {
         if (!isset($argv[1])) {
             fwrite(STDOUT, "Usage: convert-cpe-dictionary.php <pathToXml>\n");
-            exit;
+            return;
         }
 
         // Open and parse the XML dictionary

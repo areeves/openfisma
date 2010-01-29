@@ -13,29 +13,41 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 /**
  * Match the provided old password with the one in form
  * 
+ * @todo rename this class to a proper name, like Fisma_Form_Validate_PasswordMatch
+ * 
  * @author     Ryan Yang <ryan@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Fisma
  * @subpackage Fisma_Form
  * @version    $Id$
  */
 class Fisma_Form_Validate_PasswdMatch extends Zend_Validate_Abstract
 {
+    /**
+     * Constant error message key 'mismatch'
+     */
     const PASS_MISMATCH = 'mismatch'; 
 
+    /**
+     * Error message templates
+     * 
+     * @var array
+     * @todo improve using of the message templates
+     */
     protected $_messageTemplates = array(self::PASS_MISMATCH=>"is incorrect");
 
     /** 
-     * Validate the password
-     * @param string $pass password
-     * @return true|false
+     * Check if the specified password matchs with the password of current user on hash
+     * 
+     * @param string $pass The specified password to be matched
+     * @return boolean True if match, false otherwise
      */
     public function isValid($pass)
     {
@@ -43,7 +55,7 @@ class Fisma_Form_Validate_PasswdMatch extends Zend_Validate_Abstract
         $user = Doctrine::getTable('User')->find(User::currentUser()->id);
         $this->_setValue($pass);
 
-        if ($user->hash($pass) != $user->password) {
+        if (Fisma_Hash::hash($pass . $user->passwordSalt, $user->hashType) != $user->password) {
             $this->_error(self::PASS_MISMATCH);
             return false;
         }

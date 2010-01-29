@@ -13,41 +13,39 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 /**
  * Handles CRUD for "system" objects.
  *
  * @author     Ryan Yang <ryan@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Controller
  * @version    $Id$
  */
 class SystemController extends BaseController
 {
+    /**
+     * The main name of the model.
+     * 
+     * This model is the main subject which the controller operates on.
+     * 
+     * @var string
+     */
     protected $_modelName = 'System';
 
     /**
-     * Invokes a contract with BaseController regarding privileges. 
-     * @link http://jira.openfisma.org/browse/OFJ-24
-     * @var string
+     * All privileges to system objects are based on the parent 'Organization' objects
      */
-    protected $_organizations = '*';
-
-    /**
-     * Setup the _organization member so that the base controller knows how to query the ACL
-     */
-    public function init() 
-    {
-        parent::init();
-    }
+    protected $_aclResource = 'Organization';
 
     /**
      * Returns the standard form for creating, reading, and updating systems.
-     *
-     * @return Zend_Form
+     * 
+     * @param string|null $formName The specified form name
+     * @return Zend_Form The assembled from
      */
     public function getForm($formName = null)
     {
@@ -60,7 +58,7 @@ class SystemController extends BaseController
             foreach ($organizationTree as $organization) {
                 $value = $organization['id'];
                 $text = str_repeat('--', $organization['level']) . $organization['name'];
-                $form->getElement('organizationId')->addMultiOptions(array($value => $text));
+                $form->getElement('parentOrganizationId')->addMultiOptions(array($value => $text));
             }
         }
         
@@ -82,13 +80,14 @@ class SystemController extends BaseController
     }
     
     /**
-     * list the systems from the search, 
-     * if search none, it list all systems
-     *
+     * List the systems from the search. If search none, it list all systems
+     * 
+     * @return void
+     * @throws Fisma_Exception if the order parameter invalid
      */
     public function searchAction()
     {
-        Fisma_Acl::requirePrivilege('system', 'read', '*');
+        Fisma_Acl::requirePrivilegeForClass('read', 'Organization');
         
         $keywords = trim($this->_request->getParam('keywords'));
         
@@ -146,11 +145,16 @@ class SystemController extends BaseController
         $this->_helper->json($tableData);
     }
     
+    /**
+     * View the specified system
+     * 
+     * @return void
+     */
     public function viewAction() 
     {
         $id = $this->getRequest()->getParam('id');
         $organization = Doctrine::getTable('Organization')->find($id);
-        Fisma_Acl::requirePrivilege('system', 'read', $organization->nickname);
+        Fisma_Acl::requirePrivilegeForObject('read', $organization);
         
         $organization = Doctrine::getTable('Organization')->find($id);
         $this->view->organization = $organization;
@@ -161,12 +165,14 @@ class SystemController extends BaseController
     
     /**
      * Display basic system properties such as name, creation date, etc.
+     * 
+     * @return void
      */
     public function systemAction() 
     {
         $id = $this->getRequest()->getParam('id');
         $organization = Doctrine::getTable('Organization')->find($id);
-        Fisma_Acl::requirePrivilege('system', 'read', $organization->nickname);
+        Fisma_Acl::requirePrivilegeForObject('read', $organization);
         
         $this->view->organization = Doctrine::getTable('Organization')->find($id);
         $this->view->system = $this->view->organization->System;
@@ -174,7 +180,7 @@ class SystemController extends BaseController
         // Assign the parent organization link
         $parentOrganization = $this->view->organization->getNode()->getParent();
         if (isset($parentOrganization)) {
-            if (Fisma_Acl::hasPrivilege('system', 'read', $parentOrganization->id)) {
+            if (Fisma_Acl::hasPrivilegeForObject('read', $parentOrganization)) {
                 if ('system' == $parentOrganization->orgType) {
                     $this->view->parentOrganization = "<a href='/panel/system/sub/view/id/"
                                                     . $parentOrganization->id
@@ -201,12 +207,14 @@ class SystemController extends BaseController
     
     /**
      * Display CIA criteria and FIPS-199 categorization
+     * 
+     * @return void
      */
     public function fipsAction() 
     {
         $id = $this->getRequest()->getParam('id');
         $organization = Doctrine::getTable('Organization')->find($id);
-        Fisma_Acl::requirePrivilege('system', 'read', $organization->nickname);
+        Fisma_Acl::requirePrivilegeForObject('read', $organization);
         $this->_helper->layout()->disableLayout();
 
         $this->view->organization = Doctrine::getTable('Organization')->find($id);
@@ -217,28 +225,32 @@ class SystemController extends BaseController
     
     /**
      * Display FISMA attributes for the system
+     * 
+     * @return void
      */
     public function fismaAction() 
     {
         $id = $this->getRequest()->getParam('id');
         $organization = Doctrine::getTable('Organization')->find($id);
-        Fisma_Acl::requirePrivilege('system', 'read', $organization->nickname);
+        Fisma_Acl::requirePrivilegeForObject('read', $organization);
         $this->_helper->layout()->disableLayout();
 
         $this->view->organization = Doctrine::getTable('Organization')->find($id);
         $this->view->system = $this->view->organization->System;
         
-        $this->render();        
+        $this->render();
     }
 
     /**
      * Display FISMA attributes for the system
+     * 
+     * @return void
      */
     public function artifactsAction() 
     {
         $id = $this->getRequest()->getParam('id');
         $organization = Doctrine::getTable('Organization')->find($id);
-        Fisma_Acl::requirePrivilege('system', 'read', $organization->nickname);
+        Fisma_Acl::requirePrivilegeForObject('read', $organization);
         $this->_helper->layout()->disableLayout();
 
         $organization = Doctrine::getTable('Organization')->find($id);
@@ -260,12 +272,14 @@ class SystemController extends BaseController
 
     /**
      * Edit the system data
+     * 
+     * @return void
      */
     public function editAction()
     {
         $id = $this->getRequest()->getParam('id');
         $organization = Doctrine::getTable('Organization')->find($id);
-        Fisma_Acl::requirePrivilege('system', 'update', $organization->nickname);
+        Fisma_Acl::requirePrivilegeForObject('update', $organization);
         $this->_helper->layout()->disableLayout();
 
         $organization = Doctrine::getTable('Organization')->find($id);
@@ -287,28 +301,79 @@ class SystemController extends BaseController
 
     /**
      * Upload file artifacts for a system
+     * 
+     * @return void
      */
     public function attachFileAction() 
     {
         $id = $this->getRequest()->getParam('id');
         $organization = Doctrine::getTable('Organization')->find($id);
-        Fisma_Acl::requirePrivilege('system', 'update', $organization->nickname);
+        Fisma_Acl::requirePrivilegeForObject('update', $organization);
         $this->_helper->layout()->disableLayout();
 
         $this->view->organization = Doctrine::getTable('Organization')->find($id);
         $this->view->system = $this->view->organization->System;
     }
-    
+
+    /**
+     * Override the base class to handle the saving of attributes into the Organization AND System models
+     *
+     * @param Zend_Form $form
+     * @param Doctrine_Record $system
+     * @throws Fisma_Exception if the subject is not instance of Doctrine_Record
+     */
+    protected function saveValue($form, $system=null)
+    {
+        // Create a new object if one is not provided (this indicates a "create" action rather than an "update")
+        if (is_null($system)) {            
+            $system = new System();
+            $system->Organization = new Organization();
+            $system->Organization->orgType = 'system';
+            
+            /**
+             * Set a flag indicating that this system needs to be added to the current user's ACL... this is used below.
+             * It cant't be done here because of Doctrine's Unit of Work idiosyncracies.
+             */
+            $addSystemToUserAcl = true;
+        } elseif (!$subject instanceof Doctrine_Record) {
+            throw new Fisma_Exception('Expected a Doctrine_Record object');
+        }
+
+        // Merge form data into the organization model and system model. The variables are named such that each model
+        // will merge the values it needs automatically.
+        $systemData = $form->getValues();
+        $system->Organization->merge($systemData);
+        $system->merge($systemData);
+        $system->save();
+
+        // Create the tree structure for this system
+        $parentNode = Doctrine::getTable('Organization')->find($systemData['parentOrganizationId']);
+        if (!$parentNode) {
+            throw new Fisma_Exception("No parent organization with id={$systemData['parentOrganizationId']}ß");
+        }
+        $system->Organization->getNode()->insertAsLastChildOf($parentNode);
+        $system->Organization->save();
+        
+        // Add the system to the user's ACL if the flag was set above
+        if ($addSystemToUserAcl) {
+            User::currentUser()->Organizations[] = $system->Organization;
+            User::currentUser()->save();
+            User::currentUser()->invalidateAcl();
+        }
+    }
+
     /**
      * Display a form inside a panel for uploading a document
      * 
      * Notice that IE has its own method, since it does not support the flash uploader
+     * 
+     * @return void
      */
     public function uploadDocumentFormAction()
     {
         $id = $this->getRequest()->getParam('id');
         $organization = Doctrine::getTable('Organization')->find($id);
-        Fisma_Acl::requirePrivilege('system', 'update', $organization->nickname);
+        Fisma_Acl::requirePrivilegeForObject('update', $organization);
         $this->_helper->layout()->disableLayout();
 
         $this->view->organizationId = $id;        
@@ -317,12 +382,14 @@ class SystemController extends BaseController
   
     /**
      * Display a form inside a panel for uploading a document
+     * 
+     * @return void
      */
     public function uploadDocumentAction()
     {
         $id = $this->getRequest()->getParam('id');
         $organization = Doctrine::getTable('Organization')->find($id);
-        Fisma_Acl::requirePrivilege('system', 'update', $organization->nickname);
+        Fisma_Acl::requirePrivilegeForObject('update', $organization);
                 
         $organization = Doctrine::getTable('Organization')->find($id);
         $documentTypeId = $this->getRequest()->getParam('documentTypeId');
@@ -399,13 +466,18 @@ class SystemController extends BaseController
     
     /**
      * Download the specified system document
+     * 
+     * @return void
+     * @throws Fisma_Exception if requested file doesn`t exist
      */
     public function downloadDocumentAction()
     {
         $id = $this->getRequest()->getParam('id');
         $version = $this->getRequest()->getParam('version');
         $document = Doctrine::getTable('SystemDocument')->find($id);
-        Fisma_Acl::requirePrivilege('system', 'read', $document->System->Organization->nickname);
+        
+        // Documents don't have their own privileges, access control is based on the associated organization
+        Fisma_Acl::requirePrivilegeForObject('read', $document->System->Organization);
 
         $this->_helper->layout()->disableLayout();
         $this->_helper->viewRenderer->setNoRender(true);
@@ -435,12 +507,14 @@ class SystemController extends BaseController
      * A special upload page just for IE.
      * 
      * IE doesn't work with the flash uploader, so it uses a static upload page.
+     * 
+     * @return void
      */
     public function uploadForIeAction() 
     {
         $id = $this->getRequest()->getParam('id');
         $organization = Doctrine::getTable('Organization')->find($id);
-        Fisma_Acl::requirePrivilege('system', 'update', $organization->nickname);
+        Fisma_Acl::requirePrivilegeForObject('update', $organization);
 
         $error = $this->getRequest()->getParam('error');
         if (!empty($error)) {

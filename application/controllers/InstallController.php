@@ -13,15 +13,15 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 /**
  * The install controller handles all of the actions for the installer program.
  *
  * @author     Jim Chen <xhorse@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Controller
  * @version    $Id$
  */
@@ -30,18 +30,33 @@ class InstallController extends Zend_Controller_Action
 
     /**
      * Invoked before each Action
+     * 
+     * @return void
      */
     public function preDispatch()
     {
         if (Fisma::isInstall()) {
            $this->_redirect('/', array('prependBase' => 'true'));
         }
-
+        
+        set_time_limit(600);
+        
+        /**
+         * The installer needs a few configuration items defined. For example, the root user cannot be created unless
+         * the hash_type is set, because otherwise it doesn't know what hash algorithm to use on the password.
+         */
+        $configuration = new Fisma_Configuration_Array();
+        $configuration->setConfig('hash_type', 'sha1');
+        $configuration->setConfig('session_inactivity_period', '3600');
+        Fisma::setConfiguration($configuration, true);
+        
         $this->_helper->layout->setLayout('install');
     }
 
     /**
      * Default Action
+     * 
+     * @return void
      */
     public function indexAction()
     {
@@ -51,6 +66,8 @@ class InstallController extends Zend_Controller_Action
 
     /**
      * Check the current environment for installing system
+     * 
+     * @return void
      */
     public function envcheckAction()
     {
@@ -71,6 +88,8 @@ class InstallController extends Zend_Controller_Action
 
     /**
      * Check the the dir whether is writable
+     * 
+     * @return void
      */
     public function checkingAction()
     {
@@ -105,6 +124,8 @@ class InstallController extends Zend_Controller_Action
 
     /**
      * Configure the database
+     * 
+     * @return void
      */
     public function dbsettingAction()
     {
@@ -120,6 +141,8 @@ class InstallController extends Zend_Controller_Action
 
     /**
      * Review the database's configuration
+     * 
+     * @return void
      */
     public function dbreviewAction()
     {
@@ -183,6 +206,9 @@ class InstallController extends Zend_Controller_Action
 
     /**
      * Initilize the system
+     * 
+     * @return void
+     * @throws Exception if unable to set the host_url value in the configuration table
      */
     public function initialAction()
     {
@@ -217,7 +243,7 @@ class InstallController extends Zend_Controller_Action
             $configInfo
         );
         file_put_contents(Fisma::getPath('config') . '/app.conf', $configInfo);
-        
+
         // test the connection of database
         try {
             $method = 'connection / creation';
@@ -232,8 +258,6 @@ class InstallController extends Zend_Controller_Action
             $checklist['creation'] = 'ok';
             Doctrine::generateModelsFromYaml(Fisma::getPath('schema'), Fisma::getPath('model'));
             Doctrine::createTablesFromModels(Fisma::getPath('model'));
-            Zend_Auth::getInstance()->setStorage(new Fisma_Auth_Storage_Session())
-                                    ->clearIdentity();
 
             //load sample data
             Doctrine::loadData(Fisma::getPath('fixture'));
@@ -264,7 +288,7 @@ class InstallController extends Zend_Controller_Action
         // Overwrite the default host_url value. Can't use the Configuration class b/c that requires authentication.
         $setHostUrlQuery = Doctrine_Query::create()
                            ->update('Configuration c')
-                           ->set('value', '?', Zend_Controller_Front::getInstance()->getRequest()->getHttpHost())
+                           ->set('value', '?', Fisma_Url::baseUrl())
                            ->where('name LIKE ?', 'host_url');
         if (!$setHostUrlQuery->execute()) {
             throw new Exception("Unable to set the host_url value in the configuration table.");
@@ -275,6 +299,8 @@ class InstallController extends Zend_Controller_Action
 
     /**
      * Completing the installation
+     * 
+     * @return void
      */
     public function completeAction()
     {
@@ -284,6 +310,8 @@ class InstallController extends Zend_Controller_Action
 
     /**
      * Handling the error
+     * 
+     * @return void
      */
     public function errorAction()
     {

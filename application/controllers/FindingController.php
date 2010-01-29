@@ -13,7 +13,7 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 /**
@@ -21,8 +21,8 @@
  * findings.
  *
  * @author     Ryan Yang <ryan@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Controller
  * @version    $Id$
  */
@@ -32,33 +32,37 @@ class FindingController extends BaseController
      * The main name of the model.
      * 
      * This model is the main subject which the controller operates on.
+     * 
+     * @var string
      */
     protected $_modelName = 'Finding';
 
     /**
-     * my OrgSystems
+     * My OrgSystems
      *
      * @var array
      */
     private $_myOrgSystems = null;
     
     /**
-     * my OrgSystem ids
+     * My OrgSystem ids
      *
      * @var array
      */
     private $_myOrgSystemIds = null;
     
     /**
-     * Invokes a contract with BaseController regarding privileges. 
-     * @link http://jira.openfisma.org/browse/OFJ-24
+     * Invokes a contract with BaseController regarding privileges
+     * 
      * @var string
+     * @link http://jira.openfisma.org/browse/OFJ-24
      */
     protected $_organizations = '*';
     
     /**
-     * initialize the basic information, my orgSystems
-     *
+     * Initialize the basic information, my orgSystems
+     * 
+     * @return void
      */
     public function init()
     {
@@ -75,8 +79,9 @@ class FindingController extends BaseController
     
     /**
      * Returns the standard form for creating finding
-     *
-     * @return Zend_Form
+     * 
+     * @param string|null $formName The specified form name to load
+     * @return Zend_Form The assembled form
      */
     public function getForm($formName = null)
     {
@@ -119,7 +124,7 @@ class FindingController extends BaseController
         );
         
         // Check if the user is allowed to read assets.
-        if (!Fisma_Acl::hasPrivilege('asset', 'read', '*')) {
+        if (!Fisma_Acl::hasPrivilegeForClass('read', 'Asset')) {
             $form->removeElement('name');
             $form->removeElement('ip');
             $form->removeElement('port');
@@ -137,9 +142,12 @@ class FindingController extends BaseController
 
     /** 
      * Overriding Hooks
-     *
-     * @param Zend_Form $form
-     * @param Doctrine_Record|null $subject
+     * 
+     * @param Zend_Form $form The specified form to save
+     * @param Doctrine_Record|null $subject The subject model related to the form
+     * @return void
+     * @throws Fisma_Exception if the subject is not null or the organization of the finding associated
+     * to the subject doesn`t exist
      */
     protected function saveValue($form, $subject=null)
     {
@@ -178,10 +186,12 @@ class FindingController extends BaseController
     
     /**
      * Allow the user to upload an XML Excel spreadsheet file containing finding data for multiple findings
+     * 
+     * @return void
      */
     public function injectionAction()
     {
-        Fisma_Acl::requirePrivilege('finding', 'inject', '*');
+        Fisma_Acl::requirePrivilegeForClass('inject', 'Finding');
 
         /** @todo convert this to a Zend_Form */
         // If the form isn't submitted, then there is no work to do
@@ -235,14 +245,15 @@ class FindingController extends BaseController
     }
 
     /** 
-     * Downloading a excel file which is used as a template 
-     * for uploading findings.
-     * systems, networks and sources are extracted from the
-     * database dynamically.
+     * Downloading a excel file which is used as a template for uploading findings.
+     * 
+     * Systems, networks and sources are extracted from the database dynamically.
+     * 
+     * @return void
      */
     public function templateAction()
     {
-        Fisma_Acl::requirePrivilege('finding', 'inject', '*');
+        Fisma_Acl::requirePrivilegeForClass('inject', 'Finding');
         
         $contextSwitch = $this->_helper->getHelper('contextSwitch');
         $contextSwitch->addContext(
@@ -333,11 +344,13 @@ class FindingController extends BaseController
     }
 
     /** 
-     * pluginAction() - Import scan results via a plug-in
+     * Import scan results via a plug-in
+     * 
+     * @return void
      */
     public function pluginAction()
     {       
-        Fisma_Acl::requirePrivilege('finding', 'inject', '*');
+        Fisma_Acl::requirePrivilegeForClass('inject', 'Finding');
 
         // Load the finding plugin form
         $uploadForm = Fisma_Form_Manager::loadForm('finding_upload');
@@ -345,14 +358,6 @@ class FindingController extends BaseController
         $uploadForm->setAttrib('id', 'injectionForm');
 
         // Populate the drop menu options
-        $uploadForm->plugin->addMultiOption('', '');
-        $plugins = Doctrine::getTable('Plugin')->findAll()->toArray();
-        $pluginList = array();
-        foreach ($plugins as $plugin) {
-            $pluginList[$plugin['id']] = $plugin['name'];
-        }
-        $uploadForm->plugin->addMultiOptions($pluginList);
-        
         $sources = Doctrine::getTable('Source')->findAll()->toArray();
         $sourceList = array();
         foreach ($sources as $source) {
@@ -390,19 +395,10 @@ class FindingController extends BaseController
             if ($uploadForm->isValid($postValues) && $fileReceived = $uploadForm->selectFile->receive()) {
                 $filePath = $uploadForm->selectFile->getTransferAdapter()->getFileName('selectFile');
                 $values = $uploadForm->getValues();
-                
-                // Get information about the plugin, and then create a new instance of the plugin.
-                $pluginTbl = new Plugin();
-                $pluginTbl = $pluginTbl->getTable('Plugin')->find($values['plugin']);
-                $pluginClass = $pluginTbl->class;
-                $pluginName = $pluginTbl->name;
-                                
+                $values['filepath'] = $filePath;
                 // Execute the plugin with the received file
                 try {
-                    $plugin = new $pluginClass($filePath,
-                                               $values['network'],
-                                               $values['system'],
-                                               $values['findingSource']);
+                    $plugin = Fisma_Inject_Factory::create(NULL, $values);
 
                     // get original file name
                     $originalName = pathinfo(basename($filePath), PATHINFO_FILENAME);
@@ -431,8 +427,7 @@ class FindingController extends BaseController
                         $upload->delete();
                     }
                 } catch (Fisma_Exception_InvalidFileFormat $e) {
-                    $error = "The uploaded file is not a valid format for {$pluginName}: {$e->getMessage()}";
-                    $this->view->priorityMessenger($error, 'warning');
+                    $this->view->priorityMessenger($e->getMessage(), 'warning');
                 }
             } else {
                 $errorString = Fisma_Form_Manager::getErrors($uploadForm);
@@ -451,13 +446,14 @@ class FindingController extends BaseController
     }
 
     /** 
-     * approveAction() - Allows a user to approve or delete pending findings
-     *
+     * Allows a user to approve or delete pending findings
+     * 
+     * @return void
      * @todo Use YUI pager
      */
     public function approveAction()
     {
-        Fisma_Acl::requirePrivilege('finding', 'approve', '*');
+        Fisma_Acl::requirePrivilegeForClass('approve', 'Finding');
         
         $q = Doctrine_Query::create()
              ->select('*')
@@ -469,10 +465,12 @@ class FindingController extends BaseController
     
     /**
      *  Process the form submitted from the approveAction()
+     *  
+     *  @return void
      */
     public function processApprovalAction() 
     {
-        Fisma_Acl::requirePrivilege('finding', 'approve', '*');
+        Fisma_Acl::requirePrivilegeForClass('approve', 'Finding');
 
         $findings = $this->_request->getPost('findings', array());
         foreach ($findings as $id) {

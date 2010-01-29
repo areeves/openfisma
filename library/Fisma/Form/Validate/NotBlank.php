@@ -13,33 +13,42 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 /**
  * Validate if the specific value empty
  * 
  * @author     Josh Boyd <joshua.boyd@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Fisma
  * @subpackage Fisma_Form
  * @version    $Id$
+ * 
+ * @uses       Zend_Validate_Abstract
  */
 class Fisma_Form_Validate_NotBlank extends Zend_Validate_Abstract
 {
+    /**
+     * Constant error message key 'blank'
+     */
     const NOTBLANK = 'blank';
 
+    /**
+     * Error message templates
+     * 
+     * @var array
+     */
     protected $_messageTemplates = array(
         self::NOTBLANK => "cannot be blank."
     );
 
     /**
-     * isValid 
+     * Check if the specified value is blank
      * 
-     * @param string $value 
-     * @access public
-     * @return boolean 
+     * @param string $value The specified to be validated
+     * @return boolean True if not blank, false otherwise
      */
     public function isValid($value)
     {

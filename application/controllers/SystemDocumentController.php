@@ -13,15 +13,15 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 /**
  * Handles CRUD for system documentation objects.
  *
  * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Controller
  * @version    $Id$
  */
@@ -29,12 +29,19 @@ class SystemDocumentController extends SecurityController
 {
     /**
      * Default pagination parameters
+     * 
+     * @var array
      */
     protected $_paging = array(
         'startIndex' => 0,
         'count' => 20
     );
 
+    /**
+     * Invoked before each Actions
+     * 
+     * @return void
+     */
     public function preDispatch()
     {
         /* Setting the first index of the page/table */
@@ -44,12 +51,16 @@ class SystemDocumentController extends SecurityController
 
     /**
      * View detail information of the subject model
+     * 
+     * @return void
      */
     public function viewAction()
     {
         $document = Doctrine::getTable('SystemDocument')->find($this->getRequest()->getParam('id'));
-        $organization = $document->System->Organization->nickname;
-        Fisma_Acl::requirePrivilege('system', 'read', $organization);
+        $organization = $document->System->Organization;
+        
+        // There are no access control privileges for system documents, access is based on the associated organization
+        Fisma_Acl::requirePrivilegeForObject('read', $organization);
 
         $historyQuery = Doctrine_Query::create()
                         ->from('SystemDocumentVersion v')
@@ -63,11 +74,13 @@ class SystemDocumentController extends SecurityController
 
     /**
      * List the subjects
+     * 
+     * @return void
      */
     public function listAction()
     {
-        Fisma_Acl::requirePrivilege('system', 'read', '*');
-
+        Fisma_Acl::requirePrivilegeForClass('read', 'Organization');
+        
         $keywords = htmlentities(trim($this->_request->getParam('keywords')));
         $link = empty($keywords) ? '' :'/keywords/'.$keywords;
         $this->view->link     = $link;
@@ -77,13 +90,16 @@ class SystemDocumentController extends SecurityController
     }
 
     /** 
-     * Search the subject 
+     * Search the subject
      *
      * This outputs a json object. Allowing fulltext search from each record enpowered by lucene
+     * 
+     * @return string The json encoded table data
      */
     public function searchAction()
     {
-        Fisma_Acl::requirePrivilege('system', 'read', '*');
+        Fisma_Acl::requirePrivilegeForClass('read', 'Organization');
+
         $sortBy = $this->_request->getParam('sortby', 'id');
         $order  = $this->_request->getParam('order');
         $keywords  = html_entity_decode($this->_request->getParam('keywords')); 

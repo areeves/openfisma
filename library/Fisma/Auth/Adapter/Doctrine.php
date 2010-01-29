@@ -13,15 +13,15 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 /**
  * An authentication adapter for Doctrine (aka database) 
  * 
  * @author     Jim Chen <xhorse@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Fisma
  * @subpackage Fisma_Auth
  * @version    $Id$
@@ -39,8 +39,9 @@ class Fisma_Auth_Adapter_Doctrine implements Zend_Auth_Adapter_Interface
     /**
      * Constructor
      *
-     * @param User $user
-     * @param string $password
+     * @param User $user The user name of the account to authenticate
+     * @param string $password The user password of the account to authenticate
+     * @return void
      */
     public function __construct(User $user, $password) 
     {
@@ -51,7 +52,8 @@ class Fisma_Auth_Adapter_Doctrine implements Zend_Auth_Adapter_Interface
     /**
      * Implements the required interface
      *
-     * @return Zend_Auth_Result
+     * @return Zend_Auth_Result The instance of Zend_Auth_Result
+     * @throws Fisma_Exception_AccountLocked if the account is locked
      */
     public function authenticate()
     {
@@ -65,7 +67,8 @@ class Fisma_Auth_Adapter_Doctrine implements Zend_Auth_Adapter_Interface
         }
 
         // Check password
-        if ($this->_user->hash($this->_credential) == $this->_user->password) {
+        $hash = Fisma_Hash::hash($this->_credential . $this->_user->passwordSalt, $this->_user->hashType);
+        if ($hash == $this->_user->password) {
             $authResult = new Zend_Auth_Result(Zend_Auth_Result::SUCCESS, $this->_user);
         } else {
             $authResult = new Zend_Auth_Result(Zend_Auth_Result::FAILURE_CREDENTIAL_INVALID, $this->_user);
@@ -74,7 +77,7 @@ class Fisma_Auth_Adapter_Doctrine implements Zend_Auth_Adapter_Interface
         // If password is wrong, determine whether the account needs to be locked due to password failures
         if (!$authResult->isValid()) {
             $this->_user->failureCount++;
-            if ($this->_user->failureCount >= Configuration::getConfig('failure_threshold')) {
+            if ($this->_user->failureCount >= Fisma::configuration()->getConfig('failure_threshold')) {
                 $this->_user->lockAccount(User::LOCK_TYPE_PASSWORD);
                 $reason = $this->_user->getLockReason();
                 throw new Fisma_Exception_AccountLocked("Account is locked ($reason)");
@@ -88,12 +91,12 @@ class Fisma_Auth_Adapter_Doctrine implements Zend_Auth_Adapter_Interface
     /**
      * Check if the password has expired
      * 
-     * @return boolean
+     * @return boolean Ture if the password has expired, false otherwise
      */
     private function _passwordIsExpired()
     {
         $passExpireTs = new Zend_Date($this->_user->passwordTs, Zend_Date::ISO_8601);
-        $passExpirePeriod = Configuration::getConfig('pass_expire');
+        $passExpirePeriod = Fisma::configuration()->getConfig('pass_expire');
         $passExpireTs->add($passExpirePeriod, Zend_Date::DAY);
         $expired = $passExpireTs->isEarlier(Zend_Date::now());
 

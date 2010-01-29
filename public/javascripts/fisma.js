@@ -1,5 +1,4 @@
-/*************************************************************************
- *
+/**
  * Copyright (c) 2008 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
@@ -15,21 +14,29 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with OpenFISMA.  If not, see <http://www.gnu.org/licenses/>.
+ * along with OpenFISMA.  If not, see {@link http://www.gnu.org/licenses/}.
  *
- ******************************************************************************* 
- *
- * Main js file
- * @todo start migrating functionality out of this file. 
- * eventually this file needs to be removed 
+ * @fileoverview Main js file
  *
  * @author    Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
- * @license   http://www.openfisma.org/mw/index.php?title=License
+ * @copyright (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license   http://www.openfisma.org/content/license
  * @version   $Id$
  *
- *******************************************************************************
+ * @todo      Start migrating functionality out of this file. 
+ *            Eventually this file needs to be removed 
  */
+
+// Required for AC_RunActiveContent
+// @TODO Move into own file
+
+AC_FL_RunContent = 0;
+DetectFlashVer = 0;
+var requiredMajorVersion = 9;
+var requiredMinorVersion = 0;
+var requiredRevision = 45;
+
+var Fisma = {};
 
 String.prototype.trim = function() {
         return this.replace(/^\s+|\s+$/g,"");
@@ -106,20 +113,20 @@ var readyFunc = function () {
     search_function();
     //
     YAHOO.util.Event.on('add_function', 'click', function() {
-        var options = new YAHOO.util.Selector.query('#available_functions option');
+        var options = new YAHOO.util.Selector.query('#availableFunctions option');
         for (var i = 0; i < options.length; i ++) {
             if (options[i].selected == true) {
-                document.getElementById('exist_functions').appendChild(options[i]);
+                document.getElementById('existFunctions').appendChild(options[i]);
             }
         }
         return false;  
     });
     //
     YAHOO.util.Event.on('remove_function', 'click', function() {
-        var options = YAHOO.util.Selector.query('#exist_functions option');
+        var options = YAHOO.util.Selector.query('#existFunctions option');
         for (var i = 0; i < options.length; i ++) {
             if (options[i].selected == true) {
-                document.getElementById('available_functions').appendChild(options[i]);
+                document.getElementById('availableFunctions').appendChild(options[i]);
             }
         }
         return false;
@@ -127,7 +134,7 @@ var readyFunc = function () {
     //
     YAHOO.util.Event.on(YAHOO.util.Selector.query('form[name=assign_right]'), 'submit', 
     function (){
-        var options = YAHOO.util.Selector.query('#exist_functions option');
+        var options = YAHOO.util.Selector.query('#existFunctions option');
         for (var i = 0; i < options.length; i ++) {
             options[i].selected = true;
         }
@@ -164,20 +171,20 @@ function search_function() {
     if('' != name){
         param += '/screen_name/'+name;
     }
-    var kids = YAHOO.util.Selector.query('#exist_functions option');
-    var exist_functions = '';
+    var kids = YAHOO.util.Selector.query('#existFunctions option');
+    var existFunctions = '';
     for (var i=0;i < kids.length;i++) {
         if (i == 0) {
-            exist_functions += kids[i].value;
+            existFunctions += kids[i].value;
         } else {
-            exist_functions += ',' + kids[i].value;
+            existFunctions += ',' + kids[i].value;
         }
     }
     var url = document.getElementById('function_screen').getAttribute('url')
-              + '/do/available_functions' + param + '/exist_functions/'+exist_functions;
+              + '/do/availableFunctions' + param + '/existFunctions/'+existFunctions;
     var request = YAHOO.util.Connect.asyncRequest('GET', url, 
         {success: function(o){
-                   document.getElementById('available_functions').parentNode.innerHTML = '<select style="width: 250px;" name="available_functions" id="available_functions" size="20" multiple="">'+o.responseText+'</select>';
+                   document.getElementById('availableFunctions').parentNode.innerHTML = '<select style="width: 250px;" name="availableFunctions" id="availableFunctions" size="20" multiple="">'+o.responseText+'</select>';
                 },
         failure: handleFailure});
 }
@@ -447,7 +454,12 @@ function message( msg ,model){
     } else {
         return;
     }
-    msgbar.innerHTML = msg;
+    if (msgbar.innerHTML) {
+        msgbar.innerHTML = msgbar.innerHTML + msg;
+    } else {
+        msgbar.innerHTML = msg;
+    }
+
     msgbar.style.fontWeight = 'bold';
     
     if( model == 'warning')  {
@@ -478,17 +490,22 @@ function showJustification(){
 }
 
 function addBookmark(obj, url){
-    if(window.sidebar){ // Firefox
+    if (window.sidebar) { 
+        // Firefox
         window.sidebar.addPanel(url.title, url.href,'');
-    }else if(window.opera){ //Opera
+    } else if (window.opera) {
+        // Opera
         var a = document.createElement("A");
         a.rel = "sidebar";
         a.target = "_search";
         a.title = url.title;
         a.href = url.href;
         a.click();
-    } else if(document.all){ //IE
+    } else if (document.all) { 
+        // IE
         window.external.AddFavorite(url.href, url.title);
+    } else {
+        alert("Your browser does not support automatic bookmarks. Please try to bookmark this page manually instead.");
     }
 }
 

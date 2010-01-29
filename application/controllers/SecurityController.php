@@ -13,7 +13,7 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 /**
@@ -25,8 +25,8 @@
  * of inheriting from Zend_Controller directly.
  *
  * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Controller
  * @version    $Id$
  */
@@ -34,17 +34,23 @@ class SecurityController extends Zend_Controller_Action
 {
     /**
      * Authenticated user instance
+     * 
+     * @var User
      */
     protected $_me = null;
     
     /**
      * Stores the current time. This might be useful for synchronizing events in the audit logs that result
      * from a single invocation of a controller that runs for several seconds.
+     * 
+     * @var Zend_Date
      */
     public static $now = null;
 
     /**
      * Initialize class members
+     * 
+     * @return void
      */
     public function init()
     {
@@ -81,6 +87,9 @@ class SecurityController extends Zend_Controller_Action
     /**
      * Non-authenticated users are not allowed to access Security Controllers. Redirect them to
      * the login page.
+     * 
+     * @return void
+     * @throws Fisma_Exception_InvalidAuthentication if user session expired
      */
     public function preDispatch()
     {

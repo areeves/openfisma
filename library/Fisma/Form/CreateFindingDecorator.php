@@ -13,15 +13,15 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 /**
  * A specfic decorator that can be used for create finding
  * 
  * @author     Ryan Yang <ryan@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Fisma
  * @subpackage Fisma_Form
  * @version    $Id$
@@ -30,6 +30,8 @@ class Fisma_Form_CreateFindingDecorator extends Fisma_Form_FismaDecorator
 {
     /**
      * Display product detail information on the create finding page
+     * 
+     * @return string The redenred product detail information HTML snippet
      */
     public function buildProduct()
     {
@@ -44,8 +46,10 @@ class Fisma_Form_CreateFindingDecorator extends Fisma_Form_FismaDecorator
 
     /**
      * Decorates the specified content with HTML table markup
-     *
+     * 
+     * @param The specified content to be decorated and rendered
      * @return The element rendered in HTML.
+     * @throws Exception_General if the element to be rendered is an unknown class
      */
     public function render($content) 
     {

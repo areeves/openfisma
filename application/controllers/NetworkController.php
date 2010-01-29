@@ -13,7 +13,7 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 /**
@@ -21,29 +21,39 @@
  * network objects.
  *
  * @author     Ryan Yang <ryan@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Controller
  * @version    $Id$
  */
 class NetworkController extends BaseController
 {
     
+    /**
+     * The main name of the model.
+     * 
+     * This model is the main subject which the controller operates on.
+     * 
+     * @var string
+     */
     protected $_modelName = 'Network';
 
     /**
      * Delete a network
+     * 
+     * @return void
      */
     public function deleteAction()
-    {
-        Fisma_Acl::requirePrivilege('network', 'delete');
-        
+    {        
         $id = $this->_request->getParam('id');
         $network = Doctrine::getTable('Network')->find($id);
+        
         if (!$network) {
             $msg   = "Invalid Network ID";
             $type = 'warning';
         } else {
+            Fisma_Acl::requirePrivilegeForObject('delete', $network);
+            
             $assets = $network->Assets->toArray();
             if (!empty($assets)) {
                 $msg = 'This network can not be deleted because it is'

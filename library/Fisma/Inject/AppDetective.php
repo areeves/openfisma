@@ -13,7 +13,7 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 /**
@@ -23,17 +23,37 @@
  * be a performance bottleneck for large reports. Currently there has not been any load-testing for this plugin.
  * 
  * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Fisma
  * @subpackage Fisma_Inject
  * @version    $Id$
+ * 
+ * @todo       Add audit logging
  */
 class Fisma_Inject_AppDetective extends Fisma_Inject_Abstract
 {
+    /**
+     * Store the mapped asset column data
+     * 
+     * @var array
+     */
     private $_asset;
+    
+    /**
+     * Store the mapped product column data
+     * 
+     * @var array
+     */
     private $_product;
+    
+    /**
+     * Store column data of those mapped findings
+     * 
+     * @var array
+     */
     private $_findings;
+    
     /**
      * Some appDetective reports can contain over 100k of vulnDetail data per finding. This is too much data to save
      * in a mysql column, so we limit the number of vulnDetails captured to a manageable number. Anything over this
@@ -47,8 +67,12 @@ class Fisma_Inject_AppDetective extends Fisma_Inject_Abstract
     const REMOVE_PHRASE = "/As part of a complete .* level of database security./";
     
     /**
-     * parse() - Implements the required function in the Inject_Abstract interface. This parses the report and commits
+     * Implements the required function in the Inject_Abstract interface. This parses the report and commits
      * all data to the database.
+     * 
+     * @param string $uploadId The specified id of upload file to be parsed
+     * @return void
+     * @throws Fisma_Exception_InvalidFileFormat if the file is not an App Detective report
      */
     public function parse($uploadId)
     {
@@ -74,12 +98,13 @@ class Fisma_Inject_AppDetective extends Fisma_Inject_Abstract
     }
     
     /**
-     * _mapAsset() - Performs mapping rules for the asset object. If the asset already exists, then the existing asset
+     * Performs mapping rules for the asset object. If the asset already exists, then the existing asset
      * id will be used to populate the finding. If no asset is found, then a new asset will be created using the
      * information provided in the report.
      *
      * @param SimpleXMLElement $report The full AppDetective report
-     * @return array Asset information
+     * @return array The parsed and mapped asset
+     * @throws Fisma_Exception_InvalidFileFormat if found multiple appName fields or unable to parse IP or port
      */
     private function _mapAsset($report)
     {
@@ -122,12 +147,13 @@ class Fisma_Inject_AppDetective extends Fisma_Inject_Abstract
     }
 
     /**
-     * _mapProduct() - Performs mapping rules for the product object. If the asset does not already have a product
+     * Performs mapping rules for the product object. If the asset does not already have a product
      * defined, then create a new product. If the asset does have a product but the CPE is not defined, then
      * update the CPE but do not change any other fields.
      *
      * @param SimpleXMLElement $report The full AppDetective report
-     * @return array Product information
+     * @return array  The parsed and mapped product
+     * @throws Fisma_Exception_InvalidFileFormat if found multiple cpe-item fileds
      */
     private function _mapProduct($report)
     {
@@ -162,11 +188,13 @@ class Fisma_Inject_AppDetective extends Fisma_Inject_Abstract
     }
     
     /**
-     * _mapFindings() - Perform mapping rules for all of the findings contained in this report. Only findings with
+     * Perform mapping rules for all of the findings contained in this report. Only findings with
      * risk level HIGH, MEDIUM, or LOW are considered.
      *
      * @param SimpleXMLElement $report The full AppDetective report
      * @return array An array of arrays contain one row for each new finding
+     * @throws Fisma_Exception_InvalidFileFormat if found multiple testDate fields 
+     * or unable to parse date from the testDate field
      */
     private function _mapFindings($report, $uploadId)
     {
@@ -209,13 +237,13 @@ class Fisma_Inject_AppDetective extends Fisma_Inject_Abstract
                 $finding['sourceId'] = $this->_findingSourceId;
                 $finding['responsibleOrganizationId'] = $this->_orgSystemId;
                 $finding['recommendation'] = preg_replace(self::REMOVE_PHRASE, '', $reportFinding->fix);
-                $finding['recommendation'] = $this->textToHtml($finding['recommendation']);
+                $finding['recommendation'] = Fisma_String::textToHtml($finding['recommendation']);
                 $finding['threatLevel'] = strtoupper($reportFinding->risk);
                 //todo english translate "medium" into "MODERATE" to adapt OpenFISMA
                 if ('MEDIUM' == $finding['threatLevel']) {
                     $finding['threatLevel'] = 'MODERATE';
                 }
-                $finding['threat'] = $this->textToHtml($reportFinding->overview);
+                $finding['threat'] = Fisma_String::textToHtml($reportFinding->overview);
 
                 // The mapping for finding_data is a little more complicated
                 // WARNING: Because duplicate matching is perfomed on this field, modifications to the markup used in
@@ -236,7 +264,7 @@ class Fisma_Inject_AppDetective extends Fisma_Inject_Abstract
                     }
                     $findingData .= '</ul>';
                 }
-                $finding['description'] = $this->textToHtml($findingData);
+                $finding['description'] = Fisma_String::textToHtml($findingData);
                 
                 // Add this finding to the total findings array
                 $findings[] = $finding;
@@ -247,22 +275,18 @@ class Fisma_Inject_AppDetective extends Fisma_Inject_Abstract
     }
     
     /**
-     * _persist() - Commits all of the data which has been mapped from the report.
-     *
+     * Commits all of the data which has been mapped from the report.
+     * 
+     * @return void
      * @todo This function needs to wrap a transaction around its queries
      */
     private function _persist()
     {
-        $this->_saveAsset($this->_asset);
-        $this->_saveProduct($this->_product);
-        // Commit the findings
         foreach ($this->_findings as $finding) {
-            // First set the asset ID
-            $finding['assetId'] = $this->_assetId;
-            
-            // Now commit the finding
-            $this->_commit($finding);
+            $this->_save($finding, $this->_asset, $this->_product);
         }
+
+        $this->_commit();
     }
     
 }

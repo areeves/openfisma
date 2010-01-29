@@ -13,7 +13,7 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 /**
@@ -21,18 +21,18 @@
  * errors to the user.
  *
  * @author     Jim Chen <xhorse@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Controller
  * @version    $Id$
  */
 class ErrorController extends Zend_Controller_Action
 {
     /**
-     * This action handles
-     *    - Application errors
-     *    - Errors in the controller chain arising from missing
-     *     controller classes and/or action methods
+     * This action handles Application errors, Errors in the controller chain arising from missing 
+     * controller classes and/or action methods
+     * 
+     * @return void
      */
     public function errorAction()
     {
@@ -64,7 +64,7 @@ class ErrorController extends Zend_Controller_Action
                      . $errors->exception->getTraceAsString()
                      . '<br>';
             $logger = Fisma::getLogInstance();
-            $logger->log($content, Zend_Log::ERR);
+            $logger->log(Fisma_String::htmlToPlainText($content), Zend_Log::ERR);
             $this->view->content = $content;
 
             if ($errors->exception instanceof Fisma_Exception_InvalidPrivilege) {
@@ -87,6 +87,8 @@ class ErrorController extends Zend_Controller_Action
 
     /**
      * Error handler for input validation error
+     * 
+     * @return void
      */
     public function inputerrorAction()
     {

@@ -13,7 +13,7 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 require_once 'Zend/View/Helper/Abstract.php';
@@ -22,22 +22,23 @@ require_once 'Zend/View/Helper/Abstract.php';
  * Helper for rendering HTML to plain text.
  *
  * @author     Woody Lee <woody712@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    View_Helper
  * @version    $Id$
  */
 class View_Helper_PlainText extends Zend_View_Helper_Abstract
 {
     /**
-     * To render HTML to plain text. 
+     * To render HTML to plain text.
      * Return the HTML code which has been dealt.
      *
-     * @param string $html HTML code
-     * @param boolean $entityDecode whether decode
-     * @param boolean $stripTags whether remove HTML tags
-     * @param boolean $lineFeed whether replace the tags like 'p','br' with line feed code
-     * @return string HTML code which has been dealt
+     * @param string $html The HTML code to convert
+     * @param boolean $entityDecode Indicates whether decode or not
+     * @param boolean $stripTags Indicates whether remove HTML tags or not
+     * @param boolean $lineFeed Indicates whether replace the tags like 'p','br' with line feed code or not
+     * @return string The converted HTML code
+     * @todo initial letter of this method name should be lowcased.
      */
     public function PlainText($html, $entityDecode = true, $stripTags = true, $lineFeed = true)
     {

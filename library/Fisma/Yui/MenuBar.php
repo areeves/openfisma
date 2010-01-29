@@ -13,15 +13,15 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 /**
  * An object which represents a menubar in YUI
  * 
  * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Fisma
  * @subpackage Fisma_Yui
  * @version    $Id$
@@ -30,6 +30,7 @@ class Fisma_Yui_MenuBar
 {
     /**
      * Internal representation of the items in this menu bar
+     * 
      * @var array
      */
     private $_menus = array();
@@ -37,7 +38,9 @@ class Fisma_Yui_MenuBar
     /**
      * Add the specified item to this menu bar.
      * 
-     * @param Fisma_Yui_Menu|Fisma_Yui_MenuItem $item
+     * @param Fisma_Yui_Menu|Fisma_Yui_MenuItem $item The menu ir submenu item to be appended to this menu bar
+     * @return void
+     * @throws Fisma_Exception if neither the specified item is instance of class Fisma_Yui_Menu nor Fisma_Yui_MenuItem
      */
     function add($item) 
     {
@@ -51,7 +54,7 @@ class Fisma_Yui_MenuBar
     /**
      * Return the menus
      * 
-     * @return array
+     * @return array The menubar items
      */
     function getMenus() 
     {

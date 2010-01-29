@@ -13,35 +13,44 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * {@link http://www.gnu.org/licenses/}.
  */
 
 /**
  * Handles CRUD for product objects.
  *
  * @author     Ryan Yang <ryan@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
+ * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Controller
  * @version    $Id$
  */
 class ProductController extends BaseController
 {
+    /**
+     * The main name of the model.
+     * 
+     * This model is the main subject which the controller operates on.
+     * 
+     * @var string
+     */
     protected $_modelName = 'Product';
     
     /**
      * Delete a product
+     * 
+     * @return void
      */
     public function deleteAction()
-    {
-        Fisma_Acl::requirePrivilege('product', 'delete');
-        
+    {        
         $id = $this->_request->getParam('id');
         $product = Doctrine::getTable('Product')->find($id);
         if (!$product) {
             $msg   = "Invalid Product ID";
             $type = 'warning';
         } else {
+            Fisma_Acl::requirePrivilegeForObject('delete', $product);
+            
             $assets = $product->Assets->toArray();
             if (!empty($assets)) {
                 $msg = 'This product can not be deleted because it is already associated with one or more assets';
@@ -59,10 +68,13 @@ class ProductController extends BaseController
     
     /**
      * Render the form for searching the products
+     * 
+     * @return void
      */
     public function advancesearchAction()
     {
-        Fisma_Acl::requirePrivilege('product', 'read');
+        Fisma_Acl::requirePrivilegeForObject('read', 'Product');
+
         $this->_helper->layout->setLayout('ajax');
         $product = new Product();
         $req = $this->getRequest();
