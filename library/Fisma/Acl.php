@@ -59,12 +59,6 @@ class Fisma_Acl extends Zend_Acl
 
         $cache = Fisma::getCacheInstance();
         
-        $orgSpecific = Doctrine::getTable('Privilege')->findByResourceAndActionAndOrgSpecific($resource, $privilege, true);
-
-        if (!$orgSpecific) {
-            $organization = null;
-        }
-       
         // Otherwise, check the ACL
         try {
             $resource = strtolower($resource);

@@ -81,8 +81,7 @@ class FindingListener extends Doctrine_Record_Listener
     );
     
     /**
-     * Set the status as "NEW"  for a new finding created or as "PEND" when duplicated unless duplicated finding is 
-     * marked as closed.
+     * Set the status as "NEW"  for a new finding created or as "PEND" when duplicated
      * write the audit log
      * 
      * @param Doctrine_Event $event
@@ -92,7 +91,7 @@ class FindingListener extends Doctrine_Record_Listener
         $finding = $event->getInvoker();
         $duplicateFinding  = $finding->getTable()
                                      ->findByDql('description LIKE ?', $finding->description);
-        if (!empty($duplicateFinding[0]) && $duplicateFinding[0]->status != 'CLOSED') {
+        if (!empty($duplicateFinding[0])) {
             $finding->DuplicateFinding = $duplicateFinding[0];
             $finding->status           = 'PEND';
         } elseif (in_array($finding->type, array('CAP', 'AR', 'FP'))) {
@@ -158,12 +157,12 @@ class FindingListener extends Doctrine_Record_Listener
                         break;
                     case 'securityControlId':
                         $key      = 'Security Control';
-                        $value    = isset(Doctrine::getTable('SecurityControl')->find($value)->code) ? Doctrine::getTable('SecurityControl')->find($value)->code : null;
+                        $value    = Doctrine::getTable('SecurityControl')->find($value)->code;
                         $newValue = $finding->SecurityControl->code;
                         break;
                     case 'responsibleOrganizationId':
                         $key      = 'Responsible Organization';
-                        $value    = isset(Doctrine::getTable('Organization')->find($value)->name) ? Doctrine::getTable('Organization')->find($value)->name : null;
+                        $value    = Doctrine::getTable('Organization')->find($value)->name;
                         $newValue = $finding->ResponsibleOrganization->name;
                         break;
                     case 'status':
@@ -205,7 +204,7 @@ class FindingListener extends Doctrine_Record_Listener
                         }
                         break;
                     case 'currentEvaluationId':
-                        $event = isset($finding->CurrentEvaluation->Event->name) ? $finding->CurrentEvaluation->Event->name : null;
+                        $event = $finding->CurrentEvaluation->Event->name;
                         // If the event is null, then that indicates this was the last evaluation within its approval
                         // process. That condition is handled above.
                         if (isset($event)) {
@@ -249,25 +248,17 @@ class FindingListener extends Doctrine_Record_Listener
                     continue;
                 }
 
+                // See if you can look up a logical name for this column in the schema definition. If its not defined,
+                // then use the physical name instead
+                $column = $finding->getTable()->getColumnDefinition(strtolower($key));
+                $logicalName = (isset($column['extra']) && isset($column['extra']['logicalName']))
+                             ? $column['extra']['logicalName']
+                             : $key;
+                
                 $value    = $value ? html_entity_decode(strip_tags($value)) : 'NULL';
                 $newValue = html_entity_decode(strip_tags($newValue));
-
-                // Only log if $newValue is actually different from $value. 
-                // Ignore changes to NULL/""/NONE if one of these was present 
-                // in the original $value.
-                if ( (!(is_null($value) || empty($value) || $value == 'NONE') && 
-                      !(is_null($newValue) || empty($newValue) || $newValue == 'NONE'))
-                      || ($value != $newValue)) {
-                    // See if you can look up a logical name for this column in the schema definition. If its not defined,
-                    // then use the physical name instead
-                    $column = $finding->getTable()->getColumnDefinition(strtolower($key));
-                    $logicalName = (isset($column['extra']) && isset($column['extra']['logicalName']))
-                                 ? $column['extra']['logicalName']
-                                 : $key;
- 
-                    $message = "UPDATE: $logicalName\n ORIGINAL: $value\nNEW: $newValue";
-                    $finding->log($message);
-                }
+                $message = "UPDATE: $logicalName\n ORIGINAL: $value\nNEW: $newValue";
+                $finding->log($message);
             }
         }
     }

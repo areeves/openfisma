@@ -31,7 +31,7 @@
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
  */
-class AuthController extends Zend_Controller_Action
+class AuthController extends MessageController
 {
     /**
      * The message displayed to the user when their e-mail address needs validation.
@@ -130,7 +130,7 @@ class AuthController extends Zend_Controller_Action
                     $leaveDays = $passWarningPeriod - $now->sub($passWarningTs, Zend_Date::DAY);
                     $message = "Your password will expire in $leaveDays days,"
                              . " you should change it now.";
-                    $this->view->priorityMessenger($message, 'warning');
+                    $this->message($message, self::M_WARNING);
                     // redirect back to password change action
                     $this->_forward('user', 'Panel', null, array('sub'=>'password'));
                     return;
@@ -141,7 +141,7 @@ class AuthController extends Zend_Controller_Action
             if (Configuration::getConfig('hash_type') != $user->hashType) {
                 $message = 'This version of the application uses an improved password storage scheme.'
                          . ' You will need to change your password in order to upgrade your account.';
-                $this->view->priorityMessenger($message, 'warning');
+                $this->message($message, self::M_WARNING);
                 $this->_helper->_actionStack('header', 'Panel');
                 $this->_forward('password', 'User');
                 return;

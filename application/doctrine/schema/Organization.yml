@@ -6,16 +6,12 @@ Organization:
         modifiedTs: timestamp
         name: 
             type: string(255)
-            notblank: true
-            notnull: true
             extra:
                 purify: plaintext
                 searchIndex: unstored
         nickname:
             type: string(255)
             unique: true
-            notblank: true
-            notnull: true
             extra:
                 purify: plaintext
                 searchIndex: unstored

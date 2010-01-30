@@ -186,18 +186,18 @@ class UserController extends BaseController
                             $message .= ", and a validation email has been sent to your new e-mail address.";
                         } 
                     }
-                    $model   = 'notice';
+                    $model   = self::M_NOTICE;
                 } catch (Doctrine_Exception $e) {
                     Doctrine_Manager::connection()->rollback();
                     $message = $e->getMessage();
-                    $model   = 'warning';
+                    $model   = self::M_WARNING;
                 }
             } else {
                 $errorString = Fisma_Form_Manager::getErrors($form);
                 $message     = "Unable to update profile:<br>" . $errorString;
-                $model       = 'warning';
+                $model       = self::M_WARNING;
             }
-            $this->view->priorityMessenger($message, $model);
+            $this->message($message, $model);
         } else {
             $form->setDefaults($user->toArray());
         }
@@ -229,17 +229,17 @@ class UserController extends BaseController
                 try {
                     $user->save();
                     $message = "Password updated successfully."; 
-                    $model   = 'notice';
+                    $model   = self::M_NOTICE;
                 } catch (Doctrine_Exception $e) {
                     $message = $e->getMessage();
-                    $model   = 'warning';
+                    $model   = self::M_WARNING;
                 }
             } else {
                 $errorString = Fisma_Form_Manager::getErrors($form);
                 $message     = "Unable to change password:<br>" . $errorString;
-                $model       = 'warning';
+                $model       = self::M_WARNING;
             }
-            $this->view->priorityMessenger($message, $model);
+            $this->message($message, $model);
         }
         $this->view->form    =  $form;
     }
@@ -267,22 +267,22 @@ class UserController extends BaseController
                 Doctrine_Manager::connection()->commit();
 
                 $message = "Notification events modified successfully";
-                $model   = 'notice';
+                $model   = self::M_NOTICE;
                 if ($modified['notifyEmail']) {
                     $mail = new Fisma_Mail();
                     if ($mail->validateEmail($user, $modified['notifyEmail'])) {
                         $message .= ", and a validation email has sent to your new notify email";
                     } else {
                         $message .= ", but the validation e-mail could not be sent to your new address.";
-                        $model = 'warning';
+                        $model = self::M_WARNING;
                     }
                 }
             } catch (Doctrine_Exception $e) {
                 Doctrine_Manager::connection()->rollback();
                 $message = $e->getMessage();
-                $model   = 'warning';
+                $model   = self::M_WARNING;
             }
-            $this->view->priorityMessenger($message, $model);
+            $this->message($message, $model);
         }
 
         $this->view->me = $user;
@@ -422,7 +422,7 @@ class UserController extends BaseController
                 }
             }
         }
-        $this->view->priorityMessenger($msg, $type);
+        echo json_encode(array('msg' => $msg, 'type' => $type));
         $this->_helper->layout->setLayout('ajax');
         $this->_helper->viewRenderer->setNoRender();
     }

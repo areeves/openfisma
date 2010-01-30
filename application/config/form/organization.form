@@ -11,6 +11,7 @@
 [organization]
 method = "post"
 elementFilters.trim = "StringTrim"
+elementFilters.tags = "StripTags"
 
 elements.parent.type = "select"
 elements.parent.options.label = "Parent Organization"

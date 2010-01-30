@@ -17,25 +17,40 @@
  * You should have received a copy of the GNU General Public License
  * along with OpenFISMA.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @author    Mark E. Haase <mhaase@endeavorsystems.com>
+ * @author    Ryan Yang <ryan@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id: UserController.php 1597 2009-04-27 03:27:50Z ryanyang $
+ * @version   $Id$
  * @package   Controller
  */
 
 /**
- * Handles URL redirects to external websites.
+ * Displays warnings or informational messages to the user via DHTML.
  *
  * @package   Controller
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
+ *
+ * @todo This doesn't appear to be a controller... why is it called MessageController??
  */
-class RedirectController extends MessageController
+class MessageController extends Zend_Controller_Action
 {
-    public function redirectAction() {
-        $this->_helper->layout->setLayout('layout');
-        $this->_helper->actionStack('header', 'panel');
-        $this->view->url = urldecode($this->getRequest()->getParam('url'));
+    const M_NOTICE = 'notice';
+    const M_WARNING = 'warning';
+    /**
+     *  Routine to show messages to UI by ajax
+     */
+    public function message($msg, $model) {
+        assert(in_array($model, array(
+            self::M_NOTICE,
+            self::M_WARNING
+        )));
+        $msg = str_replace("\n", '', $msg);
+        $msg = addslashes($msg);
+        $this->view->msg = $msg;
+        $this->view->model = $model;
+        $this->_helper->viewRenderer->renderScript('message.phtml');
+        // restore the auto rendering
+        $this->_helper->viewRenderer->setNoRender(false);
     }
 }

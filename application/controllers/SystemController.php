@@ -192,7 +192,7 @@ class SystemController extends BaseController
         } else {
             $this->view->parentOrganization = "<i>None</i>";
         }
-
+        
         $this->render();
     }
     
@@ -269,16 +269,14 @@ class SystemController extends BaseController
         $system = $organization->System;
 
         $post = $this->_request->getPost();
-
         if ($post) {
             $organization->merge($post);
-            $system->merge($post);
-            if ($organization->isValid(true) && $system->isValid(true)) {
-                $organization->save();
-                $system->save();
-            }
-        }
+            $organization->save();
 
+            $system->merge($post);
+            $system->save();
+        }
+        
         $this->_redirect("/panel/system/sub/view/id/$id");
     }
 
@@ -377,7 +375,7 @@ class SystemController extends BaseController
         if ('ie' == $this->getRequest()->getParam('browser')) {
             // Special handling for IE
             if (!empty($error)) {
-                $this->view->priorityMessenger($error, 'warning');
+                $this->message($error, self::M_WARNING);
                 $this->_forward('system', 'Panel', null, array('sub' => 'upload-for-ie', 'error' => $error));
             } else {
                 $this->_redirect("/panel/system/sub/view/id/$id");
@@ -439,7 +437,7 @@ class SystemController extends BaseController
 
         $error = $this->getRequest()->getParam('error');
         if (!empty($error)) {
-            $this->view->priorityMessenger($error, 'warning');
+            $this->message($error, self::M_WARNING);
         }
 
         $this->view->organizationId = $id;        

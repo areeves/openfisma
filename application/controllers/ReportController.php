@@ -306,11 +306,11 @@ class ReportController extends SecurityController
                     if ($e instanceof Fisma_Exception) {
                         $message = $e->getMessage();
                     }
-                    $this->view->priorityMessenger($message, 'warning');
+                    $this->message($message, self::M_WARNING);
                 }
             } else {
                 $this->view->sid = $sid;
-                $this->view->priorityMessenger('There are no findings to generate RAFs for', 'warning');
+                $this->message('There are no findings to generate RAFs for', self::M_WARNING);
                 $this->_forward('report', 'panel', null, array('sub' => 'rafs', 'system_id' => ''));
             }
         }
@@ -386,12 +386,6 @@ class ReportController extends SecurityController
         foreach ($this->_me->getOrganizations() as $organization) {
             $myOrganizations[] = $organization->id;
         }
-        if (empty($myOrganizations)) {
-            $msg = "The report could not be created because this user does not have access to any organizations.";
-            $this->view->priorityMessenger($msg, 'warning');
-            $this->_forward('plugin');
-            return;
-        }
         $reportScript = str_replace('##ORGANIZATIONS##', implode(',', $myOrganizations), $reportScript);
         $dbh = Doctrine_Manager::connection()->getDbh(); 
         $rawResults = $dbh->query($reportScript, PDO::FETCH_ASSOC);
@@ -405,7 +399,7 @@ class ReportController extends SecurityController
             $columns = array_keys($reportData[0]);
         } else {
             $msg = "The report could not be created because the report query did not return any data.";
-            $this->view->priorityMessenger($msg, 'warning');
+            $this->message($msg, self::M_WARNING);
             $this->_forward('plugin');
             return;
         }

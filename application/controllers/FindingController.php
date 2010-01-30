@@ -193,11 +193,11 @@ class FindingController extends BaseController
         // If the form is submitted, then the file object should contain an array
         $file = $_FILES['excelFile'];
         if (!is_array($file)) {
-            $this->view->priorityMessenger("The file upload failed.", 'warning');
+            $this->message("The file upload failed.", self::M_WARNING);
             return;
         } elseif (empty($file['name'])) {
-            $this->view->priorityMessenger('You did not select a file to upload. Please select a file and try again.', 
-                           'warning');
+            $this->message('You did not select a file to upload. Please select a file and try again.', 
+                           self::M_WARNING);
         } else {
             // Load the findings from the spreadsheet upload. Return a user error if the parser fails.
             try {
@@ -225,11 +225,11 @@ class FindingController extends BaseController
                 move_uploaded_file($file['tmp_name'], $path . $newName);
                 
                 Doctrine_Manager::connection()->commit();
-                $this->view->priorityMessenger("$rowsProcessed findings were created.", 'notice');
+                $this->message("$rowsProcessed findings were created.", self::M_NOTICE);
             } catch (Fisma_Exception_InvalidFileFormat $e) {
                 Doctrine_Manager::connection()->rollback();
-                $this->view->priorityMessenger("The file cannot be processed due to an error.<br>{$e->getMessage()}",
-                               'warning');
+                $this->message("The file cannot be processed due to an error.<br>{$e->getMessage()}",
+                               self::M_WARNING);
             }
         }
         $this->render();
@@ -324,7 +324,7 @@ class FindingController extends BaseController
             $this->getResponse()->setHeader('Cache-Control', 'private', true);
         } catch(Fisma_Exception $fe) {
             Zend_Controller_Action_HelperBroker::getStaticHelper('viewRenderer');
-            $this->view->priorityMessenger($fe->getMessage(), 'warning');
+            $this->message($fe->getMessage(), self::M_WARNING);
             $this->_forward('finding', 'panel', null, array('sub' => 'injection'));
         }
     }
@@ -419,17 +419,17 @@ class FindingController extends BaseController
                     // rename the file by ts
                     rename($filePath, dirname($filePath) . '/' . $newName);
 
-                    $this->view->priorityMessenger("Your scan report was successfully uploaded.<br>"
+                    $this->message("Your scan report was successfully uploaded.<br>"
                                    . "{$plugin->created} findings were created.<br>"
                                    . "{$plugin->reviewed} findings need review.<br>"
                                    . "{$plugin->deleted} findings were suppressed.",
-                                   'notice');
+                                   self::M_NOTICE);
                     if (($plugin->created + $plugin->reviewed) == 0) {
                         $upload->delete();
                     }
                 } catch (Fisma_Exception_InvalidFileFormat $e) {
-                    $this->view->priorityMessenger("The uploaded file is not a valid format for {$pluginName}: {$e->getMessage()}",
-                                   'warning');
+                    $this->message("The uploaded file is not a valid format for {$pluginName}: {$e->getMessage()}",
+                                   self::M_WARNING);
                 }
             } else {
                 $errorString = Fisma_Form_Manager::getErrors($uploadForm);
@@ -439,7 +439,7 @@ class FindingController extends BaseController
                 }
 
                 // Error message
-                $this->view->priorityMessenger("Scan upload failed:<br>$errorString", 'warning');
+                $this->message("Scan upload failed:<br>$errorString", self::M_WARNING);
             }
             // This is a hack to make the submit button work with YUI:
             /** @yui */ $uploadForm->upload->setValue('Upload');

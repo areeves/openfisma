@@ -74,7 +74,7 @@ class SystemDocumentController extends SecurityController
     {
         Fisma_Acl::requirePrivilege('system', 'read', '*');
 
-        $keywords = htmlentities(trim($this->_request->getParam('keywords')));
+        $keywords = trim($this->_request->getParam('keywords'));
         $link = empty($keywords) ? '' :'/keywords/'.$keywords;
         $this->view->link     = $link;
         $this->view->pageInfo = $this->_paging;
@@ -92,7 +92,7 @@ class SystemDocumentController extends SecurityController
         Fisma_Acl::requirePrivilege('system', 'read', '*');
         $sortBy = $this->_request->getParam('sortby', 'id');
         $order  = $this->_request->getParam('order');
-        $keywords  = html_entity_decode($this->_request->getParam('keywords')); 
+        $keywords  = $this->_request->getParam('keywords'); 
 
         // Convert YUI column name to Doctrine column name
         $sortBy{strpos('_', $sortBy) + 1} = '.';

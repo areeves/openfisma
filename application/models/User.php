@@ -334,7 +334,7 @@ class User extends BaseUser
         if (!in_array($event, $accountLog->getTable()->getEnumValues('event'))) {
             throw new Fisma_Exception("Invalid account log event type");
         }
-        $accountLog->ip      = (isset($_SERVER['REMOTE_ADDR'])) ? $_SERVER['REMOTE_ADDR'] : null;
+        $accountLog->ip = $_SERVER["REMOTE_ADDR"];
         $accountLog->event   = $event;
         $accountLog->message = $message;
         // Assigning the ID instead of the user object prevents doctrine from calling the preSave hook on the 

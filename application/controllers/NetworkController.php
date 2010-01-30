@@ -48,13 +48,13 @@ class NetworkController extends BaseController
         $network = Doctrine::getTable('Network')->find($id);
         if (!$network) {
             $msg   = "Invalid Network ID";
-            $type = 'warning';
+            $type = self::M_WARNING;
         } else {
             $assets = $network->Assets->toArray();
             if (!empty($assets)) {
                 $msg = 'This network can not be deleted because it is'
                      . ' already associated with one or more assets';
-                $type = 'warning';
+                $type = self::M_WARNING;
             } else {
                 parent::deleteAction();
                 // parent method will take care 
@@ -62,7 +62,7 @@ class NetworkController extends BaseController
                 return;
             }
         }
-        $this->view->priorityMessenger($msg, $type);
+        $this->message($msg, $type);
         $this->_forward('list');
     }
 

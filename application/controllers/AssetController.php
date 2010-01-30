@@ -350,28 +350,28 @@ class AssetController extends BaseController
         
         if (!$asset) {
             $msg   = "Invalid {$this->_modelName} ID";
-            $type = 'warning';
+            $type = self::M_WARNING;
         } else {
             try {
                 if (count($asset->Findings)) {
                     $msg   = $msg = 'This asset cannot be deleted because it has findings against it';
-                    $type = 'warning';
+                    $type = self::M_WARNING;
                 } else {
                     Doctrine_Manager::connection()->beginTransaction();
                     $asset->delete();
                     Doctrine_Manager::connection()->commit();
                     $msg   = "Asset deleted successfully";
-                    $type = 'notice';
+                    $type = self::M_NOTICE;
                 }
             } catch (Doctrine_Exception $e) {
                 Doctrine_Manager::connection()->rollback();
                 if (Fisma::debug()) {
                     $msg .= $e->getMessage();
                 }
-                $type = 'warning';
+                $type = self::M_WARNING;
             } 
         }
-        $this->view->priorityMessenger($msg, $type);
+        $this->message($msg, $type);
         $this->_forward('list');
     }
     
@@ -406,13 +406,13 @@ class AssetController extends BaseController
         }
         if ($errno < 0) {
             $msg = "You did not select any assets to delete";
-            $this->view->priorityMessenger($msg, 'warning');
+            $this->message($msg, self::M_WARNING);
         } else if ($errno > 0) {
             $msg = "Failed to delete the asset[s]";
-            $this->view->priorityMessenger($msg, 'warning');
+            $this->message($msg, self::M_WARNING);
         } else {
             $msg = "Asset[s] deleted successfully";
-            $this->view->priorityMessenger($msg, 'notice');
+            $this->message($msg, self::M_NOTICE);
         }
         $this->_forward('list');
     }
