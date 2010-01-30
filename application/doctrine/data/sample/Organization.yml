@@ -1,81 +1,84 @@
 Organization: 
-    BGA_ORG:
+    BGA:
         name: Big Government Agency
         nickname: BGA
         orgType: agency
         children:
-            BOP_ORG:
+            BOP:
                 name: Bureau of Printing
                 nickname: BOP
                 orgType: bureau
                 children:
-                    OCIO_ORG:
+                    OCIO:
                         nickname: OCIO
                         name: Office of the Chief Information Officer
                         orgType: organization
                         children:
-                            WDC_ORG:
+                            WDC:
                                 nickname: WDC
                                 name: Washington Data Center
                                 orgType: system
                                 System: WDC_SYS
-                            OF_ORG:
+                            OF:
                                 nickname: OF
                                 name: OpenFISMA
                                 orgType: system
                                 System: OF_SYS
-                            OSC_ORG:
+                            OSC:
                                 nickname: OSC
                                 name: Online Security Center
                                 orgType: system
                                 System: OSC_SYS
-                    OCFO_ORG:
+                    OCFO:
                         nickname: OCFO
                         name: Office of the Chief Financial Officer
                         orgType: organization
                         children:
-                            FMS_ORG:
+                            FMS:
                                 nickname: FMS
                                 name: Financial Management Services
                                 orgType: system
                                 System: FMS_SYS
-                            TETS_ORG:
+                            TETS:
                                 nickname: TETS
                                 name: Time and Expense Tracking System
                                 orgType: system
                                 System: TETS_SYS
-            BOS_ORG:
+            BOS:
                 nickname: BOS
                 name: Bureau of Statistics
                 orgType: bureau
                 children:
-                    OIG_ORG:
+                    OIG:
                         nickname: OIG
                         name: Office of the Inspector General
                         orgType: organization
                         children:
-                            IAD_ORG:
+                            IAD:
                                 nickname: IAD
                                 name: Internal Artifacts Database
                                 orgType: system
                                 System: IAD_SYS
-                            CIT_ORG:
+                            CIT:
                                 nickname: CIT
                                 name: Cybersecurity Investigation Tracking
                                 orgType: system
                                 System: CIT_SYS
-                    OCOO_ORG:
+                    OCOO:
                         nickname: OCOO
                         name: Office of the Chief Operating Officer
                         orgType: organization
                         children:
-                            SCMS_ORG:
+                            SCMS:
                                 nickname: SCMS
                                 name: Supply Chain Management System
                                 orgType: system
                                 System: SCMS_SYS
-                            CRMS_ORG:
+                            CRMS:
                                 nickname: CRMS
                                 name: Customer Relationship Management System
                                 orgType: system
                                 System: CRMS_SYS
+                            
+                                    
+                        

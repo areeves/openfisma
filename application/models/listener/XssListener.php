@@ -13,7 +13,7 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
@@ -27,12 +27,12 @@
  * This listener should be attached to any class which puts external data (e.g., user-provided) 
  * 
  * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Listener
  * @version    $Id$
  */
-class XssListener extends Fisma_Record_Listener
+class XssListener extends Doctrine_Record_Listener
 {
     /**
      * The HTMLPurifier instance used by the listener
@@ -44,15 +44,10 @@ class XssListener extends Fisma_Record_Listener
     /**
      * Purify any fields which have been marked in the schema as needing purification
      * 
-     * @param Doctrine_Event $event The listened doctrine event to process
-     * @return void
+     * @param Doctrine_Event $event
      */
     public function preSave(Doctrine_Event $event) 
     {
-        if (!self::$_listenerEnabled) {
-            return;
-        }
-
         $invoker = $event->getInvoker();
         $modified = $invoker->getModified();
         $table = $invoker->getTable();
@@ -80,9 +75,10 @@ class XssListener extends Fisma_Record_Listener
     
     /**
      * Return the purifier instance for this class, initializing it first if necessary
-     * 
-     * @return HTMLPurifier Initialized instance of HTMLPurifier
+     *
      * @see http://htmlpurifier.org/live/configdoc/plain.htm
+     * 
+     * @return HTMLPurifier
      */
     public function getPurifier() 
     {

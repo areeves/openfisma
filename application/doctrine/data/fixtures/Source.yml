@@ -1,8 +1,8 @@
 Source:
-    vulnerabilityScan:
-        name: Automated Vulnerability Scanner
+    appDetectiveDatabaseScan:
+        name: AppDetective Database Scan
         nickname: SCAN
-        description: <p>The following scanners are used by the organization:</p><ul><li>App Detective Pro</li><li>Nessus</li></ul></p>
+        description: <p>The following scanners are used by the organization:</p><ul><li>App Detective Pro</li></p>
     continuousMonitoring:
         name: Continuous Monitoring
         nickname: CM

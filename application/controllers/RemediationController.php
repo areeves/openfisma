@@ -13,33 +13,28 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
  * The remediation controller handles CRUD for findings in remediation.
  *
  * @author     Jim Chen <xhorse@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Controller
  * @version    $Id$
- * 
- * @todo       As part of the ongoing refactoring, this class should probably be merged with the FindingController.
  */
 class RemediationController extends SecurityController
 {
     /**
      * The orgSystems which are belongs to current user.
      * 
-     * @var Doctrine_Collection
      */
     protected $_organizations = null;
     
     /**
-     * Default pagination parameters
-     * 
-     * @var array
+     * Default paginate parameters
      */
     protected $_paging = array(
         'startIndex' => 0,
@@ -50,8 +45,8 @@ class RemediationController extends SecurityController
      * The preDispatch hook is used to split off poam modify actions, mitigation approval actions, and evidence
      * approval actions into separate controller actions.
      * 
-     * @return void
-     */
+     * @param Zend_Controller_Request_Abstract $request          
+     */              
     public function preDispatch() 
     {
         $request = $this->getRequest();
@@ -74,9 +69,8 @@ class RemediationController extends SecurityController
     }
               
     /**
-    * Create the additional PDF, XLS and RSS contexts for this class.
-    * 
-    * @return void
+    * init() - Create the additional PDF, XLS and RSS contexts for this class.
+    *
     */
     public function init()
     {
@@ -123,15 +117,14 @@ class RemediationController extends SecurityController
     }
     
     /**
-     * Default action.
-     * 
-     * It combines the searching and summary into one page.
-     * 
-     * @return void
+     *  Default action.
+     *
+     *  It combines the searching and summary into one page.
      */
+    
     public function indexAction()
     {
-        Fisma_Acl::requirePrivilegeForClass('read', 'Finding');
+        Fisma_Acl::requirePrivilege('finding', 'read', '*');
         
         $this->_helper->actionStack('searchbox', 'Remediation');
         $this->_helper->actionStack('summary', 'Remediation');
@@ -140,13 +133,11 @@ class RemediationController extends SecurityController
     /**
      * Presents the view which contains the summary table. The summary table loads summary data
      * asynchronously by invoking the summaryDataAction().
-     * 
-     * @return void
-     */
+     */    
     public function summaryAction()
     {
-        Fisma_Acl::requirePrivilegeForClass('read', 'Finding');
-                
+        Fisma_Acl::requirePrivilege('finding', 'read', '*');
+        
         $mitigationEvaluationQuery = Doctrine_Query::create()
                                      ->from('Evaluation e')
                                      ->where('approvalGroup = \'action\'')
@@ -164,13 +155,11 @@ class RemediationController extends SecurityController
     
     /**
      * Invoked asynchronously to load data for the summary table.
-     * 
-     * @return void
      */
     public function summaryDataAction() 
     {
-        Fisma_Acl::requirePrivilegeForClass('read', 'Finding');
-                
+        Fisma_Acl::requirePrivilege('finding', 'read', '*');
+        
         // Doctrine supports the idea of using a base query when populating a tree. In our case, the base
         // query selects all Organizations which the user has access to.
         $userOrgQuery = User::currentUser()->getOrganizationsQuery();
@@ -257,10 +246,6 @@ class RemediationController extends SecurityController
      * this into the organization class. Doctrine should do this at v2.0, but if not, we 
      * should do it ourselves.
      * 
-     * @param Doctrine_Collection $collection The collection of organization to process
-     * @param string $type The mitigation strategy type to filter for
-     * @param int $source The id of the finding source to filter for
-     * @return array The array representation of organization hierarchy
      * @todo see if the organization model's function can be used instead
      */
     public function toHierarchy($collection, $type, $source) 
@@ -316,10 +301,10 @@ class RemediationController extends SecurityController
     }    
     
     /**
-     * Parse and translate the URL to criterias
+     * parse and translate the URL to criterias
      * which can be used by searchBoxAction method and searchAction method.
      *
-     * @return array The criterias dealt
+     * @return array $params the criterias dealt
      */
     private function _parseCriteria()
     {
@@ -344,60 +329,24 @@ class RemediationController extends SecurityController
         if (is_numeric($params['assetOwner'])) {
             $params['assetOwner'] = $params['assetOwner'];
         }
-
-        $message = '';
-        if (!empty($params['estDateBegin']) && Zend_Date::isDate($params['estDateBegin'], 'Y-m-d')) {
+        if (!empty($params['estDateBegin'])) {
             $params['estDateBegin'] = new Zend_Date($params['estDateBegin'], 'Y-m-d');
-        } else if (!empty($params['estDateBegin'])) {
-            $message = 'Estimated Completion Date From: ' . $params['estDateBegin']
-                     . ' is not of the format YYYY-MM-DD.<br>';
-            $params['estDateBegin'] = '';
-        } else {
-            $params['estDateBegin'] = '';
         }
-
-        if (!empty($params['estDateEnd']) && Zend_Date::isDate($params['estDateEnd'], 'Y-m-d')) {
+        if (!empty($params['estDateEnd'])) {
             $params['estDateEnd'] = new Zend_Date($params['estDateEnd'], 'Y-m-d');
-        } else if (!empty($params['estDateEnd'])) {
-            $message = $message . 'Estimated Completion Date To: ' . $params['estDateEnd']
-                     . ' is not of the format YYYY-MM-DD.<br>';
-            $params['estDateEnd'] = '';
-        } else {
-            $params['estDateEnd'] = '';
         }
-
-        if (!empty($params['createdDateBegin']) && Zend_Date::isDate($params['createdDateBegin'], 'Y-m-d')) {
+        if (!empty($params['createdDateBegin'])) {
             $params['createdDateBegin'] = new Zend_Date($params['createdDateBegin'], 'Y-m-d');
-        } else if (!empty($params['createdDateBegin'])) {
-            $message = $message . 'Date Created From: ' . $params['createdDateBegin']
-                     . ' is not of the format YYYY-MM-DD.<br>';
-            $params['createdDateBegin'] = '';
-        } else {
-            $params['createdDateBegin'] = '';
         }
-
-        if (!empty($params['createdDateEnd']) && Zend_Date::isDate($params['createdDateEnd'], 'Y-m-d')) {
+        if (!empty($params['createdDateEnd'])) {
             $params['createdDateEnd'] = new Zend_Date($params['createdDateEnd'], 'Y-m-d');
-        } else if (!empty($params['createdDateEnd'])) {
-            $message = $message . 'Date Created To: ' . $params['createdDateEnd']
-                     . 'is not of the format YYYY-MM-DD.';
-            $params['createdDateEnd'] = '';
-        } else {
-            $params['createdDateEnd'] = '';
         }
-
-        if (!empty($message)) {
-            $this->view->priorityMessenger($message, 'warning');
-        }
-
         return $params;
     }
     
     /**
-     * Get the columns(title) which were displayed on page, PDF, Excel
-     * 
-     * @return array The two dimension array which includes column id in index and the label, sortable and 
-     * hidden of the column in value.
+     * get the columns(title) which were displayed on page, PDF, Excel
+     *
      */
     private function _getColumns()
     {
@@ -473,14 +422,12 @@ class RemediationController extends SecurityController
     }
     
     /**
-    * Do the real searching work. It's a thin wrapper of poam model's search method.
-    * 
-    * @return void
+    * Do the real searching work. It's a thin wrapper
+    * of poam model's search method.
     */
     public function searchAction()
     {
-        Fisma_Acl::requirePrivilegeForClass('read', 'Finding');
-        
+        Fisma_Acl::requirePrivilege('finding', 'read', '*');
         $params = $this->_parseCriteria();
         $link = $this->_helper->makeUrlParams($params);
         $this->view->assign('link', $link);
@@ -503,13 +450,12 @@ class RemediationController extends SecurityController
      * Advanced search url would be /panel/remediation/sub/searchbox/s/search/keywords/firewal
      * User use advanced search to search the basic search results,the url would be 
      *  /panel/remediation/sub/searchbox/s/search/keywords/firewal/responsibleOrganizationId/1/type/CAP...
-     * 
-     * @return void
+     *
      */
     public function searchboxAction()
     {
-        Fisma_Acl::requirePrivilegeForClass('read', 'Finding');
-                
+        Fisma_Acl::requirePrivilege('finding', 'read', '*');
+        
         $params = $this->_parseCriteria();
         $this->view->assign('params', $params);
         $systemList = array();
@@ -525,8 +471,6 @@ class RemediationController extends SecurityController
     
     /**
      * Get remediation detail info
-     * 
-     * @return void
      */
     public function viewAction()
     {
@@ -536,8 +480,7 @@ class RemediationController extends SecurityController
     
     /**
      * Modify the finding
-     * 
-     * @return void
+     *
      */
     public function modifyAction()
     {
@@ -586,8 +529,6 @@ class RemediationController extends SecurityController
 
     /**
      * Mitigation Strategy Approval Process
-     * 
-     * @return void
      */
     public function msaAction()
     {
@@ -597,18 +538,30 @@ class RemediationController extends SecurityController
 
         $finding  = $this->_getFinding($id);
         if (!empty($decision)) {
-            Fisma_Acl::requirePrivilegeForObject($finding->CurrentEvaluation->Privilege->action, $finding);
+            Fisma_Acl::requirePrivilege(
+                'finding', 
+                $finding->CurrentEvaluation->Privilege->action,
+                $finding->ResponsibleOrganization->nickname
+            );
         }
        
         try {
             Doctrine_Manager::connection()->beginTransaction();
 
             if ('submitmitigation' == $do) {
-                Fisma_Acl::requirePrivilegeForObject('mitigation_strategy_submit', $finding);
+                Fisma_Acl::requirePrivilege(
+                    'finding', 
+                    'mitigation_strategy_submit', 
+                    $finding->ResponsibleOrganization->nickname
+                );
                 $finding->submitMitigation(User::currentUser());
             }
             if ('revisemitigation' == $do) {
-                Fisma_Acl::requirePrivilegeForObject('mitigation_strategy_revise', $finding);
+                Fisma_Acl::requirePrivilege(
+                    'finding', 
+                    'mitigation_strategy_revise', 
+                    $finding->ResponsibleOrganization->nickname
+                );
                 $finding->reviseMitigation(User::currentUser());
             }
 
@@ -639,16 +592,14 @@ class RemediationController extends SecurityController
     }
 
     /**
-     * Upload evidence
-     * 
-     * @return void
+     * Upload evidence 
      */
     public function uploadevidenceAction()
     {
         $id = $this->_request->getParam('id');
         $finding = $this->_getFinding($id);
 
-        Fisma_Acl::requirePrivilegeForObject('upload_evidence', $finding);
+        Fisma_Acl::requirePrivilege('finding', 'upload_evidence', $finding->ResponsibleOrganization->nickname);
 
         define('EVIDENCE_PATH', Fisma::getPath('data') . '/uploads/evidence');
         $file = $_FILES['evidence'];
@@ -699,8 +650,6 @@ class RemediationController extends SecurityController
     
     /**
      * Download evidence
-     * 
-     * @return void
      */
     public function downloadevidenceAction()
     {
@@ -710,8 +659,7 @@ class RemediationController extends SecurityController
             throw new Fisma_Exception('Invalid evidence ID');
         }
 
-        // There is no ACL defined for evidence objects, access is only based on the associated finding:
-        Fisma_Acl::requirePrivilegeForObject('read', $evidence->Finding);
+        Fisma_Acl::requirePrivilege('finding', 'read', $evidence->Finding->ResponsibleOrganization->nickname);
 
         $fileName = $evidence->filename;
         $filePath = Fisma::getPath('data') . '/uploads/evidence/'. $evidence->findingId . '/';
@@ -737,9 +685,7 @@ class RemediationController extends SecurityController
     }
     
     /**
-     * Handle the evidence evaluations
-     * 
-     * @return void
+     *  Handle the evidence evaluations
      */
     public function evidenceAction()
     {
@@ -749,7 +695,11 @@ class RemediationController extends SecurityController
         $finding  = $this->_getFinding($id);
 
         if (!empty($decision)) {
-            Fisma_Acl::requirePrivilegeForObject($finding->CurrentEvaluation->Privilege->action, $finding);
+            Fisma_Acl::requirePrivilege(
+                'finding', 
+                $finding->CurrentEvaluation->Privilege->action, 
+                $finding->ResponsibleOrganization->nickname
+            );
         }
 
         try {
@@ -777,18 +727,16 @@ class RemediationController extends SecurityController
     }
 
     /**
-     * Generate RAF report
+     *  Generate RAF report
      *
-     * It can handle different format of RAF report.
-     * 
-     * @return void
+     *  It can handle different format of RAF report.
      */
     public function rafAction()
     {
         $id = $this->_request->getParam('id');
         $finding = $this->_getFinding($id);
 
-        Fisma_Acl::requirePrivilegeForObject('read', $finding);
+        Fisma_Acl::requirePrivilege('finding', 'read', $finding->ResponsibleOrganization->nickname);
 
         try {
             if ($finding->threat == '' ||
@@ -824,8 +772,6 @@ class RemediationController extends SecurityController
     
     /**
      * Display basic data about the finding and the affected asset
-     * 
-     * @return void
      */
     function findingAction() 
     {
@@ -836,8 +782,6 @@ class RemediationController extends SecurityController
 
     /**
      * Fields for defining the mitigation strategy
-     * 
-     * @return void
      */
     function mitigationStrategyAction() 
     {
@@ -847,8 +791,6 @@ class RemediationController extends SecurityController
 
     /**
      * Display fields related to risk analysis such as threats and countermeasures
-     * 
-     * @return void
      */
     function riskAnalysisAction() 
     {
@@ -859,8 +801,6 @@ class RemediationController extends SecurityController
 
     /**
      * Display fields related to risk analysis such as threats and countermeasures
-     * 
-     * @return void
      */
     function artifactsAction() 
     {
@@ -870,33 +810,29 @@ class RemediationController extends SecurityController
         
     /**
      * Display the audit log associated with a finding
-     * 
-     * @return void
      */
     function auditLogAction() 
     {
         $this->_viewFinding();
         $this->_helper->layout->setLayout('ajax');
         
-        $logs = $this->view->finding->getAuditLog()->fetch(Doctrine::HYDRATE_SCALAR);
-        
-        // Convert log messages from plain text to HTML
-        foreach ($logs as &$log) {
-            $log['o_message'] = $this->view->textToHtml($log['o_message']);
-        }
-
-        $this->view->columns = array('Timestamp', 'User', 'Message');
-        $this->view->rows = $logs;
+        $auditQuery = Doctrine_Query::create()
+                      ->select('a.createdTs, u.username, a.description')
+                      ->from('AuditLog a')
+                      ->innerJoin('a.User u')
+                      ->where('a.findingId = ?', $this->getRequest()->getParam('id'))
+                      ->orderBy('a.createdTs DESC')
+                      ->setHydrationMode(Doctrine::HYDRATE_SCALAR);
+        $auditLogs = $auditQuery->execute();
+        $this->view->auditLogs = $auditLogs;
     }
     
     /**
      * Real searching worker, to return searching results for page, PDF, Excel
-     * 
-     * @return void
      */
     public function search2Action() 
     {
-        Fisma_Acl::requirePrivilegeForClass('read', 'Finding');
+        Fisma_Acl::requirePrivilege('finding', 'read', '*');
         
         /* @todo A hack to translate column names in the data table to column names
          * which can be sorted... this could probably be done in a much better way.
@@ -941,8 +877,6 @@ class RemediationController extends SecurityController
         if (!empty($params['status'])) {
             $now = new Zend_Date();
             switch ($params['status']) {
-                case 'TOTAL': $params['status'] = array('NEW', 'DRAFT', 'MSA', 'EN', 'EA', 'CLOSED');
-                    break;
                 case 'NOT-CLOSED': $params['status'] = array('NEW', 'DRAFT', 'MSA', 'EN', 'EA');
                     break;
                 case 'NOUP-30': $params['status'] = array('DRAFT', 'MSA', 'EN', 'EA');
@@ -1022,12 +956,11 @@ class RemediationController extends SecurityController
     }
     
     /**
-     * Analyze the criterias and merge the DQL query for getting results
+     * analyze the criterias and merge the DQL query for getting results
      * 
-     * @param array $params The specified filter criterias
-     * @param string $format The specified output format which is json or xls or pdf
-     * @param int $total The total number of found rows
-     * @return array $list The corresponding results
+     * @param array $params criterias
+     * @param string $format json xls pdf
+     * @return array $list results
      */
     private function _getResults($params, $format, &$total)
     {
@@ -1182,8 +1115,6 @@ class RemediationController extends SecurityController
     
     /**
      * Display the NIST SP 800-53 control mapping and related information
-     * 
-     * @return void
      */
     function securityControlAction() 
     {
@@ -1193,8 +1124,6 @@ class RemediationController extends SecurityController
     
     /** 
      * Renders the form for uploading artifacts.
-     * 
-     * @return void
      */
     function uploadFormAction() 
     {
@@ -1203,8 +1132,7 @@ class RemediationController extends SecurityController
 
     /**
      * Get the finding and assign it to view
-     * 
-     * @return void
+     *
      */
     private function _viewFinding()
     {
@@ -1213,26 +1141,26 @@ class RemediationController extends SecurityController
         $orgNickname = $finding->ResponsibleOrganization->nickname;
 
         // Check that the user is permitted to view this finding
-        Fisma_Acl::requirePrivilegeForObject('read', $finding);
+        Fisma_Acl::requirePrivilege('finding', 'read', $orgNickname);
 
         $this->view->finding = $finding;
     }
 
     /**
-     * Check and get a specified finding
+     * Check and get a specific finding
      *
-     * @param int $id The specified finding id
-     * @return Finding The found finding
-     * @throws Fisma_Exception if the specified finding id is not found
+     * @param int $id
+     * @param return Zend_Record $finding
+     * @throw 
      */
     private function _getFinding($id)
     {
-        $finding = Doctrine::getTable('Finding')->find($id);
-
+        $finding = new Finding();
+        $finding = $finding->getTable()->find($id);
         if (false == $finding) {
              throw new Fisma_Exception("FINDING($findingId) is not found. Make sure a valid ID is specified.");
         }
-        
+
         return $finding;
     }
 }

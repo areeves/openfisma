@@ -13,7 +13,7 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 $notify = new Notify();
@@ -25,38 +25,28 @@ $notify->processNotificationQueue();
  * notifications from the queue.
  * 
  * @author     Jim Chen <xhorse@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Cron_Job
  * @version    $Id$
- * 
- * @todo       Needs cleanup
- * @todo       Needs to be adjusted for timezone difference between DB and application when displaying timestamps
  */
 class Notify
 {
-    /**
-     * Default constructor
-     * 
-     * @return void
-     */
     public function __construct()
     {
         require_once(realpath(dirname(__FILE__) . '/../../library/Fisma.php'));
 
         Fisma::initialize(Fisma::RUN_MODE_COMMAND_LINE);
-        Fisma::setConfiguration(new Fisma_Configuration_Database());
         Fisma::connectDb();
     }
     
     /**
-     * Iterate through the users and check who has notifications pending.
-     * 
-     * @return void
+     * Iterate through the users and check who has
+     * notifications pending.
+     *
      * @todo log the email send results
      */
-    function processNotificationQueue() 
-    {
+    function processNotificationQueue() {
         // Get all notifications grouped by user_id
         /**
          * @todo can't find a way to do this in DQL... substituting a mysql raw connection for now.
@@ -75,11 +65,8 @@ class Notify
               ->addComponent('n', 'Notification n')
               ->addComponent('u', 'n.User u')
               ->from('user u INNER JOIN notification n on u.id = n.userid')
-              ->where(
-                  'u.mostrecentnotifyts IS NULL OR u.mostrecentnotifyts <= DATE_SUB(NOW(), 
-                  INTERVAL u.notifyFrequency HOUR)'
-              )
-              ->orderBy('u.id, n.createdts');
+              ->where('u.mostrecentnotifyts IS NULL OR u.mostrecentnotifyts <= DATE_SUB(NOW(), INTERVAL u.notifyFrequency HOUR)')
+              ->orderBy('u.id');
         $notifications = $query->execute();
 
         // Loop through the groups of notifications, concatenate all messages
@@ -109,16 +96,15 @@ class Notify
     }
 
     /**
-     * Compose and send the notification email for this user.
-     * 
+     * Compose and send the notification email for
+     * this user.
+     *
      * Notice that there is a bit of a hack -- the addressing information is
      * stored in the 0 row of $notifications.
-     * 
+     *
      * @param array $notifications A group of rows from the notification table
-     * @return void
      */
-    static function sendNotificationEmail($notifications) 
-    {
+    static function sendNotificationEmail($notifications) {
         $mail = new Fisma_Mail();
         // Send the e-mail
         $mail->sendNotification($notifications);
@@ -126,12 +112,10 @@ class Notify
 
     /**
      * Remove notifications from the queue table.
-     * 
+     *
      * @param array $notifications A group of rows from the notifications table
-     * @return void
      */
-    static function purgeNotifications($notifications) 
-    {
+    static function purgeNotifications($notifications) {
         $notificationIds = array();
         foreach ($notifications as $notification) {
             $notificationIds[] = $notification['id'];
@@ -145,14 +129,13 @@ class Notify
     }
 
     /**
-     * Update the timestamp for the specified user so that he will not receieve too many e-mail in too 
-     * short of a time period.
+     * Updates the timestamp for the
+     * specified user so that he will not receieve too many e-mail in too short
+     * of a time period.
      *
      * @param integer $userId The Id of the user to update
-     * @return void
      */
-    static function updateUserNotificationTimestamp($userId) 
-    {
+    static function updateUserNotificationTimestamp($userId) {
         $user = new User();
         $user = $user->getTable()->find($userId);
         $user->mostRecentNotifyTs = Fisma::now();

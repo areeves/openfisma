@@ -13,15 +13,15 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
  * OpenFISMA session storage.
  * 
  * @author     Jim Chen <xhorse@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Fisma
  * @subpackage Fisma_Auth
  * @version    $Id$
@@ -46,8 +46,8 @@ class Fisma_Auth_Storage_Session extends Zend_Auth_Storage_Session
     /**
      * Sets session storage options and initializes session namespace object
      *
-     * @param  string $namespace The specified session namescape
-     * @param  string $member The specified session object member name
+     * @param  mixed $namespace
+     * @param  mixed $member
      * @return void
      */
     public function __construct($namespace = self::NAMESPACE_DEFAULT, $member = self::MEMBER_DEFAULT)
@@ -57,7 +57,7 @@ class Fisma_Auth_Storage_Session extends Zend_Auth_Storage_Session
         $this->_session   = new Zend_Session_Namespace($this->_namespace);
         try {
             // Set up the session timeout for the authentication token
-            $refreshSeconds = Fisma::configuration()->getConfig('session_inactivity_period');
+            $refreshSeconds = Configuration::getConfig('session_inactivity_period');
         } catch (Exception $e) {
             // in any case such as the database is not available during installation
             $refreshSeconds = self::INACTIVITY_SECONDS;

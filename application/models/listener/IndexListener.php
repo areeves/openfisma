@@ -13,32 +13,27 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
  * This listener updates the Lucene index whenever a record is updated.
  * 
  * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Listener
  * @version    $Id$
  */
-class IndexListener extends Fisma_Record_Listener
+class IndexListener extends Doctrine_Record_Listener
 {
     /**
      * New records always get indexed
      * 
-     * @param Doctrine_Event $event The listened doctrine event to process
-     * @return void
+     * @param Doctrine_Event $event
      */
     public function postInsert(Doctrine_Event $event)
     {
-        if (!self::$_listenerEnabled) {
-            return;
-        }
-        
         $record = $event->getInvoker();
 
         $index = new Fisma_Index(get_class($record));
@@ -48,15 +43,10 @@ class IndexListener extends Fisma_Record_Listener
     /**
      * Updated records are only indexed if one of its indexable fields was modified
      * 
-     * @param Doctrine_Event $event The listened doctrine event to process
-     * @return void
+     * @param Doctrine_Event $event
      */
     public function postUpdate(Doctrine_Event $event)
     {
-        if (!self::$_listenerEnabled) {
-            return;
-        }
-
         $record = $event->getInvoker();
         $modified = $record->getLastModified();
 
@@ -86,15 +76,10 @@ class IndexListener extends Fisma_Record_Listener
     /**
      * Remove deleted records from the keyword index
      * 
-     * @param Doctrine_Event $event The listened doctrine event to process
-     * @return void
+     * @param Doctrine_Event $event
      */
     public function postDelete(Doctrine_Event $event)
     {
-        if (!self::$_listenerEnabled) {
-            return;
-        }
-
         $record = $event->getInvoker();
 
         $index = new Fisma_Index(get_class($record));

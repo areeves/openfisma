@@ -13,7 +13,7 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
@@ -21,8 +21,8 @@
  * For example, replacing line breaks with <p> tag pairs or <br>'s
  * 
  * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    View_Helper
  * @version    $Id$
  */
@@ -31,11 +31,18 @@ class View_Helper_TextToHtml extends Zend_View_Helper_Abstract
     /**
      * Render plain text to HTML
      *
-     * @param string $text The specified plain text to convert
-     * @return string The converted HTML code
+     * @param string $text Plain text
+     * @return string HTML
      */
     public function TextToHtml($text)
     {
-        return Fisma_String::textToHtml($text);
+        // Wrap in <p> tags
+        $text = "<p>$text</p>";
+        
+        // Replace consecutive newlines with </p><p> and single newlines with <br>
+        $text = str_replace("\n\n", '</p><p>', $text);
+        $text = str_replace("\n", '<br>', $text);
+        
+        return $text;
     } 
 }

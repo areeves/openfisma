@@ -13,7 +13,7 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
@@ -36,18 +36,13 @@ try {
  * multiple times in the same day, then it will send multiple notifications.
  * 
  * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Cron_Job
  * @version    $Id$
  */
 class ECDNotifier
 {
-    /**
-     * Default constructor
-     * 
-     * @return void
-     */
     public function __construct()
     {
         require_once(realpath(dirname(__FILE__) . '/../../library/Fisma.php'));
@@ -59,11 +54,8 @@ class ECDNotifier
     /**
      * Iterate through all findings in the system and create
      * notifications for those which have ECDs expiring today,
-     * 
-     * @return void
      */
-    static function run() 
-    {
+    static function run() {
         // Get all findings which expire today, or 7/14/21 days from now
         $query = Doctrine_Query::create()
                     ->select('f.id, f.currentEcd, f.responsibleOrganizationId')
@@ -77,7 +69,7 @@ class ECDNotifier
         // Now iterate through the findings and create the appropriate
         // notifications
         $notification = new Notification();
-        foreach ($expiringFindings as $finding) {
+        foreach($expiringFindings as $finding) {
             $daysRemaining = ceil((strtotime($finding->currentEcd) - time()) / (3600 * 24));
             switch($daysRemaining) {
                 case 0:
@@ -97,7 +89,7 @@ class ECDNotifier
                     // to exclude it.
                     throw new Exception("ECD Notifier has an internal error.");
             }
-            Notification::notify($notificationType, $finding, null);
+            Notification::notify($notificationType, $finding, null, $finding->responsibleOrganizationId);
         }
     }
 }

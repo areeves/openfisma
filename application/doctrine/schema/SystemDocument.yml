@@ -1,5 +1,5 @@
 SystemDocument:
-    listeners: [XssListener, IndexListener, NotificationListener]
+    listeners: [XssListener, IndexListener]
     
     indexes: 
         uniqueTypePerSystem:
@@ -18,7 +18,6 @@ SystemDocument:
         fileName:
             type: string(255)
             extra:
-                notify: true
                 purify: plaintext
                 searchIndex: unstored
                 searchAlias: file

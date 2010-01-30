@@ -13,27 +13,27 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
  * apply the help document for different tips
  *
  * @author     Woody Li <woody712@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Controller
  * @version    $Id$
  */
 class HelpController extends Zend_Controller_Action
 {
     /**
-     * Apply the help document for different tips
+     * apply the help document for different tips
      * 
-     * Get the parameter from request and decide which template will be used. If the template is not existed 
+     * get the parameter from request 
+     * and decide to use which template,
+     * if the template is not existed, 
      * use a default template.
-     * 
-     * @return void
      */
     public function helpAction()
     {

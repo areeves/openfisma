@@ -13,7 +13,7 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
@@ -21,21 +21,19 @@
  * to provide a consistent look-and-feel across the application.
  * 
  * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Fisma
  * @subpackage Fisma_Form
  * @version    $Id$
- * 
- * @todo       Rename this class to "CrudDecorator"
  */
 class Fisma_Form_FismaDecorator extends Zend_Form_Decorator_Abstract
                                 implements Zend_Form_Decorator_Marker_File_Interface
 {
     /**
-     * Create the label for this element.
+     * buildLabel() - Create the label for this element.
      *
-     * @return string The label rendered in HTML.
+     * @return The label rendered in HTML.
      */
     public function buildLabel() 
     {
@@ -52,11 +50,8 @@ class Fisma_Form_FismaDecorator extends Zend_Form_Decorator_Abstract
             $label .= ':';
             
             $attrib = array();
-            if ($element->hideLabel) {
-                $attrib['style'] = 'display: none';
-            }
             $render = $element->getView()
-                              ->formLabel($element->getName(), $label, $attrib);
+                              ->formLabel($element->getName(), $label);
             if (isset($element->tooltip)) {
                 $render = "<span id='{$element->getName()}Tooltip' class='tooltip'>$render</span>"
                         . '<script type="text/javascript">'
@@ -75,9 +70,9 @@ class Fisma_Form_FismaDecorator extends Zend_Form_Decorator_Abstract
     }
 
     /**
-     * Create the input control for this element.
+     * buildInput() - Create the input control for this element.
      *
-     * @return string The input control rendered in HTML.
+     * @return The input control rendered in HTML.
      */
     public function buildInput() 
     {
@@ -123,9 +118,10 @@ class Fisma_Form_FismaDecorator extends Zend_Form_Decorator_Abstract
     }
 
     /**
-     * Create the error message for this element (if applicable).
+     * buildErrors() - Create the error message for this element (if
+     * applicable).
      *
-     * @return string The error message rendered in HTML.
+     * @return The error message rendered in HTML.
      */
     public function buildErrors() 
     {
@@ -140,10 +136,9 @@ class Fisma_Form_FismaDecorator extends Zend_Form_Decorator_Abstract
     }
 
     /**
-     * Decorates the specified content with HTML table markup
+     * render() - Decorates the specified content with HTML table markup
      *
-     * @return string The element rendered in HTML.
-     * @throws Fisma_Exception if the element to be rendered is an unknown class
+     * @return The element rendered in HTML.
      */
     public function render($content) 
     {

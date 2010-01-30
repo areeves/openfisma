@@ -13,7 +13,7 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
@@ -22,8 +22,8 @@
  * validators, and filters.
  * 
  * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Fisma
  * @subpackage Fisma_Form
  * @version    $Id$
@@ -31,13 +31,13 @@
 class Fisma_Form_Manager
 {
     /**
-     * Loads a specified form by looking in the standard forms
+     * loadForm() - Loads a specified form by looking in the standard forms
      * directory.
-     * 
+     *
      * @param string $formName The name of the form to load. This form should
      * exist inside the forms directory. (Do not include the '.form' file
      * extension.)
-     * @return Zend_Form The loaded zend form
+     * @return Zend_Form
      */
     static function loadForm($formName) 
     {
@@ -55,9 +55,10 @@ class Fisma_Form_Manager
     }
 
    /**
-     * Adds the standard decorators and filters to the specified form.
-     * 
-     * @param Zend_Form $form The specifed zend form to be decorated
+     * prepareForm() - Adds the standard decorators and filters to the specified
+     * form.
+     *
+     * @param Zend_Form $form
      * @return Zend_Form The modified form
      */
     static function prepareForm($form) 
@@ -92,8 +93,8 @@ class Fisma_Form_Manager
 
    /**
      * Adds the standard decorators and filters to the create finding form
-	 * 
-     * @param Zend_Form $form The specified zend form to be decorated
+	 *
+     * @param Zend_Form $form
      * @return Zend_Form The modified form
      */
     static function prepareCreateFindingForm($form) 
@@ -117,9 +118,9 @@ class Fisma_Form_Manager
 
     /**
      * Get form errors if form validate false
-     * 
-     * @param Zend_From $form The zend form which fails to be validated and includes error messages
-     * @return string The form errors
+     *
+     * @param Zend_From $form
+     * @return string form errors
      * @todo this error display code needs to go into the decorator,
      */
     static function getErrors($form)

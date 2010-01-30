@@ -6,18 +6,23 @@
                                                      'href' => '/panel/account/sub/list'));
         echo $listButton;
 
-        if (Fisma_Acl::hasPrivilegeForClass('create', 'User')) {
+        if (Fisma_Acl::hasPrivilege('user', 'create')) {
             $createButton = new Fisma_Yui_Form_Button_Link('createButton', 
                                                    array('value' => 'Add Account', 
                                                          'href' => '/panel/account/sub/create'));
             echo $createButton;
         } 
+        
+        $logsButton = new Fisma_Yui_Form_Button_Link('logsButton', 
+                                               array('value' => 'Audit Logs', 
+                                                     'href' => '/panel/log/sub/list'));
+        echo $logsButton;
         ?>
     </div>
     <div class="right">
         <form name="query" method="post" action="/panel/user/sub/list" style="display:inline">
         <span class="searchField">
-            <b><label for="keywords">Search:</label>&nbsp;</b>
+            <b>Search:&nbsp;</b>
             <input id="keywords"
                    name="keywords" 
                    value="<?php echo $this->keywords;?>" 

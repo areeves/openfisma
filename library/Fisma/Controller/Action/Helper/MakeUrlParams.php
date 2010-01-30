@@ -13,7 +13,7 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
@@ -21,8 +21,8 @@
  * OpenFISMA.
  *
  * @author     Woody Lee <woody712@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Fisma
  * @subpackage Fisma_Controller
  * @version    $Id$
@@ -34,8 +34,8 @@ class Fisma_Controller_Action_Helper_MakeUrlParams extends Zend_Controller_Actio
      *
      * The string can be parsed by the application to form the criteria again later.
      *
-     * @param array $criteria The criteria array to transform
-     * @return string The string which includes corresponding criterias and can be used in an URL
+     * @param array $criteria
+     * @return string
      */
     public function makeUrlParams($criteria)
     {

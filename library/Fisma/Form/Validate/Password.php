@@ -13,92 +13,44 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
  * Given the password validator
  * 
  * @author     Ryan Yang <ryan@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Fisma
  * @subpackage Fisma_Form
  * @version    $Id$
  */
 class Fisma_Form_Validate_Password extends Zend_Validate_Abstract
 {
-    /**
-     * Constant message key 'pass_min'
-     */
     const PASS_MIN = "pass_min";
-    
-    /**
-     * Constant message key 'pass_max'
-     */
     const PASS_MAX = "pass_max";
-    
-    /**
-     * Constant message key 'pass_uppercase'
-     */
     const PASS_UPPERCASE = "pass_uppercase";
-    
-    /**
-     * Constant message key 'pass_lowercase'
-     */
     const PASS_LOWERCASE = "pass_lowercase";
-    
-    /**
-     * Constant message key 'pass_numerical'
-     */
     const PASS_NUMERICAL = "pass_numerical";
-    
-    /**
-     * Constant message key 'pass_special'
-     */
     const PASS_SPECIAL   = "pass_special";
-    
-    /**
-     * Constant message key 'pass_include'
-     */
     const PASS_INCLUDE   = "pass_include";
-    
-    /**
-     * Constant message key 'pass_history'
-     */
     const PASS_HISTORY   = "pass_history";
-    
-    /**
-     * Constant message key 'pass_notsameold'
-     */
     const PASS_NOTSAMEOLD = "pass_notsameold";
-    
-    /**
-     * Constant message key 'pass_notconfirm'
-     */
     const PASS_NOTCONFIRM = "pass_notconfirm";
-    
-    /**
-     * Constant message key 'pass_notincorrect'
-     */
     const PASS_NOTINCORRECT = "pass_notincorrect";
     
     /** 
-     * Check whether the password matchs the specified password complexity criterias
-     * 
-     * @param string $pass The password to be validate
-     * @param array|null $context The specified password complexity criterias
-     * @return boolean True if match, false otherwise
+     * Check the password whether is suited for complex
+     * @param string $pass password
+     * @param array $context post data from client's form
+     * @return true|false
      */
     public function isValid($pass, $context=null)
     {
         $this->_messageTemplates = array(
-            self::PASS_MIN => 'must be at least ' 
-                            . Fisma::configuration()->getConfig('pass_min_length') 
-                            . ' characters long',
-            self::PASS_MAX => 'must not be more than ' 
-                            . Fisma::configuration()->getConfig('pass_max_length') 
-                            . ' characters long',
+            self::PASS_MIN => 'must be at least ' . Configuration::getConfig('pass_min_length') . ' characters long',
+            self::PASS_MAX=>'must not be more than ' . Configuration::getConfig('pass_max_length') . ' characters long',
             self::PASS_UPPERCASE=>'must contain at least 1 uppercase letter (A-Z)',
             self::PASS_LOWERCASE=>'must contain at least 1 lowercase letter (a-z)',
             self::PASS_NUMERICAL=>'must contain at least 1 numeric digit (0-9)',
@@ -117,33 +69,33 @@ class Fisma_Form_Validate_Password extends Zend_Validate_Abstract
             $errno++;
             $this->_error(self::PASS_NOTCONFIRM);
         }
-        if (strlen($pass) < Fisma::configuration()->getConfig('pass_min_length')) {
+        if (strlen($pass) < Configuration::getConfig('pass_min_length')) {
             $errno++;
             $this->_error(self::PASS_MIN);
         }
-        if (strlen($pass) > Fisma::configuration()->getConfig('pass_max_length')) {
+        if (strlen($pass) > Configuration::getConfig('pass_max_length')) {
             $errno++;
             $this->_error(self::PASS_MAX);
         }
-        if (true == Fisma::configuration()->getConfig('pass_uppercase')) {
+        if (true == Configuration::getConfig('pass_uppercase')) {
             if ( false == preg_match("/[A-Z]+/", $pass)) {
                 $errno++;
                 $this->_error(self::PASS_UPPERCASE);
             }
         }
-        if (true == Fisma::configuration()->getConfig('pass_lowercase')) {
+        if (true == Configuration::getConfig('pass_lowercase')) {
             if ( false == preg_match("/[a-z]+/", $pass) ) {
                 $errno++;
                 $this->_error(self::PASS_LOWERCASE);
             }
         }
-        if ( true == Fisma::configuration()->getConfig('pass_numerical')) {
+        if ( true == Configuration::getConfig('pass_numerical')) {
             if ( false == preg_match("/[0-9]+/", $pass) ) {
                 $errno++;
                 $this->_error(self::PASS_NUMERICAL);
             }
         }
-        if ( true == Fisma::configuration()->getConfig('pass_special')) {
+        if ( true == Configuration::getConfig('pass_special')) {
             if ( false == preg_match("/[^0-9a-zA-Z]+/", $pass) ) {
                 $errno++;
                 $this->_error(self::PASS_SPECIAL);

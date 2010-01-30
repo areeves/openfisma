@@ -13,7 +13,7 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
@@ -22,8 +22,8 @@
  * Implemented as a static class in order to make the calling syntax simple.
  * 
  * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Fisma
  * @subpackage Fisma_Yui
  * @version    $Id$
@@ -32,17 +32,12 @@
 class Fisma_Yui
 {
     /**
-     * The YUI libraries to include, used as a set
-     * 
-     * @var array
+     * @var array The YUI libraries to include, used as a set
      */
     static private $_includes = array();
 
     /**
      * Prevent instantiation
-     * 
-     * @return void
-     * @throws Fisma_Exception if the class is instantiated
      */
     function __construct() 
     {
@@ -57,7 +52,6 @@ class Fisma_Yui
      * library, and the value is just a placeholder.
      * 
      * @param string $library Name of YUI library, e.g. "yahoo-dom-event"
-     * @return void
      */
     static function includeLibrary($library) 
     {
@@ -76,7 +70,7 @@ class Fisma_Yui
     /**
      * Renders script tags to include the specified YUI libraries
      * 
-     * @return string The javascript include snippet to included libraries
+     * @return string
      */
     static function printIncludes() 
     {

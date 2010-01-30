@@ -13,15 +13,15 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
  * Turn a Doctrine Collection which represents a tree into an HTML select box
  *
  * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    View_Helper
  * @version    $Id$
  */
@@ -30,7 +30,7 @@ class View_Helper_TreeToSelect extends Zend_View_Helper_Abstract
     /**
      * Turn a Doctrine Collection which represents a tree into an HTML select box
      *
-     * @param Doctrine_Collection $collection The doctrine collection which represents a tree
+     * @param Doctrine_Collection $collection
      * @param string $nameField The field inside each object which should be displayed
      * @return array An array where the key/values mirror the select element's key/values
      */

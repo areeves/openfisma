@@ -13,7 +13,7 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
@@ -22,8 +22,8 @@
  * each page.
  *
  * @author     Jim Chen <xhorse@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Controller
  * @version    $Id$
  */
@@ -31,8 +31,6 @@ class PanelController extends SecurityController
 {
     /**
      * Invoked before each Action
-     * 
-     * @return void
      */
     public function preDispatch()
     {
@@ -42,8 +40,6 @@ class PanelController extends SecurityController
     
     /** 
      * Alias of dashboardAction
-     * 
-     * @return void
      */
     public function indexAction()
     {
@@ -52,13 +48,9 @@ class PanelController extends SecurityController
 
     /** 
      * The header of the page
-     * 
-     * @return void
      */
     public function headerAction()
     {
-        $this->view->mainMenuBar = Fisma_Menu::getMainMenu();
-        
         $this->_helper->layout->setLayout('layout');
         $this->_helper->actionStack('footer');
         $this->render('header', 'header');
@@ -66,8 +58,6 @@ class PanelController extends SecurityController
 
     /** 
      * The footer of the page
-     * 
-     * @return void
      */
     public function footerAction()
     {
@@ -76,8 +66,6 @@ class PanelController extends SecurityController
 
     /** 
      * Forward to dashboard Controller
-     * 
-     * @return void
      */
     public function dashboardAction()
     {
@@ -86,8 +74,6 @@ class PanelController extends SecurityController
     }
     /** 
      * Forward to finding Controller
-     * 
-     * @return void
      */
     public function findingAction()
     {
@@ -99,8 +85,6 @@ class PanelController extends SecurityController
 
     /** 
      * Forward to account Controller
-     * 
-     * @return void
      */
     public function accountAction()
     {
@@ -112,8 +96,6 @@ class PanelController extends SecurityController
 
     /** 
      * Forward to search Controller
-     * 
-     * @return void
      */
     public function searchAction()
     {
@@ -128,8 +110,6 @@ class PanelController extends SecurityController
 
     /** 
      * Forward to remediation Controller
-     * 
-     * @return void
      */
     public function remediationAction()
     {
@@ -141,8 +121,6 @@ class PanelController extends SecurityController
 
     /** 
      * Forward to report Controller
-     * 
-     * @return void
      */
     public function reportAction()
     {
@@ -154,8 +132,6 @@ class PanelController extends SecurityController
 
     /** 
      * Forward to system Controller
-     * 
-     * @return void
      */
     public function systemAction()
     {
@@ -167,8 +143,6 @@ class PanelController extends SecurityController
 
     /** 
      * Forward to product Controller
-     * 
-     * @return void
      */
     public function productAction()
     {
@@ -180,8 +154,6 @@ class PanelController extends SecurityController
 
     /** 
      * Forward to organiztion Controller
-     * 
-     * @return void
      */
     public function organizationAction()
     {
@@ -193,8 +165,6 @@ class PanelController extends SecurityController
 
     /** 
      * Forward to source Controller
-     * 
-     * @return void
      */
     public function sourceAction()
     {
@@ -206,8 +176,6 @@ class PanelController extends SecurityController
 
     /** 
      * Forward to network Controller
-     * 
-     * @return void
      */
     public function networkAction()
     {
@@ -218,8 +186,6 @@ class PanelController extends SecurityController
 
     /** 
      * Forward to config Controller
-     * 
-     * @return void
      */
     public function configAction()
     {
@@ -230,8 +196,6 @@ class PanelController extends SecurityController
 
     /** 
      * Forward to user Controller
-     * 
-     * @return void
      */
     public function userAction()
     {
@@ -243,8 +207,6 @@ class PanelController extends SecurityController
 
     /** 
      * Forward to user Controller
-     * 
-     * @return void
      */
     public function systemDocumentAction()
     {
@@ -256,8 +218,6 @@ class PanelController extends SecurityController
 
     /**
      * Forward to auth Controller
-     * 
-     * @return void
      */
     public function authAction()
     {
@@ -268,8 +228,6 @@ class PanelController extends SecurityController
 
     /** 
      * Forward to asset Controller
-     * 
-     * @return void
      */
     public function assetAction()
     {
@@ -281,8 +239,6 @@ class PanelController extends SecurityController
 
     /** 
      * Forward to role Controller
-     * 
-     * @return void
      */
     public function roleAction()
     {
@@ -294,8 +250,6 @@ class PanelController extends SecurityController
 
     /** 
      * Forward to log Controller
-     * 
-     * @return void
      */
     public function logAction()
     {

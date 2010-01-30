@@ -21,24 +21,19 @@
  * 
  * @author     Sean P. O. MacCath-Moran <zendcode@emanaton.com>
  * @author     Josh Boyd <joshua.boyd@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    View_Helper
  * @version    $Id$
  */
  class View_Helper_PriorityMessenger extends Zend_View_Helper_Abstract {
 
-    /**
-     * Zend_Session storage object
-     * 
-     * @var Zend_Session_Namespace
-     */
+    // @var Zend_Session Zend_Session storage object
     static protected $_session = null;
 
     /**
-     * To execute different operation to the page messages array in the session storage object 
-     * based on the specified message and severity
-     * 
+     * priorityMessenger 
+     *
      * Add a message to the collection of priority messages or retrieve the
      * priority messages. If $messages is left null then all the messages are
      * returned, unless $severity is set (as a string or array), causing just
@@ -50,9 +45,10 @@
      * if $severity is not set but message is, then 'info' is the assumed
      * default.
      * 
-     * @param string|array|null $message  The specified message
-     * @param string|array|null $severity  The specified severity
-     * @return array The message array
+     * @param mixed $message 
+     * @param mixed $severity 
+     * @access public
+     * @return Zend_Session_Namespace 
      */
     public function priorityMessenger($message = null, $severity = null) {
         $session = $this->_getSession();
@@ -81,20 +77,20 @@
                 $this->priorityMessenger($mes, $sev);
             }
         } else {
-            $cleanMessage = Fisma_String::escapeJsString(Fisma_String::textToHtml($message));
-            $session->page_messages[$severity][] = $cleanMessage;
+            $session->page_messages[$severity][] = $message;
         }
     }
 
     /**
-     * To initialize, obtain or set the message array with the specified severity 
-     * 
+     * _resetMessageArray 
+     *
      * Reset the session object's collection of messages. If severity provided, then return that severity and clear
      * only that severity. If an array of severities are provided, then return an array in the form of 
      * $severity=>$messages.
      * 
-     * @param string|array $severity The specified severity to obtain or set
-     * @return array The returned messages in array
+     * @param mixed $severity 
+     * @access private
+     * @return void
      */
     private function _resetMessageArray($severity = null) {
         $messages = array();
@@ -115,9 +111,10 @@
     }
 
     /**
-     * Return the static session object, initiating it if necessary
+     * _getSession - Return the static session object, initiating it if needs be. 
      * 
-     * @return Zend_Session_Namespace The initialized static session object
+     * @access private
+     * @return Zend_Session_Namespace
      */
     private function _getSession() {
         if (!self::$_session instanceof Zend_Session_Namespace) {

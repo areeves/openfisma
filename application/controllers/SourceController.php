@@ -13,44 +13,34 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
  * Handles CRUD for finding source objects.
  *
  * @author     Ryan Yang <ryan@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Controller
  * @version    $Id$
  */
 class SourceController extends BaseController
 {
-    /**
-     * The main name of the model.
-     * 
-     * This model is the main subject which the controller operates on.
-     * 
-     * @var string
-     */
     protected $_modelName = 'Source';
     
     /**
      * Delete a subject model
-     * 
-     * @return void
      */
     public function deleteAction()
     {
+        Fisma_Acl::requirePrivilege($this->_modelName, 'delete');
         $id = $this->_request->getParam('id');
         $source = Doctrine::getTable($this->_modelName)->find($id);
         if (!$source) {
             $msg   = "Invalid {$this->_modelName} ID";
             $type = 'warning';
         } else {
-            Fisma_Acl::requirePrivilegeForObject('delete', $source);
-            
             try {
                 if (count($source->Findings) > 0) {
                     $msg = 'This source cannot be deleted because it is already associated with one or

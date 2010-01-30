@@ -1,9 +1,0 @@
-Cve:
-    columns:
-        value: string(255)
-    relations:
-        Findings:
-            class: Finding
-            local: cve_id
-            foreign: finding_id
-            refClass: FindingCve

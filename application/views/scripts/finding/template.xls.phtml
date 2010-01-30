@@ -1,5 +1,7 @@
 <?php 
-// @codingStandardsIgnoreFile - not checking XLS template files
+/** @codingStandardIgnoreFile - this file is just an Excel spreadsheet with some PHP content injected, not worth
+ * maintaining standard for
+ */
 echo '<?xml version="1.0"?>'.
      '<?mso-application progid="Excel.Sheet"?>';
 ?>
@@ -138,9 +140,7 @@ echo '<?xml version="1.0"?>'.
  </Styles>
  <Names>
   <NamedRange ss:Name="controls" ss:RefersTo="=ControlIDs!C1"/>
-  <NamedRange ss:Name="systems"  ss:RefersTo="=Systems!C1"/>
-  <NamedRange ss:Name="sources"  ss:RefersTo="=Sources!C1"/>
-  <NamedRange ss:Name="networks" ss:RefersTo="=Networks!C1"/>
+  <NamedRange ss:Name="systems" ss:RefersTo="Systems!C1"/>
  </Names>
  <Worksheet ss:Name="Findings">
   <Table ss:ExpandedColumnCount="21" ss:ExpandedRowCount="8" x:FullColumns="1"
@@ -163,10 +163,10 @@ echo '<?xml version="1.0"?>'.
    <Column ss:StyleID="s24" ss:AutoFitWidth="0" ss:Width="177"/>
    <Column ss:StyleID="s24" ss:AutoFitWidth="0" ss:Width="126.75"/>
    <Row ss:AutoFitHeight="0" ss:Height="26.25" ss:StyleID="s27">
-    <Cell ss:MergeAcross="20" ss:StyleID="s29"><Data ss:Type="String"><?php echo Fisma::configuration()->getConfig('system_name');?> - Injection Template</Data></Cell>
+    <Cell ss:MergeAcross="20" ss:StyleID="s29"><Data ss:Type="String"><?php echo Configuration::getConfig('system_name');?> - Injection Template</Data></Cell>
    </Row>
    <Row ss:AutoFitHeight="0" ss:Height="110.25" ss:StyleID="s27">
-    <Cell ss:MergeAcross="20" ss:StyleID="m43958186"><Data ss:Type="String">Instructions: &#10;1) Required fields are indicated by an asterix (*). &#10;2) Leave optional fields blank if you do not have that information.&#10;3) Do not modify the format of this template, or it may not upload into <?php echo Fisma::configuration()->getConfig('system_name');?>. You may hide rows and columns using Excel's menu option: Format-&gt;Row-&gt;Hide&#10;4) To enter an asset for a finding, complete the Network, Asset IP Address, and Asset Port fields. If you do not enter all 3 of these fields, then the asset will be omitted.&#10;5) To enter a product, complete the Product Name, Product Vendor, and Product Version. If you do not enter all 3 of these fields, then the product will be omitted.&#10;&#10;</Data></Cell>
+    <Cell ss:MergeAcross="20" ss:StyleID="m43958186"><Data ss:Type="String">Instructions: &#10;1) Required fields are indicated by an asterix (*). &#10;2) Leave optional fields blank if you do not have that information.&#10;3) Do not modify the format of this template, or it may not upload into <?php echo Configuration::getConfig('system_name');?>. You may hide rows and columns using Excel's menu option: Format-&gt;Row-&gt;Hide&#10;4) To enter an asset for a finding, complete the Network, Asset IP Address, and Asset Port fields. If you do not enter all 3 of these fields, then the asset will be omitted.&#10;5) To enter a product, complete the Product Name, Product Vendor, and Product Version. If you do not enter all 3 of these fields, then the product will be omitted.&#10;&#10;</Data></Cell>
    </Row>
    <Row ss:AutoFitHeight="0" ss:Height="38.25">
     <Cell ss:StyleID="s39"><Data ss:Type="String">System*</Data><Comment
@@ -260,7 +260,8 @@ echo '<?xml version="1.0"?>'.
   <DataValidation xmlns="urn:schemas-microsoft-com:office:excel">
    <Range>R4C10:R65536C10</Range>
    <Type>List</Type>
-   <Value>sources</Value>
+   <CellRangeList/>
+   <Value>&quot;<?php echo implode(',',array_values($this->sources));?>&quot;</Value>
   </DataValidation>
   <DataValidation xmlns="urn:schemas-microsoft-com:office:excel">
    <Range>R4C13:R65536C13</Range>
@@ -276,7 +277,8 @@ echo '<?xml version="1.0"?>'.
   <DataValidation xmlns="urn:schemas-microsoft-com:office:excel">
    <Range>R4C3:R65536C3</Range>
    <Type>List</Type>
-   <Value>networks</Value>
+   <CellRangeList/>
+   <Value>&quot;<?php echo implode(',',array_values($this->networks));?>&quot;</Value>
   </DataValidation>
   <DataValidation xmlns="urn:schemas-microsoft-com:office:excel">
    <Range>R4C1:R65536C1</Range>
@@ -339,68 +341,6 @@ echo '<?xml version="1.0"?>'.
 </Row>
 <?php
     }
-?>
-  </Table>
-  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
-   <Print>
-    <ValidPrinterInfo/>
-    <HorizontalResolution>600</HorizontalResolution>
-    <VerticalResolution>0</VerticalResolution>
-   </Print>
-   <Panes>
-    <Pane>
-     <Number>3</Number>
-    </Pane>
-   </Panes>
-   <ProtectObjects>True</ProtectObjects>
-   <ProtectScenarios>False</ProtectScenarios>
-  </WorksheetOptions>
- </Worksheet> 
- <Worksheet ss:Name="Sources">
-  <Table ss:ExpandedColumnCount="1" x:FullColumns="1" x:FullRows="1">
-   <Column ss:AutoFitWidth="0" ss:Width="54.75"/>
-<?php
-    foreach ($this->sources as $source) :
-?>
-   <Row>
-    <Cell>
-     <Data ss:Type="String"><?php echo $source; ?></Data>
-     <NamedCell ss:Name="sources"/>
-    </Cell>
-   </Row>
-<?php
-    endforeach;
-?>
-  </Table>
-  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
-   <Print>
-    <ValidPrinterInfo/>
-    <HorizontalResolution>600</HorizontalResolution>
-    <VerticalResolution>0</VerticalResolution>
-   </Print>
-   <Panes>
-    <Pane>
-     <Number>3</Number>
-    </Pane>
-   </Panes>
-   <ProtectObjects>True</ProtectObjects>
-   <ProtectScenarios>False</ProtectScenarios>
-  </WorksheetOptions>
- </Worksheet> 
- <Worksheet ss:Name="Networks">
-  <Table ss:ExpandedColumnCount="1" x:FullColumns="1" x:FullRows="1">
-   <Column ss:AutoFitWidth="0" ss:Width="54.75"/>
-<?php
-    foreach ($this->networks as $network) :
-?>
-   <Row>
-    <Cell>
-     <Data ss:Type="String"><?php echo $network; ?></Data>
-     <NamedCell ss:Name="networks"/>
-    </Cell>
-   </Row>
-<?php
-    endforeach;
 ?>
   </Table>
   <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">

@@ -18,13 +18,12 @@ Asset:
             values: [manual, scan]
             default: manual
             extra:
-                logicalName: Asset Source
                 searchIndex: keyword
                 notify: true
             comment: Whether this asset was created manually or by an automated scanner
         addressIp:
             type: string(15)
-            Fisma_Validator_Ip: true
+            ip: true
             extra:
                 logicalName: IP Address
                 searchIndex: unstored
@@ -36,7 +35,7 @@ Asset:
             unsigned: false
             unsigned: false
             extra:
-                logicalName: IP Port Number
+                logicalName: Port Number
                 searchIndex: unstored
                 searchAlias: port
                 notify: true
@@ -45,18 +44,12 @@ Asset:
         productId:
             type: integer
             comment: Foreign key to product table
-            extra:
-                logicalName: Product
         orgSystemId:
             type: integer
-            comment: Foreign key to a system object in the organization table
-            extra:
-                logicalName: System
+            comment: Foreign key to organization table
         networkId:
             type: integer
             comment: Foreign key to network table
-            extra:
-                logicalName: Network
 
     relations:
         Product:

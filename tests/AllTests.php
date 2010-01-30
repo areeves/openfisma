@@ -13,12 +13,27 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 // Bootstrap the application's CLI mode if it has not already been done
 require_once(realpath(dirname(__FILE__) . '/../library/Fisma.php'));
-require_once 'bootstrap.php';
+if (Fisma::RUN_MODE_COMMAND_LINE != Fisma::mode()) {
+    try {
+        Fisma::initialize(Fisma::RUN_MODE_COMMAND_LINE);
+        Fisma::connectDb();
+        Fisma::setNotificationEnabled(false);
+    } catch (Zend_Config_Exception $zce) {
+        print "The application is not installed correctly. If you have not run the installer, you should do that now.";
+    } catch (Exception $e) {
+        print get_class($e) 
+            . "\n" 
+            . $e->getMessage() 
+            . "\n"
+            . $e->getTraceAsString()
+            . "\n";
+    }
+}
 
 /**
  * This class is the controller which executes all of the Unit Test suites. This
@@ -26,17 +41,15 @@ require_once 'bootstrap.php';
  * process.
  * 
  * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Test
  * @version    $Id$
  */
 class AllTests
 {
     /**
-     * Test controller main method
-     * 
-     * @return void
+     * main() - Test controller main method
      */
     public static function main()
     {
@@ -44,14 +57,14 @@ class AllTests
     }
 
     /**
-     * Creates a phpunit test suite for all unit tests in the project.
+     * suite() - Creates a phpunit test suite for all unit tests in the project.
      * The controller recurses through all directories and loads all of the .php
      * files found.
      *
      * Notice that each test file should be named following the ZF standards in
      * order for this to work.
      *
-     * @return PHPUnit_Framework_TestSuite The assembled test suite
+     * @return PHPUnit_Framework_TestSuite
      */
     public static function suite()
     {
@@ -74,14 +87,12 @@ class AllTests
     }
 
     /**
-     * Load all of the PHP files in the specified directory,
+     * loadAllTests() - Load all of the PHP files in the specified directory,
      * and add them to the test suite.
-     * 
+     *
      * @param string $path The parent path containing the directory
      * @param string $directory The name of the directory
-     * @param PHPUnit_Framework_TestSuite $suite The test suite to assemble test case
-     * @return void
-     * @throws Fisma_Exception if the file doesn`t contain the class
+     * @param PHPUnit2_Framework_TestSuite $suite Which suite to add these to
      */
     public static function loadAllTests($path, $directory, $suite)
     {

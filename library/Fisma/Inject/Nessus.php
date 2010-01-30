@@ -13,15 +13,15 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
  * A scan result injection plugin for injecting Nessus XML output directly into OpenFISMA.
  * 
- * @author     Josh Boyd <joshua.boyd@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @author     Ryan yang <ryanyang@users.sourceforge.net>
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Fisma
  * @subpackage Fisma_Inject
  * @version    $Id$
@@ -31,190 +31,107 @@ class Fisma_Inject_Nessus extends Fisma_Inject_Abstract
     /**
      * Implements the required function in the Inject_Abstract interface.
      * This parses the report and commits all data to the database.
-     * 
-     * @param string $uploadId The id of upload Nessus xml file
      */
     public function parse($uploadId)
     {
-        $grammar = new Fisma_Inject_Grammar('Nessus');
-        $report  = new XMLReader();
-
-        // The third parameter is the constant LIBXML_PARSEHUGE from libxml, which is not exposed to XMLReader. 
-        // This is fixed in SVN of PHP as of 12/1/09, but until it hits a release version this hack will stay.
-        // @TODO Change 1<<19 to LIBXML_PARSEHUGE once it is visible
-        if (!$report->open($this->_file, NULL, 1<<19)) {
-            throw new Fisma_Exception_InvalidFileFormat('Cannot open the XML file.');
+        // Parse the XML file
+        $report = simplexml_load_file($this->_file);
+        
+        // Make sure that this is an Nessus report, not a Crystal report. 
+        $checkCrystalReport = $report->getNamespaces(true);
+        if (in_array('urn:crystal-reports:schemas', $checkCrystalReport)) {
+            throw new Fisma_Exception_InvalidFileFormat('This is a Crystal Report, not a Nessus report.');
         }
-
-        $report->setRelaxNGSchemaSource($grammar);
-
-        try {
-            $this->_persist($report, $uploadId);
-        } catch (Exception $e) {
-            throw new Fisma_Exception('An error occured while processing the XML file.');
-        }
-
-        $report->close();
+        $this->_persist($report, $uploadId);
     }
 
     /**
      * Save assets and findings which are recorded in the report.
      *
-     * @param XMLReader $oXml The full Nessus report
-     * @param int $uploadId The specific scanner file id
+     * @param SimpleXMLElement $report The full Nessus report
+     * @param int $uploadId the specific scanner file id
      */
-    private function _persist(XMLReader $oXml, $uploadId)
+    private function _persist($report, $uploadId)
     {
-        $parsedData = array();
-
-        $hostCounter = 0;
-        $itemCounter = 0;
-
-        while ($oXml->read()) {
-            // The elements of the XML that we care about don't occur until we reach a depth of 2
-            if ($oXml->depth >= 2 && $oXml->nodeType == XMLReader::ELEMENT) {
-                if ($oXml->name == 'ReportHost') {
-                    $parsedData[$hostCounter] = array();
-                    $parsedData[$hostCounter]['findings'] = array();
-                    $parsedData[$hostCounter]['ip'] = $oXml->getAttribute('name');
-                } elseif ($oXml->name == 'tag' && $oXml->getAttribute('name') == 'HOST_END') {
-                    $parsedData[$hostCounter]['startTime'] = $oXml->readString();
-                } elseif ($oXml->name == 'ReportItem') {
-                    $parsedData[$hostCounter]['findings'][$itemCounter] = array();
-                    $severity = $oXml->getAttribute('severity');
-                    $parsedData[$hostCounter]['findings'][$itemCounter]['port'] = $oXml->getAttribute('port');
-
-                    switch($severity) {
-                        case "1": 
-                            $severity = 'LOW';
+        // Parse the discovered date/time out of the starttime field
+        $startTime = $report->xpath('/NessusClientData/Report/StartTime');
+        if (empty($startTime)) {
+            throw new Fisma_Exception_InvalidFileFormat('Expected StartTime field, but found none');
+        }
+        // Asset information is parsed out of the ReportHost section
+        $reportHosts = $report->xpath('/NessusClientData/Report/ReportHost');
+        if (empty($reportHosts)) {
+            throw new Fisma_Exception_InvalidFileFormat('Expected ReportHost field, but found none');
+        }
+        foreach ($reportHosts as $key => $host ) {
+            $addressIp = $host->HostName;
+            if (empty($addressIp)) {
+                throw new Fisma_Exception_InvalidFileFormat('Expected HostName field, but found none');
+            }
+            foreach ($host->ReportItem as $item) {
+                if (!isset($item->severity)) {
+                    throw new Fisma_Exception_InvalidFileFormat('Expected severity field, but found none');
+                }
+                if (empty($item->severity)) {
+                    continue;
+                } else {
+                    switch ($item->severity) {
+                        case '1':
+                            $threatLevel = 'LOW';
                             break;
-                        case "2":
-                            $severity = 'MODERATE';
+                        case '2':
+                            $threatLevel = 'MODERATE';
                             break;
-                        case "3":
-                            $severity = 'HIGH';
-                            break;
-                        default:
-                            $severity = 'NONE';
+                        case '3':
+                            $threatLevel = 'HIGH';
                             break;
                     }
+                }
+                if (!isset($item->port)) {
+                    throw new Fisma_Exception_InvalidFileFormat('Expected port field, but found none');
+                }
+                if (preg_match('/\d+/', $item->port, $port)) {
+                    $asset['addressIp']   = $addressIp;
+                    $asset['addressPort'] = $port[0];
+                    $asset['name'] = $asset['addressIp'] . ':' . $asset['addressPort'];
+                } else {
+                    continue;
+                }
+                $this->_saveAsset($asset);
 
-                    $parsedData[$hostCounter]['findings'][$itemCounter]['severity'] = $severity;
-                } elseif ($oXml->name == 'solution') {
-                    $parsedData[$hostCounter]['findings'][$itemCounter]['solution'] = $oXml->readString();
-                } elseif ($oXml->name == 'description') {
-                    $parsedData[$hostCounter]['findings'][$itemCounter]['description'] = $oXml->readString();
-                } elseif ($oXml->name == 'cve') {
-                    $parsedData[$hostCounter]['findings'][$itemCounter]['cve'][] = $oXml->readString();
-                } elseif ($oXml->name == 'bid') {
-                    $parsedData[$hostCounter]['findings'][$itemCounter]['bid'][] = $oXml->readString();
-                } elseif ($oXml->name == 'xref') {
-                    $parsedData[$hostCounter]['findings'][$itemCounter]['xref'][] = $oXml->readString();
-                } elseif ($oXml->name == 'synopsis') {
-                    $parsedData[$hostCounter]['findings'][$itemCounter]['synopsis'] = $oXml->readString();
-                } elseif ($oXml->name == 'cvss_base_score') {
-                    $parsedData[$hostCounter]['findings'][$itemCounter]['cvssBaseScore'] = $oXml->readString();
-                } elseif ($oXml->name == 'cvss_vector') {
-                    $parsedData[$hostCounter]['findings'][$itemCounter]['cvssVector'] = $oXml->readString();
-                } elseif ($oXml->name == 'plugin_output') {
-                    $parsedData[$hostCounter]['findings'][$itemCounter]['plugin_output'] = $oXml->readString();
-                } elseif ($oXml->name == 'see_also') {
-                    if (filter_var($oXml->readString(), FILTER_VALIDATE_URL)) {
-                        $parsedData[$hostCounter]['findings'][$itemCounter]['see_also'][] = $oXml->readString();
-                    }
+                $reportData = $this->textToHtml($item->data);
+                if (empty($reportData)) {
+                    throw new Fisma_Exception_InvalidFileFormat('Expected data field, but found none');
                 }
-            } elseif ($oXml->nodeType == XMLReader::END_ELEMENT) {
-                if ($oXml->name == 'ReportHost') {
-                    $hostCounter++;
-                    $itemCounter = 0;
-                } elseif ($oXml->name == 'ReportItem') {
-                    $itemCounter++;
-                }
+                $finding['uploadId'] = $uploadId;
+                $finding['discoveredDate'] = date('Y-m-d', strtotime($startTime[$key]));
+                $finding['sourceId']       = $this->_findingSourceId;
+                $finding['responsibleOrganizationId'] = $this->_orgSystemId;
+                $finding['description']    = $this->_getSubContent($reportData, 'Synopsis :', 'Description');
+                $finding['threat']         = $this->_getSubContent($reportData, 'Description :', 'Solution');
+                $finding['recommendation'] = $this->_getSubContent($reportData, 'Solution :', 'Risk factor');
+                $finding['threatLevel']    = $threatLevel;
+                $finding['assetId']        = $this->_assetId;
+                $this->_commit($finding);
             }
         }
-
-        // Make sure that the XML is valid before continuing. Since XMLReader is stream based, we can't check for
-        // validity until after the XML is completely parsed.
-        if (!$oXml->isValid()) {
-            throw new Fisma_Inject_Exception('XML is not valid.');
-        }
-
-        foreach ($parsedData as $host) {
-            foreach ($host as $findings) {
-                if (is_array($findings)) {
-                    foreach ($findings as $finding) {
-                        if (($finding['severity'] != 'NONE') && ($finding['severity'] != 'LOW')) {
-                            // Prepare asset
-                            $asset = array();
-                            $asset['name'] = (!empty($finding['port'])) ? $host['ip'] . ':' . $finding['port'] : 
-                                $host['ip'];
-                            $asset['networkId'] = (int) $this->_networkId;
-                            $asset['addressIp'] = $host['ip'];
-                            $asset['addressPort'] = (!empty($finding['port'])) ? (int) $finding['port'] : NULL;
-
-                            // Prepare finding
-                            $finding['plugin_output'] = (!empty($finding['plugin_output'])) ? $finding['plugin_output']
-                                : '';
-
-                            $findingInstance = array();
-                            $findingInstance['uploadId'] = (int) $uploadId;
-                            $findingInstance['discoveredDate'] = (!empty($host['startTime'])) ? 
-                                date('Y-m-d', strtotime($host['startTime'])) : NULL;
-                            $findingInstance['sourceId'] = (int) $this->_findingSourceId;
-                            $findingInstance['responsibleOrganizationId'] = (int) $this->_orgSystemId;
-                            $findingInstance['description'] = Fisma_String::textToHtml(
-                                $finding['description'] . $finding['plugin_output']
-                            );
-                            $findingInstance['threat'] = (!empty($finding['synopsis'])) ? 
-                                Fisma_String::textToHtml($finding['synopsis']) : NULL;
-                            $findingInstance['recommendation'] = (!empty($finding['solution'])) ? 
-                                Fisma_String::textToHtml($finding['solution']) : NULL;
-                            $findingInstance['threatLevel'] = (!empty($finding['severity'])) ? $finding['severity'] 
-                                : NULL;
-                            $findingInstance['cvssBaseScore'] = (!empty($finding['cvssBaseScore'])) ? 
-                                $finding['cvssBaseScore'] : NULL;
-                            $findingInstance['cvssVector'] = (!empty($finding['cvssVector'])) ? 
-                                substr($finding['cvssVector'], 6) : NULL;
-                            
-                            if (!empty($finding['cve'])) {
-                                foreach ($finding['cve'] as $cve) {
-                                    $findingInstance['cve'][] = $cve;
-                                }
-                            }
-
-                            if (!empty($finding['bid'])) {
-                                foreach ($finding['bid'] as $bugtraq) {
-                                    $findingInstance['bugtraq'][] = $bugtraq;
-                                }
-                            }
-
-                            if (!empty($finding['xref'])) {
-                                foreach ($finding['xref'] as $xref) {
-                                    $findingInstance['xref'][] = $xref;
-                                }
-                            }
-
-                            if (!empty($finding['see_also'])) {
-                                $seeAlsoList = "";
-
-                                foreach ($finding['see_also'] as $seeAlso) {
-                                    $seeAlsoList = $seeAlsoList . "<li><a href=\"" . $seeAlso . "\">" . $seeAlso 
-                                        . "</a></li>";
-                                }
-
-                                $findingInstance['recommendation'] = $findingInstance['recommendation'] . "<ul>" 
-                                    . $seeAlsoList . "</ul>"; 
-                            }
+    }
     
-                            // Save finding and asset
-                            $this->_save($findingInstance, $asset);
-                        }
-                    }
-                }
-            }
+    /**
+     * Get the content from a start string to end string
+     *
+     * @param string $str orginal content 
+     * @param string $start
+     * @param string $end
+     * @return string
+     */
+    private function _getSubContent($str, $start, $end)
+    {
+        if ($start == '' || $end == '') {
+               return;
         }
-
-        // Commit all data
-        $this->_commit();
+        $str = explode($start, $str);
+        $str = explode($end, $str[1]);
+        return $str[0];
     }
 }

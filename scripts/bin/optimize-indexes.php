@@ -14,7 +14,7 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 $script = new OptimizeIndexes();
@@ -24,8 +24,8 @@ $script->run();
  * Optimizes (and creates if necessary) Lucene indexes for OpenFISMA
  * 
  * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Scripts
  * @version    $Id$
  */
@@ -39,6 +39,7 @@ class OptimizeIndexes
      * @var array
      */
     private $_models = array(
+        'AccountLog',
         'Asset',
         'Finding',
         'Network',
@@ -53,29 +54,24 @@ class OptimizeIndexes
     
     /**
      * The number of records to fetch at a time when creating a new index
-     * 
      * @var int
      */
     const FETCH_ROWS = 100;
     
     /**
      * The number of seconds to wait between updating the status line on STDOUT
-     * 
      * @var int
      */
     const STATUS_UPDATE_INTERVAL = 1;
     
     /**
      * The number of records to process in between each index defragementation
-     * 
      * @var int
      */
     const DEFRAG_RECORD_COUNT = 1000;
     
     /**
      * Create a script object and connect it to the Fisma library
-     * 
-     * @return void
      */
     public function __construct() 
     {
@@ -90,8 +86,6 @@ class OptimizeIndexes
         
     /**
      * The script's entry point
-     * 
-     * @return void
      */
     public function run()
     {
@@ -120,9 +114,6 @@ class OptimizeIndexes
      * 
      * This is a slow process because each record has to be hydrated as an object, and the index has to be
      * defragmented frequently.
-     * 
-     * @param string $model The specified model name to create index
-     * @return void
      */
     private function _createIndex($model)
     {
@@ -184,9 +175,6 @@ class OptimizeIndexes
     
     /**
      * Optimize an index
-     * 
-     * @param string $model The specified model name to optimize index
-     * @return void
      */
     private function _optimizeIndex($model)
     {

@@ -13,7 +13,7 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 require_once 'Zend/View/Helper/Abstract.php';
@@ -22,23 +22,22 @@ require_once 'Zend/View/Helper/Abstract.php';
  * Helper for determining if the content is more than 120 character. 
  *
  * @author     Woody Lee <woody712@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    View_Helper
  * @version    $Id$
  */
 class View_Helper_ShowLongText extends Zend_View_Helper_Abstract
 {
     /**
-     * A helper which abstracts 120 characters from a long text
+     * A helper which intercept 120 characters from a long text
      * 
      * If the text contain keywords, then target the keywords
      * and output the words around the keywords.
      *
-     * @param string $text The specified long text to limit
-     * @param Array $keywords The keyword which need to be reserved specially
-     * @return string The trimmed brief text
-     * @todo rename the method name to showLongText or something else.
+     * @param string $text
+     * @param string $keywords split with ',' only deal the first keywords
+     * @return string $result the text intercepted
      */
     public function ShowLongText($text, $keywords = null)
     {

@@ -13,45 +13,24 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
  * System
  * 
  * @author     Ryan Yang <ryan@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Model
  * @version    $Id$
  */
-class System extends BaseSystem implements Fisma_Acl_OrganizationDependency
+class System extends BaseSystem
 {
-    /**
-     * Confidentiality, Integrity, Availability
-     */
-    const CIA_HIGH = 'HIGH';
-    
-    /**
-     * Confidentiality, Integrity, Availability
-     */
-    const CIA_MODERATE = 'MODERATE';
-    
-    /**
-     * Confidentiality, Integrity, Availability
-     */
-    const CIA_LOW = 'LOW';
-    
-    /**
-     * Only confidentiality can have 'NA'
-     */
-    const CIA_NA = 'NA';
-
     /**
      * Defines the way counter measure effectiveness and threat level combine to produce the threat likelihood. This
      * array is indexed as: $_threatLikelihoodMatrix[THREAT_LEVEL][COUNTERMEASURE_EFFECTIVENESS] == THREAT_LIKELIHOOD
-     * 
-     * @var array
+     *
      * @see _initThreatLikelihoodMatrix()
      */
     private $_threatLikelihoodMatrix;
@@ -59,7 +38,6 @@ class System extends BaseSystem implements Fisma_Acl_OrganizationDependency
     /**
      * Declares fields stored in related records that should be indexed along with records in this table
      * 
-     * @var array
      * @see Asset.php
      * @todo Doctrine 2.0 might provide a nicer approach for this
      */
@@ -72,36 +50,111 @@ class System extends BaseSystem implements Fisma_Acl_OrganizationDependency
     );
 
     /**
+     * Map the values to Organization table
+     */
+    public function construct()
+    {
+        $this->mapValue('organizationId');
+        $this->mapValue('name');
+        $this->mapValue('nickname');
+        $this->mapValue('description');
+    }
+
+    /**
+     * set the mapping value 'organizationid'
+     *
+     * @param int $id
+     */
+    public function setOrganizationId($id)
+    {
+        $this->set('organizationId', $id);
+    }
+
+    /**
+     * set the mapping value 'name'
+     *
+     * @param string $name
+     */
+    public function setName($name)
+    {
+        $this->set('name', $name);
+        // if the object hasn't identity,
+        // then we think it is under the insert status.
+        // otherwise it is update status
+        if (empty($this->Organization->id)) {
+            $this->state(Doctrine_Record::STATE_TDIRTY);
+        } else {
+            $this->state(Doctrine_Record::STATE_DIRTY);
+        }
+    }
+    
+    /**
+     * set the mapping value 'nickname'
+     *
+     * @param string $nickname
+     */
+    public function setNickname($nickname)
+    {
+        $this->set('nickname', $nickname);
+        // if the object hasn't identity,
+        // then we think it is under the insert status.
+        // otherwise it is update status
+        if (empty($this->Organization->id)) {
+            $this->state(Doctrine_Record::STATE_TDIRTY);
+        } else {
+            $this->state(Doctrine_Record::STATE_DIRTY);
+        }
+    }
+    
+    /**
+     * set the map value 'description'
+     *
+     * @param string $description
+     */
+    public function setDescription($description)
+    {
+        $this->set('description', $description);
+        // if the object hasn't identity,
+        // then we think it is under the insert status.
+        // otherwise it is update status
+        if (empty($this->Organization->id)) {
+            $this->state(Doctrine_Record::STATE_TDIRTY);
+        } else {
+            $this->state(Doctrine_Record::STATE_DIRTY);
+        }
+    }
+
+    /**
+     * Confidentiality, Integrity, Availability
+     */
+    const CIA_HIGH = 'high';
+    
+    /**
+     * Confidentiality, Integrity, Availability
+     */
+    const CIA_MODERATE = 'moderate';
+    
+    /**
+     * Confidentiality, Integrity, Availability
+     */
+    const CIA_LOW = 'low';
+    
+    /**
+     * Only confidentiality can have 'NA'
+     */
+    const CIA_NA = 'na';
+
+    /**
      * A mapping from the physical system types to proper English terms
-     * 
-     * @var array
      */
     private $_typeMap = array(
         'gss' => 'General Support System',
         'major' => 'Major Application',
         'minor' => 'Minor Application'
     );
-
-    /**
-     * Doctrine hook which is used to set up mutators
-     * 
-     * @return void
-     */
-    public function setUp()
-    {
-        parent::setUp();
-        
-        $this->hasMutator('availability', 'setAvailability');
-        $this->hasMutator('confidentiality', 'setConfidentiality');
-        $this->hasMutator('fipsCategory', 'setFipsCategory');
-        $this->hasMutator('integrity', 'setIntegrity');
-        $this->hasMutator('uniqueProjectId', 'setUniqueProjectId');
-    }
     
     /**
      * Return the English version of the orgType field
-     * 
-     * @return string The English version of the orgType field
      */
     public function getTypeLabel() 
     {
@@ -111,46 +164,41 @@ class System extends BaseSystem implements Fisma_Acl_OrganizationDependency
     /**
      * Calculate FIPS-199 Security categorization.
      *
-     * This is based on the NIST definition, which is the "high water mark" for the components C, I, and A. If some
-     * parts of the CIA are null but at least one part is defined, then the FIPS category will take the high water mark
-     * of all the defined parts.
+     * The calculation over enumeration fields {LOW, MODERATE, HIGH} is tricky here. The algorithm 
+     * is up to their mapping value, which is decided by the appear consequence in TABLE definition.
+     * For example, in case `confidentiality` ENUM('NA','LOW','MODERATE','HIGH') it turns out the 
+     * mapping value: LOW=0, MODERATE=1, HIGH=2. The value calculated is the maximum of C, I, A. And 
+     * is transferred back to enumeration name again.
      * 
-     * @return string The fips category
+     * @return string
      */
-    private function _fipsCategory()
+    public function fipsSecurityCategory()
     {
-        $fipsCategory = null;
+        $confidentiality = $this->confidentiality;
+        $integrity = $this->integrity;
+        $availability = $this->availability;
         
-        if (   $this->confidentiality == self::CIA_HIGH 
-            || $this->integrity == self::CIA_HIGH 
-            || $this->availability == self::CIA_HIGH) {
-            
-            $fipsCategory = self::CIA_HIGH;    
+        $array = $this->getTable()->getEnumValues('confidentiality');
+        $confidentiality = array_search($confidentiality, $array) - 1;
+        
+        $array = $this->getTable()->getEnumValues('integrity');
+        $integrity = array_search($integrity, $array);
+        
+        $array = $this->getTable()->getEnumValues('availability');
+        $availability = array_search($availability, $array);
 
-        } elseif (   $this->confidentiality == self::CIA_MODERATE 
-                  || $this->integrity == self::CIA_MODERATE 
-                  || $this->availability == self::CIA_MODERATE) {
-
-            $fipsCategory = self::CIA_MODERATE;
-
-        } elseif (   $this->confidentiality == self::CIA_LOW 
-                  || $this->integrity == self::CIA_LOW 
-                  || $this->availability == self::CIA_LOW) {
-
-            $fipsCategory = self::CIA_LOW;
-
-        }
-
-        return $fipsCategory;
+        $index = max((int)$confidentiality, (int)$integrity, (int)$availability);
+        return $array[$index];
     }
 
     /**
      * Calculate min level
-     * 
-     * @param string $levelA The specified level A
-     * @param string $levelB The specified level B
-     * @return string The min level of bewteen $levelA and $levelB
+     *
      * @see calcSecurityCategory
+     *
+     * @param string $levelA
+     * @param string $levelB
+     * @param return string min of $levelA and $levelB
      */
     public function calcMin($levelA, $levelB)
     {
@@ -164,11 +212,12 @@ class System extends BaseSystem implements Fisma_Acl_OrganizationDependency
     
     /**
      * Calcuate overall threat level
-     * 
+     *
+     * @see calcSecurityCategory
+     *
      * @param string $threat threat level
      * @param string $countermeasure countermeasure level
      * @return string overall threat
-     * @see calcSecurityCategory
      */
     public function calculateThreatLikelihood($threat, $countermeasure)
     {
@@ -185,7 +234,6 @@ class System extends BaseSystem implements Fisma_Acl_OrganizationDependency
      * Initializes the threat likelihood matrix. This is hardcoded because these values are defined in NIST SP 800-30
      * and are not likely to change very often.
      *
-     * @return void
      * @link http://csrc.nist.gov/publications/nistpubs/800-30/sp800-30.pdf
      */
     private function _initThreatLikelihoodMatrix()
@@ -202,11 +250,18 @@ class System extends BaseSystem implements Fisma_Acl_OrganizationDependency
         $this->_threatLikelihoodMatrix['LOW']['MODERATE'] = 'LOW';
         $this->_threatLikelihoodMatrix['LOW']['HIGH']     = 'LOW';
     }
+
+    /**
+     * Delegate the delete to organization delete
+     */
+    public function delete(Doctrine_Connection $conn = null)
+    {
+        $org = $this->Organization;
+        return $org->delete($conn);
+    }
     
     /**
      * Return system name with proper formatting
-     * 
-     * @return string The sysyem name with proper formatting
      */
     public function getName() 
     {
@@ -216,94 +271,10 @@ class System extends BaseSystem implements Fisma_Acl_OrganizationDependency
     /**
      * A post-update hook to send notifications
      * 
-     * @param Doctrine_Event $event The triggered doctrine event
-     * @return void
+     * @param Doctrine_Event $event
      */
     public function postUpdate($event)
     {
-        Notification::notify('SYSTEM_UPDATED', $this->Organization, User::currentUser());
-    }
-    
-    /**
-     * Mutator for availability. Updates the FIPS 199 automatically.
-     * 
-     * @param string $value The value of availability to set
-     * @return void
-     */
-    public function setAvailability($value)
-    {
-        $this->_set('availability', $value);
-        $this->_set('fipsCategory', $this->_fipsCategory());
-    }
-
-    /**
-     * Mutator for confidentiality. Updates the FIPS 199 automatically.
-     * 
-     * @param string $value The value of confidentiality to set
-     * @return void
-     */
-    public function setConfidentiality($value)
-    {
-        $this->_set('confidentiality', $value);
-        $this->_set('fipsCategory', $this->_fipsCategory());
-    }
-    
-    /**
-     * FIPS category is not directly settable.
-     * 
-     * @param string $value The value of FIPS category to set
-     * @return void
-     * @throws Fisma_Exception if this mutator is called anytime and anywhere
-     */
-    public function setFipsCategory($value)
-    {
-        throw new Fisma_Exception('Cannot set FIPS Security category directly. It is derived from CIA.');
-    }
-
-    /**
-     * Mutator for integrity. Updates the FIPS 199 automatically.
-     * 
-     * @param string $value The value of integrity to set
-     * @return void
-     */
-    public function setIntegrity($value)
-    {
-        $this->_set('integrity', $value);
-        $this->_set('fipsCategory', $this->_fipsCategory());
-    }
-    
-    /**
-     * Set the exhibit 53 Unique Project Id (UPI) which has a special format like xxx-xx-xx-xx-xx-xxxx-xx
-     * 
-     * To help the user out, we reformat the string automatically if required
-     * 
-     * @param string $value The value of UPI to reformat and set
-     * @return void
-     */
-    public function setUniqueProjectId($value)
-    {
-        // Remove any existing hyphens and pad out to 17 chars
-        $raw = str_pad(str_replace('-', '', $value), 17, '0');
-        
-        // Now reinsert hypens in the appropriate places
-        $upi = substr($raw, 0, 3) . '-'
-             . substr($raw, 3, 2) . '-'
-             . substr($raw, 5, 2) . '-'
-             . substr($raw, 7, 2) . '-'
-             . substr($raw, 9, 2) . '-'
-             . substr($raw, 11, 4) . '-'
-             . substr($raw, 15, 2);
-             
-        $this->_set('uniqueProjectId', $upi);
-    }
-
-    /**
-     * Implement the required method for Fisma_Acl_OrganizationDependency
-     * 
-     * @return int
-     */
-    public function getOrganizationDependencyId()
-    {
-        return $this->Organization->id;
+        Notification::notify('SYSTEM_UPDATED', $this->Organization, User::currentUser(), $this->Organization->id);
     }
 }

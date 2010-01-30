@@ -13,7 +13,7 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
@@ -27,27 +27,22 @@
  * such as Finding or FindingEvaluation.
  * 
  * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Listener
  * @version    $Id$
  */
-class NotificationListener extends Fisma_Record_Listener
+class NotificationListener extends Doctrine_Record_Listener
 {
     /**
      * Send notifications for object creation
      * 
-     * @param Doctrine_Event $event The listened doctrine event to process
-     * @return void
+     * @param Doctrine_Event $event
      */
     public function postInsert(Doctrine_Event $event)
     {
-        if (!self::$_listenerEnabled) {
-            return;
-        }
-
         $record = $event->getInvoker();
-        $eventName = $this->_classNameToEventName(get_class($record)) . '_CREATED';
+        $eventName = strtoupper(get_class($record)) . '_CREATED';
         Notification::notify($eventName, $record, User::currentUser());
     }
     
@@ -57,17 +52,13 @@ class NotificationListener extends Fisma_Record_Listener
      * These notifications are only sent if the model has defined columns with an extra attribute called 
      * 'notify' with a boolean value 'true' AND one of those columns has been modified.
      * 
-     * @param Doctrine_Event $event The listened doctrine event to process
-     * @return void
+     * @param Doctrine_Event $event
      */
     public function postUpdate(Doctrine_Event $event)
     {
-        if (!self::$_listenerEnabled) {
-            return;
-        }
-
         $record = $event->getInvoker();
-        $eventName = $this->_classNameToEventName(get_class($record)) . '_UPDATED';
+        $class = get_class($record);
+        $eventName = "{$class}_UPDATED";
         
         // Only send the notification if a notifiable field was modified
         $modified = $record->getLastModified();
@@ -85,30 +76,12 @@ class NotificationListener extends Fisma_Record_Listener
     /**
      * Send notifications for object deletions
      * 
-     * @param Doctrine_Event $event The listened doctrine event to process
-     * @return void
+     * @param Doctrine_Event $event
      */
     public function postDelete(Doctrine_Event $event)
     {
-        if (!self::$_listenerEnabled) {
-            return;
-        }
-
         $record = $event->getInvoker();
-        $eventName = $this->_classNameToEventName(get_class($record)) . '_DELETED';
+        $eventName = strtoupper(get_class($record)) . '_DELETED';
         Notification::notify($eventName, $record, User::currentUser());    
-    }
-    
-    /**
-     * Convert class name to an event name
-     * 
-     * e.g. SystemDocument to SYSTEM_DOCUMENT
-     * 
-     * @param $className
-     * @return string
-     */
-    private function _classNameToEventName($className)
-    {
-        return strtoupper(Doctrine_Inflector::tableize($className));
     }
 }

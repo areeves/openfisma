@@ -17,20 +17,22 @@
     <table id="reportTable">
         <thead>
             <tr>
-                <?php foreach ($this->columns as $column) : ?>
-                <th class="tdc"><?php echo $column; ?></th>
-                <?php endforeach; ?>
+                <?php  
+                    foreach ($this->columns as $column) {
+                        print "<th class=\"tdc\">$column</th>";
+                    }
+                ?>
             </tr>
         </thead>
-        <tbody>
-        <?php foreach ($this->rows as $row) : ?>
-        <tr>
-            <?php foreach($row as $cell) : ?>
-                <td><?php echo $cell; ?></td>
-            <?php endforeach; ?>
-        </tr>
-        <?php endforeach; ?>
-        </tbody>
+    <?php
+        foreach ($this->rows as $row) {
+            print '<tr>';
+            foreach ($row as $cell) {
+                print "<td>$cell</td>";
+            }
+            print '</tr>';
+        }
+    ?>
     </table>
 </div>
 
@@ -41,11 +43,9 @@
 YAHOO.util.Event.onContentReady('container', function() {
     var myColumnDefs = [
         <?php
-        $keys = "";
         foreach ($this->columns as $column) {
-            $keys .= "{key:'$column', label:'$column', sortable:true},";
+            print "{key:'$column', label:'$column', sortable:true},";
         }
-        echo rtrim($keys, ',');
         ?>
     ];
 
@@ -54,11 +54,9 @@ YAHOO.util.Event.onContentReady('container', function() {
     this.myDataSource.responseSchema = {
         fields: [
             <?php
-            $keys = "";
             foreach ($this->columns as $column) {
-                $keys .= "{key:'$column'},";
+                print "{key:'$column'},";
             }
-            echo rtrim($keys, ',');
             ?>
         ]
     };

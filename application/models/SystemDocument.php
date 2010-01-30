@@ -13,15 +13,15 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
  * SystemDocument
  * 
  * @author     Ryan Yang <ryan@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Model
  * @version    $Id$
  */
@@ -30,7 +30,7 @@ class SystemDocument extends BaseSystemDocument
     /**
      * Return the physical path to this document
      * 
-     * @return string The physical path of the systemDocument
+     * @return string
      */
     public function getPath() 
     {
@@ -43,11 +43,6 @@ class SystemDocument extends BaseSystemDocument
         return $path;
     }
     
-    /**
-     * Calculate and return size of systemDocument in KB
-     * 
-     * @return string The file size in KB
-     */
     public function getSizeKb()
     {
         return round($this->size / 1024, 0) . " KB";
@@ -56,7 +51,7 @@ class SystemDocument extends BaseSystemDocument
     /**
      * Returns a URL for an icon which represents this document
      * 
-     * @return string The file icon URL related to the file extension name
+     * @return string
      */
     public function getIconUrl()
     {

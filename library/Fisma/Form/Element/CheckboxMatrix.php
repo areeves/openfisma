@@ -13,41 +13,30 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
  * Renders multiple checkboxes in column format.
  * 
  * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Fisma
  * @subpackage Fisma_Form
  * @version    $Id$ 
  */
 class Fisma_Form_Element_CheckboxMatrix extends Zend_Form_Element
 {
-    /**
-     * Checkbox matrix container which holds all available checkboxes in maxtrix
-     * 
-     * @var array
-     */
     protected $_checkboxes = array();
-    
-    /**
-     * Default value array which indicates which of them checked
-     * 
-     * @var array
-     */
     protected $_defaults = array();
     
     /**
-     * Add a checkbox to this matrix.
+     * addCheckbox() - Add a checkbox to this matrix.
      *
-     * @param string $name The name of the checkbox (this will be returned in the form)
+     * @param string $name The name of the checkbox (this will be returned in
+     * the form)
      * @param string $label The label that is placed next to the checkbox
-     * @return void
      */
     function addCheckbox($name, $label) 
     {
@@ -55,10 +44,9 @@ class Fisma_Form_Element_CheckboxMatrix extends Zend_Form_Element
     }
     
     /**
-     * Sets the default value for the checkbox matrix.
+     * setValue() - Sets the default value for the checkbox matrix.
      *
-     * @param array $value The specified value to be checked by default
-     * @return void
+     * @param array $value
      */
     function setValue($value) 
     {
@@ -66,7 +54,7 @@ class Fisma_Form_Element_CheckboxMatrix extends Zend_Form_Element
     }
 
     /**
-     * Gets the current value for the checkbox matrix. This is only
+     * getValue() - Gets the current value for the checkbox matrix. This is only
      * populated after isValid is called(). I believe that is the ZF convention.
      *
      * @return array The checked checkboxes
@@ -77,7 +65,7 @@ class Fisma_Form_Element_CheckboxMatrix extends Zend_Form_Element
     }
 
     /**
-     * A stub function which always returns true. The main reason
+     * isValid() - A stub function which always returns true. The main reason
      * for overriding here is to capture the data which is being validated.
      *
      * @return boolean Always returns true
@@ -89,9 +77,9 @@ class Fisma_Form_Element_CheckboxMatrix extends Zend_Form_Element
     }
 
     /**
-     * Renders the checkbox matrix into a table.
+     * render() - Renders the checkbox matrix into a table.
      *
-     * @return string The rendered matrix in HTML
+     * @return string The rendered matrix
      */
     function render() 
     {

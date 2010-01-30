@@ -13,24 +13,22 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
  * Base controller to handle CRUD 
  *
  * @author     Jim Chen <xhorse@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Controller
  * @version    $Id$
  */
 abstract class BaseController extends SecurityController
 {
     /**
-     * Default pagination parameters
-     * 
-     * @var array
+     * Default paginate parameters
      */
     protected $_paging = array(
         'startIndex' => 0,
@@ -41,46 +39,38 @@ abstract class BaseController extends SecurityController
      * The main name of the model.
      * 
      * This model is the main subject which the controller operates on.
-     * 
-     * @var string
      */
     protected $_modelName = null;
 
-    /**
-     * The name of the class which this class's ACL is based off of. 
-     * 
-     * For example, system document objects don't have their own ACL items, instead they are based on the privileges 
-     * the user has to the parent system objects which own those documents.
-     * 
-     * If null, then the ACL resource is based on the _modelName
+    /** 
+     * This field is used to query the ACL, since some objects are tied to organizations and other objects
+     * are not. It is null by default, but subclasses should set it to '*' to indicate that those objects
+     * are tied to specific organizations.
      * 
      * @var string
-     * @see getAclResourceName
      */
-    protected $_aclResource;
+    protected $_organizations = null;
+    
+    private $_aclResource; // which ACL resources this controller corresponds to
 
     /**
-     *  Initialize model and make sure the model has been properly set
-     * 
-     * @return void
-     * @throws Fisma_Exception if model name is null
+     * Make sure the model has been properly set
      */
-    public function init()
+    public function init() 
     {
         parent::init();
-        
         if (is_null($this->_modelName)) {
             //Actually user should not be able to see this error message
             throw new Fisma_Exception('Internal error. Subclasses of the BaseController'
                                     . ' must specify the _modelName field');
+        } else {
+            // Covert UpperCamelCase to lower_underscore_format to get the aclResource name
+            $aclResource = preg_replace('/([A-Z])/', '_$1', $this->_modelName);
+            $aclResource = strtolower(substr($aclResource, 1));
+            $this->_aclResource = $aclResource;
         }
     }
-    
-    /**
-     * Invoked before each Actions
-     * 
-     * @return void
-     */
+
     public function preDispatch()
     {
         /* Setting the first index of the page/table */
@@ -89,10 +79,9 @@ abstract class BaseController extends SecurityController
     }
 
     /**
-     * Get the specified form of the subject model
-     * 
-     * @param string|null $formName The name of the specified form
-     * @return Zend_Form The specified form of the subject model
+     * Get the specific form of the subject model
+     *
+     * @param string $formName
      */
     public function getForm($formName=null)
     {
@@ -107,12 +96,12 @@ abstract class BaseController extends SecurityController
         return $form;
     }
 
-    /**
+    /** 
      * Hooks for manipulating the values before setting to a form
      *
-     * @param Doctrine_Record $subject The specified subject model
-     * @param Zend_Form $form The specified form
-     * @return Zend_Form The manipulated form
+     * @param Zend_Form $form
+     * @param Doctrine_Record|null $subject
+     * @return Zend_Form
      */
     protected function setForm($subject, $form)
     {
@@ -120,13 +109,11 @@ abstract class BaseController extends SecurityController
         return $form;
     }
 
-    /**
-     * Hooks for manipulating and saving the values retrieved by Forms
+    /** 
+     * Hooks for manipulating and saveing the values retrieved by Forms
      *
-     * @param Zend_Form $form The specified form
-     * @param Doctrine_Record|null $subject The specified subject model
-     * @return void
-     * @throws Fisma_Exception if the subject is not instance of Doctrine_Record
+     * @param Zend_Form $form
+     * @param Doctrine_Record|null $subject
      */
     protected function saveValue($form, $subject=null)
     {
@@ -141,19 +128,15 @@ abstract class BaseController extends SecurityController
 
     /**
      * View detail information of the subject model
-     * 
-     * @return void
-     * @throws Fisma_Exception if the model id is invalid
      */
     public function viewAction()
     {
+        Fisma_Acl::requirePrivilege($this->_aclResource, 'read', $this->_organizations);
         $id     = $this->_request->getParam('id');
         $subject = Doctrine::getTable($this->_modelName)->find($id);
         if (!$subject) {
             throw new Fisma_Exception("Invalid {$this->_modelName} ID");
         }
-        Fisma_Acl::requirePrivilegeForObject('read', $subject);
-
         $form   = $this->getForm();
         
         $this->view->assign('editLink', "/panel/{$this->_modelName}/sub/edit/id/$id");
@@ -162,19 +145,15 @@ abstract class BaseController extends SecurityController
         $this->setForm($subject, $form);
         $this->view->form = $form;
         $this->view->id   = $id;
-        $this->view->subject = $subject;
         $this->render();
     }
 
     /**
      * Create a subject model/record
-     * 
-     * @return void
      */
     public function createAction()
     {
-        Fisma_Acl::requirePrivilegeForClass('create', $this->getAclResourceName());
-        
+        Fisma_Acl::requirePrivilege($this->_aclResource, 'create', $this->_organizations);
         // Get the subject form
         $form   = $this->getForm();
         $form->setAction("/panel/{$this->_modelName}/sub/create");
@@ -187,9 +166,12 @@ abstract class BaseController extends SecurityController
                     Doctrine_Manager::connection()->commit();
                     $msg   = "{$this->_modelName} created successfully";
                     $model = 'notice';
-                } catch (Doctrine_Validator_Exception $e) {
+                } catch (Doctrine_Exception $e) {
                     Doctrine_Manager::connection()->rollback();
-                    $msg   = $e->getMessage();
+                    $msg   = "Could not create the object ";
+                    if (Fisma::debug()) {
+                        $msg .= $e->getMessage();
+                    }
                     $model = 'warning';
                 }
                 $this->view->priorityMessenger($msg, $model);
@@ -204,21 +186,17 @@ abstract class BaseController extends SecurityController
 
     /**
      * Edit a subject model
-     * 
-     * @return void
-     * @throws Fisma_Exception if the model id is invalid
      */
     public function editAction()
     {
+        Fisma_Acl::requirePrivilege($this->_aclResource, 'update', $this->_organizations);
         $id     = $this->_request->getParam('id');
         $subject = Doctrine::getTable($this->_modelName)->find($id);
         if (!$subject) {
             throw new Fisma_Exception("Invalid {$this->_modelName} ID");
         }
-        Fisma_Acl::requirePrivilegeForObject('update', $subject);
-        $this->view->subject = $subject;
         $form   = $this->getForm();
-
+        
         $this->view->assign('viewLink', "/panel/{$this->_modelName}/sub/view/id/$id");
         $form->setAction("/panel/{$this->_modelName}/sub/edit/id/$id");
         $this->view->assign('deleteLink', "/panel/{$this->_modelName}/sub/delete/id/$id");
@@ -229,7 +207,7 @@ abstract class BaseController extends SecurityController
                 try {
                     $result = $this->saveValue($form, $subject);
                     $msg   = "{$this->_modelName} updated successfully";
-                    $type = 'notice';
+                    $model = 'notice';
 
                     // Refresh the form, in case the changes to the model affect the form
                     $form   = $this->getForm();
@@ -241,7 +219,7 @@ abstract class BaseController extends SecurityController
                     }
                     $type = 'warning';
                 }
-                $this->view->priorityMessenger($msg, $type);
+                $this->view->priorityMessenger($msg, $model);
             } else {
                 $errorString = Fisma_Form_Manager::getErrors($form);
                 $error = "Error while trying to save: {$this->_modelName}: <br>$errorString";
@@ -257,15 +235,12 @@ abstract class BaseController extends SecurityController
 
     /**
      * Delete a subject model
-     * 
-     * @return void
      */
     public function deleteAction()
     {
+        Fisma_Acl::requirePrivilege($this->_aclResource, 'delete', $this->_organizations);
         $id = $this->_request->getParam('id');
         $subject = Doctrine::getTable($this->_modelName)->find($id);
-        Fisma_Acl::requirePrivilegeForObject('delete', $subject);
-
         if (!$subject) {
             $msg   = "Invalid {$this->_modelName} ID";
             $type = 'warning';
@@ -290,12 +265,10 @@ abstract class BaseController extends SecurityController
 
     /**
      * List the subjects
-     * 
-     * @return void
      */
     public function listAction()
     {
-        Fisma_Acl::requirePrivilegeForClass('read', $this->getAclResourceName());
+        Fisma_Acl::requirePrivilege($this->_aclResource, 'read', $this->_organizations);
         $keywords = htmlentities(trim($this->_request->getParam('keywords')));
         $link = empty($keywords) ? '' :'/keywords/'.$keywords;
         $this->view->link     = $link;
@@ -305,15 +278,13 @@ abstract class BaseController extends SecurityController
     }
 
     /** 
-     * Search the subject
+     * Search the subject 
      *
      * This outputs a json object. Allowing fulltext search from each record enpowered by lucene
-     * 
-     * @return string The encoded table data in json format
      */
     public function searchAction()
     {
-        Fisma_Acl::requirePrivilegeForClass('read', $this->getAclResourceName());
+        Fisma_Acl::requirePrivilege($this->_aclResource, 'read', $this->_organizations);
         $sortBy = $this->_request->getParam('sortby', 'id');
         $order  = $this->_request->getParam('order');
         $keywords  = html_entity_decode($this->_request->getParam('keywords')); 
@@ -368,27 +339,15 @@ abstract class BaseController extends SecurityController
 
     /**
      * Return array of the collection.
-     * 
      * If an collection need to change its keys to some other value, please override it
-     * in the controller which is inherited from this Controller
-     * 
-     * @param Doctrine_Collections $rows The spepcific Doctrine_Collections object
-     * @return array The array representation of the specified Doctrine_Collections object
+     *    in the controller which is inherited from this Controller
+     *
+     * @param Doctrine_Collections $rows
+     * @return array()
      */
     public function handleCollection($rows)
     {
         return $rows->toArray();
     }
 
-    /**
-     * Returns the ACL class name for this controller.
-     * 
-     * This is based on the _modelName and _aclResource variables defined by child classes.
-     * 
-     * @return string
-     */
-    public function getAclResourceName()
-    {
-        return is_null($this->_aclResource) ? $this->_modelName : $this->_aclResource;
-    }
 }

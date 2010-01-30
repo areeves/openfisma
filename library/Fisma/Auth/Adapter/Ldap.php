@@ -13,15 +13,15 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
  * A thin wrapper for the Zend LDAP adapter which returns a User object as its identity
  * 
  * @author     Jim Chen <xhorse@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Fisma
  * @subpackage Fisma_Auth
  * @version    $Id$
@@ -30,8 +30,6 @@ class Fisma_Auth_Adapter_Ldap extends Zend_Auth_Adapter_Ldap
 {
     /**
      * Override the authentication to return a Doctrine_Record instead of string as identity.
-     * 
-     * @return Zend_Auth_Result The instance of Zend_Auth_Result
      */
     public function authenticate()
     {

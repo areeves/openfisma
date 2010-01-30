@@ -3,16 +3,16 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         <meta http-equiv="refresh" 
-              content="<?php echo Fisma::configuration()->getConfig('session_inactivity_period'); ?>;url=/auth/logout">
+              content="<?php echo Configuration::getConfig('session_inactivity_period'); ?>;url=/auth/logout">
 
     <?php 
-    $this->headTitle()->prepend(Fisma::configuration()->getConfig('system_name'));
+    $this->headTitle()->prepend(Configuration::getConfig('system_name'));
     echo $this->headTitle();
+
     // Initialize and load the YUI components needed
     $yuiComponents = array('yahoo', 'dom', 'event', 'element', 'container', 'json', 'cookie', 'get', 'dragdrop', 
                            'animation', 'menu', 'button', 'json', 'connection', 'logger', 'tabview', 'calendar',
-                           'paginator','datasource', 'datatable', 'selector', 'treeview', 'uploader','reset-fonts-grids'
-                        );
+                           'paginator','datasource', 'datatable', 'selector', 'treeview', 'uploader','reset-fonts-grids');
 
     $yui = new Fisma_Loader();
     $yui->load($yuiComponents);
@@ -30,11 +30,7 @@
     ?>
     </head>
     <body class="yui-skin-sam">
-        <div id='skip'>
-            <a href="#contentStart">Skip to content</a>
-        </div>
-
-        <div id='header'>
+        <div id='header' >
                 <?php echo $this->layout()->header; ?>
         </div>
 

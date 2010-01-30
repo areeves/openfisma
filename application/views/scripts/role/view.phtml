@@ -1,19 +1,15 @@
 <?php
 echo $this->partial('role/searchbox.phtml');
 $operation = '';
-
-if (Fisma_Acl::hasPrivilegeForObject('assignPrivileges', $this->subject)) {
+if (Fisma_Acl::hasPrivilege('role', 'assignPrivileges')) {
     $operation .= "[<a href='{$this->rightLink}'>Right</a>]";
 }
-
-if (Fisma_Acl::hasPrivilegeForObject('update', $this->subject)) {
+if (Fisma_Acl::hasPrivilege('role', 'update')) {
     $operation .= "&nbsp;&nbsp;[<a href='{$this->editLink}'>Edit</a>]";
 }
-
-if (Fisma_Acl::hasPrivilegeForObject('delete', $this->subject)) {
+if (Fisma_Acl::hasPrivilege('role', 'delete')) {
     $operation .= "&nbsp;&nbsp;[<a href='{$this->deleteLink}'>Delete</a>]";
 }
-
 Fisma_Format_Section::startSection("Role Information $operation"); 
 ?>
 

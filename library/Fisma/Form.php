@@ -13,7 +13,7 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
@@ -21,8 +21,8 @@
  * render the form differently (i.e. render the form without actual form controls, or with disabled form controls.) 
  * 
  * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Fisma
  * @subpackage Fisma_Form
  * @version    $Id$
@@ -31,8 +31,6 @@ class Fisma_Form extends Zend_Form
 {
     /**
      * Indicates if the form is "read only". If so, then the form controls are disabled when rendering.
-     * 
-     * @var boolean
      */
     private $_readOnly = false;
     
@@ -40,8 +38,7 @@ class Fisma_Form extends Zend_Form
      * Overrides the parent function to set the readOnly attribute on all child form elements if the
      * form itself is marked as readOnly. It calls the parent implementation after doing this.
      * 
-     * @param Zend_View_Interface $view Provided for compatibility
-     * @return string The rendered form in HTML
+     * @param Zend_View_Interface $view
      */
     function render(Zend_View_Interface $view = null) 
     {
@@ -57,7 +54,7 @@ class Fisma_Form extends Zend_Form
     /**
      * Returns true if the form is marked as read only.
      * 
-     * @return boolean True if the form is readonly, false otherwise
+     * @return bool
      */ 
     function isReadOnly() 
     {
@@ -67,9 +64,7 @@ class Fisma_Form extends Zend_Form
     /**
      * Sets the readOnly attribute for this form.
      * 
-     * @param boolean $value The specified boolean which indicates if the form readonly to set
-     * @return void
-     * @throws Fisma_Exception if the specified value to set is not type boolean
+     * @param bool $value
      */
     function setReadOnly($value) 
     {

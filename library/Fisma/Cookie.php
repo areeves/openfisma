@@ -13,7 +13,7 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
  /**
@@ -22,8 +22,8 @@
   * Fisma_Cookie manages cookies for OpenFISMA.
   * 
  * @author     Josh Boyd <joshua.boyd@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Fisma
  * @subpackage Fisma_Cookie
  * @version    $Id$
@@ -31,12 +31,13 @@
 class Fisma_Cookie
 {
    /**
-    * Returns the specified cookie from the specified array of cookies
+    * get - Returns the specified cookie from the specified array of cookies
     * 
-    * @param array $cookie The cookie array, or some other collection of cookies
-    * @param string $key The name of the cookie to retrieve from the cookie array
+    * @param array $cookie The $_COOKIE array, or some other collection of cookies
+    * @param string $key The name of the cookie to retrieve from $cookie
+    * @static
+    * @access public
     * @return string The value of the requested cookie
-    * @throws Fisma_Exception if not found the requested cookie key
     */
     public static function get(array $cookie, $key) 
     {
@@ -50,12 +51,14 @@ class Fisma_Cookie
     }
 
    /**
-    * Prepares a cookie for sending to the client.
+    * prepare - Prepares a cookie for sending to the client. 
     * 
-    * @param string $name The cookie name to be prepared
-    * @param string $value The cookie value to be prepared
-    * @param boolean|null $secure The secure flag to be prepared
-    * @return array The prepared cookie
+    * @param string $name 
+    * @param string $value
+    * @param boolean $secure
+    * @static
+    * @access public
+    * @return array 
     */
     public static function prepare($name, $value, $secure = null) 
     {
@@ -74,16 +77,16 @@ class Fisma_Cookie
     }
 
    /**
-    * Sets a cookie by calling prepare to build the cookie.
-    * 
-    * @param string $name The specified cookie name to be set
-    * @param string $value The specified cookie value to be set
+    * set - Sets a cookie by calling prepare to build the cookie.
+    *
+    * @param string $name
+    * @param string $value
+    * @static
+    * @access public
     * @return void
     */
     public static function set($name, $value) 
     {
-        if (Fisma::mode() == Fisma::RUN_MODE_WEB_APP) {
-            call_user_func_array("setcookie", self::prepare($name, $value));
-        }
+        call_user_func_array("setcookie", self::prepare($name, $value));
     }
 }

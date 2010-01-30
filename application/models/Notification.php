@@ -13,15 +13,15 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
  * Notification
  * 
  * @author     Ryan Yang <ryan@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Model
  * @version    $Id$
  */
@@ -30,13 +30,12 @@ class Notification extends BaseNotification
     /**
      * Add notifications for the specified event.
      *
-     * @param string $eventName The triggered event name which will be included in the notification
-     * @param Doctrine_Record $record  The notification applied model
-     * @param User $user  The user which triggers the notification event
-     * @return void
-     * @throws Fisma_Exception if the specified event name is not found
+     * @param string $eventName The name of the event which generated the notification
+     * @param object $record  the model which is changed
+     * @param User $user  the user object
+     * @param int $organizationId The organization id.
      */
-    public static function notify($eventName, $record, $user)
+    public static function notify($eventName, $record, $user, $organizationId = null)
     {
         if (!Fisma::getNotificationEnabled()) {
             return;
@@ -62,7 +61,7 @@ class Notification extends BaseNotification
         if (!is_null($user)) {
             $eventText .= " by $user->nameFirst $user->nameLast";
         } else {
-            $eventText .= ' by ' . Fisma::configuration()->getConfig('system_name');
+            $eventText .= ' by ' . Configuration::getConfig('system_name');
         }
 
         // Figure out which users are listening for this event
@@ -73,10 +72,11 @@ class Notification extends BaseNotification
             ->where('e.id = ?', $event->id)
             ->setHydrationMode(Doctrine::HYDRATE_SCALAR);
         
-        // If the object has an ACL dependency on Organization, then extend the query for that condition
-        if ($record instanceof Fisma_Acl_OrganizationDependency) {
+        // If the event is limited in scope to a specific organization, then filter for users who are allowed
+        // access to that organization
+        if ($organizationId != null) {
             $eventsQuery->innerJoin('u.Organizations o')
-                        ->andWhere('o.id = ?', $record->getOrganizationDependencyId());
+                        ->andWhere('o.id = ?', $organizationId);
         }
 
         $userEvents = $eventsQuery->execute();

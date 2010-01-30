@@ -7,7 +7,7 @@ Fisma_Format_Section::startSection('FISMA Data');
         <td width="350px">
             <span 
             <?php
-            if (Fisma_Acl::hasPrivilegeForObject('update', $this->organization)) {
+            if (Fisma_Acl::hasPrivilege('system', 'update', $this->organization->nickname)) {
             ?>
                   id="controlledBy" 
                   class="editable" 
@@ -27,7 +27,7 @@ Fisma_Format_Section::startSection('FISMA Data');
         <td>
             <span 
                 <?php
-                if (Fisma_Acl::hasPrivilegeForObject('update', $this->organization)) {
+                if (Fisma_Acl::hasPrivilege('system', 'update', $this->organization->nickname)) {
                 ?>
                     id="securityAuthorizationDt" 
                     class="editable date" 
@@ -46,7 +46,7 @@ Fisma_Format_Section::startSection('FISMA Data');
         <td>
             <span 
             <?php
-            if (Fisma_Acl::hasPrivilegeForObject('update', $this->organization)) {
+            if (Fisma_Acl::hasPrivilege('system', 'update', $this->organization->nickname)) {
             ?>
                 id="contingencyPlanTestDt" 
                   class="editable date" 
@@ -65,7 +65,7 @@ Fisma_Format_Section::startSection('FISMA Data');
         <td>
             <span 
             <?php
-            if (Fisma_Acl::hasPrivilegeForObject('update', $this->organization)) {
+            if (Fisma_Acl::hasPrivilege('system', 'update', $this->organization->nickname)) {
             ?>
                 id="controlAssessmentDt" 
                   class="editable date" 
@@ -85,7 +85,7 @@ Fisma_Format_Section::startSection('FISMA Data');
         <td>
             <span 
             <?php
-            if (Fisma_Acl::hasPrivilegeForObject('update', $this->organization)) {
+            if (Fisma_Acl::hasPrivilege('system', 'update', $this->organization->nickname)) {
             ?>
                 id="hasFiif" 
                   class="editable" 
@@ -113,7 +113,7 @@ Fisma_Format_Section::startSection('FISMA Data');
         <td>
             <span 
             <?php
-            if (Fisma_Acl::hasPrivilegeForObject('update', $this->organization)) {
+            if (Fisma_Acl::hasPrivilege('system', 'update', $this->organization->nickname)) {
             ?>
                 id="hasPii" 
                   class="editable" 
@@ -133,7 +133,7 @@ Fisma_Format_Section::startSection('FISMA Data');
         <td>
             <span 
             <?php
-            if (Fisma_Acl::hasPrivilegeForObject('update', $this->organization)) {
+            if (Fisma_Acl::hasPrivilege('system', 'update', $this->organization->nickname)) {
             ?>
             id="piaRequired" 
                   class="editable" 
@@ -153,7 +153,7 @@ Fisma_Format_Section::startSection('FISMA Data');
         <td>
             <span 
             <?php
-            if (Fisma_Acl::hasPrivilegeForObject('update', $this->organization)) {
+            if (Fisma_Acl::hasPrivilege('system', 'update', $this->organization->nickname)) {
             ?>
                 id="piaUrl" 
                   class="editable" 
@@ -181,7 +181,7 @@ Fisma_Format_Section::startSection('FISMA Data');
         <td>
             <span 
             <?php
-            if (Fisma_Acl::hasPrivilegeForObject('update', $this->organization)) {
+            if (Fisma_Acl::hasPrivilege('system', 'update', $this->organization->nickname)) {
             ?>
                 id="sornRequired" 
                   class="editable" 
@@ -201,7 +201,7 @@ Fisma_Format_Section::startSection('FISMA Data');
         <td>
             <span 
             <?php
-            if (Fisma_Acl::hasPrivilegeForObject('update', $this->organization)) {
+            if (Fisma_Acl::hasPrivilege('system', 'update', $this->organization->nickname)) {
             ?>
                 id="sornUrl" 
                   class="editable" 
@@ -233,8 +233,7 @@ Fisma_Format_Section::startSection('FISMA Data');
                   . " investments and identifies those that are major investments.</p><p>By completing an Exhibit 53,"
                   . " the agency meets the Clinger-Cohen Act of 1996 requirements to provide a full and accurate"
                   . " accounting of IT investments for the agency. OMB uses the Exhibit 53 to create an overall"
-                  . " \“Federal IT Investment Portfolio\” published"
-                  . " as part of the President’s Budget.</p><p>The UPI"
+                  . " \“Federal IT Investment Portfolio\” published as part of the President’s Budget.</p><p>The UPI"
                   . " always has the following format: xxx-xx-xx-xx-xx-xxxx-xx</p><p>OpenFISMA will format the number"
                   . " for your properly if you type it without the dashes.</p>");
             ?>
@@ -242,7 +241,7 @@ Fisma_Format_Section::startSection('FISMA Data');
         <td>
             <span 
             <?php
-            if (Fisma_Acl::hasPrivilegeForObject('update', $this->organization)) {
+            if (Fisma_Acl::hasPrivilege('system', 'update', $this->organization->nickname)) {
             ?>
                 id="uniqueProjectId" 
                   class="editable" 

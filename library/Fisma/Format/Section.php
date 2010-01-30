@@ -13,29 +13,22 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
  * Present a HTML content section which contains specific content
  * 
  * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Fisma
  * @subpackage Fisma_Format
  * @version    $Id$
  */
 class Fisma_Format_Section
 {
-    /**
-     * Renders start part of a HTMl panel section
-     * 
-     * @param string $title The speicifed panel title
-     * @param string|null $editableTarget The specified editable target element name
-     * @return void
-     * @yui document this class
-     */
+    /** @yui document this class */
     static function startSection($title, $editableTarget = null) 
     {
         if (isset($editableTarget)) {
@@ -46,11 +39,6 @@ class Fisma_Format_Section
         } 
     }
     
-    /**
-     * Renders stop part of a HTMl panel section
-     * 
-     * @return void
-     */
     static function stopSection() 
     {
         print "<div class='clear'></div></div>\n";

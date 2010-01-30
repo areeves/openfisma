@@ -13,43 +13,27 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
  * Handles CRUD for organization objects.
  *
  * @author     Ryan Yang <ryan@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Controller
  * @version    $Id$
  */
 class OrganizationController extends SecurityController
 {
     /**
-     * A type constant of drag operation of organization tree which defines the operation that move 
-     * the specified organization node as previous of the target organization node among their siblings.
+     * A set of constants which is used during drag and drop operations to re-order organization nodes.
      */
     const DRAG_ABOVE = 0;
-    
-    /**
-     * A type constant of drag operation of organization tree which defines the operation that move 
-     * the specified organization node as child of the target organization node in organization tree.
-     */
     const DRAG_ONTO = 1;
-    
-    /**
-     * A type constant of drag operation of organization tree which defines the operation that move 
-     * the specified organization node as next of the target node among their siblings.
-     */
     const DRAG_BELOW = 2;
     
-    /**
-     *  Default pagination parameters
-     * 
-     * @var array
-     */
     private $_paging = array(
         'startIndex' => 0,
         'count' => 20,
@@ -57,8 +41,6 @@ class OrganizationController extends SecurityController
     
     /**
      * Invoked before each Action
-     * 
-     * @return void
      */
     public function preDispatch()
     {
@@ -67,11 +49,6 @@ class OrganizationController extends SecurityController
         $this->_paging['startIndex'] = $req->getParam('startIndex', 0);
     }
     
-    /**
-     * Initialize internal members.
-     * 
-     * @return void
-     */
     public function init()
     {
         parent::init();
@@ -84,8 +61,8 @@ class OrganizationController extends SecurityController
      * Returns the standard form for creating, reading, and
      * updating organizations.
      * 
-     * @param Organization|null $currOrg The current record of organization
-     * @return Zend_Form The standard form for organization operations
+     * @param Object $currOrg current recode of organization
+     * @return Zend_Form
      */
     private function _getOrganizationForm($currOrg = null)
     {
@@ -136,26 +113,22 @@ class OrganizationController extends SecurityController
     }
 
     /**
-     * Render the form for searching the organizations.
-     * 
-     * @return void
+     *  Render the form for searching the organizations.
      */
     public function searchbox()
     {
-        Fisma_Acl::requirePrivilegeForClass('read', 'Organization');
+        Fisma_Acl::requirePrivilege('organization', 'read', '*');
         $keywords = trim($this->_request->getParam('keywords'));
         $this->view->assign('keywords', $keywords);
         $this->render('searchbox');
     }
 
     /**
-     * Show the list page, not for data
-     * 
-     * @return void
-     */
+     * show the list page, not for data
+     */     
     public function listAction()
     {
-        Fisma_Acl::requirePrivilegeForClass('read', 'Organization');
+        Fisma_Acl::requirePrivilege('organization', 'read', '*'); 
         $value = htmlentities(trim($this->_request->getParam('keywords')));
         empty($value) ? $link = '' : $link = '/keywords/' . $value;
         $this->searchbox();
@@ -163,18 +136,17 @@ class OrganizationController extends SecurityController
         $this->view->assign('link', $link);
         $this->render('list');
     }
-    
+
     /**
-     * List the organizations from the search. If search none, it list all organizations
+     * list the organizations from the search, 
+     * if search none, it list all organizations
      * 
-     * @return void
-     * @throws Fisma_Exception if the 'sortBy' parameter is invalid
      */
     public function searchAction()
     {
-        Fisma_Acl::requirePrivilegeForClass('read', 'Organization');
+        Fisma_Acl::requirePrivilege('organization', 'read', '*');
         $keywords = html_entity_decode(trim($this->_request->getParam('keywords')));
-        
+
         $this->_helper->layout->setLayout('ajax');
         $this->_helper->viewRenderer->setNoRender();
         $sortBy = $this->_request->getParam('sortby', 'name');
@@ -190,24 +162,25 @@ class OrganizationController extends SecurityController
             $order = 'ASC'; //ignore other values
         }
         
-        $userOrgQuery = $this->_me->getOrganizationsQuery();
-        $userOrgQuery->where("o.orgType IS NULL")
-                     ->orWhere("o.orgType != 'system'")
-                     ->orderBy("o.$sortBy $order")
-                     ->limit($this->_paging['count'])
-                     ->offset($this->_paging['startIndex']);
+        $q = Doctrine_Query::create()
+             ->select('*')
+             ->from('Organization o')
+             ->where('o.orgType IS NULL')
+             ->orWhere('o.orgType != ?', 'system')
+             ->orderBy("o.$sortBy $order")
+             ->limit($this->_paging['count'])
+             ->offset($this->_paging['startIndex']);
+
         if (!empty($keywords)) {
             $index = new Fisma_Index('Organization');
             $organizationIds = $index->findIds($keywords);
             if (empty($organizationIds)) {
                 $organizationIds = array(-1);
             }
-            $implodedOrganizationIds = implode(',', $organizationIds);
-            $userOrgQuery->andWhere("o.id IN ($implodedOrganizationIds)");
+            $q->whereIn('o.id', $organizationIds);
         }
-        
-        $totalRecords = $userOrgQuery->count();
-        $organizations = $userOrgQuery->execute();
+        $totalRecords = $q->count();
+        $organizations = $q->execute();
         
         $tableData = array('table' => array(
             'recordsReturned' => count($organizations->toArray()),
@@ -224,12 +197,10 @@ class OrganizationController extends SecurityController
     
     /**
      * Display a single organization record with all details.
-     * 
-     * @return void
-     * @throws Fisma_Exception if organization id is invalid
      */
     public function viewAction()
     {
+        Fisma_Acl::requirePrivilege('organization', 'read', '*'); 
         $this->searchbox();
         $id = $this->_request->getParam('id');
         $v = $this->_request->getParam('v', 'view');
@@ -241,9 +212,6 @@ class OrganizationController extends SecurityController
         if (!$organization) {
             throw new Fisma_Exception('Invalid organization ID');
         } else {
-            Fisma_Acl::requirePrivilegeForObject('read', $organization);
-            $this->view->organization = $organization;
-            
             $organization = $organization->toArray();
         }
 
@@ -264,13 +232,10 @@ class OrganizationController extends SecurityController
     
     /**
      * Display the form for creating a new organization.
-     * 
-     * @return void
      */
     public function createAction()
     {
-        Fisma_Acl::requirePrivilegeForClass('create', 'Organization');
-        
+        Fisma_Acl::requirePrivilege('organization', 'create', '*'); 
         $form = $this->_getOrganizationForm();
         $orgValues = $this->_request->getPost();
         
@@ -281,9 +246,10 @@ class OrganizationController extends SecurityController
                 $organization->merge($orgValues);
                 
                 // save the data, if failure then return false
-                try {
-                    $organization->save();
-
+                if (!$organization->trySave()) {
+                    $msg = "Failure in creation";
+                    $model = 'warning';
+                } else {
                     // the organization hasn't parent, so it is a root
                     if ((int)$orgValues['parent'] == 0) {
                         $treeObject = Doctrine::getTable('Organization')->getTree();
@@ -294,21 +260,12 @@ class OrganizationController extends SecurityController
                         $organization->getNode()
                                      ->insertAsLastChildOf($organization->getTable()->find($orgValues['parent']));
                     }
-                    
-                    // Add this organization to the user's ACL so they can see it immediately
-                    User::currentUser()->Organizations[] = $organization;
-                    User::currentUser()->save();
-                    User::currentUser()->invalidateAcl();
-                    
                     $msg = "The organization is created";
                     $model = 'notice';
-                    $this->_forward('view', null, null, array('id' => $organization->id));
-                } catch (Doctrine_Validator_Exception $e) {
-                    $msg = $e->getMessage();
-                    $model = 'warning';
                 }
-                
                 $this->view->priorityMessenger($msg, $model);
+                $this->_forward('view', null, null, array('id' => $organization->id));
+                return;
             } else {
                 $errorString = Fisma_Form_Manager::getErrors($form);
                 // Error message
@@ -327,15 +284,13 @@ class OrganizationController extends SecurityController
     /**
      * Delete a specified organization.
      * 
-     * @return void
      */
     public function deleteAction()
     {
+        Fisma_Acl::requirePrivilege('organization', 'delete', '*');
         $id = $this->_request->getParam('id');
         $organization = Doctrine::getTable('Organization')->find($id);
         if ($organization) {
-            Fisma_Acl::requirePrivilegeForObject('delete', $organization);
-            
             if ($organization->delete()) {
                 $msg = "Organization deleted successfully";
                 $model = 'notice';
@@ -350,13 +305,12 @@ class OrganizationController extends SecurityController
 
     /**
      * Update organization information after submitting an edit form.
-     * 
-     * @return void
-     * @throws Exception_General if organization id is invalid
+     *
      * @todo cleanup this function
      */
     public function updateAction()
     {
+        Fisma_Acl::requirePrivilege('organization', 'update', '*'); 
         $id = $this->_request->getParam('id', 0);
         $organization = new Organization();
         $organization = $organization->getTable()->find($id);
@@ -364,8 +318,6 @@ class OrganizationController extends SecurityController
         if (!$organization) {
             throw new Exception_General("Invalid organization ID");
         }
-        
-        Fisma_Acl::requirePrivilegeForObject('update', $organization);
         
         $form = $this->_getOrganizationForm($organization);
         $orgValues = $this->_request->getPost();
@@ -410,22 +362,18 @@ class OrganizationController extends SecurityController
     /**
      * Display organizations and systems in tree mode for quick restructuring of the
      * organizational hiearchy.
-     * 
-     * @return void
      */
     public function treeAction() 
     {
-        Fisma_Acl::requirePrivilegeForClass('read', 'Organization');
+        Fisma_Acl::requirePrivilege('organization', 'read', '*');
         $this->searchbox();
-        $this->render('tree');
+        $this->render('tree');        
     }
 
     /**
      * Gets the organization tree for the current user. 
      * 
      * This should be refactored into the user class, but I'm in a hurry.
-     * 
-     * @return array The array representation of organization tree
      */
     public function getOrganizationTree() 
     {
@@ -451,17 +399,15 @@ class OrganizationController extends SecurityController
         
         $organizations = $this->toHierarchy($organizations);
         
-        return $organizations;
+        return $organizations;    
     }
     
     /**
      * Returns a JSON object that describes the organization tree, including systems
-     * 
-     * @return void
      */
     public function treeDataAction() 
     {
-        Fisma_Acl::requirePrivilegeForClass('read', 'Organization');
+        Fisma_Acl::requirePrivilege('organization', 'read', '*');
         
         $this->view->treeData = $this->getOrganizationTree();        
     }
@@ -471,8 +417,6 @@ class OrganizationController extends SecurityController
      * 
      * Doctrine should provide this functionality in a future
      * 
-     * @param Doctrine_Collection $collection The collection of organization record to hierarchy
-     * @return array The array representation of organization tree
      * @todo review the need for this function in the future
      */
     public function toHierarchy($collection) 
@@ -513,14 +457,12 @@ class OrganizationController extends SecurityController
                 } 
             } 
         } 
-        return $trees;
+        return $trees; 
     }    
     
     /**
      * Moves a tree node relative to another tree node. This is used by the YUI tree node to handle drag and drops
      * of organization nodes. It replies with a JSON object.
-     * 
-     * @return void
      */
     public function moveNodeAction() 
     {

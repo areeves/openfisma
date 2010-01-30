@@ -13,7 +13,7 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
@@ -22,25 +22,20 @@
  * package.
  *
  * @author     Jim Chen <xhorse@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Controller
  * @version    $Id$
  */
 class DashboardController extends SecurityController
 {
     /**
-     * My OrgSystem ids
+     * my OrgSystem ids
      *
      * @var array
      */
     private $_myOrgSystemIds = null;
     
-    /**
-     * Initialize internal members.
-     * 
-     * @return void
-     */
     public function init()
     {
         parent::init();
@@ -53,14 +48,11 @@ class DashboardController extends SecurityController
     }
     
     /**
-     * Invoked before each Actions
-     * 
-     * @return void
+     * preDispatch() - invoked before each Actions
      */
     function preDispatch()
     {
-        Fisma_Acl::requireArea('dashboard');
-
+        parent::preDispatch();
         $contextSwitch = $this->_helper->getHelper('contextSwitch');
         // Headers Required for IE+SSL (see bug #2039290) to stream XML
         $contextSwitch->addHeader('xml', 'Pragma', 'private')
@@ -72,11 +64,10 @@ class DashboardController extends SecurityController
 
     /**
      * The user dashboard displays important system-wide metrics, charts, and graphs
-     * 
-     * @return void
      */
     public function indexAction()
     {
+        Fisma_Acl::requirePrivilege('area', 'dashboard');
         $user = new User();
         $user = $user->getTable()->find($this->_me->id);
         // Check to see if we got passed a "dismiss" parameter to dismiss notifications
@@ -132,17 +123,15 @@ class DashboardController extends SecurityController
         $this->view->url = $url;
         $this->view->alert = $alert;
         
-        // Look up the last login information. If it's their first time logging in, then the view
+        // Look up the user's last login information. If it's their first time logging in, then the view
         // script will show a different message.
-        $lastLoginInfo = new Zend_Session_Namespace('last_login_info');
-        
-        if (isset($lastLoginInfo->lastLoginTs)) {
-            $lastLoginDate = new Zend_Date($lastLoginInfo->lastLoginTs, Zend_Date::ISO_8601);
+        if (isset($user->lastLoginTs)) {
+            $lastLoginDate = new Zend_Date($this->_me->lastLoginTs, Zend_Date::ISO_8601);
             $this->view->lastLoginTs = $lastLoginDate->toString('l, M j, g:i a');
-            $this->view->lastLoginIp = $lastLoginInfo->lastLoginIp;
-            $this->view->failureCount = $lastLoginInfo->failureCount;
+            $this->view->lastLoginIp = $this->_me->lastLoginIp;
+            $this->view->oldFailureCount = $this->_me->oldFailureCount;
         } else {
-            $this->view->applicationName = Fisma::configuration()->getConfig('system_name');
+            $this->view->applicationName = Configuration::getConfig('system_name');
         }
         
         if ($user->Notifications->count() > 0) {
@@ -152,12 +141,12 @@ class DashboardController extends SecurityController
     }
     
     /**
-     * Calculate the statistics by status
-     * 
-     * @return void
+     * statistics per status 
      */
     public function totalstatusAction()
-    {        
+    {
+        Fisma_Acl::requirePrivilege('area', 'dashboard');
+        
         $q = Doctrine_Query::create()
              ->select('f.status, e.nickname')
              ->addSelect('COUNT(f.status) AS statusCount, COUNT(e.nickname) AS subStatusCount')
@@ -202,12 +191,11 @@ class DashboardController extends SecurityController
     }
 
     /**
-     * Calculate the statistics by type
-     * 
-     * @return void
+     * statitics per type 
      */
     public function totaltypeAction()
     {
+        Fisma_Acl::requirePrivilege('area', 'dashboard');
         $this->view->summary = array(
             'NONE' => 0,
             'CAP' => 0,

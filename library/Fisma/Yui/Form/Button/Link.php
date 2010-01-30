@@ -13,15 +13,15 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * {@link http://www.gnu.org/licenses/}.
+ * <http://www.gnu.org/licenses/>.
  */
 
 /**
  * A YUI button that acts as a link (anchor tag: <a>)
  * 
  * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license    http://www.openfisma.org/content/license GPLv3
+ * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/content/license
  * @package    Fisma
  * @subpackage Fisma_Yui
  * @version    $Id$
@@ -33,8 +33,8 @@ class Fisma_Yui_Form_Button_Link extends Fisma_Yui_Form_Button
      * This saves the trouble of creating a separate view helper and allows the element to simply draw
      * itself.
      * 
-     * @return string The HTML snippet of the rendered YUI link button
-     */
+     * @return string
+     */  
     function renderSelf() 
     {
         // When readOnly, we need to pass the configuration item "disabled: true" to the YUI button constructor
