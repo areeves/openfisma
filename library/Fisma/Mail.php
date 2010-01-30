@@ -4,27 +4,32 @@
  *
  * This file is part of OpenFISMA.
  *
- * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * OpenFISMA is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
- * details.
+ * OpenFISMA is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with OpenFISMA.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author    Ryan Yang <ryan@users.sourceforge.net>
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/mw/index.php?title=License
+ * @version   $Id$
+ * @package   Fisma
  */
 
 /**
- * A generic exception which represents an unexpected error in the application logic
- * 
- * @author     Ryan Yang <ryan@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
+ * Send mail to user for validate email, account notification etc. 
+ *
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license    http://www.openfisma.org/mw/index.php?title=License
  * @package    Fisma
- * @subpackage Fisma_Mail
- * @version    $Id$
  */
 class Fisma_Mail extends Zend_Mail
 {
@@ -89,9 +94,8 @@ class Fisma_Mail extends Zend_Mail
             $this->send($this->_getTransport());    
             print(Fisma::now() . " Email was sent to $receiveEmail\n");
         } catch (Exception $e) {
-            /** @todo how did this come to be? probably need to remove the catch block */
             print($e->getMessage() . "\n");
-            throw $e;
+            exit();
         }
     }
 
@@ -161,7 +165,7 @@ class Fisma_Mail extends Zend_Mail
                                 'port'     => $port,
                                 'username' => $username,
                                 'password' => $password);
-                if ($tls) {
+                if ($tls == 1){
                     $config['ssl'] = 'tls';
                 }
             }

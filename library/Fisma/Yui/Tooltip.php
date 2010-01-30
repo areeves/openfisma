@@ -4,27 +4,32 @@
  *
  * This file is part of OpenFISMA.
  *
- * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * OpenFISMA is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
- * details.
+ * OpenFISMA is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with OpenFISMA.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author    Mark E. Haase <mhaase@endeavorsystems.com>
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/mw/index.php?title=License
+ * @version   $Id$
+ * @package   Controller
  */
 
 /**
  * An object which represents a tooltip in YUI
  *
- * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
- * @package    Fisma
- * @subpackage Fisma_Yui
- * @version    $Id$
+ * @package   Fisma_Yui
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/mw/index.php?title=License
  */
 class Fisma_Yui_Tooltip
 {
@@ -39,8 +44,7 @@ class Fisma_Yui_Tooltip
      * @param string $title The label for the tooltip
      * @param string $content The content displayed when the tooltip is displayed
      */
-    function __construct($id, $title, $content) 
-    {
+    function __construct($id, $title, $content) {
         $this->_id = $id;
         $this->_title = $title;
         $this->_content = $content;
@@ -49,8 +53,7 @@ class Fisma_Yui_Tooltip
     /**
      * @return string An HTML rendering of the tooltip
      */
-    function __toString() 
-    {
+    function __toString() {
         $render = "<span id='{$this->_id}Tooltip' class='tooltip'>$this->_title</span><script type='text/javascript'>"
                 . "var {$this->_id}TooltipVar = new YAHOO.widget.Tooltip("
                 . "\"{$this->_id}TooltipObj\", { context:\"{$this->_id}Tooltip\", "

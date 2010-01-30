@@ -2,21 +2,16 @@
 echo $this->partial('user/searchbox.phtml');
 Fisma_Format_Section::startSection('User Account Information'); ?>
 
-<?php 
-if (!empty($this->requirements)) {
+<?php if(!empty($this->requirements)) {?>
+<p>The password must meet the following complexity criteria:</p>
+<ul>
+<?php
+foreach ($this->requirements as $requirement) {
+    echo "<li>$requirement";
+}
 ?>
-    <p>The password must meet the following complexity criteria:</p>
-    <ul>
-        <?php
-        foreach ($this->requirements as $requirement) {
-            echo "<li>$requirement";
-        }
-        ?>
-    </ul>
-<?php 
-} 
-?>
-
+</ul>
+<?php } ?>
 <div class="form_box">
 <?php echo $this->form ?>
 </div>

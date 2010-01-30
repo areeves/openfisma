@@ -4,26 +4,32 @@
  *
  * This file is part of OpenFISMA.
  *
- * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * OpenFISMA is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
- * details.
+ * OpenFISMA is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with OpenFISMA.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package   Controller
+ * @author    Jim Chen <xhorse@users.sourceforge.net>
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/mw/index.php?title=License
+ * @version   $Id$
  */
 
 /**
  * Handles CRUD for Authentication objects.
  *
- * @author     Jim Chen <xhorse@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
- * @package    Controller
- * @version    $Id$
+ * @package   Controller
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/mw/index.php?title=License
  */
 class AuthController extends Zend_Controller_Action
 {
@@ -33,11 +39,6 @@ class AuthController extends Zend_Controller_Action
     const VALIDATION_MESSAGE = "<br />Because you changed your e-mail address, we have sent you a confirmation message.
                                 <br />You will need to confirm the validity of your new e-mail address before you will
                                 receive any e-mail notifications.";
-    
-    /**
-     * The error message displayed when a user's credentials are incorrect
-     */
-    const CREDENTIAL_ERROR_MESSAGE = "Invalid username or password";
 
     /**
      * Handling user login
@@ -68,57 +69,59 @@ class AuthController extends Zend_Controller_Action
             if ( Zend_Session::getOptions('cookie_secure') && 
                 !$this->_request->isSecure() 
             ) {
-                throw new Zend_Auth_Exception("You must access this application via HTTPS,"
-                                            . " since secure cookies are enabled.");
+                throw new Zend_Auth_Exception("You must access this application via HTTPS, since secure cookies are enabled.");
             }
-            
-            // Verify account exists and is not locked
+
             $user = Doctrine::getTable('User')->findOneByUsername($username);
+            
+            // If the user name isn't found, then display an error message
             if (!$user) {
                 // Notice that we don't tell the user whether the username is correct or not.
                 // This is a security feature to prevent bruteforcing usernames.
-                throw new Zend_Auth_Exception(self::CREDENTIAL_ERROR_MESSAGE);                
-            }
-            $user->checkAccountLock();
-
-            // Check if account has expired
-            $accountExpiration = new Zend_Date($user->lastLoginTs, Zend_Date::ISO_8601);
-            $expirationPeriod = Configuration::getConfig('account_inactivity_period');
-            $accountExpiration->addDay($expirationPeriod);
-            $now = Zend_Date::now();
-            if ($accountExpiration->isEarlier($now)) {
-                $user->lockAccount(User::LOCK_TYPE_INACTIVE);
-                $reason = $user->getLockReason();
-                throw new Fisma_Exception_AccountLocked("Account is locked ($reason)");
-            }
-
-            // Perform authentication
-            $auth = Zend_Auth::getInstance();
-            $auth->setStorage(new Fisma_Auth_Storage_Session());
-            $authAdapter = $this->getAuthAdapter($user, $password);
-            $authResult = $auth->authenticate($authAdapter); 
-
-            // Generate log entries and notifications
-            if (!$authResult->isValid()) {
-                $user->log(User::LOGIN_FAILURE, "Login failure");
-                Notification::notify('LOGIN_FAILURE', $user, $user);
-                throw new Zend_Auth_Exception(self::CREDENTIAL_ERROR_MESSAGE);
+                throw new Zend_Auth_Exception("Incorrect username or password");                
             }
             
-            // At this point, authentication is successful. Log in the user to update last login time, last login IP,
-            // etc.
-            $user->login();
-            Notification::notify('LOGIN_SUCCESS', $user, $user);
-            $user->log(User::LOGIN, "Successful Login");
+            // Authenticate this user based on their password
+            $authType = Configuration::getConfig('auth_type');
+            // The root user is always authenticated against the database.
+            if ($username == 'root') {
+                $authType = 'database';
+            }
+
+            // Any policy effect the authentication result will go inside the Auth_Adapter
+            if ($authType == 'ldap') {
+                // Handle LDAP authentication 
+                $config = new LdapConfig();
+                $data = $config->getLdaps();
+                $authAdapter = new Fisma_Auth_Adapter_Ldap($data, $user, $password);
+            } else if ($authType == 'database') {
+                // Handle database authentication 
+                $authAdapter = new Fisma_Auth_Adapter_Doctrine($user);
+                $authAdapter->setCredential($password);
+            }
+
+            $auth = Zend_Auth::getInstance();
+            $auth->setStorage(new Fisma_Auth_Storage_Session());
+            $authResult = $auth->authenticate($authAdapter); 
+            
+            if (!$authResult->isValid()) {
+                $user->log(User::LOGIN_FAILURE, "Login failure");
+                throw new Zend_Auth_Exception("Incorrect username or password");
+            } else {
+                $user->log(User::LOGIN, "Successful Login");
+            }
             
             // Set cookie for 'column manager' to control the columns visible on the search page
             // Persistent cookies are prohibited on U.S. government web servers by federal law. 
             // This cookie will expire at the end of the session.
-            Fisma_Cookie::set(User::SEARCH_PREF_COOKIE, $user->searchColumnsPref);
+            call_user_func_array("setcookie", Fisma_Cookie::prepare(
+                User::SEARCH_PREF_COOKIE, $user->searchColumnsPref 
+                )
+            );
 
+            $passExpirePeriod = Configuration::getConfig('pass_expire');
             // Check whether the user's password is about to expire (for database authentication only)
             if ('database' == Configuration::getConfig('auth_type')) {
-                $passExpirePeriod = Configuration::getConfig('pass_expire');
                 $passWarningPeriod = Configuration::getConfig('pass_warning');
                 $passWarningTs = new Zend_Date($user->passwordTs, 'Y-m-d');
                 $passWarningTs->add($passExpirePeriod - $passWarningPeriod, Zend_Date::DAY);
@@ -172,51 +175,13 @@ class AuthController extends Zend_Controller_Action
     }
 
     /**
-     * Returns a suitable authentication adapter based on system configuration and current user
-     * 
-     * @param User $user Authentication adapters may be different for different users
-     * @param string $password
-     * @return Zend_Auth_Adapter_Interface
-     */
-    public function getAuthAdapter(User $user, $password)
-    {
-        // Determine authentication method (based on system configuration, except root is always authenticated against
-        // the database)
-        $method = Configuration::getConfig('auth_type');
-
-        if ('root' == $user->username) {
-            $method = 'database';
-        }
-
-        // Construct an adapter for the desired authentication method
-        switch ($method) {
-            case 'ldap':
-                $ldapConfig = LdapConfig::getConfig();
-                $authAdapter = new Fisma_Auth_Adapter_Ldap($ldapConfig, $user->username, $password);
-                break;
-            case 'database':
-                $authAdapter = new Fisma_Auth_Adapter_Doctrine($user, $password);
-                break;
-            default:
-                throw new Zend_Auth_Exception('Invalid authentication method ($method)');
-                break;
-        }
-        
-        return $authAdapter;
-    }
-
-    /**
      * Close out the current user's session.
      */
-    public function logoutAction() 
-    {
-        $currentUser = User::currentUser();
-
-        if ($currentUser) {
-            Notification::notify('LOGOUT', $currentUser, $currentUser);
-            $currentUser->log(User::LOGOUT, 'Log out');
+    public function logoutAction() {
+        $user = User::currentUser();
+        if (!empty($user)) {
+            $user->logout();
         }
-
         $auth = Zend_Auth::getInstance();
         $auth->setStorage(new Fisma_Auth_Storage_Session());
         $auth->clearIdentity();
@@ -242,6 +207,7 @@ class AuthController extends Zend_Controller_Action
     public function robAction()
     {
     }
+
 
     /**
      * Validate the user's e-mail change.

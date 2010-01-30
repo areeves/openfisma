@@ -4,26 +4,32 @@
  *
  * This file is part of OpenFISMA.
  *
- * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * OpenFISMA is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
- * details.
+ * OpenFISMA is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with OpenFISMA.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author    Jim Chen <xhorse@users.sourceforge.net>
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/mw/index.php?title=License
+ * @version   $Id$
+ * @package   Controller
  */
 
 /**
  * The install controller handles all of the actions for the installer program.
  *
- * @author     Jim Chen <xhorse@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
- * @package    Controller
- * @version    $Id$
+ * @package   Controller
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/mw/index.php?title=License
  */
 class InstallController extends Zend_Controller_Action
 {
@@ -33,10 +39,6 @@ class InstallController extends Zend_Controller_Action
      */
     public function preDispatch()
     {
-        if (Fisma::isInstall()) {
-           $this->_redirect('/', array('prependBase' => 'true'));
-        }
-
         $this->_helper->layout->setLayout('install');
     }
 
@@ -197,25 +199,10 @@ class InstallController extends Zend_Controller_Action
         $method = 'connection';
         // create config file
         $configInfo = file_get_contents(Fisma::getPath('config') . '/app.conf.template');
-        $configInfo = str_replace(
-            array(
-                '##DB_ADAPTER##', 
-                '##DB_HOST##', 
-                '##DB_PORT##',
-                '##DB_USER##', 
-                '##DB_PASS##', 
-                '##DB_NAME##'
-            ), 
-            array(
-                $dsn['type'], 
-                $dsn['host'], 
-                $dsn['port'], 
-                $dsn['uname'],
-                $dsn['upass'], 
-                $dsn['dbname']
-            ), 
-            $configInfo
-        );
+        $configInfo = str_replace(array('##DB_ADAPTER##', '##DB_HOST##', '##DB_PORT##',
+                                        '##DB_USER##', '##DB_PASS##', '##DB_NAME##'), 
+                                  array($dsn['type'], $dsn['host'], $dsn['port'], $dsn['uname'],
+                                        $dsn['upass'], $dsn['dbname']), $configInfo);
         file_put_contents(Fisma::getPath('config') . '/app.conf', $configInfo);
         
         // test the connection of database
@@ -244,7 +231,6 @@ class InstallController extends Zend_Controller_Action
             
             $root = Doctrine::getTable('User')->find(1);
             $root->password = $dsn['adminpwd'];
-            $root->hashType = $dsn['encrypt'];
             $root->save();
             
             $checklist['schema'] = 'ok';
@@ -252,7 +238,8 @@ class InstallController extends Zend_Controller_Action
             $this->view->next = '/install/complete';
         } catch (Exception $e) {
             @unlink(Fisma::getPath('config') . '/app.conf');
-            throw $e;
+            $this->view->next = '/install/dbsetting';
+            $this->view->message = $e->getMessage();
         }
 
         $this->view->dsn = $dsn;
@@ -264,7 +251,7 @@ class InstallController extends Zend_Controller_Action
         // Overwrite the default host_url value. Can't use the Configuration class b/c that requires authentication.
         $setHostUrlQuery = Doctrine_Query::create()
                            ->update('Configuration c')
-                           ->set('value', '?', Zend_Controller_Front::getInstance()->getRequest()->getHttpHost())
+                           ->set('value', '?', $_SERVER['SERVER_NAME'])
                            ->where('name LIKE ?', 'host_url');
         if (!$setHostUrlQuery->execute()) {
             throw new Exception("Unable to set the host_url value in the configuration table.");

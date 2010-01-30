@@ -269,7 +269,6 @@ function ev_deny(formname){
             var comment = document.getElementById('dialog_comment').value;
         }
         if (comment.length <= 0) {
-            alert('Comments are required in order to deny.');
             return;
         }
         form2.elements['comment'].value = comment;
@@ -361,7 +360,6 @@ function ms_deny(formname){
             var comment = document.getElementById('dialog_comment').value;
         }
         if (comment.length <= 0) {
-            alert('Comments are required in order to submit.');
             return;
         }
         form2.elements['comment'].value = comment;
@@ -648,9 +646,6 @@ function form_confirm (check_form, action) {
                   + ' changes will be lost. If you want to save your changes, click "Cancel"' 
                   + ' now and then click "Save Changes".')) {
             return true;
-        }
-        else {
-            return false;
         }
     }
     

@@ -4,30 +4,37 @@
  *
  * This file is part of OpenFISMA.
  *
- * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * OpenFISMA is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
- * details.
+ * OpenFISMA is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with OpenFISMA.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author    Ryan Yang <ryan@users.sourceforge.net>
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/mw/index.php?title=License
+ * @version   $Id$
+ * @package   Controller
  */
-
+ 
 /**
  * CRUD for Account manipulation
  *
- * @author     Ryan Yang <ryan@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
- * @package    Controller
- * @version    $Id$
+ * @package   Controller
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/mw/index.php?title=License
  */
 class UserController extends BaseController
 {
     protected $_modelName = 'User';
+
 
     /**
      * init() - Initialize internal members.
@@ -36,10 +43,9 @@ class UserController extends BaseController
     {
         parent::init();
         $this->_user = new User();
-        $this->_helper->contextSwitch()
-                      ->setAutoJsonSerialization(false)
-                      ->addActionContext('check-account', 'json')
-                      ->initContext();
+        $ajaxContext = $this->_helper->getHelper('AjaxContext');
+        $ajaxContext->addActionContext('checkaccount', 'html')
+                    ->initContext();
     }
     
     /**
@@ -67,7 +73,9 @@ class UserController extends BaseController
         if ($organizationTree) {
             $orgs = $form->getElement('organizations');
             foreach ($organizationTree as $organization) {
-                $orgs->addCheckbox($organization['id'], $organization['name'], $organization['level']);
+                $orgs->addCheckbox($organization['id'], 
+                                             $organization['name'],
+                                             $organization['level']);
             }
         }
         if ('database' == Configuration::getConfig('auth_type')) {
@@ -77,21 +85,6 @@ class UserController extends BaseController
             $form->removeElement('password');
             $form->removeElement('confirmPassword');
             $form->removeElement('generate_password');
-        }
-        
-        // Show lock explanation if account is locked. Hide explanation otherwise.
-        $userId = $this->getRequest()->getParam('id');
-        $user = Doctrine::getTable('User')->find($userId);
-
-        if ($user->locked) {
-            $reason = $user->getLockReason();
-            $form->getElement('lockReason')->setValue($reason);
-
-            $lockTs = new Zend_Date($user->lockTs, Zend_Date::ISO_8601);
-            $form->getElement('lockTs')->setValue($lockTs->get('YYYY-MM-DD HH:mm:ss '));
-        } else {
-            $form->removeElement('lockReason');
-            $form->removeElement('lockTs');
         }
         
         $form = Fisma_Form_Manager::prepareForm($form);
@@ -120,6 +113,7 @@ class UserController extends BaseController
         return $form;
     }
 
+
     /** 
      * Set the Roles, organization relation before save the model
      *
@@ -138,17 +132,6 @@ class UserController extends BaseController
         if (empty($values['password'])) {
             unset($values['password']);
         }
-
-        if ($values['locked'] && !$subject->locked) {
-            $subject->lockAccount(User::LOCK_TYPE_MANUAL);
-            unset($values['locked']);
-            unset($values['lockTs']);
-        } elseif (!$values['locked'] && $subject->locked) {
-            $subject->unlockAccount();
-            unset($values['locked']);
-            unset($values['lockTs']);
-        }
-        
         $subject->merge($values);
         $subject->unlink('Roles');
         $subject->link('Roles', $values['role']);
@@ -185,7 +168,8 @@ class UserController extends BaseController
     public function profileAction()
     {
         $form = $this->_getProfileForm();
-        $user = Doctrine::getTable('User')->find($this->_me->id);
+        //$user = Doctrine::getTable('User')->find($this->_me->id);
+        $user = $this->_me;
         if ($this->_request->isPost()) {
             $post = $this->_request->getPost();
             if ($form->isValid($post)) {
@@ -237,7 +221,7 @@ class UserController extends BaseController
         $this->view->requirements =  $this->_getPasswordRequirements();
         $post   = $this->_request->getPost();
 
-        if (isset($post['oldPassword'])) {
+        if ($post['oldPassword']) {
 
             if ($form->isValid($post)) {
                 $user = Doctrine::getTable('User')->find($this->_me->id);
@@ -304,6 +288,7 @@ class UserController extends BaseController
         $this->view->me = $user;
     }
 
+
     /**
      * Get the password complex requirements
      *
@@ -345,8 +330,7 @@ class UserController extends BaseController
      * store user last accept rob
      * create a audit event
      */
-    public function acceptRobAction()
-    {
+    public function acceptRobAction() {
         $user = User::currentUser();
         $user->lastRob = Fisma::now();
         $user->save();
@@ -409,19 +393,21 @@ class UserController extends BaseController
     public function checkAccountAction()
     {
         Fisma_Acl::requirePrivilege('user', 'read');
-        $data = LdapConfig::getConfig();
+        $ldapConfig = new LdapConfig();
+        $data = $ldapConfig->getLdaps();
         $account = $this->_request->getParam('account');
         $msg = '';
         if (count($data) == 0) {
             $type = 'warning';
-            $msg .= "No LDAP providers defined";
+            // to do Engilish
+            $msg .= "Ldap doesn't exist or no data";
         }
-
         foreach ($data as $opt) {
             $srv = new Zend_Ldap($opt);
             try {
                 $type = 'message';
-                $dn = $srv->getCanonicalAccountName($account, Zend_Ldap::ACCTNAME_FORM_DN); 
+                $dn = $srv->getCanonicalAccountName($account,
+                            Zend_Ldap::ACCTNAME_FORM_DN); 
                 $msg = "$account exists, the dn is: $dn";
             } catch (Zend_Ldap_Exception $e) {
                 $type = 'warning';
@@ -436,8 +422,8 @@ class UserController extends BaseController
                 }
             }
         }
-
-        echo Zend_Json::encode(array('msg' => $msg, 'type' => $type));
+        $this->view->priorityMessenger($msg, $type);
+        $this->_helper->layout->setLayout('ajax');
         $this->_helper->viewRenderer->setNoRender();
     }
 }

@@ -4,28 +4,30 @@
  *
  * This file is part of OpenFISMA.
  *
- * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * OpenFISMA is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
- * details.
+ * OpenFISMA is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with OpenFISMA.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author    Mark E. Haase <mhaase@endeavorsystems.com>
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://openfisma.org/content/license
+ * @version   $Id$
  */
 
 /**
  * A wrapper for Zend_Search_Lucene which adds some convenience functions to apply Lucene consistently
  * throughout OpenFISMA.
  * 
- * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
- * @package    Fisma
- * @subpackage Fisma_Index
- * @version    $Id$
+ * @package Fisma
  */
 class Fisma_Index
 {
@@ -260,7 +262,7 @@ class Fisma_Index
                 
                 // Create a Lucene field with a type that corresponds to this column
                 $fieldName = $this->_getIndexFieldName($columnName, $columnDefinition);
-                $field = $this->_getIndexField($columnDefinition['extra']['searchIndex'], $fieldName, $indexData);
+                $field = $this->_getIndexField($columnDefinition['extra']['searchIndex'], $fieldName, $indexData);                
                 $document->addField($field);
             }
         }
@@ -298,14 +300,7 @@ class Fisma_Index
                     // Get data from this foreign field
                     $foreignTable = $record->$foreignModel->getTable();
                     $foreignColumnDef = $foreignTable->getColumnDefinition($foreignFieldName);
-
-                    // If the foreign field is set in the record, then use the value defined in the record.
-                    // If the field isn't set in the record, then we pull the value from the foreign model
-                    if (isset($record->$foreignFieldName)) {
-                        $indexData = $record->$foreignFieldName;
-                    } else {
-                        $indexData = $record->$foreignModel->$foreignFieldName;
-                    }
+                    $indexData = $record->$foreignModel->$foreignFieldName;
 
                     // If the field is marked as HTML, then strip the HTML from the data (presumably, this
                     // has already been filtered by HtmlPurifier)

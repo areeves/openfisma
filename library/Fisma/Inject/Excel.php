@@ -4,16 +4,24 @@
  *
  * This file is part of OpenFISMA.
  *
- * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * OpenFISMA is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
- * details.
+ * OpenFISMA is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with OpenFISMA.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author    Mark E. Haase <mhaaseendeavorsystems.com>
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/mw/index.php?title=License
+ * @version   $Id: Excel.php 1523 2009-03-26 17:01:44Z mehaase $
+ * @package   Fisma_Inject
  */
 
 /**
@@ -23,12 +31,9 @@
  * This plug-in makes heavy use of the SimpleXML xpath() function, which makes code easier to maintain, but could also
  * be a performance bottleneck for large spreadsheets. Currently there has not been any load-testing for this plugin.
  *
- * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
- * @package    Fisma
- * @subpackage Fisma_Inject
- * @version    $Id$
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/mw/index.php?title=License
+ * @package   Fisma_Inject
  */
 class Fisma_Inject_Excel
 {
@@ -99,8 +104,7 @@ class Fisma_Inject_Excel
      * @param string $filePath
      * @return int The number of findings processed in the file
      */
-    function inject($filePath, $uploadId) 
-    {
+    function inject($filePath, $uploadId) {
         // Parse the file using SimpleXML. The finding data is located on the first worksheet.
         $spreadsheet = @simplexml_load_file($filePath);
         if ($spreadsheet === false) {
@@ -193,12 +197,11 @@ class Fisma_Inject_Excel
             }
             $poam['sourceId'] = $sourceTable->id;
             if (!empty($finding['securityControl'])) {
-                $securityControlTable = Doctrine::getTable('SecurityControl');
-                $securityControlTable = $securityControlTable->findOneByCode($finding['securityControl']);
+                $securityControlTable = Doctrine::getTable('SecurityControl')->findOneByCode($finding['securityControl']);
                 if (!$securityControlTable) {
-                    $error = "Row $rowNumber: Invalid security control selected. Your template may be out of date."
-                           . 'Please try downloading it again.';
-                    throw new Fisma_Exception_InvalidFileFormat($error);
+                    throw new Fisma_Exception_InvalidFileFormat("Row $rowNumber: Invalid security control selected. Your
+                                                          template may
+                                                          be out of date. Please try downloading it again.");
                 }
                 $poam['securityControlId'] = $securityControlTable->id;
             } else {

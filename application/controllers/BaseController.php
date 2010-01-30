@@ -4,26 +4,32 @@
  *
  * This file is part of OpenFISMA.
  *
- * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * OpenFISMA is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
- * details.
+ * OpenFISMA is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with OpenFISMA.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author    Jim Chen <xhorse@users.sourceforge.net>
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/mw/index.php?title=License
+ * @version   $Id$
+ * @package   Controller
  */
-
+ 
 /**
  * Base controller to handle CRUD 
  *
- * @author     Jim Chen <xhorse@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
- * @package    Controller
- * @version    $Id$
+ * @package   Controller
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/mw/index.php?title=License
  */
 abstract class BaseController extends SecurityController
 {
@@ -61,8 +67,7 @@ abstract class BaseController extends SecurityController
         parent::init();
         if (is_null($this->_modelName)) {
             //Actually user should not be able to see this error message
-            throw new Fisma_Exception('Internal error. Subclasses of the BaseController'
-                                    . ' must specify the _modelName field');
+            throw new Fisma_Exception('Internal error. Subclasses of the BaseController must specify the _modelName field');
         } else {
             // Covert UpperCamelCase to lower_underscore_format to get the aclResource name
             $aclResource = preg_replace('/([A-Z])/', '_$1', $this->_modelName);
@@ -208,9 +213,6 @@ abstract class BaseController extends SecurityController
                     $result = $this->saveValue($form, $subject);
                     $msg   = "{$this->_modelName} updated successfully";
                     $model = 'notice';
-
-                    // Refresh the form, in case the changes to the model affect the form
-                    $form   = $this->getForm();
                 } catch (Doctrine_Exception $e) {
                     //Doctrine_Manager::connection()->rollback();
                     $msg  = "Error while trying to save: ";
@@ -222,11 +224,9 @@ abstract class BaseController extends SecurityController
                 $this->view->priorityMessenger($msg, $model);
             } else {
                 $errorString = Fisma_Form_Manager::getErrors($form);
-                $error = "Error while trying to save: {$this->_modelName}: <br>$errorString";
-                $this->view->priorityMessenger($error, 'warning');
+                $this->view->priorityMessenger("Error while trying to save: {$this->_modelName}:<br>$errorString", 'warning');
             }
         }
-        
         $form = $this->setForm($subject, $form);
         $this->view->form = $form;
         $this->view->id   = $id;

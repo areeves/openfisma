@@ -14,16 +14,20 @@
  *
  * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
  * <http://www.gnu.org/licenses/>.
+ *
+ * @author    Mark E. Haase <mhaase@endeavorsystems.com>
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/mw/index.php?title=License
+ * @version   $Id: index.php 1793 2009-06-19 17:49:33Z mehaase $
+ * @package   Listener
  */
-
+ 
 /**
  * A listener for the User model
  *
- * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
- * @package    Listener
- * @version    $Id$
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/license.php
+ * @package   Listener
  */
 class UserListener extends Doctrine_Record_Listener
 {
@@ -50,8 +54,8 @@ class UserListener extends Doctrine_Record_Listener
             if (empty($user->passwordSalt)) {
                 $user->generateSalt();
             }
-            //$user->password        = $user->hash($modified['password']);
-            //$user->passwordTs      = Fisma::now();
+            $user->password        = $user->hash($modified['password']);
+            $user->passwordTs      = Fisma::now();
 
             // Check password history
             if (strpos($user->passwordHistory, $user->password)) {
@@ -80,11 +84,11 @@ class UserListener extends Doctrine_Record_Listener
 
     }
 
-    public function preInsert(Doctrine_Event $event) 
-    {
+    public function preInsert(Doctrine_Event $event) {
         $user = $event->getInvoker();
         
         $user->passwordTs = Fisma::now();
+        $user->hashType = Configuration::getConfig('hash_type');
         $user->log(User::CREATE_USER, "create user: $user->nameFirst $user->nameLast");
     }
 
@@ -95,7 +99,7 @@ class UserListener extends Doctrine_Record_Listener
     public function postInsert(Doctrine_Event $event) 
     {
         $user     = $event->getInvoker();
-        $modified = $user->getModified($old = true, $last = true);
+        $modified = $user->getModified($old=true, $last=true);
         $user->password = $modified['password'];
         $mail = new Fisma_Mail();
         $mail->sendAccountInfo($user);
@@ -108,7 +112,7 @@ class UserListener extends Doctrine_Record_Listener
     public function postUpdate(Doctrine_Event $event)
     {
         $user     = $event->getInvoker();
-        $modified = $user->getModified($old = true, $last = true);
+        $modified = $user->getModified($old=true, $last=true);
         if (isset($modified['password']) && $modified['password']) {
             $user->password = $modified['password'];
             $mail = new Fisma_Mail();

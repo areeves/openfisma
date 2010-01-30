@@ -4,29 +4,34 @@
  *
  * This file is part of OpenFISMA.
  *
- * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * OpenFISMA is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
- * details.
+ * OpenFISMA is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with OpenFISMA.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author    Mark E. Haase <mhaase@endeavorsystems.com>
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/mw/index.php?title=License
+ * @version   $Id: Manager.php -1M 2009-04-15 18:02:56Z (local) $
+ * @package   Fisma_Form
  */
 
 /**
  * Provides an interface for loading forms that takes care of setting up the
  * common aspects of all forms used in OpenFISMA, such as standard decorators,
  * validators, and filters.
- * 
- * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
- * @package    Fisma
- * @subpackage Fisma_Form
- * @version    $Id$
+ *
+ * @package   Fisma_Form
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/mw/index.php?title=License
  */
 class Fisma_Form_Manager
 {
@@ -39,8 +44,7 @@ class Fisma_Form_Manager
      * extension.)
      * @return Zend_Form
      */
-    static function loadForm($formName) 
-    {
+    static function loadForm($formName) {
         // Load the form from a .form file
         $formName = strtolower($formName);
         $config = new Zend_Config_Ini(Fisma::getPath('form') . "/{$formName}.form", $formName);
@@ -61,26 +65,21 @@ class Fisma_Form_Manager
      * @param Zend_Form $form
      * @return Zend_Form The modified form
      */
-    static function prepareForm($form) 
-    {
+    static function prepareForm($form) {
         $form->setMethod('post');
         
         // Use the FismaDecorator for all Display Groups and Elements
         //$form->addPrefixPath('Form', '../apps/Form', 'decorator');
-        $form->setDecorators(
-            array(
-                new Zend_Form_Decorator_FormElements(),
-                new Fisma_Form_FismaDecorator()
-            )
-        );
+        $form->setDecorators(array(
+            new Zend_Form_Decorator_FormElements(),
+            new Fisma_Form_FismaDecorator()
+        ));
 
         //$form->addDisplayGroupPrefixPath('Form', FORMS, 'decorator');
-        $form->setDisplayGroupDecorators(
-            array(
-                new Zend_Form_Decorator_FormElements(),
-                new Fisma_Form_FismaDecorator()
-            )
-        );
+        $form->setDisplayGroupDecorators(array(
+            new Zend_Form_Decorator_FormElements(),
+            new Fisma_Form_FismaDecorator()
+        ));
 
         //$form->addElementPrefixPath('Form', FORMS, 'decorator');
         $form->setElementDecorators(array(new Fisma_Form_FismaDecorator()));
@@ -97,16 +96,13 @@ class Fisma_Form_Manager
      * @param Zend_Form $form
      * @return Zend_Form The modified form
      */
-    static function prepareCreateFindingForm($form) 
-    {
+    static function prepareCreateFindingForm($form) {
         $form->setMethod('post');
         
-        $form->setDisplayGroupDecorators(
-            array(
-                new Zend_Form_Decorator_FormElements(),
-                new Fisma_Form_CreateFindingDecorator()
-            )
-        );
+        $form->setDisplayGroupDecorators(array(
+            new Zend_Form_Decorator_FormElements(),
+            new Fisma_Form_CreateFindingDecorator()
+        ));
 
         $form->setElementDecorators(array(new Fisma_Form_CreateFindingDecorator()));
         
@@ -115,6 +111,7 @@ class Fisma_Form_Manager
         
         return $form;
     }
+
 
     /**
      * Get form errors if form validate false

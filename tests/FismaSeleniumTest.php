@@ -2,20 +2,30 @@
 /**
  * Copyright (c) 2008 Endeavor Systems, Inc.
  *
- * This file is part of OpenFISMA.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
- * details.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
- * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * @author    Mark E. Haase <mhaase@endeavorsystems.com>
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/mw/index.php?title=License
+ * @version   $Id$
+ * @package   Test
  */
-
 require_once 'PHPUnit/Extensions/SeleniumTestCase.php';
 // Bootstrap the application's CLI mode if it has not already been done
 require_once(realpath(dirname(__FILE__) . '/../library/Fisma.php'));
@@ -44,17 +54,13 @@ if (Fisma::RUN_MODE_COMMAND_LINE != Fisma::mode()) {
  * selenium server.
  */
 define('SELENIUM_CONFIG_FILE', Fisma::getPath('config') . '/selenium.conf');
-
 /**
  * This is the base class for all selenium tests in OpenFISMA. This base
  * class sets up the server information for accessing Selenium RC.
- * 
- * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
- * @package    Test
- * @version    $Id$
+ *
+ * @package Test
  */
+
 abstract class Test_FismaSeleniumTest extends
     PHPUnit_Extensions_SeleniumTestCase
 {
@@ -156,23 +162,18 @@ abstract class Test_FismaSeleniumTest extends
 
         // Create the user
         $userTable = new User($this->_db);
-        $userId = $userTable->insert(
-            array(
+        $userId = $userTable->insert(array(
                 'account' => self::USER_NAME,
                 'password' => $userTable->digest(self::PASSWORD),
                 'is_active' => 1,
                 'password_ts' => new Zend_Db_Expr('now()'),
-                'last_rob' => new Zend_Db_Expr('now()')
-            )
-        );
+                'last_rob' => new Zend_Db_Expr('now()')));
 
         // Give the new user the specified role
-        $grantRole = $this->_db->prepare(
-            "INSERT INTO user_roles
+        $grantRole = $this->_db->prepare("INSERT INTO user_roles
                   SELECT $userId, r.id
                     FROM roles r
-                   WHERE r.nickname like '$role'"
-        );
+                   WHERE r.nickname like '$role'");
         $grantRole->execute();
     }
 
@@ -203,8 +204,7 @@ abstract class Test_FismaSeleniumTest extends
      * @param string $name A name for the screenshot
      * (use lower_case_underscore naming format, without file extension)
      */
-    public function screenshot($name) 
-    {
+    public function screenshot($name) {
         $sequenceNumber = sprintf('%03d', $this->_remoteScreenshotSequence++);
         $screenshotPath = $this->_remoteScreenshotDir .
             "\\{$sequenceNumber}_{$name}.png";

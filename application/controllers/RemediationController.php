@@ -4,26 +4,35 @@
  *
  * This file is part of OpenFISMA.
  *
- * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * OpenFISMA is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
- * details.
+ * OpenFISMA is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with OpenFISMA.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author    Jim Chen <xhorse@users.sourceforge.net>
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/mw/index.php?title=License
+ * @version   $Id$
+ * @package   Controller
  */
 
 /**
  * The remediation controller handles CRUD for findings in remediation.
  *
- * @author     Jim Chen <xhorse@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
- * @package    Controller
- * @version    $Id$
+ * @package   Controller
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/mw/index.php?title=License
+ *
+ * @todo As part of the ongoing refactoring, this class should probably be
+ * merged with the FindingController.
  */
 class RemediationController extends SecurityController
 {
@@ -77,32 +86,21 @@ class RemediationController extends SecurityController
         parent::init();    
         $attach = $this->_helper->contextSwitch();
         if (!$attach->hasContext('pdf')) {
-            $attach->addContext(
-                'pdf',
-                array(
-                    'suffix' => 'pdf',
-                    'headers' => array(
+            $attach->addContext('pdf',
+                array('suffix' => 'pdf',
+                   'headers' => array(
                         'Content-Disposition' => "attachement;filename=export.pdf",
-                        'Content-Type' => 'application/pdf'
-                    )
-                )
-            );
-            $attach->addActionContext('search2', array('pdf'))
+                        'Content-Type' => 'application/pdf')))
+                   ->addActionContext('search2', array('pdf'))
                    ->setAutoDisableLayout(true);
         }
         if (!$attach->hasContext('xls')) {
-            $attach->addContext(
-                'xls',
-                array(
-                    'suffix' => 'xls',
-                    'headers' => array(
+            $attach->addContext('xls',
+                array('suffix' => 'xls',
+                   'headers' => array(
                         'Content-Disposition' => "attachement;filename=export.xls",
-                        'Content-Type' => 'application/vnd.ms-excel'
-                    )
-                )
-            );
-            $attach->addActionContext('search2', array('xls'))
-                   ->setAutoDisableLayout(true);
+                        'Content-Type' => 'application/vnd.ms-excel')))
+                   ->addActionContext('search2', array('xls'))->setAutoDisableLayout(true);
         }
         $this->_helper->contextSwitch()
                       ->addActionContext('summary-data', array('json', 'xls', 'pdf'));
@@ -156,8 +154,7 @@ class RemediationController extends SecurityController
     /**
      * Invoked asynchronously to load data for the summary table.
      */
-    public function summaryDataAction() 
-    {
+    public function summaryDataAction() {
         Fisma_Acl::requirePrivilege('finding', 'read', '*');
         
         // Doctrine supports the idea of using a base query when populating a tree. In our case, the base
@@ -192,34 +189,35 @@ class RemediationController extends SecurityController
             foreach ($organizations as $organization) {
                 /** @todo pad left string */
                 $indentAmount = $organization->level * 3;
-                $orgName = str_pad($organization->name, $indentAmount + strlen($organization->name), ' ', STR_PAD_LEFT);
+                $orgName = str_pad($organization->name, 
+                                   $indentAmount + strlen($organization->name),
+                                   ' ',
+                                   STR_PAD_LEFT);
 
                 $counts = $organization->getSummaryCounts($type, $source);
                 // Decide whether to show rolled up counts or single row counts
                 if (in_array($organization->id, $collapsedRows)) {
                     // Show rolled up row counts
-                    $ontimeRow = array_merge(array($orgName), array_values($counts['all_ontime']));
+                    $ontimeRow = array_merge(array($orgName), 
+                                             array_values($counts['all_ontime']));
                     $tableData[] = $ontimeRow;
                     
                     // If there are overdues, then create another row for overdues
                     if (array_sum($counts['all_overdue']) > 0) {
-                        $overdueRow = array_merge(
-                            array("$orgName (Overdue Items)"), 
-                            array_values($counts['all_overdue'])
-                        );
+                        $overdueRow = array_merge(array("$orgName (Overdue Items)"), 
+                                                  array_values($counts['all_overdue']));
                         $tableData[] = $overdueRow;
                     }
                 } elseif (in_array($organization->id, $expandedRows)) {
                     // Show single row counts
-                    $ontimeRow = array_merge(array($orgName), array_values($counts['single_ontime']));
+                    $ontimeRow = array_merge(array($orgName), 
+                                             array_values($counts['single_ontime']));
                     $tableData[] = $ontimeRow;
                     
                     // If there are overdues, then create another row for overdues
                     if (array_sum($counts['single_overdue']) > 0) {
-                        $overdueRow = array_merge(
-                            array("$orgName (Overdue Items)"), 
-                            array_values($counts['single_overdue'])
-                        );
+                        $overdueRow = array_merge(array("$orgName (Overdue Items)"), 
+                                                  array_values($counts['single_overdue']));
                         $tableData[] = $overdueRow;
                     }                    
                 }
@@ -348,8 +346,7 @@ class RemediationController extends SecurityController
      * get the columns(title) which were displayed on page, PDF, Excel
      *
      */
-    private function _getColumns()
-    {
+    private function _getColumns(){
         // Set up the data for the columns in the search results table
         $me = Doctrine::getTable('User')->find($this->_me->id);
         
@@ -357,7 +354,7 @@ class RemediationController extends SecurityController
             $cookie = Fisma_Cookie::get($_COOKIE, 'search_columns_pref');
             $visibleColumns = $cookie;
         } catch(Fisma_Exception $e) {
-            if (empty($me->searchColumnsPref)) {
+            if(empty($me->searchColumnsPref)) {
                 $me->searchColumnsPref = $visibleColumns = 66037;
                 $me->save();
             } else {
@@ -432,7 +429,10 @@ class RemediationController extends SecurityController
         $link = $this->_helper->makeUrlParams($params);
         $this->view->assign('link', $link);
         $this->view->assign('attachUrl', '/remediation/search2' . $link);
-        Fisma_Cookie::set('lastSearchUrl', "/panel/remediation/sub/searchbox$link");
+        call_user_func_array("setcookie", Fisma_Cookie::prepare('lastSearchUrl',
+            "/panel/remediation/sub/searchbox$link" 
+            )
+        );
         $this->view->assign('columns', $this->_getColumns());
         $this->view->assign('pageInfo', $this->_paging);
         $this->render();
@@ -487,29 +487,19 @@ class RemediationController extends SecurityController
         // ACL for finding objects is handled inside the finding listener, because it has to do some
         // very fine-grained error checking
         
-        $id = $this->_request->getParam('id');
+        $id          = $this->_request->getParam('id');
         $findingData = $this->_request->getPost('finding', array());
 
-        $this->_forward('view', null, null, array('id' => $id));
-
         if (isset($findingData['currentEcd'])) {
-            if (Zend_Validate::is($findingData['currentEcd'], 'Date')) {
-                $date = new Zend_Date();
-                $ecd  = new Zend_Date($findingData['currentEcd']);
+            $date = new Zend_Date();
+            $ecd  = new Zend_Date($findingData['currentEcd']);
 
-                if ($ecd->isEarlier($date)) {
-                    $error = 'Expected completion date has been set before the current date.'
-                             . 'Make sure that this is correct.';
-                    $this->view->priorityMessenger($error, 'notice');
-                }
-            } else {
-                $error = 'Expected completion date provided is not a valid date. Unable to update finding.';
-                $this->view->priorityMessenger($error, 'warning');
-                return;
+            if ($ecd->isEarlier($date)) {
+                $this->view->priorityMessenger('Expected completion date has been set before the current date. Make sure that this is correct.', 'notice');
             }
         }
 
-        $finding = $this->_getFinding($id);
+        $finding     = $this->_getFinding($id);
 
         try {
             Doctrine_Manager::connection()->beginTransaction();
@@ -525,6 +515,7 @@ class RemediationController extends SecurityController
             $model = 'warning';
             $this->view->priorityMessenger($message, $model);
         }
+        $this->_forward('view', null, null, array('id' => $id));
     }
 
     /**
@@ -538,30 +529,20 @@ class RemediationController extends SecurityController
 
         $finding  = $this->_getFinding($id);
         if (!empty($decision)) {
-            Fisma_Acl::requirePrivilege(
-                'finding', 
-                $finding->CurrentEvaluation->Privilege->action,
-                $finding->ResponsibleOrganization->nickname
-            );
+            Fisma_Acl::requirePrivilege('finding', 
+                                        $finding->CurrentEvaluation->Privilege->action,
+                                        $finding->ResponsibleOrganization->nickname);
         }
        
         try {
             Doctrine_Manager::connection()->beginTransaction();
 
             if ('submitmitigation' == $do) {
-                Fisma_Acl::requirePrivilege(
-                    'finding', 
-                    'mitigation_strategy_submit', 
-                    $finding->ResponsibleOrganization->nickname
-                );
+                Fisma_Acl::requirePrivilege('finding', 'mitigation_strategy_submit', $finding->ResponsibleOrganization->nickname);
                 $finding->submitMitigation(User::currentUser());
             }
             if ('revisemitigation' == $do) {
-                Fisma_Acl::requirePrivilege(
-                    'finding', 
-                    'mitigation_strategy_revise', 
-                    $finding->ResponsibleOrganization->nickname
-                );
+                Fisma_Acl::requirePrivilege('finding', 'mitigation_strategy_revise', $finding->ResponsibleOrganization->nickname);
                 $finding->reviseMitigation(User::currentUser());
             }
 
@@ -610,7 +591,7 @@ class RemediationController extends SecurityController
                 throw new Fisma_Exception($message);
             }
 
-            $extension = end(explode(".", $file['name']));
+            $extension = end(explode(".",$file['name']));
             /** @todo cleanup */
             if (in_array(strtolower($extension), array('exe', 'php', 'phtml', 'php5', 'php4', 'js', 'css'))) {
                 $message = 'This file type is not allowed.';
@@ -631,10 +612,7 @@ class RemediationController extends SecurityController
                 if (move_uploaded_file($file['tmp_name'], $absFile)) {
                     chmod($absFile, 0755);
                 } else {
-                    $message = 'The file upload failed due to a server configuration error.' 
-                             . ' Please contact the administrator.';
-                    $logger = Fisma::getLogInstance();
-                    $logger->log('Failed in move_uploaded_file(). ' . $absFile . "\n" . $file['error'], Zend_Log::ERR);
+                    $message = 'Failed in move_uploaded_file(). ' . $absFile . "\n" . $file['error'];
                     throw new Fisma_Exception($message);
                 }
             } else {
@@ -683,6 +661,7 @@ class RemediationController extends SecurityController
             throw new Fisma_Exception('The requested file could not be found');
         }
     }
+
     
     /**
      *  Handle the evidence evaluations
@@ -695,11 +674,7 @@ class RemediationController extends SecurityController
         $finding  = $this->_getFinding($id);
 
         if (!empty($decision)) {
-            Fisma_Acl::requirePrivilege(
-                'finding', 
-                $finding->CurrentEvaluation->Privilege->action, 
-                $finding->ResponsibleOrganization->nickname
-            );
+            Fisma_Acl::requirePrivilege('finding', $finding->CurrentEvaluation->Privilege->action, $finding->ResponsibleOrganization->nickname);
         }
 
         try {
@@ -740,9 +715,9 @@ class RemediationController extends SecurityController
 
         try {
             if ($finding->threat == '' ||
-                empty($finding->threatLevel) ||
+                $finding->threatLevel == 'NONE' ||
                 $finding->countermeasures == '' ||
-                empty($finding->countermeasuresEffectiveness)) {
+                $finding->countermeasuresEffectiveness == 'NONE') {
                 throw new Fisma_Exception("The Threat or Countermeasures Information is not "
                     ."completed. An analysis of risk cannot be generated, unless these values are defined.");
             }
@@ -773,8 +748,7 @@ class RemediationController extends SecurityController
     /**
      * Display basic data about the finding and the affected asset
      */
-    function findingAction() 
-    {
+    function findingAction() {
         $this->_viewFinding();
         $this->view->keywords = $this->_request->getParam('keywords');
         $this->_helper->layout->setLayout('ajax');
@@ -783,8 +757,7 @@ class RemediationController extends SecurityController
     /**
      * Fields for defining the mitigation strategy
      */
-    function mitigationStrategyAction() 
-    {
+    function mitigationStrategyAction() {
         $this->_viewFinding();
         $this->_helper->layout->setLayout('ajax');
     }
@@ -792,8 +765,7 @@ class RemediationController extends SecurityController
     /**
      * Display fields related to risk analysis such as threats and countermeasures
      */
-    function riskAnalysisAction() 
-    {
+    function riskAnalysisAction() {
         $this->_viewFinding();
         $this->view->keywords = $this->_request->getParam('keywords');
         $this->_helper->layout->setLayout('ajax');
@@ -802,8 +774,7 @@ class RemediationController extends SecurityController
     /**
      * Display fields related to risk analysis such as threats and countermeasures
      */
-    function artifactsAction() 
-    {
+    function artifactsAction() {
         $this->_viewFinding();
         $this->_helper->layout->setLayout('ajax');
     }
@@ -811,8 +782,7 @@ class RemediationController extends SecurityController
     /**
      * Display the audit log associated with a finding
      */
-    function auditLogAction() 
-    {
+    function auditLogAction() {
         $this->_viewFinding();
         $this->_helper->layout->setLayout('ajax');
         
@@ -830,8 +800,7 @@ class RemediationController extends SecurityController
     /**
      * Real searching worker, to return searching results for page, PDF, Excel
      */
-    public function search2Action() 
-    {
+    public function search2Action() {
         Fisma_Acl::requirePrivilege('finding', 'read', '*');
         
         /* @todo A hack to translate column names in the data table to column names
@@ -1078,7 +1047,7 @@ class RemediationController extends SecurityController
 
             if (is_null($result->nextDueDate)) {
                 $row['duetime'] = 'N/A';
-            } elseif (date('Ymd', strtotime($result->nextDueDate)) >= date('Ymd', time())) {
+            } elseif(date('Ymd', strtotime($result->nextDueDate)) >= date('Ymd', time())) {
                 $row['duetime'] = 'On time';
             } else {
                 $row['duetime'] = 'Overdue';
@@ -1090,23 +1059,15 @@ class RemediationController extends SecurityController
                 $row['threat'] = strip_tags(html_entity_decode($result->threat));
                 $row['countermeasures'] = strip_tags(html_entity_decode($result->countermeasures));
             } else {
-                $row['description'] = $this->view->ShowLongText(
-                    strip_tags($result->description), 
-                    $this->view->keywords
-                );
-                $row['recommendation'] = $this->view->ShowLongText(
-                    strip_tags($result->recommendation), 
-                    $this->view->keywords
-                );
-                $row['mitigationStrategy'] = $this->view->ShowLongText(
-                    strip_tags($result->mitigationStrategy), 
-                    $this->view->keywords
-                );
+                $row['description'] = $this->view->ShowLongText(strip_tags($result->description), 
+                                                                $this->view->keywords);
+                $row['recommendation'] = $this->view->ShowLongText(strip_tags($result->recommendation), 
+                                                                   $this->view->keywords);
+                $row['mitigationStrategy'] = $this->view->ShowLongText(strip_tags($result->mitigationStrategy), 
+                                                                       $this->view->keywords);
                 $row['threat'] = $this->view->ShowLongText(strip_tags($result->threat), $this->view->keywords);
-                $row['countermeasures'] = $this->view->ShowLongText(
-                    strip_tags($result->countermeasures), 
-                    $this->view->keywords
-                );
+                $row['countermeasures'] = $this->view->ShowLongText(strip_tags($result->countermeasures), 
+                                                                    $this->view->keywords);
             }
             $list[] = $row;
         }
@@ -1125,8 +1086,7 @@ class RemediationController extends SecurityController
     /** 
      * Renders the form for uploading artifacts.
      */
-    function uploadFormAction() 
-    {
+    function uploadFormAction() {
         $this->_helper->layout()->disableLayout();
     }
 

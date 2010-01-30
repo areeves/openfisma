@@ -4,26 +4,32 @@
  *
  * This file is part of OpenFISMA.
  *
- * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * OpenFISMA is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
- * details.
+ * OpenFISMA is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with OpenFISMA.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author    Ryan Yang <ryan@users.sourceforge.net>
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/mw/index.php?title=License
+ * @version   $Id$
+ * @package   Controller
  */
 
 /**
  * Handles CRUD for "system" objects.
  *
- * @author     Ryan Yang <ryan@users.sourceforge.net>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
- * @package    Controller
- * @version    $Id$
+ * @package   Controller
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/mw/index.php?title=License
  */
 class SystemController extends BaseController
 {
@@ -103,16 +109,7 @@ class SystemController extends BaseController
         
         $q = User::currentUser()
              ->getOrganizationsQuery()
-             ->select(
-                 'o.id, 
-                  o.name, 
-                  o.nickname, 
-                  s.type, 
-                  s.confidentiality, 
-                  s.integrity, 
-                  s.availability, 
-                  s.fipsCategory'
-             )
+             ->select('o.id, o.name, o.nickname, s.type, s.confidentiality, s.integrity, s.availability, s.fipsCategory')
              ->innerJoin('o.System s')
              ->addWhere('o.orgType = ?', 'system')
              ->orderBy("$sortBy $order")
@@ -312,7 +309,7 @@ class SystemController extends BaseController
         $this->_helper->layout()->disableLayout();
 
         $this->view->organizationId = $id;        
-        $this->view->documentTypes  = Doctrine_Query::create()->from('DocumentType')->orderBy('name')->execute();
+        $this->view->documentTypes = Doctrine::getTable('DocumentType')->findAll();
     }
   
     /**
@@ -332,10 +329,8 @@ class SystemController extends BaseController
             // Get the existing document
             $documentQuery = Doctrine_Query::create()
                              ->from('SystemDocument sd')
-                             ->where(
-                                 'sd.systemId = ? AND sd.documentTypeId = ?',
-                                 array($organization->System->id, $documentTypeId)
-                             )
+                             ->where('sd.systemId = ? AND sd.documentTypeId = ?',
+                                     array($organization->System->id, $documentTypeId))
                              ->limit(1);
             $documents = $documentQuery->execute();
     
@@ -448,6 +443,6 @@ class SystemController extends BaseController
         }
 
         $this->view->organizationId = $id;        
-        $this->view->documentTypes  = Doctrine_Query::create()->from('DocumentType')->orderBy('name')->execute();
+        $this->view->documentTypes = Doctrine::getTable('DocumentType')->findAll();        
     }
 }

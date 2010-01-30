@@ -1,5 +1,4 @@
 <?php
-/** @codingStandardsIgnoreFile */
 $output_cols = array_values($this->columns);
 
 $count_cols = count($output_cols);
@@ -38,7 +37,7 @@ $worksheet->setColumn(8,9,30);
 //inject the titles
 $worksheet->writeRow($rowi++,0,$output_cols,$format_times);
 
-foreach( $this->poamList as $p) {
+foreach( $this->poam_list as $p) {
     $data = array();
     foreach ($this->columns as $k => $v) {
         $data[] = $p[$k];

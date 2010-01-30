@@ -1,8 +1,9 @@
 <?php
 echo $this->partial('system-document/searchbox.phtml');
 
-$sectionName = "{$this->document->DocumentType->name} for {$this->document->System->Organization->name}";
-Fisma_Format_Section::startSection($sectionName);
+Fisma_Format_Section::startSection($this->document->DocumentType->name
+                                 . " for " 
+                                 . $this->document->System->Organization->name);
 ?>
     
 <table class="keyValues">

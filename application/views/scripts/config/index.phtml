@@ -75,7 +75,7 @@ function discardChanges(event) {
         tabView.addTab(contactTab);
 
         var notificationTab = new YAHOO.widget.Tab({
-            label: 'E-mail Configuration',
+            label: 'Notification Policies',
             dataSrc: '/config/notification',
             cacheData: true
         });
@@ -90,9 +90,7 @@ function discardChanges(event) {
         passwordTab.subscribe("dataLoadedChange", prepareTab);                
         tabView.addTab(passwordTab);
 
-        <?php 
-        if ('ldap' == Configuration::getConfig('auth_type', true)) { 
-        ?>
+        <?php if ('ldap' == Configuration::getConfig('auth_type', true)) { ?>
             var ldapTab = new YAHOO.widget.Tab({
                 label: 'LDAP Configurations',
                 dataSrc: '/config/ldaplist',
@@ -100,9 +98,7 @@ function discardChanges(event) {
             });
             ldapTab.subscribe("dataLoadedChange", prepareTab);                
             tabView.addTab(ldapTab);
-        <?php 
-        }
-        ?>
+        <?php } ?>
 
         tabView.subscribe('activeIndexChange', handleTabChange);
         tabView.appendTo('tabContainer');

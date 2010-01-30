@@ -4,26 +4,33 @@
  *
  * This file is part of OpenFISMA.
  *
- * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * OpenFISMA is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
- * details.
+ * OpenFISMA is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
- * <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with OpenFISMA.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author    Mark E. Haase <mhaase@endeavorsystems.com>
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/mw/index.php?title=License
+ * @version   $Id: $
+ * @package   Fisma
  */
 
 /**
- * An object which represents the application itself, and controls items such as debug mode, include paths, etc.
- * 
- * @author     Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright  (c) Endeavor Systems, Inc. 2009 (http://www.endeavorsystems.com)
- * @license    http://www.openfisma.org/content/license
- * @package    Fisma
- * @version    $Id$
+ * An object which represents the application itself, and controls items such as debug mode, include paths,
+ * etc.
+ *
+ * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/mw/index.php?title=License
+ * @package   Fisma
  */
 class Fisma
 {
@@ -140,8 +147,7 @@ class Fisma
      * 
      * @param int $mode One of the run modes specified as constants in this class
      */
-    public static function initialize($mode) 
-    {
+    public static function initialize($mode) {
         self::$_mode = $mode;
         
         // Determine the root path of the application. This is based on knowing where this file is relative
@@ -229,7 +235,8 @@ class Fisma
             // Timezone configuration
             if (isset(self::$_appConf->timezone)) {
                 ini_set("date.timzeone", self::$_appConf->timezone);
-            } else {
+            }
+            else {
                 ini_set("date.timezone", "America/New_York");
             }
 
@@ -297,16 +304,15 @@ class Fisma
             $manager->setAttribute(Doctrine::ATTR_QUERY_CACHE, $cacheDriver);
         }
 
-        Zend_Registry::set(
-            'doctrine_config', 
-            array(
-                'data_fixtures_path'  =>  self::getPath('fixture'),
-                'models_path'         =>  self::getPath('model'),
-                'migrations_path'     =>  self::getPath('migration'),
-                'yaml_schema_path'    =>  self::getPath('schema'),
-                'generate_models_options' => array('generateTableClasses' => true)
-            )
-        );
+        Zend_Registry::set('doctrine_config', array(
+               'data_fixtures_path'  =>  self::getPath('fixture'),
+               'models_path'         =>  self::getPath('model'),
+               'migrations_path'     =>  self::getPath('migration'),
+               'yaml_schema_path'    =>  self::getPath('schema'),
+               'generate_models_options' => array(
+                    'generateTableClasses' => true
+               )
+        ));
     }
     
     /**
@@ -314,8 +320,7 @@ class Fisma
      * 
      * @todo this is a bit ugly, it's got some unrelated stuff in it
      */
-    public static function dispatch() 
-    {
+    public static function dispatch() {
         // This is a hack to accomodate the flash file uploader. Flash can't send cookies, so it posts the session
         // ID instead.
         /** @todo review this -- is it any kind of a security risk? */
@@ -364,8 +369,7 @@ class Fisma
     /**
      * Returns the current execution mode.
      */
-    public static function mode() 
-    {
+    public static function mode() {
         return self::$_mode;
     }
     
@@ -374,8 +378,7 @@ class Fisma
      * 
      * @return boolean
      */
-    public static function getNotificationEnabled() 
-    {
+    public static function getNotificationEnabled() {
         return self::$_notificationEnabled;
     }
     
@@ -384,8 +387,7 @@ class Fisma
      * 
      * @param boolean $enabled
      */
-    public static function setNotificationEnabled($enabled) 
-    {
+    public static function setNotificationEnabled($enabled) {
         self::$_notificationEnabled = $enabled;
     }
 
@@ -394,8 +396,7 @@ class Fisma
      * 
      * @return boolean
      */
-    public static function getListenerEnabled() 
-    {
+    public static function getListenerEnabled() {
         return self::$_listenerEnabled;
     }
     
@@ -404,8 +405,7 @@ class Fisma
      * 
      * @param boolean $enabled
      */
-    public static function setListenerEnabled($enabled) 
-    {
+    public static function setListenerEnabled($enabled) {
         self::$_listenerEnabled = $enabled;
         
         // Enumerate the models and enable/disable the listeners for each one
@@ -416,9 +416,7 @@ class Fisma
 
                 if (!strstr($modelName, 'Table')) {
                     require_once(Fisma::getPath('model') . '/' . $file);
-                    Doctrine::getTable($modelName)
-                              ->getRecordListener()
-                              ->setOption('disabled', !self::$_listenerEnabled);
+                    Doctrine::getTable($modelName)->getRecordListener()->setOption('disabled', !self::$_listenerEnabled);
                 }
             }
         }
@@ -429,13 +427,12 @@ class Fisma
      * 
      * @return bool
      */
-    public static function debug() 
-    {
+    public static function debug() {
         if (!self::$_initialized) {
             throw new Fisma_Exception('The Fisma object has not been initialized.');
         }
 
-        if (!isset(self::$_appConf->debug)) {
+        if(!isset(self::$_appConf->debug)) {
             return false;
         } else {
             return (self::$_appConf->debug == 1);
@@ -487,8 +484,7 @@ class Fisma
      * @param string $key
      * @return string
      */
-    public static function getPath($key) 
-    {
+    public static function getPath($key) {
         if (!self::$_initialized) {
             throw new Fisma_Exception('The Fisma object has not been initialized.');
         }
@@ -552,12 +548,10 @@ class Fisma
                 'cache_dir' => Fisma::getPath('cache'),
                 'file_name_prefix' => $identify
             );
-            self::$_cache = Zend_Cache::factory(
-                'Core',
-                'File',
-                $frontendOptions,
-                $backendOptions
-            );
+            self::$_cache = Zend_Cache::factory('Core',
+                                                'File',
+                                                $frontendOptions,
+                                                $backendOptions);
         }
         return self::$_cache;
     }
@@ -572,8 +566,7 @@ class Fisma
      * @todo this is designed to work with Mysql... would it work with Oracle? Db2? Dunno...
      * @return string A database friendly representation of the current time
      */
-    public static function now() 
-    {
+    public static function now() {
         return date('Y-m-d H:i:s');
     }
 }
