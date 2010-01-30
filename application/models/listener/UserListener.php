@@ -51,20 +51,11 @@ class UserListener extends Doctrine_Record_Listener
         }
         
         if (isset($modified['password'])) {
-            if (empty($user->passwordSalt)) {
-                $user->generateSalt();
-            }
+            $user->generateSalt();
             $user->password        = $user->hash($modified['password']);
             $user->passwordTs      = Fisma::now();
 
-            // Check password history
-            if (strpos($user->passwordHistory, $user->password)) {
-                /**
-                 * @todo Throw a doctrine exception... not enough time to fix the exception handlers right now
-                 */
-                throw new Doctrine_Exception('Your password cannot be the same as any of your previous'
-                                           . ' 3 passwords.');
-            }
+            /** @todo where is the password policy enforcement ? */
             
             // Generate user's password history
             $pwdHistory = $user->passwordHistory;
@@ -83,7 +74,7 @@ class UserListener extends Doctrine_Record_Listener
         }
 
         //@todo can't use $user->lockAccount() which has save function in itsself.
-        if (isset($modified['locked']) && $modified['locked']) {
+        if ($modified['locked']) {
             $user->lockType = User::LOCK_TYPE_MANUAL;
         }
     }

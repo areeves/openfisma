@@ -34,7 +34,6 @@
  * @todo rename this class to "CrudDecorator"
  */
 class Fisma_Form_FismaDecorator extends Zend_Form_Decorator_Abstract
-                                implements Zend_Form_Decorator_Marker_File_Interface
 {
     /**
      * buildLabel() - Create the label for this element.

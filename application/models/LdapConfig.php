@@ -20,7 +20,7 @@
  * @author    Ryan Yang <ryanyang@users.sourceforge.net>
  * @copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/mw/index.php?title=License
- * @version   $Id$
+ * @version   $Id:$
  * @package   Model
  */
  
@@ -35,20 +35,47 @@
  */
 class LdapConfig extends BaseLdapConfig
 {
+    private $_mapLdap = array(
+            'host' => 'host',
+            'port' => 'port',
+            'username' => 'username',
+            'password' => 'password',
+            'useSsl' => 'useSsl',
+            'bindRequiresDn' => 'bindRequiresDn',
+            'baseDn' => 'basedn',
+            'accountFilterFormat' => 'accountFilter',
+            'accountCanonicalForm' => 'accountCanonical',
+            'accountDomainNameShort' => 'domainShort',
+            'accountDomainName' => 'domainName'
+    );
+    
     /**
      *  Retrive the ldap configuration(s)
      *
-     *  @return array all the configurations of LDAP servers. One configuration if the $id is specified.
+     *  @param numeric $id default null the group id of ldap config
+     *  @return array all the configurations of LDAP servers. One configuration 
+     *      if the $id is specified. 
      */
-    public function getLdaps()
+    public function getLdaps($id = null)
     {
-        $ldapConfigs = Doctrine::getTable('LdapConfig')->findAll()->toArray();
-        
-        //Remove the id field from each LDAP configuration item
-        foreach ($ldapConfigs as &$ldapConfig) {
-            unset($ldapConfig['id']);
+        if (is_array($id)) {
+            $q = Doctrine_Query::create()
+                           ->from('LdapConfig lc')
+                           ->whereIn('lc.id', $id);
+            $ldapConfigs = $q->execute();
+        } elseif (is_numeric($id)) {
+            $ldapConfigs[] = Doctrine::getTable('LdapConfig')->find($id);
+        } else {
+            $ldapConfigs = Doctrine::getTable('LdapConfig')->findAll();
         }
-
-        return $ldapConfigs;
+        $ldapData = array();
+        $i = 0;
+        foreach ($ldapConfigs as $ldapConfig) {
+            foreach ($this->_mapLdap as $k => $v) {
+                $ldapData[$i][$k] = $ldapConfig->$v;
+            }
+            $i ++;
+        }
+        return $ldapData;
     }
 }

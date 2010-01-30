@@ -44,20 +44,6 @@ class System extends BaseSystem
     private $_threatLikelihoodMatrix;
 
     /**
-     * Declares fields stored in related records that should be indexed along with records in this table
-     * 
-     * @see Asset.php
-     * @todo Doctrine 2.0 might provide a nicer approach for this
-     */
-    public $relationIndex = array(
-        'Organization' => array(
-            'name' => array('type' => 'unstored', 'alias' => 'name'),
-            'nickname' => array('type' => 'unstored', 'alias' => 'nickname'),
-            'description' => array('type' => 'unstored', 'alias' => 'description')
-        )
-    );
-
-    /**
      * Map the values to Organization table
      */
     public function construct()
@@ -89,7 +75,7 @@ class System extends BaseSystem
         // if the object hasn't identity,
         // then we think it is under the insert status.
         // otherwise it is update status
-        if (empty($this->Organization->id)) {
+        if (empty($this->Organization[0]->id)) {
             $this->state(Doctrine_Record::STATE_TDIRTY);
         } else {
             $this->state(Doctrine_Record::STATE_DIRTY);
@@ -107,7 +93,7 @@ class System extends BaseSystem
         // if the object hasn't identity,
         // then we think it is under the insert status.
         // otherwise it is update status
-        if (empty($this->Organization->id)) {
+        if (empty($this->Organization[0]->id)) {
             $this->state(Doctrine_Record::STATE_TDIRTY);
         } else {
             $this->state(Doctrine_Record::STATE_DIRTY);
@@ -125,7 +111,7 @@ class System extends BaseSystem
         // if the object hasn't identity,
         // then we think it is under the insert status.
         // otherwise it is update status
-        if (empty($this->Organization->id)) {
+        if (empty($this->Organization[0]->id)) {
             $this->state(Doctrine_Record::STATE_TDIRTY);
         } else {
             $this->state(Doctrine_Record::STATE_DIRTY);
@@ -263,7 +249,7 @@ class System extends BaseSystem
      */
     public function delete(Doctrine_Connection $conn = null)
     {
-        $org = $this->Organization;
+        $org = $this->Organization[0];
         return $org->delete($conn);
     }
     
@@ -272,16 +258,6 @@ class System extends BaseSystem
      */
     public function getName() 
     {
-        return $this->Organization->nickname . ' - ' . $this->Organization->name;
-    }
-    
-    /**
-     * A post-update hook to send notifications
-     * 
-     * @param Doctrine_Event $event
-     */
-    public function postUpdate($event)
-    {
-        Notification::notify('SYSTEM_UPDATED', $this->Organization, User::currentUser(), $this->Organization->id);
+        return $this->Organization[0]->nickname . ' - ' . $this->Organization[0]->name;
     }
 }

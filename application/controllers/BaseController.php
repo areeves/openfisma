@@ -88,7 +88,7 @@ abstract class BaseController extends SecurityController
      *
      * @param string $formName
      */
-    public function getForm($formName=null)
+    public function getForm(string $formName=null)
     {
         static $form = null;
         if (is_null($form)) {
@@ -318,8 +318,7 @@ abstract class BaseController extends SecurityController
                         ));
         if (!empty($keywords)) {
             // lucene search 
-            $index = new Fisma_Index($this->_modelName);
-            $ids = $index->findIds($keywords);
+            $ids = Fisma_Lucene::search($keywords, strtolower($this->_modelName));
             if (!empty($ids)) {
                 $query->whereIn('id', $ids);
             } else {

@@ -110,7 +110,7 @@ class Organization extends BaseOrganization
         $cache = Fisma::getCacheInstance('finding_summary');
         $cacheId = $this->getCacheId(array('type' => $type, 'source' => $source));
                      
-        if (!($counts = $cache->load($cacheId))) {
+        if (!$cache->test($cacheId)) {
             // First get all of the business statuses
             $statusList = Finding::getAllStatuses();
 
@@ -126,14 +126,13 @@ class Organization extends BaseOrganization
             unset($counts['single_overdue']['CLOSED']);
         
             // Count the single_ontime and single_overdue
-            $now = new Zend_Date();
             $onTimeQuery = Doctrine_Query::create()
                            ->select('COUNT(*) AS count, f.status, e.nickname')
                            ->from('Finding f')
                            ->leftJoin('f.CurrentEvaluation e')
                            ->innerJoin('f.ResponsibleOrganization o')
                            ->where("f.status <> 'PEND'")
-                           ->andWhere("f.nextDueDate >= ? OR f.nextDueDate IS NULL", $now->toString('Y-m-d'))
+                           ->andWhere("f.nextDueDate >= NOW() OR f.nextDueDate IS NULL")
                            ->andWhere('o.id = ?', array($this->id))
                            ->groupBy('f.status, e.nickname')
                            ->setHydrationMode(Doctrine::HYDRATE_SCALAR);
@@ -154,14 +153,13 @@ class Organization extends BaseOrganization
                 }
             }
             
-            $now = new Zend_Date();
             $overdueQuery = Doctrine_Query::create()
                             ->select('COUNT(*) AS count, f.status, e.nickname')
                             ->from('Finding f')
                             ->leftJoin('f.CurrentEvaluation e')
                             ->innerJoin('f.ResponsibleOrganization o')
                             ->where("f.status <> 'PEND'")
-                            ->andWhere("f.nextDueDate < ?", $now->toString('Y-m-d'))
+                            ->andWhere("f.nextDueDate < NOW()")
                             ->andWhere('o.id = ?', array($this->id))
                             ->groupBy('f.status, e.nickname')
                             ->setHydrationMode(Doctrine::HYDRATE_SCALAR);
@@ -184,9 +182,8 @@ class Organization extends BaseOrganization
             // Recursively get summary counts from each child and add to the running sum
             $counts['all_ontime'] = $counts['single_ontime'];
             $counts['all_overdue'] = $counts['single_overdue'];
-            $children = $this->getNode()->getChildren();
-            if ($children) {
-                $iterator = $children->getNormalIterator();
+            if ($this->getNode()->hasChildren()) {
+                $iterator = $this->getNode()->getChildren()->getNormalIterator();
                 foreach ($iterator as $child) {
                     $childCounts = $child->getSummaryCounts($type, $source);
                     unset($childCounts['all_ontime']['TOTAL']);
@@ -209,6 +206,8 @@ class Organization extends BaseOrganization
             $counts['all_ontime']['TOTAL'] += array_sum($counts['all_overdue']);
             
             $cache->save($counts, $cacheId, array($this->getCacheTag()));
+        } else {
+            $counts = $cache->load($cacheId);
         }
         
         return $counts;
@@ -480,54 +479,5 @@ class Organization extends BaseOrganization
         $stats['privacy'] = $privacyStats;
 
         return $stats;
-    }
-    
-    /**
-     * A post-insert hook to send notifications
-     * 
-     * @param Doctrine_Event $event
-     */
-    public function postInsert($event)
-    {    
-        // This model can generate events for organization objects AND system objects
-        if ('organization' == $this->orgType) {
-            $eventName = 'ORGANIZATION_CREATED';
-        } else {
-            $eventName = 'SYSTEM_CREATED';
-        }
-
-        Notification::notify($eventName, $this, User::currentUser());
-    }
-    
-    /**
-     * A post-update hook to send notifications
-     * 
-     * @param Doctrine_Event $event
-     */
-    public function postUpdate($event)
-    {        
-        // The system model will handle update events on its own, but we need to filter them out here
-        // in case the system model somehow triggers a save() on its related organization object
-        if ('organization' == $this->orgType) {
-            $eventName = 'ORGANIZATION_UPDATED';
-            Notification::notify($eventName, $this, User::currentUser(), $this->id);
-        }
-    }
-
-    /**
-     * A post-delete hook to send notifications
-     * 
-     * @param Doctrine_Event $event
-     */
-    public function postDelete($event)
-    {        
-        // This model can generate events for organization objects AND system objects
-        if ('organization' == $this->orgType) {
-            $eventName = 'ORGANIZATION_DELETED';
-        } else {
-            $eventName = 'SYSTEM_DELETED';
-        }
-        
-        Notification::notify($eventName, $this, User::currentUser());
     }
 }

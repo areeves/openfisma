@@ -1,31 +1,24 @@
 Product:
-    listeners: [XssListener, IndexListener, NotificationListener]
+    listeners: [XssListener, BaseListener]
     
     columns:
         vendor:
             type: string(255)
             extra:
                 purify: plaintext
-                searchIndex: unstored
-                notify: true
             comment: The name of the vendor who brands this product
         name:
             type: string(255)
             extra:
                 purify: plaintext
-                searchIndex: unstored
-                notify: true
             comment: Name of the product
         version:
             type: string(255)
             extra:
                 purify: plaintext
-                searchIndex: keyword
-                notify: true
             comment: Version of the product
         cpeName:
             type: string(255)
             extra:
                 purify: plaintext
-                notify: true
             comment: The common platform enumeration (CPE) for this product, if known

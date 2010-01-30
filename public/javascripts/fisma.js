@@ -193,51 +193,8 @@ function upload_evidence() {
     return false;
 }
 
-function ev_approve(formname){
-    if (!form_confirm(document.finding_detail, 'approve the evidence package')) {
-        return false;
-    }
-
-    var content = document.createElement('div');
-    var p = document.createElement('p');
-    p.appendChild(document.createTextNode('Comments (OPTIONAL):'));
-    content.appendChild(p);
-    var dt = document.createElement('textarea');
-    dt.rows = 5;
-    dt.cols = 60;
-    dt.id = 'dialog_comment';
-    dt.name = 'comment';
-    content.appendChild(dt);
-    var div = document.createElement('div');
-    div.style.height = '20px';
-    content.appendChild(div);
-    var button = document.createElement('input');
-    button.type = 'button';
-    button.id = 'dialog_continue';
-    button.value = 'Continue';
-    content.appendChild(button);
-
-    panel('Evidence Approval', document.finding_detail, '', content.innerHTML);
-    document.getElementById('dialog_continue').onclick = function (){
-        var form2 = formname;
-        if  (document.all) { // IE
-            var comment = document.getElementById('dialog_comment').innerHTML;
-        } else {// firefox
-            var comment = document.getElementById('dialog_comment').value;
-        }
-        form2.elements['comment'].value = comment;
-        form2.elements['decision'].value = 'APPROVED';
-        var submitMsa = document.createElement('input');
-        submitMsa.type = 'hidden';
-        submitMsa.name = 'submit_ea';
-        submitMsa.value = 'APPROVED';
-        form2.appendChild(submitMsa);
-        form2.submit();
-    }
-}
-
 function ev_deny(formname){
-    if (!form_confirm(document.finding_detail, 'deny the evidence package')) {
+    if (!form_confirm(document.finding_detail, 'deny the evidence')) {
         return false;
     }
 
@@ -279,52 +236,8 @@ function ev_deny(formname){
     }
 }
 
-function ms_approve(formname){
-    if (!form_confirm(document.finding_detail, 'approve the mitigation strategy')) {
-        return false;
-    }
-
-    var content = document.createElement('div');
-    var p = document.createElement('p');
-    var c_title = document.createTextNode('Comments (OPTIONAL):');
-    p.appendChild(c_title);
-    content.appendChild(p);
-    var textarea = document.createElement('textarea');
-    textarea.id = 'dialog_comment';
-    textarea.name = 'comment';
-    textarea.rows = 5;
-    textarea.cols = 60;
-    content.appendChild(textarea);
-    var div = document.createElement('div');
-    div.style.height = '20px';
-    content.appendChild(div);
-    var button = document.createElement('input');
-    button.type = 'button';
-    button.id = 'dialog_continue';
-    button.value = 'Continue';
-    content.appendChild(button);
-    
-    panel('Mitigation Strategy Approval', document.finding_detail, '', content.innerHTML);
-    document.getElementById('dialog_continue').onclick = function (){
-        var form2 = formname;
-        if  (document.all) { // IE
-            var comment = document.getElementById('dialog_comment').innerHTML;
-        } else {// firefox
-            var comment = document.getElementById('dialog_comment').value;
-        }
-        form2.elements['comment'].value = comment;
-        form2.elements['decision'].value = 'APPROVED';
-        var submitMsa = document.createElement('input');
-        submitMsa.type = 'hidden';
-        submitMsa.name = 'submit_msa';
-        submitMsa.value = 'APPROVED';
-        form2.appendChild(submitMsa);
-        form2.submit();
-    }
-}
-
-function ms_deny(formname){
-    if (!form_confirm(document.finding_detail, 'deny the mitigation strategy')) {
+function ms_comment(formname){
+    if (!form_confirm(document.finding_detail, 'deny the mitigation')) {
         return false;
     }
 
@@ -485,65 +398,54 @@ function addBookmark(title, url){
 }
 
 /**
- * A hastily written helper function for highlightWord() that iterates over an array of keywords
- */
-function highlight(node, keywords) {
-    // Sometimes keyword is blank... in that case, just return
-    if ('' == keywords) {
-        return;
-    }
-    
-    // Sort in reverse. If a word is a fragment of another word on this list, it will highlight the larger
-    // word first
-    keywords.sort();
-    keywords.reverse();
-
-    // Highlight each word
-    for (var i in keywords) {
-        highlightWord(node, keywords[i]);
-    }
-}
-
-/**
- * Recursively searches the dom for a keyword and highlights it by appliying a class selector called
- * 'highlight'
+ * Highlights search results according to the keywords which were used to search
  *
  * @param node object
  * @param keyword string
  */ 
-function highlightWord(node, keyword) {
-	// Iterate into this nodes childNodes
-	if (node && node.hasChildNodes) {
-		var hi_cn;
-		for (hi_cn=0;hi_cn<node.childNodes.length;hi_cn++) {
-			highlightWord(node.childNodes[hi_cn],keyword);
-		}
-	}
+function highlight(node,keywords) {
+    if (!keywords) {
+        return true;
+    }
 
-	// And do this node itself
-	if (node && node.nodeType == 3) { // text node
-		tempNodeVal = node.nodeValue.toLowerCase();
-		tempWordVal = keyword.toLowerCase();
-		if (tempNodeVal.indexOf(tempWordVal) != -1) {
-			pn = node.parentNode;
-			if (pn.className != "highlight") {
-				// keyword has not already been highlighted!
-				nv = node.nodeValue;
-				ni = tempNodeVal.indexOf(tempWordVal);
-				// Create a load of replacement nodes
-				before = document.createTextNode(nv.substr(0,ni));
-				docWordVal = nv.substr(ni,keyword.length);
-				after = document.createTextNode(nv.substr(ni+keyword.length));
-				hiwordtext = document.createTextNode(docWordVal);
-				hiword = document.createElement("span");
-				hiword.className = "highlight";
-				hiword.appendChild(hiwordtext);
-				pn.insertBefore(before,node);
-				pn.insertBefore(hiword,node);
-				pn.insertBefore(after,node);
-				pn.removeChild(node);
+    // Remove special chars
+	keywords = keywords.split(' ');
+	for (var i in keywords) {
+		keyword = keywords[i];
+
+		// Iterate into this nodes childNodes
+		if (node && node.hasChildNodes) {
+			var hi_cn;
+			for (hi_cn=0;hi_cn<node.childNodes.length;hi_cn++) {
+				highlight(node.childNodes[hi_cn],keyword);
 			}
 		}
+
+		// And do this node itself
+		if (node && node.nodeType == 3) { // text node
+			tempNodeVal = node.nodeValue.toLowerCase();
+			tempWordVal = keyword.toLowerCase();
+			if (tempNodeVal.indexOf(tempWordVal) != -1) {
+				pn = node.parentNode;
+				if (pn.className != "highlight") {
+					// keyword has not already been highlighted!
+					nv = node.nodeValue;
+					ni = tempNodeVal.indexOf(tempWordVal);
+					// Create a load of replacement nodes
+					before = document.createTextNode(nv.substr(0,ni));
+					docWordVal = nv.substr(ni,keyword.length);
+					after = document.createTextNode(nv.substr(ni+keyword.length));
+					hiwordtext = document.createTextNode(docWordVal);
+					hiword = document.createElement("span");
+					hiword.className = "highlight";
+					hiword.appendChild(hiwordtext);
+					pn.insertBefore(before,node);
+					pn.insertBefore(hiword,node);
+					pn.insertBefore(after,node);
+					pn.removeChild(node);
+				}
+			}
+    	}
 	}
 }
 
@@ -609,29 +511,21 @@ function form_confirm (check_form, action) {
             if (e_type == 'text' || e_type == 'password') {
                 var _v = elements[i].getAttribute('_value');
                 if(typeof(_v) == 'undefined')   _v = '';
-                if(_v != elements[i].value) {
-                    ; //this logic is broken... needs a complete rewrite
-                }
+                if(_v != elements[i].value) changed = true;
             }
             if (e_type == 'checkbox' || e_type == 'radio') {
                 var _v = elements[i].checked ? 'on' : 'off';  
-                if(_v != elements[i].getAttribute('_value')) {
-                    changed = true;  
-                }
+                if(_v != elements[i].getAttribute('_value')) changed = true;  
             }
         } else if (tag_name == 'SELECT') {
             var _v = elements[i].getAttribute('_value');    
             if(typeof(_v) == 'undefined')   _v = '';    
-            if(_v != elements[i].options[elements[i].selectedIndex].value) {
-                changed = true;  
-            }
+            if(_v != elements[i].options[elements[i].selectedIndex].value) changed = true;  
         } else if (tag_name == 'TEXTAREA') {
             var _v = elements[i].getAttribute('_value');
             if(typeof(_v) == 'undefined')   _v = '';
             var textarea_val = elements[i].value ? elements[i].value : elements[i].innerHTML;
-            if(_v != textarea_val) {
-                changed = true;
-            }
+            if(_v != textarea_val) changed = true;
         }
     }
 
@@ -681,9 +575,7 @@ function panel(title, parent, src, html, callback) {
                                                 // Re-center the panel (because the content has changed)
                                                 o.argument.center();
                                                 
-                                                if (callback) {
-                                                    callback();
-                                                }
+                                                callback();
                                             },
                                             failure: function(o) {alert('Failed to load the specified panel.');},
                                             argument: newPanel

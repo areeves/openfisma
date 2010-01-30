@@ -53,11 +53,6 @@ Configuration:
         name: smtp_port
         value: 25
         description: Smtp server port
-        
-    smtp_tls:
-        name: smtp_tls
-        value: 0
-        description: Use Transport Layer Security (TLS)           
 
     unlock_enabled:
         name: unlock_enabled
@@ -161,5 +156,5 @@ Configuration:
         
     host_url:
         name: host_url
-        value: "openfisma.agency.gov"
-        description: This is used to construct self-referencing URLs in non-HTTP contexts. The installer should overwrite this value.
+        value: "https://openfisma.agency.gov"
+        description: The URL which OpenFISMA uses to refer to itself

@@ -58,18 +58,12 @@ class AssetController extends BaseController
                                      'pro_version'=> 'Version');
 
     /**
-     * Invokes a contract with BaseController regarding privileges. 
-     * @link http://jira.openfisma.org/browse/OFJ-24
-     * @var string
-     */
-    protected $_organizations = '*';
-
-    /**
      * init() - Initialize internal members.
      */
     function init()
     {
         parent::init();
+        $this->_organizations = '*';
         
         $swCtx = $this->_helper->contextSwitch();
         if (!$swCtx->hasContext('pdf')) {
@@ -105,7 +99,7 @@ class AssetController extends BaseController
     /**
      * Get the specific form of the subject model
      */
-    public function getForm($formName=null)
+    public function getForm()
     {
         $form = Fisma_Form_Manager::loadForm($this->_modelName);
         

@@ -54,7 +54,7 @@ class SystemDocumentController extends SecurityController
     public function viewAction()
     {
         $document = Doctrine::getTable('SystemDocument')->find($this->getRequest()->getParam('id'));
-        $organization = $document->System->Organization->nickname;
+        $organization = $document->System->Organization[0]->nickname;
         Fisma_Acl::requirePrivilege('system', 'read', $organization);
 
         $historyQuery = Doctrine_Query::create()
@@ -123,8 +123,8 @@ class SystemDocumentController extends SecurityController
                             'records'         => array()
                         ));
         if (!empty($keywords)) {
-            $index = new Fisma_Index('SystemDocument');
-            $ids = $index->findIds($keywords);
+            // lucene search 
+            $ids = Fisma_Lucene::search($keywords, strtolower('SystemDocument'));
             if (!empty($ids)) {
                 $ids = implode(',', $ids);
                 $query->where('id IN (' . $ids . ')');

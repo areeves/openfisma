@@ -7,11 +7,11 @@ LdapConfig:
             extra:
                 purify: plaintext
         port: integer(2)
-        accountDomainName:
+        domainName:
             type: string(255)
             extra:
                 purify: plaintext
-        accountDomainNameShort:
+        domainShort:
             type: string(255)
             extra:
                 purify: plaintext
@@ -25,16 +25,15 @@ LdapConfig:
             type: string(255)
             extra: 
                 purify: html
-        baseDn: 
+        basedn: 
             type: string
             extra:
                 purify: plaintext 
         # Account filter is not plaintext purified either, for the reason as the password field      
-        accountFilterFormat: 
+        accountFilter: 
             type: string(255)
             extra:
                 purify: html
-        accountCanonicalForm: string(255)
+        accountCanonical: string(255)
         bindRequiresDn: boolean
         useSsl: boolean
-        useStartTls: boolean

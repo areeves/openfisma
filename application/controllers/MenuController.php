@@ -94,10 +94,6 @@ class MenuController extends SecurityController
                 $systems->add(new Fisma_Yui_MenuItem('Assets', '/panel/asset/sub/list'));
             }
 
-            if (Fisma_Acl::hasPrivilege('organization', 'read')) {
-                $systems->add(new Fisma_Yui_MenuItem('Organizations', '/panel/organization/sub/tree'));
-            }
-
             $systems->add(new Fisma_Yui_MenuItem('Documentation', '/panel/system-document/sub/list'));
             
             $menubar->add($systems);
@@ -121,7 +117,7 @@ class MenuController extends SecurityController
                 $admin->add(new Fisma_Yui_MenuItem('Configuration', '/panel/config'));
             }
 
-            if (Fisma_Acl::hasPrivilege('source', 'read')) {
+            if (Fisma_Acl::hasPrivilege('finding_source', 'read')) {
                 $admin->add(new Fisma_Yui_MenuItem('Finding Sources', '/panel/source/sub/list'));
             }
 
@@ -137,6 +133,10 @@ class MenuController extends SecurityController
                 $admin->add(new Fisma_Yui_MenuItem('Roles', '/panel/role/sub/list'));
             }
 
+            if (Fisma_Acl::hasPrivilege('organization', 'read')) {
+                $admin->add(new Fisma_Yui_MenuItem('Organizations', '/panel/organization/sub/list'));
+            }
+
             if (Fisma_Acl::hasPrivilege('user', 'read')) {
                 $admin->add(new Fisma_Yui_MenuItem('Users', '/panel/account/sub/list'));
             }
@@ -147,8 +147,7 @@ class MenuController extends SecurityController
         $preferences = new Fisma_Yui_Menu('User Preferences');
         
         $preferences->add(new Fisma_Yui_MenuItem('Profile', '/panel/user/sub/profile'));
-        if ('database' == Configuration::getConfig('auth_type')
-            || 'root' == User::currentUser()->username) {
+        if ('database' == Configuration::getConfig('auth_type')) {
             $preferences->add(new Fisma_Yui_MenuItem('Change Password', '/panel/user/sub/password'));
         }
         $preferences->add(new Fisma_Yui_MenuItem('E-mail Notifications', '/panel/user/sub/notification'));

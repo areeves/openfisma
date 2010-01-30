@@ -1016,9 +1016,9 @@ class Doctrine_Node_NestedSet extends Doctrine_Node implements Doctrine_Node_Int
             // update level for descendants
             $q = new Doctrine_Query();
             $q = $q->update($componentName)
-                    ->set($componentName . '.level', $componentName.'.level + ?', $levelDiff)
+                    ->set($componentName . '.level', $componentName.'.level + ?')
                     ->where($componentName . '.lft > ? AND ' . $componentName . '.rgt < ?',
-                            array($left, $right));
+                            array($levelDiff, $left, $right));
             $q = $this->_tree->returnQueryWithRootId($q, $rootId);
             $q->execute();
 

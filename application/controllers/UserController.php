@@ -51,11 +51,14 @@ class UserController extends BaseController
     /**
      * Get the specific form of the subject model
      */
-    public function getForm($formName = null) 
+    public function getForm() 
     {
         $form = Fisma_Form_Manager::loadForm('account');
-        if ('create' == $this->_request->getActionName()) {
-            $form->getElement('password')->setRequired(true);
+        if (in_array($this->_request->getActionName(), array('create', 'edit'))) {
+            if ('create' == $this->_request->getActionName()) {
+                $form->getElement('password')->setRequired(true);
+            }
+            $this->view->requirements =  $this->_getPasswordRequirements();
         }
         $roles  = Doctrine_Query::create()
                     ->select('*')
@@ -78,12 +81,9 @@ class UserController extends BaseController
                                              $organization['level']);
             }
         }
-        if ('database' == Configuration::getConfig('auth_type')) {
+        if (Configuration::getConfig('auth_type') == 'database') {
             $form->removeElement('checkAccount');
-            $this->view->requirements =  $this->_getPasswordRequirements();
         } else {
-            $form->removeElement('password');
-            $form->removeElement('confirmPassword');
             $form->removeElement('generate_password');
         }
         
@@ -210,7 +210,7 @@ class UserController extends BaseController
     public function passwordAction()
     {
         // This action isn't allowed unless the system's authorization is based on the database
-        if ('database' != Configuration::getConfig('auth_type') && 'root' != User::currentUser()->username) {
+        if ('database' != Configuration::getConfig('auth_type')) {
             throw new Fisma_Exception('Password action is not allowed when the authentication type is not "database"');
         }
         
@@ -231,6 +231,7 @@ class UserController extends BaseController
                     $message = "Password updated successfully."; 
                     $model   = self::M_NOTICE;
                 } catch (Doctrine_Exception $e) {
+                    Doctrine_Manager::connection()->rollback();
                     $message = $e->getMessage();
                     $model   = self::M_WARNING;
                 }
@@ -263,6 +264,7 @@ class UserController extends BaseController
 
                 $user->unlink('Events');
                 $user->link('Events', $postEvents);
+                $user->getTable()->getRecordListener()->get('BaseListener')->setOption('disabled', true);
                 $user->save();
                 Doctrine_Manager::connection()->commit();
 
@@ -319,7 +321,7 @@ class UserController extends BaseController
     public function setColumnPreferenceAction()
     {
         $me = Doctrine::getTable('User')->find($this->_me->id);
-        $me->searchColumnsPref = Fisma_Cookie::get($_COOKIE, 'search_columns_pref');
+        $me->searchColumnsPref = $_COOKIE['search_columns_pref'];
         $me->getTable()->getRecordListener()->setOption('disabled', true);
         $me->save();
         $this->_helper->layout->setLayout('ajax');
@@ -332,6 +334,7 @@ class UserController extends BaseController
      */
     public function acceptRobAction() {
         $user = User::currentUser();
+        $user->getTable()->getRecordListener()->get('BaseListener')->setOption('disabled', true);
         $user->lastRob = Fisma::now();
         $user->save();
         $this->_forward('index', 'Panel');
