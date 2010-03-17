@@ -1,13 +1,9 @@
 Comment:
-    listeners: [XssListener]
-        
     columns:
         createdTs: timestamp
         
         content:
             type: string(255)
-            extra:
-                purify: html
             comment: The text of the comment
         
         findingEvaluationId: integer

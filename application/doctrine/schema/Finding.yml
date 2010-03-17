@@ -1,5 +1,5 @@
 Finding:
-    listeners: [XssListener, IndexListener, NotificationListener]
+    listeners: [IndexListener, NotificationListener]
     
     columns:
         createdTs: timestamp
@@ -25,7 +25,6 @@ Finding:
             type: string(255)
             unique: true
             extra: 
-                purify: plaintext
                 auditLog: true
                 logicalName: Legacy Finding ID
                 searchIndex: unstored
@@ -54,7 +53,6 @@ Finding:
         description:
             type: string
             extra: 
-                purify: html
                 auditLog: true
                 logicalName: Finding Description
                 searchIndex: unstored
@@ -62,7 +60,6 @@ Finding:
         recommendation:
             type: string
             extra: 
-                purify: html
                 auditLog: true
                 logicalName: Recommendation
                 searchIndex: unstored
@@ -70,7 +67,6 @@ Finding:
         mitigationStrategy:
             type: string
             extra: 
-                purify: html
                 auditLog: true
                 logicalName: Mitigation Strategy
                 searchIndex: unstored
@@ -78,7 +74,6 @@ Finding:
         resourcesRequired:
             type: string
             extra: 
-                purify: html
                 auditLog: true
                 logicalName: Resources Required
                 searchIndex: unstored
@@ -105,14 +100,12 @@ Finding:
             extra:
                 auditLog: true
                 logicalName: Justification for modifying ECD
-                purify: plaintext
             comment: If the current ECD needs to be changed, then this field holds the user\'s justification for changing it
         actualCompletionDate:
             type: date                              
         threat:
             type: string
             extra: 
-                purify: html
                 auditLog: true
                 logicalName: Description of Threat Source
                 searchIndex: unstored
@@ -128,7 +121,6 @@ Finding:
         countermeasures:
             type: string
             extra: 
-                purify: html
                 auditLog: true
                 logicalName: Description of Countermeasures
                 searchIndex: unstored

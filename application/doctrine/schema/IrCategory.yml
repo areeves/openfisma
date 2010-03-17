@@ -1,6 +1,4 @@
 IrCategory:
-    listeners: [XssListener]
-    
     columns:
         createdTs: 
             type: timestamp
@@ -8,12 +6,8 @@ IrCategory:
             type: timestamp
         name: 
             type: string(255)
-            extra:
-                purify: plaintext
         description:
             type: string
-            extra: 
-                purify: html
         category:
             type: enum
             values: ['CAT0','CAT1','CAT2','CAT3','CAT4','CAT5','CAT6']
