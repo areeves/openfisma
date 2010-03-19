@@ -3,7 +3,7 @@
 echo $this->partial('user/searchbox.phtml');
 $operation = "[<a href='{$this->viewLink}'>View</a>]";
 
-if (Fisma_Acl::hasPrivilegeForObject('read', $this->subject)) {
+if ($this->readUserObjPrivilege) {
     $operation .= "&nbsp;&nbsp;[<a href='{$this->auditLogLink}'>Audit Log</a>]";
 }
 

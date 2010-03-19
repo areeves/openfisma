@@ -260,6 +260,18 @@ class UserController extends BaseController
     }
 
     /**
+     * List user accounts
+     *
+     * @return void
+     */
+    public function listAction()
+    {
+        $this->view->readUserPrivilege = Fisma_Acl::hasPrivilegeForClass('read', 'User');
+        $this->view->createUserPrivilege = Fisma_Acl::hasPrivilegeForClass('create', 'User');
+        parent::listAction();
+    }
+
+    /**
      * Change user's password
      * 
      * @return void
@@ -401,6 +413,12 @@ class UserController extends BaseController
     {
         $id = $this->getRequest()->getParam('id');
         $this->view->auditLogLink = "/panel/user/sub/log/id/$id";
+
+        $user = Doctrine::getTable('User')->find($id);
+        $this->view->createUserPrivilege = Fisma_Acl::hasPrivilegeForClass('create', 'User');
+        $this->view->createUserObjPrivilege = Fisma_Acl::hasPrivilegeForObject('create', $user);
+        $this->view->updateUserObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $user);
+        $this->view->deleteUserObjPrivilege = Fisma_Acl::hasPrivilegeForObject('delete', $user);
     
         parent::viewAction();
     }
@@ -412,6 +430,10 @@ class UserController extends BaseController
     {
         $id = $this->getRequest()->getParam('id');
         $this->view->auditLogLink = "/panel/user/sub/log/id/$id";
+
+        $user = Doctrine::getTable('User')->find($id);
+        $this->view->createUserPrivilege = Fisma_Acl::hasPrivilegeForClass('create', 'User');
+        $this->view->viewUserObjPrivilege = Fisma_Acl::hasPrivilegeForObject('read', $user);
 
         try {
             parent::editAction();
