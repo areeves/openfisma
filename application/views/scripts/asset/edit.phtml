@@ -1,5 +1,5 @@
 <?php 
-echo $this->partial('asset/navibar.phtml');
+echo $this->partial('asset/navibar.phtml', array('createAssetPrivilege' => $this->createAssetPrivilege));
 Fisma_Format_Section::startSection("Product Information</b> [<a href='{$this->viewLink}'>View</a>]"); ?>
 
 <div class="form_box">

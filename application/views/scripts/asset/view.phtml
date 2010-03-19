@@ -1,11 +1,10 @@
 <?php
-echo $this->partial('asset/navibar.phtml');
+echo $this->partial('asset/navibar.phtml', array('createAssetPrivilege' => $this->createAssetPrivilege));
 $operation = '';
-$asset = Doctrine::getTable('Asset')->find($this->id);
-if (Fisma_Acl::hasPrivilegeForObject('update', $asset)) {
+if ($this->updateAssetPrivilege) {
     $operation .= "[<a href='{$this->editLink}'>Edit</a>]";
 }
-if (Fisma_Acl::hasPrivilegeForObject('delete', $asset)) {
+if ($this->deleteAssetPrivilege) {
     $operation .= "&nbsp;&nbsp;[<a href='{$this->deleteLink}'>Delete</a>]";
 }
 Fisma_Format_Section::startSection("Asset $operation"); ?>
