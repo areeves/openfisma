@@ -1,5 +1,5 @@
 <?php 
-echo $this->partial('network/searchbox.phtml');
+echo $this->partial('network/searchbox.phtml', array('createNetworkPrivilege' => $this->createNetworkPrivilege));
 Fisma_Format_Section::startSection("Edit Network Information</b> [<a href='{$this->viewLink}'>View</a>]"); ?>
 
 <div class="form_box">

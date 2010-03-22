@@ -433,7 +433,7 @@ class UserController extends BaseController
 
         $user = Doctrine::getTable('User')->find($id);
         $this->view->createUserPrivilege = Fisma_Acl::hasPrivilegeForClass('create', 'User');
-        $this->view->viewUserObjPrivilege = Fisma_Acl::hasPrivilegeForObject('read', $user);
+        $this->view->readUserObjPrivilege = Fisma_Acl::hasPrivilegeForObject('read', $user);
 
         try {
             parent::editAction();

@@ -1,5 +1,11 @@
 <?php 
-echo $this->partial('product/searchbox.phtml', array('keywords' => $this->keywords));
+echo $this->partial(
+    'product/searchbox.phtml',
+    array(
+        'keywords' => $this->keywords,
+        'createProductPrivilege' => $this->createProductPrivilege
+    )
+);
 Fisma_Format_Section::startSection("Product List <span id='searchResultsTotalFound'></span>"); 
 ?>
 <div id="list"></div>
@@ -74,7 +80,7 @@ var myColumnDefs = [
     myDataTable.subscribe("rowMouseoutEvent", myDataTable.onEventUnhighlightRow);
 
     <?php 
-    if (Fisma_Acl::hasPrivilegeForClass('read', 'Product')): 
+    if ($this->readProductPrivilege): 
     ?>
         myDataTable.subscribe("rowClickEvent", 
             function (oArgs) {

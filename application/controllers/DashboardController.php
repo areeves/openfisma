@@ -160,6 +160,8 @@ class DashboardController extends SecurityController
             $this->view->notifications = $user->Notifications;
             $this->view->dismissUrl = "/panel/dashboard/dismiss/notifications";
         }
+
+        $this->view->approveFindingPrivilege = Fisma_Acl::hasPrivilegeForClass('approve', 'Finding');
     }
     
     /**

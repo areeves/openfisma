@@ -1,6 +1,6 @@
 <script type="text/javascript" src="/javascripts/account.js"></script>
 <?php 
-echo $this->partial('user/searchbox.phtml');
+echo $this->partial('user/searchbox.phtml', array('createUserPrivilege' => $this->createUserPrivilege));
 $operation = "[<a href='{$this->viewLink}'>View</a>]";
 
 if ($this->readUserObjPrivilege) {

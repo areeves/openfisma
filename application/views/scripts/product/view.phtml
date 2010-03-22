@@ -1,11 +1,11 @@
 <?php
-echo $this->partial('product/searchbox.phtml');
+echo $this->partial('product/searchbox.phtml', array('createProductPrivilege' => $this->createProductPrivilege));
 
 $operation = '';
-if (Fisma_Acl::hasPrivilegeForObject('update', $this->subject)) {
+if ($this->updateProductObjPrivilege) {
     $operation .= "[<a href='{$this->editLink}'>Edit</a>]";
 }
-if (Fisma_Acl::hasPrivilegeForObject('delete', $this->subject)) {
+if ($this->deleteProductObjPrivilege) {
     $operation .= "&nbsp;&nbsp;[<a href='{$this->deleteLink}'>Delete</a>]";
 }
 Fisma_Format_Section::startSection("Product Information $operation"); ?>

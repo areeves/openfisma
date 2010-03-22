@@ -145,6 +145,7 @@ class OrganizationController extends SecurityController
         Fisma_Acl::requirePrivilegeForClass('read', 'Organization');
         $keywords = trim($this->_request->getParam('keywords'));
         $this->view->assign('keywords', $keywords);
+        $this->view->createOrganizationPrivilege = Fisma_Acl::hasPrivilegeForClass('create', 'Organization');
         $this->render('searchbox');
     }
 
@@ -234,6 +235,8 @@ class OrganizationController extends SecurityController
         $v = $this->_request->getParam('v', 'view');
         
         $organization = Doctrine::getTable('Organization')->find($id);
+        $this->view->updateOrganizationObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $organization);
+        $this->view->deleteOrganizationObjPrivilege = Fisma_Acl::hasPrivilegeForObject('delete', $organization);
         
         $form = $this->_getOrganizationForm($organization);
         

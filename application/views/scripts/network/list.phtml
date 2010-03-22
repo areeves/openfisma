@@ -1,5 +1,11 @@
 <?php
-echo $this->partial('network/searchbox.phtml', array('keywords' => $this->keywords));
+echo $this->partial(
+    'network/searchbox.phtml',
+    array(
+        'keywords' => $this->keywords,
+        'createNetworkPrivilege' => $this->createNetworkPrivilege
+    )
+);
 Fisma_Format_Section::startSection("Network List <span id='searchResultsTotalFound'></span>"); 
 ?>
 <div id="list"></div>

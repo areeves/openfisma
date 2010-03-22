@@ -539,6 +539,8 @@ class IncidentController extends SecurityController
 
         $this->view->assign('keywords', $this->_request->getParam('keywords'));
 
+        $this->view->readIncidentPrivilege = Fisma_Acl::hasPrivilegeForClass('read', 'incident');
+
         $this->render('list');
     }
 
@@ -625,6 +627,7 @@ class IncidentController extends SecurityController
         
         $incident = Doctrine::getTable('Incident')->find($id);
         $this->view->incident = $incident;
+        $this->view->updateIncidentObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $incident);
 
         Fisma_Acl::requirePrivilegeForObject('read', $incident);
                 
@@ -677,6 +680,7 @@ class IncidentController extends SecurityController
         $this->view->assign('id', $id);
 
         $incident = Doctrine::getTable('Incident')->find($id);
+        $this->view->updateIncidentPrivilege = Fisma_Acl::hasPrivilegeForClass('update', 'incident');
 
         Fisma_Acl::requirePrivilegeForObject('read', $incident);
         
@@ -861,6 +865,7 @@ class IncidentController extends SecurityController
         
         $incident = Doctrine::getTable('Incident')->find($id);
         $this->view->incident = $incident;
+        $this->view->updateIncidentObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $incident);
 
         $stepsQuery = Doctrine_Query::create()
                       ->from('IrIncidentWorkflow iw')

@@ -65,6 +65,7 @@ class IrCategoryController extends SecurityController
         $this->searchbox();
         $this->view->assign('pageInfo', $this->_paging);
         $this->view->assign('link', $link);
+        $this->view->readIrCategoryPrivilege = Fisma_Acl::hasPrivilegeForClass('read', 'IrCategory');
         
         $this->view->initialRequestUrl = $link
                                        . '/sortby/name/order/asc/startIndex/0/count/'
@@ -138,6 +139,7 @@ class IrCategoryController extends SecurityController
         
         $keywords = trim($this->_request->getParam('keywords'));
         $this->view->assign('keywords', $keywords);
+        $this->view->createIrCategoryPrivilege = Fisma_Acl::hasPrivilegeForClass('create', 'IrCategory');
         $this->render('searchbox');
     }
     
@@ -217,6 +219,8 @@ class IrCategoryController extends SecurityController
         $form->setDefaults($ircategory);
         $this->view->form = $form;
         $this->view->assign('id', $id);
+        $this->view->updateIrCategoryPrivilege = Fisma_Acl::hasPrivilegeForClass('update', 'IrCategory');
+        $this->view->deleteIrCategoryPrivilege = Fisma_Acl::hasPrivilegeForClass('delete', 'IrCategory');
         $this->render($v);
     }
     
@@ -486,6 +490,8 @@ class IrCategoryController extends SecurityController
         $form->setDefaults($irsubcategory);
         $this->view->form = $form;
         $this->view->assign('id', $id);
+        $this->view->updateIrCategoryPrivilege = Fisma_Acl::hasPrivilegeForClass('update', 'IrCategory');
+        $this->view->deleteIrCategoryPrivilege = Fisma_Acl::hasPrivilegeForClass('delete', 'IrCategory');
         $this->render($v);
     }
     

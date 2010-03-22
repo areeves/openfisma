@@ -70,4 +70,44 @@ class NetworkController extends BaseController
         $this->_forward('list');
     }
 
+    /**
+     * Override parent->viewAction()
+     *
+     * @return void
+     */
+    public function viewAction()
+    {
+        $id = $this->getRequest()->getParam('id');
+        $network = Doctrine::getTable('Network')->find($id);
+
+        $this->view->createNetworkPrivilege    = Fisma_Acl::hasPrivilegeForClass('create', 'Network');
+        $this->view->updateNetworkObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $network);
+        $this->view->deleteNetworkObjPrivilege = Fisma_Acl::hasPrivilegeForObject('delete', $network);
+
+        parent::viewAction();
+    }
+
+    /**
+     * Override parent->editAction()
+     *
+     * @return void
+     */
+    public function editAction()
+    {
+        $this->view->createNetworkPrivilege = Fisma_Acl::hasPrivilegeForClass('create', 'Network');
+
+        parent::listAction();
+    }
+    
+    /**
+     * Override parent->listAction()
+     *
+     * @return void
+     */
+    public function listAction()
+    {
+        $this->view->createNetworkPrivilege = Fisma_Acl::hasPrivilegeForClass('create', 'Network');
+
+        parent::listAction();
+    }
 }

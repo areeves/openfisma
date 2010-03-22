@@ -1,9 +1,9 @@
 <?php
 $operation = '';
-if (Fisma_Acl::hasPrivilegeForClass('update', 'IrCategory')) {
+if ($this->updateIrCategoryPrivilege) {
     $operation .= "[<a href='{$this->editLink}'>Edit</a>]";
 }
-if (Fisma_Acl::hasPrivilegeForClass('delete', 'IrCategory')) {
+if ($this->deleteIrCategoryPrivilege) {
     $operation .= "&nbsp;&nbsp;[<a href='{$this->deleteLink}'>Delete</a>]";
 }
 Fisma_Format_Section::startSection("Category Information</b> $operation"); ?>
