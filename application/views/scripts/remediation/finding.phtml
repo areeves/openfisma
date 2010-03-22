@@ -75,7 +75,7 @@
                      href="/metainfo/list/o/organization/format/html/"
                      <?php
                      if (('NEW' == $status || 'DRAFT' == $status)
-                         && Fisma_Acl::hasPrivilegeForObject('update_assignment', $finding)) {
+                         && $this->updateAssignmentFindingObjPrivilege) {
                          echo 'class="editable" target="organization"'; 
                      }
                      ?>>
@@ -91,7 +91,7 @@
 <div class="column right">
     <?php 
         Fisma_Format_Section::startSection("Asset");
-        if (Fisma_Acl::hasPrivilegeForObject('read', $finding->Asset)):
+        if ($this->readFindingAssetObjPrivilege):
     ?>
     <table class="keyValues">
         <tr>
@@ -155,7 +155,7 @@
 <div class="clear"></div>
 
 <?php 
-if (Fisma_Acl::hasPrivilegeForObject('update_description', $finding)
+if ($this->updateDescriptionFindingObjPrivilege
     && ('NEW' == $status || 'DRAFT' == $status)) {
     Fisma_Format_Section::startSection('Description', 'finding_description');
 } else {
@@ -169,7 +169,7 @@ if (Fisma_Acl::hasPrivilegeForObject('update_description', $finding)
 
 <?php
 if (('NEW' == $status || 'DRAFT' == $status)
-    && Fisma_Acl::hasPrivilegeForObject('update_recommendation', $finding)) {
+    && $this->updateRecommendationFindingObjPrivilege) {
     Fisma_Format_Section::startSection('Recommendation', 'recommendation');
 } else {
     Fisma_Format_Section::startSection('Recommendation');

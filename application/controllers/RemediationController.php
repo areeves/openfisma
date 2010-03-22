@@ -650,6 +650,7 @@ class RemediationController extends SecurityController
         $this->view->finding = $finding;
         
         Fisma_Acl::requirePrivilegeForObject('read', $finding);
+        $this->view->updateFindingObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update_*', $finding);
 
         $tabView = new Fisma_Yui_TabView('FindingView', $id);
 
@@ -974,6 +975,15 @@ class RemediationController extends SecurityController
         $this->_viewFinding();
         $this->view->keywords = $this->_request->getParam('keywords');
         $this->_helper->layout->setLayout('ajax');
+        $id = $this->_request->getParam('id');
+        $finding = Doctrine::getTable('Finding')->find($id);
+        $this->view->updateAssignmentFindingObjPrivilege =
+            Fisma_Acl::hasPrivilegeForObject('update_assignment', $finding);
+        $this->view->updateDescriptionFindingObjPrivilege =
+            Fisma_Acl::hasPrivilegeForObject('update_description', $finding);
+        $this->view->updateRecommendationFindingObjPrivilege =
+            Fisma_Acl::hasPrivilegeForObject('update_recommendation', $finding);
+        $this->view->readFindingAssetObjPrivilege = Fisma_Acl::hasPrivilegeForObject('read', $finding->Asset);
     }
 
     /**
@@ -985,6 +995,21 @@ class RemediationController extends SecurityController
     {
         $this->_viewFinding();
         $this->_helper->layout->setLayout('ajax');
+        $id = $this->_request->getParam('id');
+        $finding = Doctrine::getTable('Finding')->find($id);
+        $this->view->updateTypeFindingObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update_type', $finding);
+        $this->view->updateCourseOfActionFindingObjPrivilege =
+            Fisma_Acl::hasPrivilegeForObject('update_course_of_action', $finding);
+        $this->view->updateResourcesFindingObjPrivilege =
+            Fisma_Acl::hasPrivilegeForObject('update_resources', $finding);
+        $this->view->mitigationStrategySubmitFindingObjPrivilege =
+            Fisma_Acl::hasPrivilegeForObject('mitigation_strategy_submit', $finding);
+        $this->view->mitigationStrategyReviseFindingObjPrivilege =
+            Fisma_Acl::hasPrivilegeForObject('mitigation_strategy_revise', $finding);
+        if ($finding->currentEvaluationId != null) {
+            $action = $finding->CurrentEvalution->Privilege->action;
+            $this->view->findingCurrentEvalutionPrivilege = Fisma_Acl::hasPrivilegeForObject($action, $finding);
+        }
     }
 
     /**
@@ -997,6 +1022,12 @@ class RemediationController extends SecurityController
         $this->_viewFinding();
         $this->view->keywords = $this->_request->getParam('keywords');
         $this->_helper->layout->setLayout('ajax');
+        $id = $this->_request->getParam('id');
+        $finding = Doctrine::getTable('Finding')->find($id);
+        $this->view->readFindingObjPrivilege = Fisma_Acl::hasPrivilegeForObject('read', $finding);
+        $this->view->updateThreatFindingObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update_threat', $finding);
+        $this->view->updateCountermeasuresFindingObjPrivilege =
+            Fisma_Acl::hasPrivilegeForObject('update_countermeasures', $finding);
     }
 
     /**
@@ -1008,6 +1039,13 @@ class RemediationController extends SecurityController
     {
         $this->_viewFinding();
         $this->_helper->layout->setLayout('ajax');
+        $id = $this->_request->getParam('id');
+        $finding = $this->_getFinding($id);
+        if ($finding->currentEvaluationId != null) {
+            $action = $finding->CurrentEvalution->Privilege->action;
+            $this->view->findingCurrentEvalutionPrivilege = Fisma_Acl::hasPrivilegeForObject($action, $finding);
+        }
+        $this->view->uploadEvidenceFindingObjPrivilege = Fisma_Acl::hasPrivilegeForObject('upload_evidence', $finding);
     }
         
     /**
@@ -1331,6 +1369,10 @@ class RemediationController extends SecurityController
     {
         $this->_viewFinding();
         $this->_helper->layout->setLayout('ajax');
+        $id = $this->_request->getParam('id');
+        $finding = Doctrine::getTable('Finding')->find($id);
+        $this->view->updateControlAssignmentFindingObjPrivilege =
+            Fisma_Acl::hasPrivilegeForObject('update_control_assignment', $finding);
     }
     
     /** 

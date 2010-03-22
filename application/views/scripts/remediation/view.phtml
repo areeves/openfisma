@@ -20,7 +20,7 @@ function backToSearch(event) {
             echo $backToSearchButton;
             
             // The "save" and "discard" buttons are only displayed if the user can update any of the findings fields
-            if (Fisma_Acl::hasPrivilegeForObject('update_*', $this->finding)) {
+            if ($this->updateFindingObjPrivilege) {
                 $discardChangesButtonConfig = array(
                     'value' => 'Discard Changes',
                     'href' => '/panel/remediation/sub/view/id/' . $this->finding->id
