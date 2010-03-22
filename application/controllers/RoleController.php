@@ -37,6 +37,16 @@ class RoleController extends BaseController
     protected $_modelName = 'Role';
     
     /**
+     * Override parent
+     *
+     * @return void
+     */
+    public function preDispatch()
+    {
+        $this->view->createRolePrivilege = Fisma_Acl::hasPrivilegeForClass('create', 'Role');
+    }
+
+    /**
      * View a role
      * 
      * @return void
@@ -45,7 +55,22 @@ class RoleController extends BaseController
     {
         $id = $this->_request->getParam('id');
         $this->view->assign('rightLink', "/panel/Role/sub/right/id/$id");
+        $role = Doctrine::getTable('Role')->find($id);
+        $this->view->assignPrivilegesRoleObjPrivilege = Fisma_Acl::hasPrivilegeForObject('assignPrivileges', $role);
+        $this->view->updateRoleObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $role);
+        $this->view->deleteRoleObjPrivilege = Fisma_Acl::hasPrivilegeForObject('delete', $role);
         parent::viewAction();
+    }
+
+    /**
+     * List Roles
+     *
+     * @return void
+     */
+    public function listAction()
+    {
+        $this->view->readRolePrivilege = Fisma_Acl::hasPrivilegeForClass('read', 'Role');
+        parent::listAction();
     }
     
     /**

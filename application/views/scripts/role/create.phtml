@@ -1,5 +1,5 @@
 <?php 
-echo $this->partial('role/searchbox.phtml');
+echo $this->partial('role/searchbox.phtml', array('createRolePrivilege' => $this->createRolePrivilege));
 Fisma_Format_Section::startSection("Create Role"); ?>
 
 <div class="form_box"> 

@@ -1,16 +1,16 @@
 <?php
-echo $this->partial('role/searchbox.phtml');
+echo $this->partial('role/searchbox.phtml', array('createRolePrivilege' => $this->createRolePrivilege));
 $operation = '';
 
-if (Fisma_Acl::hasPrivilegeForObject('assignPrivileges', $this->subject)) {
+if ($this->assignPrivilegesRoleObjPrivilege) {
     $operation .= "[<a href='{$this->rightLink}'>Right</a>]";
 }
 
-if (Fisma_Acl::hasPrivilegeForObject('update', $this->subject)) {
+if ($this->updateRoleObjPrivilege) {
     $operation .= "&nbsp;&nbsp;[<a href='{$this->editLink}'>Edit</a>]";
 }
 
-if (Fisma_Acl::hasPrivilegeForObject('delete', $this->subject)) {
+if ($this->deleteRoleObjPrivilege) {
     $operation .= "&nbsp;&nbsp;[<a href='{$this->deleteLink}'>Delete</a>]";
 }
 
