@@ -1,5 +1,5 @@
 <?php 
-echo $this->partial('user/searchbox.phtml');
+echo $this->partial('user/searchbox.phtml', array('createUserPrivilege' => $this->createUserPrivilege));
 $operation = "[<a href='{$this->viewLink}'>View</a>]";
 Fisma_Format_Section::startSection("User Audit Log ($this->username) $operation"); 
 ?>

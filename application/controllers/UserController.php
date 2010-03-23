@@ -209,7 +209,8 @@ class UserController extends BaseController
         $id = $this->getRequest()->getParam('id');
         
         $user = Doctrine::getTable('User')->find($id);
-    
+
+        $this->view->createUserPrivilege = Fisma_Acl::hasPrivilegeForClass('create', 'User');
         $this->view->username = $user->username;
         $this->view->columns = array('Timestamp', 'User', 'Message');
         $this->view->rows = $user->getAuditLog()->fetch(Doctrine::HYDRATE_SCALAR);
@@ -421,6 +422,18 @@ class UserController extends BaseController
         $this->view->deleteUserObjPrivilege = Fisma_Acl::hasPrivilegeForObject('delete', $user);
     
         parent::viewAction();
+    }
+    
+    /**
+     * Override parent
+     * 
+     * @return void
+     */
+    public function createAction()
+    {
+        $this->view->createUserPrivilege = Fisma_Acl::hasPrivilegeForClass('create', 'User');
+        
+        parent::createAction();
     }
     
     /**
