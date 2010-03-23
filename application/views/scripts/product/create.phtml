@@ -1,5 +1,5 @@
 <?php 
-echo $this->partial('product/searchbox.phtml');
+echo $this->partial('product/searchbox.phtml', array('createProductPrivilege' => $this->createProductPrivilege));
 Fisma_Format_Section::startSection("Create Product Information"); ?>
 
 <div class="form_box">

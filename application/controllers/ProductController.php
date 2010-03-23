@@ -35,7 +35,18 @@ class ProductController extends BaseController
      * @var string
      */
     protected $_modelName = 'Product';
-    
+
+    /**
+     * Override parent
+     *
+     * @return void
+     */
+    public function preDispatch()
+    {
+        $this->view->createProductPrivilege = Fisma_Acl::hasPrivilegeForClass('create', 'Product');
+        parent::preDispatch();
+    }
+
     /**
      * Delete a product
      * 
@@ -75,24 +86,10 @@ class ProductController extends BaseController
     {
         $id = $this->getRequest()->getParam('id');
         $product = Doctrine::getTable('Product')->find($id);
-
-        $this->view->createProductPrivilege    = Fisma_Acl::hasPrivilegeForClass('create', 'Product');
         $this->view->updateProductObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $product);
         $this->view->deleteProductObjPrivilege = Fisma_Acl::hasPrivilegeForObject('delete', $product);
 
         parent::viewAction();
-    }
-
-    /**
-     * Override parent->editAction()
-     *
-     * @return void
-     */
-    public function editAction()
-    {
-        $this->view->createProductPrivilege = Fisma_Acl::hasPrivilegeForClass('create', 'Product');
-
-        parent::editAction();
     }
 
     /**
@@ -103,7 +100,6 @@ class ProductController extends BaseController
     public function listAction()
     {
         $this->view->readProductPrivilege   = Fisma_Acl::hasPrivilegeForClass('read', 'Product');
-        $this->view->createProductPrivilege = Fisma_Acl::hasPrivilegeForClass('create', 'Product');
 
         parent::listAction();
     }
