@@ -1,5 +1,11 @@
 <?php 
-echo $this->partial('system/searchbox.phtml', array('keywords' => $this->keywords));
+echo $this->partial(
+    'system/searchbox.phtml',
+    array(
+        'keywords' => $this->keywords,
+        'createOrganizationPrivilege' => $this->createOrganizationPrivilege
+    )
+);
 Fisma_Format_Section::startSection("System List <span id='searchResultsTotalFound'></span>"); ?>
 <div id="list"></div>
 <script type="text/javascript">

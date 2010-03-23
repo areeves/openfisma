@@ -1,5 +1,8 @@
 <?php 
-echo $this->partial('system/searchbox.phtml');
+echo $this->partial(
+    'system/searchbox.phtml',
+    array('createOrganizationPrivilege' => $this->createOrganizationPrivilege)
+);
 Fisma_Format_Section::startSection("System Information [<a href='{$this->viewLink}'>View</a>]"); ?>
 
 <div class="form_box">

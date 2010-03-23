@@ -156,7 +156,7 @@ class SystemController extends BaseController
         $organization = Doctrine::getTable('Organization')->find($id);
         Fisma_Acl::requirePrivilegeForObject('read', $organization);
         
-        $organization = Doctrine::getTable('Organization')->find($id);
+        $this->view->updateOrganizationObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $organization);
         $this->view->organization = $organization;
 
         $tabView = new Fisma_Yui_TabView('SystemView', $id);
@@ -180,6 +180,7 @@ class SystemController extends BaseController
         $organization = Doctrine::getTable('Organization')->find($id);
         Fisma_Acl::requirePrivilegeForObject('read', $organization);
         
+        $this->view->updateOrganizationObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $organization);
         $this->view->organization = Doctrine::getTable('Organization')->find($id);
         $this->view->system = $this->view->organization->System;
 
@@ -223,8 +224,8 @@ class SystemController extends BaseController
         Fisma_Acl::requirePrivilegeForObject('read', $organization);
         $this->_helper->layout()->disableLayout();
 
-        $this->view->organization = Doctrine::getTable('Organization')->find($id);
-        $this->view->system = $this->view->organization->System;
+        $this->view->updateOrganizationObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $organization);
+        $this->view->system = $organization->System;
         
         $this->render();
     }
@@ -241,8 +242,8 @@ class SystemController extends BaseController
         Fisma_Acl::requirePrivilegeForObject('read', $organization);
         $this->_helper->layout()->disableLayout();
 
-        $this->view->organization = Doctrine::getTable('Organization')->find($id);
-        $this->view->system = $this->view->organization->System;
+        $this->view->updateOrganizationObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $organization);
+        $this->view->system = $organization->System;
         
         $this->render();
     }
@@ -259,11 +260,10 @@ class SystemController extends BaseController
         Fisma_Acl::requirePrivilegeForObject('read', $organization);
         $this->_helper->layout()->disableLayout();
 
-        $organization = Doctrine::getTable('Organization')->find($id);
         $system = $organization->System;
         $documents = $system->Documents;
         
-        $this->view->organization = $organization;
+        $this->view->updateOrganizationObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $organization);
         $this->view->system = $system;
         
         // Get all documents for current system, sorted alphabetically on the document type name
@@ -288,7 +288,7 @@ class SystemController extends BaseController
         Fisma_Acl::requirePrivilegeForObject('update', $organization);
         $this->_helper->layout()->disableLayout();
 
-        $organization = Doctrine::getTable('Organization')->find($id);
+        $this->view->createOrganizationPrivilege = Fisma_Acl::hasPrivilegeForClass('create', 'Organization');
         $system = $organization->System;
 
         $post = $this->_request->getPost();
@@ -319,6 +319,30 @@ class SystemController extends BaseController
         $this->_redirect("/panel/system/sub/view/id/$id");
     }
 
+    /**
+     * Override parent
+     * 
+     * @return void
+     */
+    public function createAction()
+    {
+        $this->view->createOrganizationPrivilege = Fisma_Acl::hasPrivilegeForClass('create', 'Organization');
+        
+        parent::createAction();
+    }
+    
+    /**
+     * Override parent
+     * 
+     * @return void
+     */
+    public function listAction()
+    {
+        $this->view->createOrganizationPrivilege = Fisma_Acl::hasPrivilegeForClass('create', 'Organization');
+        
+        parent::listAction();
+    }
+    
     /**
      * Upload file artifacts for a system
      * 
