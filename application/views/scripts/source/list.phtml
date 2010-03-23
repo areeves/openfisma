@@ -1,5 +1,11 @@
 <?php 
-echo $this->partial('source/searchbox.phtml', array('keywords' => $this->keywords));
+echo $this->partial(
+    'source/searchbox.phtml',
+    array(
+        'keywords' => $this->keywords,
+        'createSourcePrivilege' => $this->createSourcePrivilege
+    )
+);
 Fisma_Format_Section::startSection("Source List <span id='searchResultsTotalFound'></span>"); ?>
 <div id="list"></div>
 <script type="text/javascript">

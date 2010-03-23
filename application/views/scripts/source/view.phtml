@@ -1,12 +1,12 @@
 <?php
-echo $this->partial('source/searchbox.phtml');
+echo $this->partial('source/searchbox.phtml', array('createSourcePrivilege' => $this->createSourcePrivilege));
 $operation = '';
 
-if (Fisma_Acl::hasPrivilegeForObject('update', $this->subject)) {
+if ($this->updateSourceObjPrivilege) {
     $operation .= "[<a href='{$this->editLink}'>Edit</a>]";
 }
 
-if (Fisma_Acl::hasPrivilegeForObject('delete', $this->subject)) {
+if ($this->deleteSourceObjPrivilege) {
     $operation .= "&nbsp;&nbsp;[<a href='{$this->deleteLink}'>Delete</a>]";
 }
 

@@ -35,7 +35,18 @@ class SourceController extends BaseController
      * @var string
      */
     protected $_modelName = 'Source';
-    
+
+    /**
+     * Override parent
+     *
+     * @return void
+     */
+    public function preDispatch()
+    {
+        $this->view->createSourcePrivilege = Fisma_Acl::hasPrivilegeForClass('create', 'Source');
+        parent::preDispatch();
+    }
+
     /**
      * Delete a subject model
      * 
@@ -73,5 +84,20 @@ class SourceController extends BaseController
         }
         $this->view->priorityMessenger($msg, $type);
         $this->_forward('list');
+    }
+
+    /**
+     * Override parent
+     *
+     * @return void
+     */
+    public function viewAction()
+    {
+        $id = $this->getRequest()->getParam('id');
+        $source = Doctrine::getTable('Source')->find($id);
+        $this->view->updateSourceObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $source);
+        $this->view->deleteSourceObjPrivilege = Fisma_Acl::hasPrivilegeForObject('delete', $source);
+
+        parent::viewAction();
     }
 }
