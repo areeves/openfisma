@@ -1007,7 +1007,7 @@ class RemediationController extends SecurityController
         $this->view->mitigationStrategyReviseFindingObjPrivilege =
             Fisma_Acl::hasPrivilegeForObject('mitigation_strategy_revise', $finding);
         if ($finding->currentEvaluationId != null) {
-            $action = $finding->CurrentEvalution->Privilege->action;
+            $action = $finding->CurrentEvaluation->Privilege->action;
             $this->view->findingCurrentEvalutionPrivilege = Fisma_Acl::hasPrivilegeForObject($action, $finding);
         }
     }
