@@ -1008,7 +1008,7 @@ class RemediationController extends SecurityController
             Fisma_Acl::hasPrivilegeForObject('mitigation_strategy_revise', $finding);
         if ($finding->currentEvaluationId != null) {
             $action = $finding->CurrentEvaluation->Privilege->action;
-            $this->view->findingCurrentEvalutionPrivilege = Fisma_Acl::hasPrivilegeForObject($action, $finding);
+            $this->view->findingCurrentEvaluationPrivilege = Fisma_Acl::hasPrivilegeForObject($action, $finding);
         }
     }
 
@@ -1042,8 +1042,8 @@ class RemediationController extends SecurityController
         $id = $this->_request->getParam('id');
         $finding = $this->_getFinding($id);
         if ($finding->currentEvaluationId != null) {
-            $action = $finding->CurrentEvalution->Privilege->action;
-            $this->view->findingCurrentEvalutionPrivilege = Fisma_Acl::hasPrivilegeForObject($action, $finding);
+            $action = $finding->CurrentEvaluation->Privilege->action;
+            $this->view->findingCurrentEvaluationPrivilege = Fisma_Acl::hasPrivilegeForObject($action, $finding);
         }
         $this->view->uploadEvidenceFindingObjPrivilege = Fisma_Acl::hasPrivilegeForObject('upload_evidence', $finding);
     }
