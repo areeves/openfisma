@@ -51,8 +51,9 @@ class Fisma_View extends Zend_View
         if ($this->autoEscape) {
             $vars = $this->getVars();
             $varBackup = $vars;
-            array_walk_recursive($vars, array($this,'deepEscape'));
             $this->_raw = $varBackup;
+            array_walk_recursive($vars, array($this,'deepEscape'));
+            $this->assign($vars);
         }
  
         parent::_run(func_get_arg(0));

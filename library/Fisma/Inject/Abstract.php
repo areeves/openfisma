@@ -232,17 +232,10 @@ abstract class Fisma_Inject_Abstract
      */
     private function _getDuplicateFinding($finding)
     {
-        /**
-         * In order to properly compare the current finding against persisted findings, we need to apply the same html
-         * purification that the Xss Listener applies
-         */
-        $xssListener = new XssListener();
-        $cleanDescription = $xssListener->getPurifier()->purify($finding->description);
-        
         $duplicateFindings = Doctrine_Query::create()
             ->select('f.id, f.responsibleOrganizationId, f.type, f.status')
             ->from('Finding f')
-            ->where('description LIKE ?', $cleanDescription)
+            ->where('description LIKE ?', $finding->description)
             ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
             ->execute();
 
