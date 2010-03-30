@@ -55,6 +55,9 @@ class AuthController extends Zend_Controller_Action
         $username = $this->getRequest()->getPost('username');
         $password = $this->getRequest()->getPost('userpass');
 
+        $this->view->systemName      = Fisma::configuration()->getConfig('system_name');
+        $this->view->useNotification = Fisma::configuration()->getConfig('use_notification');
+
         // If the username isn't passed in the post variables, then just display
         // the login screen without any further processing.
         if ( empty($username) ) {
@@ -240,6 +243,8 @@ class AuthController extends Zend_Controller_Action
      */
     public function privacyAction()
     {
+        $this->view->systemName    = Fisma::configuration()->getConfig('system_name');
+        $this->view->privacyPolicy = Fisma::configuration()->getConfig('privacy_policy');
     }
 
     /**
@@ -252,6 +257,8 @@ class AuthController extends Zend_Controller_Action
      */
     public function robAction()
     {
+        $this->view->systemName   = Fisma::configuration()->getConfig('system_name');
+        $this->view->behaviorRule = Fisma::configuration()->getConfig('behavior_rule');
     }
 
     /**
@@ -278,6 +285,10 @@ class AuthController extends Zend_Controller_Action
         if ($error) {
             $message = "Error: Your e-mail address can not be confirmed. Please contact an administrator.";
         }
+
+        $this->view->contactName  = Fisma::configuration()->getConfig('contact_name');
+        $this->view->contactPhone = Fisma::configuration()->getConfig('contact_phone');
+        $this->view->contactEmail = Fisma::configuration()->getConfig('contact_email');
         $this->view->msg = $message;
     }
 }

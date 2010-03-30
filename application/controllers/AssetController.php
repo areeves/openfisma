@@ -237,7 +237,7 @@ class AssetController extends BaseController
         Fisma_Acl::requirePrivilegeForClass('read', 'Asset');
         
         $params = $this->parseCriteria();
-        $systems = $this->_me->getOrganizations();
+        $systems = $this->_me->getOrganizations()->toArray();
         $systemList[0] = "--select--";
         foreach ($systems as $system) {
             $systemList[$system['id']] = $system['nickname'].'-'.$system['name'];
