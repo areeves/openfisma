@@ -231,7 +231,7 @@ if ($finding->status != 'NEW'
     $activeEvaluation = $finding->CurrentEvaluation;
     if ($activeEvaluation->id != null && $activeEvaluation->approvalGroup == 'action') {
         echo '<div class="approvalStep"><p><b>' . html_entity_decode($activeEvaluation->name) . '</b>';
-        if ($this->findingCurrentEvalutionPrivilege) {
+        if ($this->findingCurrentEvaluationPrivilege) {
             echo '<input type="hidden" name="comment" value="" />';
             echo '<input type="hidden" name="decision" value="APPROVED" />';
             echo '<input name="submit_msa" type="button" value="APPROVED"
