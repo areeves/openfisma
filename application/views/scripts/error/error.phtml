@@ -10,10 +10,10 @@
     }
 ?>
 <p>
-    Technical Support Contact: <?php echo Fisma::configuration()->getConfig('contact_name');?><br>
-    Contact Phone: <?php echo Fisma::configuration()->getConfig('contact_phone');?><br>
-    Contact E-mail: <a href="mailto:<?php echo Fisma::configuration()->getConfig('contact_email');?>">
-            <?php echo Fisma::configuration()->getConfig('contact_email');?></a>
+    Technical Support Contact: <?php echo $this->contactName;?><br>
+    Contact Phone: <?php echo $this->contactPhone;?><br>
+    Contact E-mail: <a href="mailto:<?php echo $this->contactEmail;?>">
+            <?php echo $this->contactEmail;?></a>
 </p>
 
 <?php Fisma_Format_Section::stopSection(); ?>

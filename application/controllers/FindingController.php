@@ -462,7 +462,18 @@ class FindingController extends BaseController
              ->from('Finding f')
              ->where('f.status = ?', 'PEND');
         $findings = $q->execute();
-        $this->view->assign('findings', $findings);
+        foreach ($findings as $finding) {
+            $records[] = array(
+                'nId' => $finding->id,
+                'nNickname' => $finding->ResponsibleOrganization->nickname,
+                'nDesc' => $finding->description,
+                'oId' => $finding->DuplicateFinding->id,
+                'oType' => $finding->DuplicateFinding->type,
+                'oNickname' => $finding->DuplicateFinding->ResponsibleOrganization->nickname,
+                'oStatus' => $finding->DuplicateFinding->status
+            );
+        }
+        $this->view->assign('records', $records);
     }
     
     /**

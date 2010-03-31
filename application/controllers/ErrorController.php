@@ -44,6 +44,10 @@ class ErrorController extends Zend_Controller_Action
         $this->_helper->viewRenderer->setViewSuffix('phtml');
         $content = null;
         $errors = $this->_getParam('error_handler');
+        
+        $this->view->contactName  = Fisma::configuration()->getConfig('contact_name');
+        $this->view->contactPhone = Fisma::configuration()->getConfig('contact_phone');
+        $this->view->contactEmail = Fisma::configuration()->getConfig('contact_email');
 
         // if the user hasn't login, or the session expired.
         if ($errors->exception instanceof Fisma_Exception_InvalidAuthentication) {
