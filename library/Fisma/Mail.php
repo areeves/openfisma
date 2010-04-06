@@ -173,6 +173,7 @@ class Fisma_Mail extends Zend_Mail
         $this->setSubject("A new incident has been reported.");
         
         $this->_contentTpl->incidentId = $incidentId;
+        $this->_contentTpl->incidentLink = Fisma_Url::customUrl("/panel/incident/sub/view/id/{$incidentId}");
         
         $content = $this->_contentTpl->render('IRReported.phtml');
         
@@ -200,6 +201,7 @@ class Fisma_Mail extends Zend_Mail
         $this->setSubject("You have been assigned to a new incident.");
         
         $this->_contentTpl->incidentId = $incidentId;
+        $this->_contentTpl->incidentLink = Fisma_Url::customUrl("/panel/incident/sub/view/id/{$incidentId}");
         
         $content = $this->_contentTpl->render('IRAssign.phtml');
         
@@ -230,6 +232,7 @@ class Fisma_Mail extends Zend_Mail
         $this->_contentTpl->workflowStep = $workflowStep;
         $this->_contentTpl->workflowCompletedBy = $workflowCompletedBy;
         $this->_contentTpl->incidentId = $incidentId;
+        $this->_contentTpl->incidentLink = Fisma_Url::customUrl("/panel/incident/sub/view/id/{$incidentId}");
         
         $content = $this->_contentTpl->render('IRStep.phtml');
         
@@ -257,6 +260,7 @@ class Fisma_Mail extends Zend_Mail
         $this->setSubject("A comment has been added to an incident.");
         
         $this->_contentTpl->incidentId = $incidentId;
+        $this->_contentTpl->incidentLink = Fisma_Url::customUrl("/panel/incident/sub/view/id/{$incidentId}");
         
         $content = $this->_contentTpl->render('IRComment.phtml');
         
@@ -284,6 +288,7 @@ class Fisma_Mail extends Zend_Mail
         $this->setSubject("An incident has been resolved.");
         
         $this->_contentTpl->incidentId = $incidentId;
+        $this->_contentTpl->incidentLink = Fisma_Url::customUrl("/panel/incident/sub/view/id/{$incidentId}");
         
         $content = $this->_contentTpl->render('IRResolve.phtml');
         
@@ -311,6 +316,7 @@ class Fisma_Mail extends Zend_Mail
         $this->setSubject("An incident has been closed.");
         
         $this->_contentTpl->incidentId = $incidentId;
+        $this->_contentTpl->incidentLink = Fisma_Url::customUrl("/panel/incident/sub/view/id/{$incidentId}");
         
         $content = $this->_contentTpl->render('IRClose.phtml');
         
