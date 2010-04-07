@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<buildpath>
+	<buildpathentry kind="src" path="application/controllers"/>
+	<buildpathentry kind="src" path="application/doctrine/migrations"/>
+	<buildpathentry kind="src" path="application/layouts/scripts"/>
+	<buildpathentry kind="src" path="application/models"/>
+	<buildpathentry kind="src" path="application/views/helpers"/>
+	<buildpathentry kind="src" path="application/views/scripts"/>
+	<buildpathentry kind="src" path="library"/>
+	<buildpathentry kind="src" path="public"/>
+	<buildpathentry kind="src" path="scripts/bin"/>
+	<buildpathentry kind="src" path="scripts/cronjobs"/>
+	<buildpathentry kind="src" path="tests"/>
+	<buildpathentry kind="con" path="org.eclipse.php.core.LANGUAGE"/>
+</buildpath>
