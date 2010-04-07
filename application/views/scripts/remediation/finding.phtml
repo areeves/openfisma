@@ -1,29 +1,29 @@
 <?php
     $finding = $this->finding;
-    $orgId = $finding->ResponsibleOrganization->nickname;
-    $status  = $finding->getStatus();
+    $orgId = $finding['ResponsibleOrganization']['nickname'];
+    $status  = $this->status;
 ?>
 <div class="column left">
     <?php Fisma_Format_Section::startSection("Details"); ?>
     <table class="keyValues">
         <tr>
             <td>Finding ID:</td>
-            <td><?php echo $finding->id;?></td>
+            <td><?php echo $finding['id'];?></td>
         </tr>
         <tr>
             <td>Date Discovered:</td>
-            <td><?php echo $finding->discoveredDate;?></td>
+            <td><?php echo $finding['discoveredDate'];?></td>
         </tr>
         <tr>
             <td>Date Opened:</td>
-            <td><?php echo $finding->createdTs;?></td>
+            <td><?php echo $finding['createdTs'];?></td>
         </tr>
         <tr>
             <td>Date Closed:</td>
             <td>
                 <?php 
-                if (!is_null($finding->closedTs)) {
-                    echo $finding->closedTs;
+                if (!is_null($finding['closedTs'])) {
+                    echo $finding['closedTs'];
                 } else {
                     echo "<i>Not closed</i>";
                 }
@@ -32,10 +32,10 @@
         </tr>
         <tr>
             <td>Source:</td>
-            <td>(<?php echo $finding->Source->nickname;?>) <?php echo $finding->Source->name;?>
+            <td>(<?php echo $finding['Source']['nickname'];?>) <?php echo $finding['Source']['name'];?>
             <?php 
-                if ($finding->uploadId) {
-                    echo '<br>' . $finding->Upload->fileName;
+                if ($finding['uploadId']) {
+                    echo '<br>' . $finding['Upload']['fileName'];
                 }
             ?>
             </td>
@@ -51,10 +51,10 @@
             <td>On Time:</td>
             <td>
             <?php
-                if (is_null($finding->nextDueDate)) {
+                if (is_null($finding['nextDueDate'])) {
                     echo 'N/A';
                 } else {
-                    echo date('Ymd', time()) <= date('Ymd', strtotime($finding->nextDueDate)) ? 'On Time' : 'Overdue';
+                    echo date('Ymd', time()) <= date('Ymd', strtotime($finding['nextDueDate'])) ? 'On Time' : 'Overdue';
                 }
             ?>
             </td>
@@ -79,8 +79,8 @@
                          echo 'class="editable" target="organization"'; 
                      }
                      ?>>
-                    <?php echo $finding->ResponsibleOrganization->nickname;?> 
-                    - <?php echo $finding->ResponsibleOrganization->name;?>
+                    <?php echo $finding['ResponsibleOrganization']['nickname'];?> 
+                    - <?php echo $finding['ResponsibleOrganization']['name'];?>
                 </div>
             </td>
         </tr>
@@ -99,7 +99,10 @@
                 Asset Owner:
             </td>
             <td>
-                <?php echo isset($finding->Asset->Organization->name) ? $finding->Asset->Organization->name : 'n/a';?>
+                <?php 
+                    echo isset($finding['Asset']['Organization']['name']) ? $finding['Asset']['Organization']['name'] 
+                    : 'n/a';
+                ?>
             </td>
         </tr>
         <tr>
@@ -107,7 +110,7 @@
                 Asset Name:
             </td>
             <td>
-                <?php echo isset($finding->Asset->name) ? $finding->Asset->name : 'n/a';?>
+                <?php echo isset($finding['Asset']['name']) ? $finding['Asset']['name'] : 'n/a';?>
             </td>
         </tr>
         <tr>
@@ -115,7 +118,9 @@
                 Network:
             </td>
             <td>
-                <?php echo isset($finding->Asset->Network->name) ? $finding->Asset->Network->name : 'n/a';?>
+                <?php 
+                    echo isset($finding['Asset']['Network']['name']) ? $finding['Asset']['Network']['name'] : 'n/a';
+                ?>
             </td>
         </tr>
         <tr>
@@ -123,8 +128,8 @@
                 IP Address:
             </td>
             <td>
-                <?php echo isset($finding->Asset->Network->name) 
-                      ? ($finding->Asset->addressIp . ':' . $finding->Asset->addressPort) : 'n/a'; ?>
+                <?php echo isset($finding['Asset']['Network']['name']) 
+                      ? ($finding['Asset']['addressIp'] . ':' . $finding['Asset']['addressPort']) : 'n/a'; ?>
             </td>
         </tr>
         <tr>
@@ -133,10 +138,10 @@
             </td>
             <td>
                 <?php  
-                    if (!empty($finding->Asset->Product->name)) {
-                        echo $finding->Asset->Product->vendor . ' ' .
-                             $finding->Asset->Product->name . ' ' .
-                             $finding->Asset->Product->version;
+                    if (!empty($finding['Asset']['Product']['name'])) {
+                        echo $finding['Asset']['Product']['vendor'] . ' ' .
+                             $finding['Asset']['Product']['name'] . ' ' .
+                             $finding['Asset']['Product']['version'];
                     } else {
                         echo 'n/a';
                     }
@@ -163,7 +168,7 @@ if ($this->updateDescriptionFindingObjPrivilege
 }
 ?>
 <div name="finding[description]" id="finding_description" type="textarea" rows="3" cols="160"> 
-    <?php echo $finding->description; ?>
+    <?php echo $finding['description']; ?>
 </div>
 <?php Fisma_Format_Section::stopSection(); ?>
 
@@ -176,6 +181,6 @@ if (('NEW' == $status || 'DRAFT' == $status)
 }
 ?>
 <div name="finding[recommendation]" id="recommendation" type="textarea" rows="3" cols="160">
-    <?php echo $finding->recommendation; ?>
+    <?php echo $finding['recommendation']; ?>
 </div>
 <?php Fisma_Format_Section::stopSection(); ?>

@@ -1,6 +1,6 @@
 <?php 
     $finding = $this->finding; 
-    $organization = $finding->ResponsibleOrganization->nickname;
+    $organization = $finding['ResponsibleOrganization']['nickname'];
 ?>
 <?php
 if ($this->readFindingObjPrivilege) {
@@ -16,15 +16,15 @@ if ($this->readFindingObjPrivilege) {
         <?php 
         // Check to see if the threat level/description and countermeasure level/description are 
         // set. If so, allow the user to generate a RAF.
-        if (empty($finding->threat) 
-            || empty($finding->threatLevel) 
-            || empty($finding->countermeasures) 
-            || empty($finding->countermeasuresEffectiveness)) {
+        if (empty($finding['threat']) 
+            || empty($finding['threatLevel']) 
+            || empty($finding['countermeasures']) 
+            || empty($finding['countermeasuresEffectiveness'])) {
             print '<i>(Threat and Countermeasure information must be completed to generate a Risk Analysis Form)</i>';
         } else {
             print new Fisma_Yui_Form_Button_Link('viewRaf',
                                    array('value' => 'View Risk Analysis Form', 
-                                         'href' => "/panel/remediation/sub/raf/format/pdf/id/{$finding->id}", 
+                                         'href' => "/panel/remediation/sub/raf/format/pdf/id/{$finding['id']}", 
                                          'imageSrc' => '/images/pdf.gif'));
         }
         ?>
@@ -51,11 +51,11 @@ if ($this->readFindingObjPrivilege) {
     <span id ="threat_level" type="select" name="finding[threatLevel]" href="/metainfo/list/o/threat_level/format/html/"
         <?php 
         if ($this->updateThreatFindingObjPrivilege
-            && ('NEW' == $finding->status || 'DRAFT' == $finding->status)) {
+            && ('NEW' == $finding['status'] || 'DRAFT' == $finding['status'])) {
             echo ' class="editable" target="threat_level"';
         }
         ?>>
-        <?php echo $finding->threatLevel; ?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <?php echo $finding['threatLevel']; ?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     </span>
 </p>
 
@@ -63,14 +63,14 @@ if ($this->readFindingObjPrivilege) {
     <b target="threat" 
         <?php
         if ($this->updateThreatFindingObjPrivilege
-           && ('NEW' == $finding->status || 'DRAFT' == $finding->status)) { 
+           && ('NEW' == $finding['status'] || 'DRAFT' == $finding['status'])) { 
             echo 'class="editable"';
         } 
         ?>>Threat Description:</b>
 </p>
 
 <div type="textarea" id="threat" name="finding[threat]" rows="5" cols="160">
-    <?php echo $finding->threat; ?>
+    <?php echo $finding['threat']; ?>
 </div>
 <?php Fisma_Format_Section::stopSection(); ?>
 
@@ -97,11 +97,11 @@ if ($this->readFindingObjPrivilege) {
           href="/metainfo/list/o/countermeasures-effectiveness/format/html/"
         <?php
         if ($this->updateCountermeasuresFindingObjPrivilege
-           && ('NEW' == $finding->status || 'DRAFT' == $finding->status)) {
+           && ('NEW' == $finding['status'] || 'DRAFT' == $finding['status'])) {
             echo 'class="editable" target="effectiveness"';
         }
         ?>>
-        <?php echo $finding->countermeasuresEffectiveness; ?>&nbsp;&nbsp;
+        <?php echo $finding['countermeasuresEffectiveness']; ?>&nbsp;&nbsp;
     </span>
 </p>
 
@@ -109,14 +109,14 @@ if ($this->readFindingObjPrivilege) {
     <b target="countermeasures" 
         <?php 
             if ($this->updateCountermeasuresFindingObjPrivilege
-               && ('NEW' == $finding->status || 'DRAFT' == $finding->status)) {
+               && ('NEW' == $finding['status'] || 'DRAFT' == $finding['status'])) {
                 echo 'class="editable"';
-            } 
+            }
         ?>>
         Description of Countermeasures:</b>
 </p>
 
 <div type="textarea" id="countermeasures" name="finding[countermeasures]" rows="5" cols="160">
-    <?php echo $finding->countermeasures; ?>
+    <?php echo $finding['countermeasures']; ?>
 </div>
 <?php Fisma_Format_Section::stopSection(); ?>

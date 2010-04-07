@@ -1,26 +1,26 @@
 <?php
     Fisma_Format_Section::startSection("Mitigation Strategy"); 
     $finding = $this->finding;
-    $organization = $finding->ResponsibleOrganization->nickname;
+    $organization = $finding['ResponsibleOrganization']['nickname'];
 ?>
 <p>
     <b>Type:</b>
 
     <span type="select" name="finding[type]" href="/metainfo/list/o/type/format/html/" id="type"
         <?php 
-            if (('NEW' == $finding->status || 'DRAFT' == $finding->status) 
+            if (('NEW' == $finding['status'] || 'DRAFT' == $finding['status']) 
                 && $this->updateTypeFindingObjPrivilege) {
                 echo 'class="editable" target="type"';
             }
         ?>>
-        <?php echo $finding->type;?>&nbsp;&nbsp;
+        <?php echo $finding['type'];?>&nbsp;&nbsp;
     </span>
 </p>
             
 <p>
     <b target="mitigation_strategy"
         <?php 
-            if (in_array($finding->status, array('NEW', 'DRAFT'))
+            if (in_array($finding['status'], array('NEW', 'DRAFT'))
                 && $this->updateCourseOfActionFindingObjPrivilege) {
                echo 'class="editable"';
             }
@@ -29,13 +29,13 @@
     </b>
 </p>
 <div name="finding[mitigationStrategy]" id="mitigation_strategy" type="textarea">
-    <?php echo $finding->mitigationStrategy; ?> 
+    <?php echo $finding['mitigationStrategy']; ?> 
 </div>
 
 <p>
     <b
         <?php
-            if (in_array($finding->status, array('NEW', 'DRAFT'))
+            if (in_array($finding['status'], array('NEW', 'DRAFT'))
                 && $this->updateResourcesFindingObjPrivilege) {
                 echo 'class="editable" target="resources_required"';
             } 
@@ -44,26 +44,26 @@
     </b>
 </p>
 <div name="finding[resourcesRequired]" id="resources_required" type="textarea"> 
-    <?php echo $finding->resourcesRequired; ?> 
+    <?php echo $finding['resourcesRequired']; ?> 
 </div>
 
 <?php 
-if ($finding->originalEcd == $finding->currentEcd) {
+if ($finding['originalEcd'] == $finding['currentEcd']) {
 ?>
 <p>
     <b>Expected Completion Date:</b>
     <span name="finding[currentEcd]" id="currentEcd" type="text"
         <?php 
-            if ($finding->isEcdEditable()) {
+            if ($this->isEcdEditable) {
                 echo ' class="date editable" target="currentEcd"';
-                if ($finding->ecdLocked) {
+                if ($finding['ecdLocked']) {
                     echo 'onclick="document.getElementById(\'ecdChangeDescription\').style.display = \'block\';"';
                 }
                 echo '>';
             } else {
                 echo '>';
             }
-            echo (empty($finding->currentEcd) ? 'NONE' : $finding->currentEcd);
+            echo (empty($finding['currentEcd']) ? 'NONE' : $finding['currentEcd']);
         ?>
     </span>
 </p>
@@ -87,15 +87,15 @@ if ($finding->originalEcd == $finding->currentEcd) {
 </p>
 <p>
     <b>Original ECD:</b>
-    <span><?php echo $finding->originalEcd; ?></span>
+    <span><?php echo $finding['originalEcd']; ?></span>
 </p>
 <p>
     <b>Current ECD:</b>
     <span name="finding[currentEcd]" id="currentEcd" type="text"
         <?php 
-            if ($finding->isEcdEditable()) {
+            if ($this->isEcdEditable) {
                 echo ' class="date editable" target="currentEcd"';
-                if ($finding->ecdLocked) {
+                if ($finding['ecdLocked']) {
                     echo 'onclick="document.getElementById(\'currentChangeDescription\').style.display = \'none\';
                           document.getElementById(\'ecdChangeDescription\').style.display = \'inline\'"';
                 }
@@ -103,20 +103,20 @@ if ($finding->originalEcd == $finding->currentEcd) {
             } else {
                 echo '>';
             }
-            echo (empty($finding->currentEcd) ? 'NONE' : $finding->currentEcd);
+            echo (empty($finding['currentEcd']) ? 'NONE' : $finding['currentEcd']);
         ?>
     </span>
     <input type="text" style="display:none" 
            name="finding[ecdChangeDescription]"
-           value="<?php echo $finding->ecdChangeDescription; ?>">
+           value="<?php echo $finding['ecdChangeDescription']; ?>">
 </p>
 <p>
     <b><label for="finding[ecdChangeDescription]">Justification for changing the ECD:</label> </b>
-    <span id="currentChangeDescription"><?php echo $finding->ecdChangeDescription; ?></span>
+    <span id="currentChangeDescription"><?php echo $finding['ecdChangeDescription']; ?></span>
     <input type="text" style="display:none" 
            id='finding[ecdChangeDescription]'
            name="finding[ecdChangeDescription]"
-           value="<?php echo $finding->ecdChangeDescription; ?>">
+           value="<?php echo $finding['ecdChangeDescription']; ?>">
     
 </p>
 <?php
@@ -127,10 +127,10 @@ if ($finding->originalEcd == $finding->currentEcd) {
     <b>Actual Completion Date: </b>
     <span>
         <?php 
-            if (empty($finding->actualCompletionDate)) {
+            if (empty($finding['actualCompletionDate'])) {
                 echo '(not completed)';
             } else {
-                echo $finding->actualCompletionDate;
+                echo $finding['actualCompletionDate'];
             }
         ?>
     </span>
@@ -140,18 +140,18 @@ if ($finding->originalEcd == $finding->currentEcd) {
 
 <?php 
 Fisma_Format_Section::startSection("Mitigation Strategy Approval");
-$postAction = "/panel/remediation/sub/msa/id/" . $finding->id;
+$postAction = "/panel/remediation/sub/msa/id/" . $finding['id'];
 
-$array = array('type'                   => $finding->type,
-               'description'            => $finding->description,
-               'recommendation'         => $finding->recommendation,
-               'resources'              => $finding->resourcesRequired,
-               'ECD'                    => $finding->currentEcd,
-               'blscr'                  => $finding->securityControlId,
-               'threat_level'           => $finding->threatLevel,
-               'threat_source'          => $finding->threat,
-               'cmeasure_effectiveness' => $finding->countermeasuresEffectiveness,
-               'cmeasure'               => $finding->countermeasures);
+$array = array('type'                   => $finding['type'],
+               'description'            => $finding['description'],
+               'recommendation'         => $finding['recommendation'],
+               'resources'              => $finding['resourcesRequired'],
+               'ECD'                    => $finding['currentEcd'],
+               'blscr'                  => $finding['securityControlId'],
+               'threat_level'           => $finding['threatLevel'],
+               'threat_source'          => $finding['threat'],
+               'cmeasure_effectiveness' => $finding['countermeasuresEffectiveness'],
+               'cmeasure'               => $finding['countermeasures']);
 $complete = true;
 foreach ($array as $row) {
     if ($row == '' || $row == 'NONE' || $row == '0000-00-00') {
@@ -159,7 +159,7 @@ foreach ($array as $row) {
         continue;
     }
 }
-if ('NEW' == $finding->status || 'DRAFT' == $finding->status) {
+if ('NEW' == $finding['status'] || 'DRAFT' == $finding['status']) {
     echo "<script type=\"text/javascript\">
                 function submitMitigationStrategy(event, obj) {
                     if (form_confirm(document.finding_detail, \"Submit Mitigation Strategy\")) {
@@ -180,7 +180,7 @@ if ('NEW' == $finding->status || 'DRAFT' == $finding->status) {
     echo "<div class='toolbar'>$submitMitigationButton</div>";
 }
 
-if ('EN' == $finding->status && $this->mitigationStrategyReviseFindingObjPrivilege) {
+if ('EN' == $finding['status'] && $this->mitigationStrategyReviseFindingObjPrivilege) {
     $message = 'The revised mitigation strategy must be fully approved before evidence can be re-submitted.'
              . 'Are you sure that you want to continue?';
     echo "<script language=\"javascript\">
@@ -199,38 +199,39 @@ if ('EN' == $finding->status && $this->mitigationStrategyReviseFindingObjPrivile
     echo "<div class='toolbar'>$reviseMitigationButton</div>";
 }  
 
-if ($finding->status != 'NEW' 
-    && ($finding->status != 'DRAFT' || $finding->FindingEvaluations->count() > 0)) {
+if ($finding['status'] != 'NEW' 
+    && ($finding['status'] != 'DRAFT' || count($finding['FindingEvaluations']) > 0)) {
     echo '<div class="approval">';
-    foreach ($findingEvaluations = $finding->getFindingEvaluations('action') as $k => $findingEvaluation) {
-        $userName = $findingEvaluation->User->nameFirst . ' ' . $findingEvaluation->User->nameLast;
-        $decision = $findingEvaluation->decision;
+    foreach ($findingEvaluations = $this->actionFindingEvaluations as $k => $findingEvaluation) {
+        $userName = $findingEvaluation['User']['nameFirst'] . ' ' . $findingEvaluation['User']['nameLast'];
+        $decision = $findingEvaluation['decision'];
+        $timestamp = $findingEvaluation['createdTs'];
         echo '<div class="approvalStep"><p><b>' 
-           . html_entity_decode($findingEvaluation->Evaluation->name) 
+           . html_entity_decode($findingEvaluation['Evaluation']['name']) 
            . ':</b>';
         if ('APPROVED' == $decision) {
-            echo "<span class=\"approved\"><b>$decision</b> ($userName at $findingEvaluation->createdTs)</span></p>";
-            if (!empty($findingEvaluation->comment)) {
-                echo $this->textToHtml($findingEvaluation->comment);
+            echo "<span class=\"approved\"><b>$decision</b> ($userName at $timestamp)</span></p>";
+            if (!empty($findingEvaluation['comment'])) {
+                echo $this->textToHtml($findingEvaluation['comment']);
             }
         } elseif ('DENIED' == $decision) {
-            echo "<span class=\"denied\"><b>$decision</b> ($userName at $findingEvaluation->createdTs)</span></p>";
-            if (!empty($findingEvaluation->comment)) {
-                echo $this->textToHtml($findingEvaluation->comment);
+            echo "<span class=\"denied\"><b>$decision</b> ($userName at $timestamp)</span></p>";
+            if (!empty($findingEvaluation['comment'])) {
+                echo $this->textToHtml($findingEvaluation['comment']);
             }
         }
         echo "</div>";
-        if ($findingEvaluation->Evaluation->nextId == null || 'DENIED' == $decision) {
+        if ($findingEvaluation['Evaluation']['nextId'] == null || 'DENIED' == $decision) {
             echo '</div>';
-            if ($k != count($findingEvaluations)-1 || 'MSA' == $finding->status) {
+            if ($k != count($findingEvaluations)-1 || 'MSA' == $finding['status']) {
                 echo '<div class="approval">';
             }
         }
     }
 
-    $activeEvaluation = $finding->CurrentEvaluation;
-    if ($activeEvaluation->id != null && $activeEvaluation->approvalGroup == 'action') {
-        echo '<div class="approvalStep"><p><b>' . html_entity_decode($activeEvaluation->name) . '</b>';
+    $activeEvaluation = $finding['CurrentEvaluation'];
+    if ($activeEvaluation['id'] != null && $activeEvaluation['approvalGroup'] == 'action') {
+        echo '<div class="approvalStep"><p><b>' . html_entity_decode($activeEvaluation['name']) . '</b>';
         if ($this->findingCurrentEvaluationPrivilege) {
             echo '<input type="hidden" name="comment" value="" />';
             echo '<input type="hidden" name="decision" value="APPROVED" />';
@@ -244,16 +245,16 @@ if ($finding->status != 'NEW'
     }
 
     $disableEvaluations = array();
-    $currentEvaluation  = $finding->CurrentEvaluation;
-    if ($currentEvaluation->approvalGroup == 'action') {
-        while ($currentEvaluation->nextId != null) {
-            $currentEvaluation    = $currentEvaluation->NextEvaluation;
+    $currentEvaluation  = $finding['CurrentEvaluation'];
+    if ($currentEvaluation['approvalGroup'] == 'action') {
+        while ($currentEvaluation['nextId'] != null) {
+            $currentEvaluation    = $currentEvaluation['NextEvaluation'];
             $disableEvaluations[] = $currentEvaluation;
         }
     }
 
     foreach ($disableEvaluations as $evaluation) {
-        echo "<div class='approvalStep'><p><b>{$evaluation->name}</b>N/A</div>";
+        echo "<div class='approvalStep'><p><b>{$evaluation['name']}</b>N/A</div>";
     }
     echo "</div>";
 }

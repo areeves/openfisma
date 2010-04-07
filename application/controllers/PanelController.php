@@ -57,7 +57,8 @@ class PanelController extends SecurityController
      */
     public function headerAction()
     {
-        $this->view->mainMenuBar = Fisma_Menu::getMainMenu();
+        $this->view->jsonMenuData = json_encode(Fisma_Menu::getMainMenu()->getMenus());
+        $this->view->fullName = $this->_me->nameFirst . ' ' . $this->_me->nameLast;
         
         $this->_helper->layout->setLayout('layout');
         $this->_helper->actionStack('footer');
@@ -71,7 +72,10 @@ class PanelController extends SecurityController
      */
     public function footerAction()
     {
-        $this->render('footer', 'footer');           
+        $this->view->email = Fisma::configuration()->getConfig('contact_email');
+        $this->view->subject = urlencode(Fisma::configuration()->getConfig('contact_subject'));
+        
+        $this->render('footer', 'footer');
     }
 
     /** 

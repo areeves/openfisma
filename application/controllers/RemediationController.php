@@ -1398,8 +1398,16 @@ class RemediationController extends SecurityController
 
         // Check that the user is permitted to view this finding
         Fisma_Acl::requirePrivilegeForObject('read', $finding);
-
-        $this->view->finding = $finding;
+        
+        $actionFindingEvaluations = $finding->getFindingEvaluations('action');
+        foreach ($actionFindingEvaluations as $key => $value) {
+            $actionFindingEvaluations[$key] = $value->toArray();
+        }
+        
+        $this->view->finding = $finding->toArray();
+        $this->view->status = $finding->getStatus();
+        $this->view->isEcdEditable = $finding->isEcdEditable();
+        $this->view->actionFindingEvaluations = $actionFindingEvaluations;
     }
 
     /**
