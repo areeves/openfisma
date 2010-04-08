@@ -162,6 +162,9 @@ class DashboardController extends SecurityController
         }
 
         $this->view->approveFindingPrivilege = Fisma_Acl::hasPrivilegeForClass('approve', 'Finding');
+
+        $this->view->statusChart = new Fisma_Chart('/dashboard/totalstatus/format/xml', 380, 275);
+        $this->view->typeChart = new Fisma_Chart('/dashboard/totaltype/format/xml', 380, 275);
     }
     
     /**
