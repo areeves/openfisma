@@ -626,7 +626,7 @@ class IncidentController extends SecurityController
         $id = $this->_request->getParam('id');
         
         $incident = Doctrine::getTable('Incident')->find($id);
-        $this->view->incident = $incident;
+        $this->view->incident = $incident->toArray();
         $this->view->updateIncidentObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $incident);
 
         Fisma_Acl::requirePrivilegeForObject('read', $incident);
@@ -864,7 +864,7 @@ class IncidentController extends SecurityController
         $this->view->id = $id;
         
         $incident = Doctrine::getTable('Incident')->find($id);
-        $this->view->incident = $incident;
+        $this->view->incident = $incident->toArray();
         $this->view->updateIncidentObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $incident);
 
         $stepsQuery = Doctrine_Query::create()
@@ -876,7 +876,7 @@ class IncidentController extends SecurityController
         // Load related so we can efficiently access related records in the view
         $steps->loadRelated();
         
-        $this->view->steps = $steps;
+        $this->view->steps = $steps->toArray();
     }
 
     /**

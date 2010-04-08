@@ -1,3 +1,6 @@
+<?php
+    $incident = $this->incident;
+?>
 <form method="post" action="<?php echo $this->formAction; ?>">
     <?php
     if ($this->updateIncidentObjPrivilege):
@@ -29,13 +32,13 @@
             ?>
             <tr>
                 <td>Incident ID:</td>
-                <td><?php echo $this->incident->id; ?></td>
+                <td><?php echo $incident['id']; ?></td>
             </tr>
             <tr>
                 <td>
                     Status:
                 </td>
-                <td><?php echo $this->incident->status; ?></td>
+                <td><?php echo $incident['status']; ?></td>
             </tr>
             <tr>
                 <td>
@@ -43,8 +46,8 @@
                 </td>
                 <td>
                     <?php
-                    if (!empty($this->incident->resolution)):
-                        echo $this->incident->resolution;
+                    if (!empty($incident['resolution'])):
+                        echo $incident['resolution'];
                     else:
                         echo "n/a";
                     endif;
@@ -52,14 +55,14 @@
                 </td>
             </tr>
             <?php
-            if (!empty($this->incident->closedTs)):
+            if (!empty($incident['closedTs'])):
             ?>
             <tr>
                 <td>
                     Closed Timestamp:
                 </td>
                 <td>
-                    <?php echo $this->incident->closedTs; ?>
+                    <?php echo $incident['closedTs']; ?>
                 </td>
             </tr>
             <?php
@@ -80,14 +83,14 @@
             <tr>    
                 <td>Incident Occured:</td>
                 <td>
-                    <?php echo "{$this->incident->incidentDate} 
-                                 {$this->incident->incidentTime} 
-                                 {$this->incident->incidentTimezone}"; ?>
+                    <?php echo "{$incident['incidentDate']} 
+                                 {$incident['incidentTime']} 
+                                 {$incident['incidentTimezone']}"; ?>
                 </td>
             </tr>    
             <tr>    
                 <td>Report Created:</td>
-                <td><?php echo $this->incident->reportTs; ?> <?php echo $this->incident->reportTz; ?></td>
+                <td><?php echo $incident['reportTs']; ?> <?php echo $incident['reportTz']; ?></td>
             </tr>    
             <tr>
                 <td>Description:</td>
@@ -103,7 +106,7 @@
                          <?php
                          endif;
                          ?>>
-                        <?php echo $this->incident->additionalInfo; ?>&nbsp;
+                        <?php echo $incident['additionalInfo']; ?>&nbsp;
                     </div>
                 </td>
             </tr>
@@ -121,7 +124,7 @@
                          <?php
                          endif;
                          ?>>
-                        <?php echo $this->incident->actionsTaken; ?>&nbsp;
+                        <?php echo $incident['actionsTaken']; ?>&nbsp;
                     </div>
                 </td>
             </tr>
@@ -145,7 +148,7 @@
                          <?php
                          endif;
                          ?>>
-                        <?php echo $this->incident->hostName; ?>&nbsp;
+                        <?php echo $incident['hostName']; ?>&nbsp;
                     </div>
                 </td>
             </tr>    
@@ -163,7 +166,7 @@
                          <?php
                          endif;
                          ?>>
-                        <?php echo $this->incident->hostIp; ?>&nbsp;
+                        <?php echo $incident['hostIp']; ?>&nbsp;
                     </div>
                 </td>
             </tr>    
@@ -182,7 +185,7 @@
                          <?php
                          endif;
                          ?>>
-                        <?php echo $this->incident->hostOs; ?>&nbsp;
+                        <?php echo $incident['hostOs']; ?>&nbsp;
                     </div>
                 </td>
             </tr>    
@@ -200,7 +203,7 @@
                          <?php
                          endif;
                          ?>>
-                        <?php echo $this->incident->hostAdditional; ?>&nbsp;
+                        <?php echo $incident['hostAdditional']; ?>&nbsp;
                     </div>
                 </td>
             </tr>    
@@ -233,9 +236,9 @@
                 <tr>    
                     <td>Name:</td>
                     <td>
-                        <?php echo $this->incident->reporterTitle; ?> 
-                        <?php echo $this->incident->reporterFirstName; ?> 
-                        <?php echo $this->incident->reporterLastName; ?>
+                        <?php echo $incident['reporterTitle']; ?> 
+                        <?php echo $incident['reporterFirstName']; ?> 
+                        <?php echo $incident['reporterLastName']; ?>
                     </td>
                 </tr>    
                 <tr>    
@@ -252,7 +255,7 @@
                              <?php
                              endif;
                              ?>>
-                             <?php echo $this->incident->reporterOrganization; ?>&nbsp;
+                             <?php echo $incident['reporterOrganization']; ?>&nbsp;
                         </div>
                     </td>
                 </tr>    
@@ -270,7 +273,7 @@
                              <?php
                              endif;
                              ?>>
-                             <?php echo $this->incident->reporterAddress1; ?>&nbsp;
+                             <?php echo $incident['reporterAddress1']; ?>&nbsp;
                         </div>
                     </td>
                 </tr>    
@@ -288,16 +291,16 @@
                              <?php
                              endif;
                              ?>>
-                             <?php echo $this->incident->reporterAddress2; ?>&nbsp;
+                             <?php echo $incident['reporterAddress2']; ?>&nbsp;
                         </div>
                     </td>
                 </tr>    
                 <tr>    
                     <td>City/State/Zip:</td>
                     <td>
-                        <?php echo $this->incident->reporterCity; ?> 
-                        <?php echo $this->incident->reporterState; ?> 
-                        <?php echo $this->incident->reporterZip; ?>
+                        <?php echo $incident['reporterCity']; ?> 
+                        <?php echo $incident['reporterState']; ?> 
+                        <?php echo $incident['reporterZip']; ?>
                     </td>
                 </tr>    
                 <tr>    
@@ -314,7 +317,7 @@
                              <?php
                              endif;
                              ?>>
-                             <?php echo $this->incident->reporterPhone; ?>&nbsp;
+                             <?php echo $incident['reporterPhone']; ?>&nbsp;
                         </div>
                     </td>
                 </tr>    
@@ -331,7 +334,7 @@
                              <?php
                              endif;
                              ?>>
-                             <?php echo $this->incident->reporterFax; ?>&nbsp;
+                             <?php echo $incident['reporterFax']; ?>&nbsp;
                         </div>
                     </td>
                 </tr>    
@@ -349,7 +352,7 @@
                              <?php
                              endif;
                              ?>>
-                             <?php echo $this->incident->reporterEmail; ?>&nbsp;
+                             <?php echo $incident['reporterEmail']; ?>&nbsp;
                         </div>
                     </td>
                 </tr>    
@@ -376,7 +379,7 @@
                          <?php
                          endif;
                          ?>>
-                        <?php echo $this->incident->locationBuilding; ?>&nbsp;
+                        <?php echo $incident['locationBuilding']; ?>&nbsp;
                     </div>
                 </td>
             </tr>
@@ -394,7 +397,7 @@
                          <?php
                          endif;
                          ?>>
-                        <?php echo $this->incident->locationRoom; ?>&nbsp;
+                        <?php echo $incident['locationRoom']; ?>&nbsp;
                     </div>
                 </td>
             </tr>
@@ -412,7 +415,7 @@
                          <?php
                          endif;
                          ?>>
-                        <?php echo $this->incident->sourceIp; ?>&nbsp;
+                        <?php echo $incident['sourceIp']; ?>&nbsp;
                     </div>
                 </td>
             </tr>    
@@ -430,7 +433,7 @@
                          <?php
                          endif;
                          ?>>
-                        <?php echo $this->incident->sourceAdditional; ?>&nbsp;
+                        <?php echo $incident['sourceAdditional']; ?>&nbsp;
                     </div>
                 </td>
             </tr>    
@@ -441,7 +444,7 @@
         ?>
         <table class="keyValues">
             <?php
-            if ('YES' != $this->incident->piiInvolved):
+            if ('YES' != $incident['piiInvolved']):
             ?>
                 <tr>    
                     <th colspan="2">No PII reported in this incident.</td>
@@ -464,12 +467,12 @@
                          <?php
                          endif;
                          ?>>
-                        <?php echo $this->incident->piiInvolved; ?>&nbsp;
+                        <?php echo $incident['piiInvolved']; ?>&nbsp;
                     </div>
                 </td>
             </tr>
             <?php
-            if ('YES' == $this->incident->piiInvolved):
+            if ('YES' == $incident['piiInvolved']):
             ?>
                 <tr>    
                     <td>Description:</td>
@@ -485,7 +488,7 @@
                              <?php
                              endif;
                              ?>>
-                             <?php echo $this->incident->piiAdditional; ?>&nbsp;
+                             <?php echo $incident['piiAdditional']; ?>&nbsp;
                         </div>
                     </td>
                 </tr>    
@@ -504,7 +507,7 @@
                              <?php
                              endif;
                              ?>>
-                             <?php echo $this->incident->piiMobileMedia; ?>&nbsp;
+                             <?php echo $incident['piiMobileMedia']; ?>&nbsp;
                         </div>
                     </td>
                 </tr>    
@@ -523,7 +526,7 @@
                              <?php
                              endif;
                              ?>>
-                            <?php echo $this->incident->piiMobileMediaType; ?>&nbsp;
+                            <?php echo $incident['piiMobileMediaType']; ?>&nbsp;
                         </div>
                     </td>
                 </tr>    
@@ -542,7 +545,7 @@
                              <?php
                              endif;
                              ?>>
-                             <?php echo $this->incident->piiEncrypted; ?>&nbsp;
+                             <?php echo $incident['piiEncrypted']; ?>&nbsp;
                         </div>
                     </td>
                 </tr>    
@@ -561,7 +564,7 @@
                              <?php
                              endif;
                              ?>>
-                             <?php echo $this->incident->piiAuthoritiesContacted; ?>&nbsp;
+                             <?php echo $incident['piiAuthoritiesContacted']; ?>&nbsp;
                         </div>
                     </td>
                 </tr>    
@@ -580,7 +583,7 @@
                              <?php
                              endif;
                              ?>>
-                             <?php echo $this->incident->piiPoliceReport; ?>&nbsp;
+                             <?php echo $incident['piiPoliceReport']; ?>&nbsp;
                         </div>
                     </td>
                 </tr>    
@@ -598,7 +601,7 @@
                              <?php
                              endif;
                              ?>>
-                            <?php echo $this->incident->piiIndividualsCount; ?>&nbsp;
+                            <?php echo $incident['piiIndividualsCount']; ?>&nbsp;
                         </div>
                     </td>
                 </tr>    
@@ -617,7 +620,7 @@
                              <?php
                              endif;
                              ?>>
-                             <?php echo $this->incident->piiIndividualsNotified; ?>&nbsp;
+                             <?php echo $incident['piiIndividualsNotified']; ?>&nbsp;
                         </div>
                     </td>
                 </tr>    
@@ -636,7 +639,7 @@
                              <?php
                              endif;
                              ?>>
-                             <?php echo $this->incident->piiShipment; ?>&nbsp;
+                             <?php echo $incident['piiShipment']; ?>&nbsp;
                         </div>
                     </td>
                 </tr>    
@@ -654,7 +657,7 @@
                              <?php
                              endif;
                              ?>>
-                            <?php echo $this->incident->piiShipmentSenderCompany; ?>&nbsp;
+                            <?php echo $incident['piiShipmentSenderCompany']; ?>&nbsp;
                         </div>
                     </td>
                 </tr>    
@@ -673,7 +676,7 @@
                              <?php
                              endif;
                              ?>>
-                             <?php echo $this->incident->piiShipmentSenderContacted; ?>&nbsp;
+                             <?php echo $incident['piiShipmentSenderContacted']; ?>&nbsp;
                         </div>
                     </td>
                 </tr>    
@@ -691,7 +694,7 @@
                              <?php
                              endif;
                              ?>>
-                            <?php echo $this->incident->piiShipmentTimeline; ?>&nbsp;
+                            <?php echo $incident['piiShipmentTimeline']; ?>&nbsp;
                         </div>
                     </td>
                 </tr>    
@@ -709,7 +712,7 @@
                              <?php
                              endif;
                              ?>>
-                            <?php echo $this->incident->piiShipmentTrackingNumbers; ?>&nbsp;
+                            <?php echo $incident['piiShipmentTrackingNumbers']; ?>&nbsp;
                         </div>
                     </td>
                 </tr>
