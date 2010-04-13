@@ -95,6 +95,12 @@ class IncidentController extends SecurityController
      */
     function preDispatch()
     {        
+        $module = Doctrine::getTable('Module')->findOneByName('Incident Reporting');
+
+        if (!$module->enabled) {
+            throw new Fisma_Exception('This module is not enabled.');
+        }
+
         if (in_array($this->_request->action, array('totalstatus','totalcategory'))) {
 
             $contextSwitch = $this->_helper->getHelper('contextSwitch');
@@ -1116,7 +1122,7 @@ class IncidentController extends SecurityController
         $comment = $this->getRequest()->getParam('comment');
         
         $this->_helper->layout->disableLayout();
-        
+
         $response = new Fisma_AsyncResponse();
         
         try {
@@ -1124,8 +1130,13 @@ class IncidentController extends SecurityController
             $incident = Doctrine::getTable('Incident')->find($id);
 
             Fisma_Acl::requirePrivilegeForObject('update', $incident);
+
+            // If file upload is too large, then $_FILES will be empty (thanks for the helpful behavior, PHP!)
+            if (0 == count($_FILES)) {
+                throw new Fisma_Exception_User('File size is over the limit.');
+            }
             
-            // 'file' is the name of the file input element
+            // 'file' is the name of the file input element.
             if (!isset($_FILES['file'])) {
                 throw new Fisma_Exception_User('You did not specify a file to upload.');
             }
@@ -1133,7 +1144,7 @@ class IncidentController extends SecurityController
             $incident->getArtifacts()->attach($_FILES['file'], $comment);
             
         } catch (Fisma_Exception_User $e) {
-            $reponse->fail($e->getMessage());
+            $response->fail($e->getMessage());
         } catch (Exception $e) {
             if (Fisma::debug()) {
                 $response->fail("Failure (debug mode): " . $e->getMessage());
@@ -1146,7 +1157,9 @@ class IncidentController extends SecurityController
         
         $this->view->response = json_encode($response);
         
-        $this->view->priorityMessenger('Artifact uploaded successfully', 'notice');
+        if ($response->success) {
+            $this->view->priorityMessenger('Artifact uploaded successfully', 'notice');
+        }
     }
     
     /**

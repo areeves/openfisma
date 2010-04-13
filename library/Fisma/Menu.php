@@ -80,7 +80,9 @@ class Fisma_Menu
             $mainMenuBar->add($systems);
         }
 
-        if (Fisma_Acl::hasArea('incident')) {
+        $incidentModule = Doctrine::getTable('Module')->findOneByName('Incident Reporting');
+
+        if ($incidentModule && $incidentModule->enabled && Fisma_Acl::hasArea('incident')) {
             // Incidents main menu
             $incidentMenu = new Fisma_Yui_Menu('Incidents');
 
@@ -142,6 +144,10 @@ class Fisma_Menu
                 $admin->add(new Fisma_Yui_MenuItem('Finding Sources', '/panel/source/sub/list'));
             }
 
+            if (Fisma_Acl::hasArea('configuration')) {
+                $admin->add(new Fisma_Yui_MenuItem('Modules', '/panel/config/sub/modules'));
+            }
+
             if (Fisma_Acl::hasPrivilegeForClass('read', 'Network')) {
                 $admin->add(new Fisma_Yui_MenuItem('Networks', '/panel/network/sub/list'));
             }
@@ -175,6 +181,8 @@ class Fisma_Menu
         if (Fisma::debug()) {
             $debug = new Fisma_Yui_Menu('Debug');
             
+            $debug->add(new Fisma_Yui_MenuItem('APC System Cache', '/debug/apc-cache/type/system'));
+            $debug->add(new Fisma_Yui_MenuItem('APC User Cache', '/debug/apc-cache/type/user'));
             $debug->add(new Fisma_Yui_MenuItem('Error log', '/debug/errorlog'));
             $debug->add(new Fisma_Yui_MenuItem('PHP Info', '/debug/phpinfo'));
             $debug->add(new Fisma_Yui_MenuItem('PHP log', '/debug/phplog'));
