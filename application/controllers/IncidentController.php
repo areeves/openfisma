@@ -628,7 +628,11 @@ class IncidentController extends SecurityController
         $id = $this->_request->getParam('id');
         
         $incident = Doctrine::getTable('Incident')->find($id);
+        $incident->loadReference('ClonedFromIncident');
+        $incident->loadReference('Category');
+        
         $this->view->incident = $incident->toArray();
+        $this->view->reportingUser = $incident->ReportingUser->__toString();
         $this->view->updateIncidentObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $incident);
 
         Fisma_Acl::requirePrivilegeForObject('read', $incident);
