@@ -881,14 +881,16 @@ class IncidentController extends SecurityController
 
         $stepsQuery = Doctrine_Query::create()
                       ->from('IrIncidentWorkflow iw')
-                      ->where('iw.incidentId = ?', $id);
-
+                      ->leftJoin('iw.Role r')
+                      ->leftJoin('iw.User u')
+                      ->where('iw.incidentId = ?', $id)
+                      ->orderBy('iw.cardinality')
+                      ->setHydrationMode(Doctrine::HYDRATE_SCALAR);
         $steps = $stepsQuery->execute();
 
-        // Load related so we can efficiently access related records in the view
-        $steps->loadRelated();
-        
-        $this->view->steps = $steps->toArray();
+        $user = Doctrine::getTable('User')->find($this->_me->id);
+        $this->view->readUserObjPrivilege = Fisma_Acl::hasPrivilegeForObject('read', $user);
+        $this->view->steps = $steps;
     }
 
     /**
