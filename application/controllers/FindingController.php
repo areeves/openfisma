@@ -326,6 +326,7 @@ class FindingController extends BaseController
             }
             $this->view->risk = array('HIGH', 'MODERATE', 'LOW');
             $this->view->templateVersion = Fisma_Inject_Excel::TEMPLATE_VERSION;
+            $this->view->systemName = Fisma::configuration()->getConfig('system_name');
 
             // Context switch is called only after the above code executes successfully. Otherwise if there is an error,
             // the error handler will be confused by context switch and will look for error.xls.tpl instead of error.tpl

@@ -157,11 +157,13 @@ class DashboardController extends SecurityController
         }
         
         if ($user->Notifications->count() > 0) {
-            $this->view->notifications = $user->Notifications;
+            $this->view->notifications = $user->Notifications->toArray();
             $this->view->dismissUrl = "/panel/dashboard/dismiss/notifications";
         }
 
         $this->view->approveFindingPrivilege = Fisma_Acl::hasPrivilegeForClass('approve', 'Finding');
+        $this->view->authType   = Fisma::configuration()->getConfig('auth_type');
+        $this->view->systemName = Fisma::configuration()->getConfig('system_name');
 
         $this->view->statusChart = new Fisma_Chart('/dashboard/totalstatus/format/xml', 380, 275);
         $this->view->typeChart = new Fisma_Chart('/dashboard/totaltype/format/xml', 380, 275);

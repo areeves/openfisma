@@ -1101,7 +1101,18 @@ class IncidentController extends SecurityController
         // Artifact data
         $artifacts = $incident->getArtifacts()->fetch(Doctrine::HYDRATE_RECORD);
 
-        $this->view->artifacts = $artifacts;
+        foreach ($artifacts as $artifact) {
+            $artifactsInfo[] = array(
+                'id' => $artifact->id,
+                'iconUrl' => $artifact->getIconUrl(),
+                'fileName' => $artifact->fileName,
+                'fileSize' => $artifact->getFileSize(),
+                'uploadedBy' => $artifact->User->__toString(),
+                'uploadDate' => $artifact->createdTs,
+                'comment' => $artifact->comment
+            );
+        }
+        $this->view->artifacts = $artifactsInfo;
         
         $form = Fisma_Form_Manager::loadForm('upload_artifact');
                 
