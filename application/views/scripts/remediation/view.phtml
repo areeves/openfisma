@@ -8,7 +8,7 @@ function backToSearch(event) {
     }
 }
 </script>
-<form enctype="multipart/form-data" action="/panel/remediation/sub/modify/id/<?php echo $this->finding->id;?>" 
+<form enctype="multipart/form-data" action="/panel/remediation/sub/modify/id/<?php echo $this->finding['id'];?>" 
       method="post" 
       id="finding_detail"
       name="finding_detail">
@@ -23,7 +23,7 @@ function backToSearch(event) {
             if ($this->updateFindingObjPrivilege) {
                 $discardChangesButtonConfig = array(
                     'value' => 'Discard Changes',
-                    'href' => '/panel/remediation/sub/view/id/' . $this->finding->id
+                    'href' => '/panel/remediation/sub/view/id/' . $this->finding['id']
                 );
                 
                 echo new Fisma_Yui_Form_Button_Link('discardChanges', $discardChangesButtonConfig);

@@ -1,51 +1,52 @@
 <?php 
-    Fisma_Format_Section::startSection('Artifacts (' . $this->finding->Evidence->count() . ')');
-    $organization = $this->finding->ResponsibleOrganization->nickname;
-    if (count($this->finding->Evidence) == 0) {
+    Fisma_Format_Section::startSection('Artifacts (' . count($this->finding['Evidence']) . ')');
+    $organization = $this->finding['ResponsibleOrganization']['nickname'];
+    if (count($this->finding['Evidence']) == 0) {
         print "<p><i>There are no artifacts for this finding.</i></p>";
     }
-    foreach ($this->finding->Evidence as $key=>$evidence) {
+    foreach ($this->finding['Evidence'] as $key=>$evidence) {
 ?>
         <div class="approvalHeader">
             <b>File: </b>
-            <a href='/remediation/downloadevidence/id/<?php echo $evidence->id;?>' target='_blank'>
-                <?php echo $evidence->filename; ?>
+            <a href='/remediation/downloadevidence/id/<?php echo $evidence['id'];?>' target='_blank'>
+                <?php echo $evidence['filename']; ?>
                 </a>
             (submitted by 
-            <?php echo $evidence->User->nameFirst . ' ' . $evidence->User->nameLast; ?> 
+            <?php echo $evidence['User']['nameFirst'] . ' ' . $evidence['User']['nameLast']; ?> 
             on 
-            <?php echo $evidence->createdTs; ?>)
+            <?php echo $evidence['createdTs']; ?>)
         </div>
         <div class="approval">
         <?php
-        foreach ($evidence->FindingEvaluations as $findingEvaluation) {
-            $userName = $findingEvaluation->User->nameFirst . ' ' . $findingEvaluation->User->nameLast;
-            $decision = $findingEvaluation->decision;
+        foreach ($evidence['FindingEvaluations'] as $findingEvaluation) {
+            $userName = $findingEvaluation['User']['nameFirst'] . ' ' . $findingEvaluation['User']['nameLast'];
+            $decision = $findingEvaluation['decision'];
+            $createdTs = $findingEvaluation['createdTs'];
             echo '<div class="approvalStep"><p><b>' 
-               . html_entity_decode($findingEvaluation->Evaluation->name) 
+               . $findingEvaluation['Evaluation']['name'] 
                . ':</b>';
             if ('APPROVED' == $decision) {
                 echo "<span class=\"approved\"><b>$decision</b>"
-                   . " ($userName at $findingEvaluation->createdTs)</span></p>";
-                if (!empty($findingEvaluation->comment)) {
-                    echo $this->textToHtml($findingEvaluation->comment);
+                   . " ($userName at $createdTs)</span></p>";
+                if (!empty($findingEvaluation['comment'])) {
+                    echo $this->textToHtml($findingEvaluation['comment']);
                 }
             } elseif ('DENIED' == $decision) {
-                echo "<span class=\"denied\"><b>$decision</b> ($userName at $findingEvaluation->createdTs)</span></p>";
-                if (!empty($findingEvaluation->comment)) {
-                    echo $this->textToHtml($findingEvaluation->comment);
+                echo "<span class=\"denied\"><b>$decision</b> ($userName at $createdTs)</span></p>";
+                if (!empty($findingEvaluation['comment'])) {
+                    echo $this->textToHtml($findingEvaluation['comment']);
                 }
             }
             echo "</div>";
         }
         //control the div box
-        if ($key != $this->finding->Evidence->count()-1) {
+        if ($key != count($this->finding['Evidence'])-1) {
             echo "</div>";
         }
     }
-    $activeEvaluation = $this->finding->CurrentEvaluation;
-    if ($activeEvaluation->id != null && $activeEvaluation->approvalGroup == 'evidence') {
-        echo '<div class="approvalStep"><p><b>' . html_entity_decode($activeEvaluation->name) . '</b>';
+    $activeEvaluation = $this->finding['CurrentEvaluation'];
+    if ($activeEvaluation['id'] != null && $activeEvaluation['approvalGroup'] == 'evidence') {
+        echo '<div class="approvalStep"><p><b>' . $activeEvaluation['name'] . '</b>';
         if ($this->findingCurrentEvaluationPrivilege) {
             echo '<input type="hidden" name="comment" value="" />';
             echo '<input type="hidden" name="decision" value="APPROVED" />';
@@ -59,22 +60,22 @@
     }
 
     $disableEvaluations = array();
-    $currentEvaluation  = $this->finding->CurrentEvaluation;
-    if ($currentEvaluation->approvalGroup == 'evidence') {
-        while (null != $currentEvaluation->nextId) {
-            $currentEvaluation = $currentEvaluation->NextEvaluation;
+    $currentEvaluation  = $this->finding['CurrentEvaluation'];
+    if ($currentEvaluation['approvalGroup'] == 'evidence') {
+        while (null != $currentEvaluation['nextId']) {
+            $currentEvaluation = $currentEvaluation['NextEvaluation'];
             $disableEvaluations[] = $currentEvaluation;
         }
     }
 
     foreach ($disableEvaluations as $evaluation) {
-        echo "<div class='approvalStep'><p><b>{$evaluation->name}</b>N/A</div>";
+        echo "<div class='approvalStep'><p><b>{$evaluation['name']}</b>N/A</div>";
     }
     echo "</div>";
     $uploadEvidenceButton = new Fisma_Yui_Form_Button('uploadEvidenceButton',
                                                 array('label' => 'Upload Evidence', 
                                                       'onClickFunction' => 'upload_evidence'));
-    if ('EN' != $this->finding->status || !$this->uploadEvidenceFindingObjPrivilege) {
+    if ('EN' != $this->finding['status'] || !$this->uploadEvidenceFindingObjPrivilege) {
         $uploadEvidenceButton->readOnly = true;
     }
     echo "<p>Evidence can only be uploaded if the finding is in 'EN' status and if you have the required role.</p>

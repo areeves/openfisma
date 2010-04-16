@@ -151,15 +151,15 @@ class RemediationController extends SecurityController
                                      ->from('Evaluation e')
                                      ->where('approvalGroup = \'action\'')
                                      ->orderBy('e.precedence');
-        $this->view->mitigationEvaluations = $mitigationEvaluationQuery->execute();
+        $this->view->mitigationEvaluations = $mitigationEvaluationQuery->execute(null, Doctrine::HYDRATE_ARRAY);
         
         $evidenceEvaluationQuery = Doctrine_Query::create()
                                      ->from('Evaluation e')
                                      ->where('approvalGroup = \'evidence\'')
                                      ->orderBy('e.precedence');
-        $this->view->evidenceEvaluations = $evidenceEvaluationQuery->execute();
+        $this->view->evidenceEvaluations = $evidenceEvaluationQuery->execute(null, Doctrine::HYDRATE_ARRAY);
         
-        $this->view->findingSources = Doctrine::getTable('Source')->findAll();
+        $this->view->findingSources = Doctrine::getTable('Source')->findAll(Doctrine::HYDRATE_ARRAY);
     }
     
     /**
@@ -647,7 +647,6 @@ class RemediationController extends SecurityController
         $id = $this->_request->getParam('id');
 
         $finding = $this->_getFinding($id);
-        $this->view->finding = $finding;
         
         Fisma_Acl::requirePrivilegeForObject('read', $finding);
         $this->view->updateFindingObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update_*', $finding);
@@ -662,6 +661,7 @@ class RemediationController extends SecurityController
         $tabView->addTab("Audit Log", "/remediation/audit-log/id/$id");
 
         $this->view->tabView = $tabView;
+        $this->view->finding = $finding->toArray();
     }
     
     /**
@@ -1058,13 +1058,13 @@ class RemediationController extends SecurityController
         $this->_viewFinding();
         $this->_helper->layout->setLayout('ajax');
         
-        $logs = $this->view->finding->getAuditLog()->fetch(Doctrine::HYDRATE_SCALAR);
+        $logs = $this->view->finding['AuditLog'];
         
         // Convert log messages from plain text to HTML
         foreach ($logs as &$log) {
-            $log['o_message'] = $this->view->textToHtml($log['o_message']);
+            $log['message'] = $this->view->textToHtml($log['message']);
         }
-
+        
         $this->view->columns = array('Timestamp', 'User', 'Message');
         $this->view->rows = $logs;
     }
@@ -1399,15 +1399,44 @@ class RemediationController extends SecurityController
         // Check that the user is permitted to view this finding
         Fisma_Acl::requirePrivilegeForObject('read', $finding);
         
+        // Convert model method result into array for view reference, which needs to be refactored in the future
         $actionFindingEvaluations = $finding->getFindingEvaluations('action');
         foreach ($actionFindingEvaluations as $key => $value) {
+            $actionFindingEvaluations[$key]->loadReference("User");
+            $actionFindingEvaluations[$key]->loadReference("Evaluation");
             $actionFindingEvaluations[$key] = $value->toArray();
         }
         
-        $this->view->finding = $finding->toArray();
+        // Load relations explicitly, which needs to be refactored in the future
+        $finding->loadReference("Source");
+        $finding->loadReference("Upload");
+        $finding->loadReference("SecurityControl");
+        
+        $finding->Asset->loadReference("Organization");
+        $finding->Asset->loadReference("Network");
+        $finding->Asset->loadReference("Product");
+        $finding->CurrentEvaluation->loadReference("NextEvaluation");
+        
+        foreach ($finding->FindingEvaluations as $key => $findingEvaluation) {
+            $finding->FindingEvaluations[$key]->loadReference("User");
+        }
+        
+        foreach ($finding->AuditLog as $key => $auditLog) {
+            $finding->AuditLog[$key]->loadReference("User");
+        }
+        
+        foreach ($finding->Evidence as $key => $evidence) {
+            $finding->Evidence[$key]->loadReference("User");
+            foreach ($finding->Evidence[$key]->FindingEvaluations as $innerKey => $findingEvaluation) {
+                $finding->Evidence[$key]->FindingEvaluations[$innerKey]->loadReference("User");
+                $finding->Evidence[$key]->FindingEvaluations[$innerKey]->loadReference("Evaluation");
+            }
+        }
+        
         $this->view->status = $finding->getStatus();
         $this->view->isEcdEditable = $finding->isEcdEditable();
         $this->view->actionFindingEvaluations = $actionFindingEvaluations;
+        $this->view->finding = $finding->toArray();
     }
 
     /**

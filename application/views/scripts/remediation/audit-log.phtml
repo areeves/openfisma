@@ -10,9 +10,9 @@
         <tbody>
         <?php foreach ($this->rows as $row) : ?>
         <tr>
-            <td><?php echo $row['o_createdTs']; ?></td>
-            <td><?php echo $row['u_username']; ?></td>
-            <td><?php echo $row['o_message']; ?></td>
+            <td><?php echo $row['createdTs']; ?></td>
+            <td><?php echo $row['User']['username']; ?></td>
+            <td><?php echo $row['message']; ?></td>
         </tr>
         <?php endforeach; ?>
         </tbody>

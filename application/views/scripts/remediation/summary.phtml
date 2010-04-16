@@ -1,8 +1,8 @@
 <?php
 // Build array for header link output
 $statusArray = array('NEW', 'DRAFT');
-$mitigationEvaluations = $this->mitigationEvaluations->toArray();
-$evidenceEvaluations = $this->evidenceEvaluations->toArray();
+$mitigationEvaluations = $this->mitigationEvaluations;
+$evidenceEvaluations = $this->evidenceEvaluations;
 array_walk(
     $mitigationEvaluations, create_function('$v, $k, &$statusArray', '$statusArray[] = $v[\'nickname\'];'),
     &$statusArray
@@ -129,7 +129,9 @@ function menuHandler(source) {
     <select id='sources' onchange='menuHandler(this);' disabled="true">
         <option value="ALL_SOURCES">All Sources</option>
         <?php foreach ($this->findingSources as $source): ?>
-        <option value='<?php echo $source->id; ?>'><?php echo $source->nickname . '-' . $source->name; ?></option>";
+        <option value='<?php echo $source['id']; ?>'>
+            <?php echo $source['nickname'] . '-' . $source['name']; ?>
+        </option>";
         <?php endforeach; ?>
     </select>
 </div>
@@ -185,9 +187,9 @@ print $exportPdf;
                             . "the finding and assigned an initial remediation strategy, but has not yet "
                             . "submitted the mitigation strategy for approval.</p>";
                 foreach ($this->mitigationEvaluations as $evaluation) {
-                    $msaTooltip .= "<p><b>$evaluation->nickname:</b> $evaluation->name</p>";
+                    $msaTooltip .= "<p><b>" . $evaluation['nickname'] . ":</b>" . $evaluation['name'] . "</p>";
                 }
-                echo new Fisma_Yui_Tooltip('msa', 'Mitigation Strategy', $msaTooltip); 
+                echo new Fisma_Yui_Tooltip('msa', 'Mitigation Strategy', $msaTooltip);
             ?>
         </th>
         <th style="border-bottom: none;" colspan="<?php echo 1 + count($this->evidenceEvaluations); ?>">
@@ -195,9 +197,9 @@ print $exportPdf;
                 $eaTooltip = "<p><b>EN:</b> Evidence needed. Findings in this status are waiting for "
                            . "uploaded documentation that the course of action has been completed.</p>";
                 foreach ($this->evidenceEvaluations as $evaluation) {
-                    $eaTooltip .= "<p><b>$evaluation->nickname:</b> $evaluation->name</p>";
+                    $eaTooltip .= "<p><b>" . $evaluation['nickname'] . ":</b>" . $evaluation['name'] . "</p>";
                 }
-                echo new Fisma_Yui_Tooltip('ea', 'Remediation', $eaTooltip); 
+                echo new Fisma_Yui_Tooltip('ea', 'Remediation', $eaTooltip);
             ?>
         </th>
         <th colspan="2" rowspan="2">&nbsp;</th>
