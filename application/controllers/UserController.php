@@ -372,7 +372,10 @@ class UserController extends BaseController
             $this->view->priorityMessenger($message, $model);
         }
 
-        $this->view->me = $user;
+        $this->view->notifyFrequency = $user->notifyFrequency;
+        $this->view->notifyEmail     = $user->notifyEmail;
+        $this->view->availableEvents = $user->getAvailableEvents();
+        $this->view->existEvents     = $user->getExistEvents();
     }
 
     /**

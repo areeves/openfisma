@@ -1433,6 +1433,8 @@ class RemediationController extends SecurityController
             }
         }
         
+        $finding->AuditLog = $finding->getAuditLog()->fetch();
+        
         $this->view->status = $finding->getStatus();
         $this->view->isEcdEditable = $finding->isEcdEditable();
         $this->view->actionFindingEvaluations = $actionFindingEvaluations;

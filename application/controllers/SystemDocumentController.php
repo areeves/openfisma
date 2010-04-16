@@ -57,6 +57,9 @@ class SystemDocumentController extends SecurityController
     public function viewAction()
     {
         $document = Doctrine::getTable('SystemDocument')->find($this->getRequest()->getParam('id'));
+        $document->loadReference('DocumentType');
+        $document->System->loadReference('Organization');
+        
         $organization = $document->System->Organization;
         
         // There are no access control privileges for system documents, access is based on the associated organization
@@ -66,9 +69,10 @@ class SystemDocumentController extends SecurityController
                         ->from('SystemDocumentVersion v')
                         ->where('id = ?', $document->id)
                         ->orderBy('v.version desc');
-        $versionHistory = $historyQuery->execute();
+        $versionHistory = $historyQuery->execute()->toArray();
 
-        $this->view->document = $document;
+        $this->view->fileSize = $document->getSizeKb();
+        $this->view->document = $document->toArray();
         $this->view->versionHistory = $versionHistory;
     }
 

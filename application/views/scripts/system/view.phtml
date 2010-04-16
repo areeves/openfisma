@@ -6,11 +6,11 @@ function discardChanges(event) {
 function showUploadPanel() {
     // IE can't handle the flash uploader. Send it to a separate upload page
     if (YAHOO.env.ua.ie > 0) {
-        window.location = "/panel/system/sub/upload-for-ie/id/<?php echo $this->organization->id; ?>";
+        window.location = "/panel/system/sub/upload-for-ie/id/<?php echo $this->organizationId; ?>";
     } else {
         Fisma.UrlPanel.showPanel(
             'Upload Document', 
-            '/system/upload-document-form/id/<?php echo $this->organization->id; ?>', 
+            '/system/upload-document-form/id/<?php echo $this->organizationId; ?>', 
             executeScript
         );
     }
@@ -31,7 +31,7 @@ function executeScript() {
 }
 </script>
 
-<form enctype="multipart/form-data" action="/panel/system/sub/edit/id/<?php echo $this->organization->id; ?>" 
+<form enctype="multipart/form-data" action="/panel/system/sub/edit/id/<?php echo $this->organizationId; ?>" 
       method="post">
     <div class="toolbar">
         <?php            

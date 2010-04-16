@@ -157,7 +157,7 @@ class SystemController extends BaseController
         Fisma_Acl::requirePrivilegeForObject('read', $organization);
         
         $this->view->updateOrganizationObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $organization);
-        $this->view->organization = $organization;
+        $this->view->organizationId = $organization->id;
 
         $tabView = new Fisma_Yui_TabView('SystemView', $id);
 
@@ -181,33 +181,16 @@ class SystemController extends BaseController
         Fisma_Acl::requirePrivilegeForObject('read', $organization);
         
         $this->view->updateOrganizationObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $organization);
-        $this->view->organization = Doctrine::getTable('Organization')->find($id);
-        $this->view->system = $this->view->organization->System;
-
-        // Assign the parent organization link
-        $parentOrganization = $this->view->organization->getNode()->getParent();
-        if (isset($parentOrganization)) {
-            if (Fisma_Acl::hasPrivilegeForObject('read', $parentOrganization)) {
-                if ('system' == $parentOrganization->orgType) {
-                    $this->view->parentOrganization = "<a href='/panel/system/sub/view/id/"
-                                                    . $parentOrganization->id
-                                                    . "'>"
-                                                    . "$parentOrganization->nickname - $parentOrganization->name"
-                                                    . "</a>";
-                } else {
-                    $this->view->parentOrganization = "<a href='/panel/organization/sub/view/id/"
-                                                    . $parentOrganization->id
-                                                    . "'>"
-                                                    . "$parentOrganization->nickname - $parentOrganization->name"
-                                                    . "</a>";
-                
-                }
-            } else {
-                $this->view->parentOrganization = "$parentOrganization->nickname - $parentOrganization->name";
-            }
-        } else {
-            $this->view->parentOrganization = "<i>None</i>";
-        }
+        $organization = Doctrine::getTable('Organization')->find($id);
+        
+        // Get the parent organization
+        $parentOrganization = $organization->getNode()->getParent();
+        $readOrganizationObjPrivilege = Fisma_Acl::hasPrivilegeForObject('read', $parentOrganization);
+        
+        $this->view->parentOrganization = $parentOrganization->toArray();
+        $this->view->readOrganizationObjPrivilege = $readOrganizationObjPrivilege;
+        $this->view->orgTypeLabel = $organization->getOrgTypeLabel();
+        $this->view->organization = $organization->toArray();
 
         $this->render();
     }
@@ -271,8 +254,19 @@ class SystemController extends BaseController
                          ->from('SystemDocument d INNER JOIN d.DocumentType t')
                          ->where('d.systemId = ?', $system->id)
                          ->orderBy('t.name');
-        $this->view->documents = $documentQuery->execute();
+        $documents = $documentQuery->execute();
+        foreach ($documents as $document) {
+            $documentArray = $document->toArray();
+            $documentArray['iconUrl'] = $document->getIconUrl();
+            $documentArray['fileName'] = $document->DocumentType->name;
+            $documentArray['fileSize'] = $document->getSizeKb();
+            $documentArray['username'] = $document->User->username;
+            $documentArray['updatedTs'] = $documentArray['updated_at'];
+            
+            $documentsInfo[] = $documentArray;
+        }
         
+        $this->view->documents = $documentsInfo;
         $this->render();        
     }
 
@@ -420,8 +414,10 @@ class SystemController extends BaseController
         Fisma_Acl::requirePrivilegeForObject('update', $organization);
         $this->_helper->layout()->disableLayout();
 
-        $this->view->organizationId = $id;        
-        $this->view->documentTypes  = Doctrine_Query::create()->from('DocumentType')->orderBy('name')->execute();
+        $this->view->organizationId = $id;
+        $this->view->yuiVersion = Fisma::configuration()->getConfig('yui_version');
+        $documentTypes = Doctrine_Query::create()->from('DocumentType')->orderBy('name')->execute();
+        $this->view->documentTypes  = $documentTypes->toArray();
     }
   
     /**
