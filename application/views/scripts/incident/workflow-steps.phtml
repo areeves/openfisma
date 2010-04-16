@@ -25,7 +25,7 @@ foreach ($this->steps as $step):
     endswitch;
 ?>
     <form method="post" action="/incident/complete-workflow-step/id/<?php echo $this->id; ?>">
-        <input type="hidden" name="stepId" value="<?php ; ?>">
+        <input type="hidden" name="stepId" value="">
         <div class="incidentStep <?php echo $class; ?>">
             <div class="incidentCardinality">
                 <?php echo ($step['iw_cardinality'] + 1); ?>

@@ -10,21 +10,21 @@
                 print "<string>{$monthData['monthName']}</string>";
             endforeach;
             ?>
-    	</row>
-	    <?php
+        </row>
+        <?php
         foreach (array('reported', 'resolved', 'rejected') as $series):
         ?>
-        	<row>
-        	    <string>Incidents <?php echo $series; ?></string>
-        	    <?php
+            <row>
+                <string>Incidents <?php echo $series; ?></string>
+                <?php
                 foreach ($this->months as $monthNumber => $monthData):
                 ?>
                     <number tooltip='<?php echo $monthData[$series] . ' Incidents ' . $series; ?>'>
                         <?php echo $monthData[$series]; ?></number>
                 <?php
                 endforeach;
-                ?>	    
-        	</row>
+                ?>        
+            </row>
         <?php
         endforeach;
         ?>
@@ -34,7 +34,7 @@
 
     <chart_type>column</chart_type>
 
-	<series bar_gap='10' set_gap='25' />
+    <series bar_gap='10' set_gap='25' />
 
     <series_color>
         <color>ff3333</color>
