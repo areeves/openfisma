@@ -669,8 +669,52 @@ class IncidentController extends SecurityController
                 'label' => 'Save Changes'
             )
         );
+
+        $this->view->unlockButton = new Fisma_Yui_Form_Button_Link(
+            'unlock',
+            array(
+                'value' => 'Unlock Incident',
+                'href' => "/panel/incident/sub/unlock/id/$id"
+            )
+        );
+
+        $this->view->lockButton = new Fisma_Yui_Form_Button_Link(
+            'lock',
+            array(
+                'value' => 'Lock Incident',
+                'href' => "/panel/incident/sub/lock/id/$id"
+            )
+        );
     
         $this->view->formAction = "/incident/update/id/$id";
+    }
+
+    /**
+     * Lock the incident 
+     * 
+     * @return void
+     */
+    public function lockAction()
+    {
+        $id = $this->_request->getParam('id');
+        $incident = Doctrine::getTable('Incident')->find($id);
+        $incident->isLocked = TRUE;
+        $incident->save();
+        $this->_redirect("/panel/incident/sub/view/id/$id");
+    }
+
+    /**
+     * Unlock the incident 
+     * 
+     * @return void
+     */
+    public function unlockAction()
+    {
+        $id = $this->_request->getParam('id');
+        $incident = Doctrine::getTable('Incident')->find($id);
+        $incident->isLocked = FALSE;
+        $incident->save();
+        $this->_redirect("/panel/incident/sub/view/id/$id");
     }
     
     /**
@@ -1378,18 +1422,18 @@ class IncidentController extends SecurityController
      */
     private function _assertCurrentUserCanUpdateIncident($incidentId)
     {
-        // A quick check:
-        Fisma_Acl::requirePrivilegeForClass('update', 'Incident');
-        
-        // Otherwise, check if this user is in the actors list
-        $q = Doctrine_Query::create()
-             ->from('Incident i')
-             ->innerJoin('i.Actors a')
-             ->where('i.id = ? AND a.id = ?', array($incidentId, User::currentUser()->id));
-        $c = $q->count();
-        
-        if ($c < 1) {
-            throw new Fisma_Exception_InvalidPrivilege('You are not allowed to edit this incident.');
+        if (!Fisma_Acl::hasPrivilegeForClass('update', 'Incident')) {
+            // Check if this user is an actor
+            $userId = User::currentUser()->id;
+            $actorCount = Doctrine_Query::create()
+                 ->from('Incident i')
+                 ->innerJoin('i.Actors a')
+                 ->where('i.id = ?', $incidentId)
+                 ->andWhere('a.id = ?', User::currentUser()->id)
+                 ->count();
+            
+            if (!$actorCount)
+                throw new Fisma_Exception_InvalidPrivilege('You are not allowed to edit this incident.');
         }
     }
 
@@ -1404,21 +1448,21 @@ class IncidentController extends SecurityController
      */
     private function _assertCurrentUserCanViewIncident($incidentId)
     {
-        // A quick check:
-        Fisma_Acl::requirePrivilegeForClass('read', 'Incident');
-        
-        // Otherwise, check if this user is in the observers list
-        $q = Doctrine_Query::create()
-             ->select('i.id')
-             ->from('Incident i')
-             ->leftJoin('i.Actors a')
-             ->leftJoin('i.Observers o')
-             ->where('i.id = ?', array($incidentId))
-             ->andWhere('a.id = ? OR o.id = ?', array(User::currentUser()->id, User::currentUser()->id));
-        $c = $q->count();
-        
-        if ($c < 1) {
-            throw new Fisma_Exception_InvalidPrivilege('You are not allowed to view this incident.');
+        if (!Fisma_Acl::hasPrivilegeForClass('read', 'Incident')) {
+            // Check if this user is an observer or actor
+            $observerCount = Doctrine_Query::create()
+                 ->select('i.id')
+                 ->from('Incident i')
+                 ->leftJoin('i.Actors a')
+                 ->leftJoin('i.Observers o')
+                 ->where('i.id = ?', $incidentId)
+                 ->andWhere('a.id = ?', User::currentUser()->id)
+                 ->orWhere('o.id = ?', User::currentUser()->id)
+                 ->count();
+
+            if (!$observerCount)
+                throw new Fisma_Exception_InvalidPrivilege('You are not allowed to view this incident.');
+            
         }
     }
 

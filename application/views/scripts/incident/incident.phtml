@@ -2,18 +2,21 @@
     $incident = $this->incident;
 ?>
 <form method="post" action="<?php echo $this->formAction; ?>">
+    <div class="toolbar">
     <?php
     if ($this->updateIncidentObjPrivilege):
-    ?>
-        <div class="toolbar">
-            <?php
-            echo $this->discardChangesButton;
-            echo $this->saveChangesButton;
-            ?>
-        </div>
-    <?php
+        echo $this->discardChangesButton;
+        echo $this->saveChangesButton;
+    endif;
+    
+    if (Fisma_Acl::hasPrivilegeForObject('lock', $this->incident)):
+        if ($this->incident->isLocked)
+            echo $this->unlockButton;
+        else
+            echo $this->lockButton;
     endif;
     ?>
+    </div>
 
     <div class="column left">
         <?php
