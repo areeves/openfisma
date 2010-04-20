@@ -632,13 +632,24 @@ class IncidentController extends SecurityController
         $this->_helper->layout->disableLayout();
         
         $id = $this->_request->getParam('id');
-        
+
+        $incidentQuery = Doctrine_Query::create()
+                         ->from('Incident i')
+                         ->leftJoin('i.ClonedFromIncident ic')
+                         ->leftJoin('i.Category c')
+                         ->where('i.id = ?', $id);
+        $incidents = $incidentQuery->execute();
+
+        foreach ($incidents as $incident) {
+            $incidentArray = $incident->toArray();
+            $incidentArray['reportingUser'] = $incident->ReportingUser->__toString();
+            
+            $incidentInfo[] = $incidentArray;
+        }
+
+        $this->view->incident = $incidentInfo[0];
+
         $incident = Doctrine::getTable('Incident')->find($id);
-        $incident->loadReference('ClonedFromIncident');
-        $incident->loadReference('Category');
-        
-        $this->view->incident = $incident->toArray();
-        $this->view->reportingUser = $incident->ReportingUser->__toString();
         $this->view->updateIncidentObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $incident);
 
         Fisma_Acl::requirePrivilegeForObject('read', $incident);
@@ -1168,7 +1179,7 @@ class IncidentController extends SecurityController
             Fisma::getLogInstance()->err($e->getMessage());
         }
         
-        $this->view->response = json_encode($response);
+        $this->view->response = Zend_Json::encode($response);
         
         if ($response->success) {
             $this->view->priorityMessenger('Artifact uploaded successfully', 'notice');
@@ -1276,7 +1287,7 @@ class IncidentController extends SecurityController
             'records' => $incidents,
         ));
         
-        echo json_encode($tableData);
+        echo Zend_Json::encode($tableData);
     }
 
     public function updateAction() 

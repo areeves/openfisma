@@ -148,7 +148,7 @@ class IRWorkflowController extends SecurityController
             'records' => $wfs->toArray()
         ));
         
-        echo json_encode($tableData);
+        echo Zend_Json::encode($tableData);
     }
     
     /**

@@ -33,7 +33,7 @@
         ,{key:"oStatus", label:"Duplicate POAM Status", hidden: false}
     ];
      
-    var dataSource = { rows: <?php echo json_encode($this->records); ?> }; 
+    var dataSource = { rows: <?php echo Zend_Json::encode($this->records); ?> }; 
      
     var myDataSource = new YAHOO.util.DataSource(dataSource.rows);
     

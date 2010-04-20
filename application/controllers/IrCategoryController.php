@@ -134,7 +134,7 @@ class IrCategoryController extends SecurityController
             'records' => $cats->toArray()
         ));
         
-        echo json_encode($tableData);
+        echo Zend_Json::encode($tableData);
     }
     
     /**
