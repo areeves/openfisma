@@ -23,7 +23,7 @@
 <div id="menubar"><!-- YUI renders the menubar into this div --></div>
 <script type="text/javascript">
 //Constructs the YUI menu bar for OpenFISMA
-var jsonMenuData = '<?php echo html_entity_decode($this->jsonMenuData); ?>';
+var jsonMenuData = '<?php echo $this->_raw['jsonMenuData']; ?>';
 var menuData = YAHOO.lang.JSON.parse(jsonMenuData);
 var menuBar = new YAHOO.widget.MenuBar("mainmenu", {autosubmenudisplay: true});
 YAHOO.util.Dom.addClass(menuBar.element, "yuimenubarnav");

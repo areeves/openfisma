@@ -500,7 +500,7 @@ class SystemController extends BaseController
             $this->_helper->viewRenderer->setNoRender(true);
             
             $success = empty($error) ? true : false;
-            echo(json_encode(array('success' => $success, 'error' => $error)));
+            echo(Zend_Json::encode(array('success' => $success, 'error' => $error)));
         }
     }  
     

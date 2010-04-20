@@ -1,5 +1,7 @@
 <div id="footerLinks">
-    <a href="mailto:<?php echo $this->email; ?>?Subject=<?php $this->subject; ?>">Contact Administrator</a>
+    <a href="mailto:<?php echo $this->_raw['email']; ?>?Subject=<?php echo $this->_raw['subject']; ?>">
+        Contact Administrator
+    </a>
     &nbsp;|&nbsp;
     <a href="/auth/rob/">Rules of Behavior</a>&nbsp;|&nbsp;
     <a href="/auth/privacy/">Privacy Policy</a>&nbsp;|&nbsp;

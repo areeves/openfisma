@@ -57,7 +57,7 @@ class PanelController extends SecurityController
      */
     public function headerAction()
     {
-        $this->view->jsonMenuData = json_encode(Fisma_Menu::getMainMenu()->getMenus());
+        $this->view->jsonMenuData = Zend_Json::encode(Fisma_Menu::getMainMenu()->getMenus());
         $this->view->fullName = $this->_me->nameFirst . ' ' . $this->_me->nameLast;
         
         $this->_helper->layout->setLayout('layout');
@@ -73,8 +73,7 @@ class PanelController extends SecurityController
     public function footerAction()
     {
         $this->view->email = Fisma::configuration()->getConfig('contact_email');
-        $this->view->subject = urlencode(Fisma::configuration()->getConfig('contact_subject'));
-        
+        $this->view->subject = Fisma::configuration()->getConfig('contact_subject');
         $this->render('footer', 'footer');
     }
 
