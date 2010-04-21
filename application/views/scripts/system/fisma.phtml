@@ -18,7 +18,7 @@ Fisma_Format_Section::startSection('FISMA Data');
             <?php 
             }
             ?>>
-                  <?php echo $this->system->controlledBy; ?>&nbsp;
+                  <?php echo $this->system['controlledBy']; ?>&nbsp;
             </span>
         </td>
     </tr>
@@ -37,7 +37,7 @@ Fisma_Format_Section::startSection('FISMA Data');
                 <?php 
                 }
                 ?>>
-                <?php echo $this->system->securityAuthorizationDt; ?>&nbsp;
+                <?php echo $this->system['securityAuthorizationDt']; ?>&nbsp;
             </span>
         </td>
     </tr>    
@@ -56,7 +56,7 @@ Fisma_Format_Section::startSection('FISMA Data');
             <?php 
             }
             ?>>                  
-                 <?php echo $this->system->contingencyPlanTestDt; ?>&nbsp;
+                 <?php echo $this->system['contingencyPlanTestDt']; ?>&nbsp;
             </span>
         </td>
     </tr>
@@ -76,7 +76,7 @@ Fisma_Format_Section::startSection('FISMA Data');
             }
             ?>>
                   
-                 <?php echo $this->system->controlAssessmentDt; ?>&nbsp;
+                 <?php echo $this->system['controlAssessmentDt']; ?>&nbsp;
             </span>
         </td>
     </tr>    
@@ -96,7 +96,7 @@ Fisma_Format_Section::startSection('FISMA Data');
             <?php 
             }
             ?>>                  
-                  <?php echo $this->system->hasFiif; ?>&nbsp;
+                  <?php echo $this->system['hasFiif']; ?>&nbsp;
             </span>
         </td>
     </tr>
@@ -124,7 +124,7 @@ Fisma_Format_Section::startSection('FISMA Data');
             <?php 
             }
             ?>>                  
-                  <?php echo $this->system->hasPii; ?>&nbsp;
+                  <?php echo $this->system['hasPii']; ?>&nbsp;
             </span>
         </td>
     </tr>        
@@ -144,7 +144,7 @@ Fisma_Format_Section::startSection('FISMA Data');
             <?php 
             }
             ?>>                  
-                  <?php echo $this->system->piaRequired; ?>&nbsp;
+                  <?php echo $this->system['piaRequired']; ?>&nbsp;
             </span>
         </td>
     </tr>
@@ -165,11 +165,11 @@ Fisma_Format_Section::startSection('FISMA Data');
             ?>>
                   
                 <?php
-                    if (!empty($this->system->piaUrl)) {
+                    if (!empty($this->system['piaUrl'])) {
                         echo '<a href="/redirect/redirect/?url='
-                           . urlencode($this->system->piaUrl)
+                           . urlencode($this->system['piaUrl'])
                            . '">'
-                           . $this->system->piaUrl
+                           . $this->system['piaUrl']
                            . '</a>';
                     }
                ?>&nbsp;
@@ -192,7 +192,7 @@ Fisma_Format_Section::startSection('FISMA Data');
             <?php 
             }
             ?>>                  
-                  <?php echo $this->system->sornRequired; ?>&nbsp;
+                  <?php echo $this->system['sornRequired']; ?>&nbsp;
             </span>
         </td>
     </tr>
@@ -213,11 +213,11 @@ Fisma_Format_Section::startSection('FISMA Data');
             ?>>
                   
                 <?php
-                    if (!empty($this->system->sornUrl)) {
+                    if (!empty($this->system['sornUrl'])) {
                         echo '<a href="/redirect/redirect/?url='
-                           . urlencode($this->system->sornUrl)
+                           . urlencode($this->system['sornUrl'])
                            . '">'
-                           . $this->system->sornUrl
+                           . $this->system['sornUrl']
                            . '</a>';
                     }
                 ?>&nbsp;
@@ -253,7 +253,7 @@ Fisma_Format_Section::startSection('FISMA Data');
             }
             ?>>
                   
-                  <?php echo $this->system->uniqueProjectId; ?>&nbsp;
+                  <?php echo $this->system['uniqueProjectId']; ?>&nbsp;
             </span>
         </td>
     </tr>

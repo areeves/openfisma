@@ -1393,7 +1393,10 @@ class RemediationController extends SecurityController
     private function _viewFinding()
     {
         $id = $this->_request->getParam('id');
-        $finding = $this->_getFinding($id);
+        
+        $findingQuery = Doctrine_Query::create()->from('Finding finding')->where('finding.id = ' . $id);
+        $finding = $findingQuery->fetchOne();
+        
         $orgNickname = $finding->ResponsibleOrganization->nickname;
 
         // Check that the user is permitted to view this finding
@@ -1406,34 +1409,6 @@ class RemediationController extends SecurityController
             $actionFindingEvaluations[$key]->loadReference("Evaluation");
             $actionFindingEvaluations[$key] = $value->toArray();
         }
-        
-        // Load relations explicitly, which needs to be refactored in the future
-        $finding->loadReference("Source");
-        $finding->loadReference("Upload");
-        $finding->loadReference("SecurityControl");
-        
-        $finding->Asset->loadReference("Organization");
-        $finding->Asset->loadReference("Network");
-        $finding->Asset->loadReference("Product");
-        $finding->CurrentEvaluation->loadReference("NextEvaluation");
-        
-        foreach ($finding->FindingEvaluations as $key => $findingEvaluation) {
-            $finding->FindingEvaluations[$key]->loadReference("User");
-        }
-        
-        foreach ($finding->AuditLog as $key => $auditLog) {
-            $finding->AuditLog[$key]->loadReference("User");
-        }
-        
-        foreach ($finding->Evidence as $key => $evidence) {
-            $finding->Evidence[$key]->loadReference("User");
-            foreach ($finding->Evidence[$key]->FindingEvaluations as $innerKey => $findingEvaluation) {
-                $finding->Evidence[$key]->FindingEvaluations[$innerKey]->loadReference("User");
-                $finding->Evidence[$key]->FindingEvaluations[$innerKey]->loadReference("Evaluation");
-            }
-        }
-        
-        $finding->AuditLog = $finding->getAuditLog()->fetch();
         
         $this->view->status = $finding->getStatus();
         $this->view->isEcdEditable = $finding->isEcdEditable();

@@ -208,7 +208,7 @@ class SystemController extends BaseController
         $this->_helper->layout()->disableLayout();
 
         $this->view->updateOrganizationObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $organization);
-        $this->view->system = $organization->System;
+        $this->view->system = $organization->System->toArray();
         
         $this->render();
     }
@@ -226,7 +226,7 @@ class SystemController extends BaseController
         $this->_helper->layout()->disableLayout();
 
         $this->view->updateOrganizationObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $organization);
-        $this->view->system = $organization->System;
+        $this->view->system = $organization->System->toArray();
         
         $this->render();
     }
