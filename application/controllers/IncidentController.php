@@ -651,6 +651,7 @@ class IncidentController extends SecurityController
 
         $incident = Doctrine::getTable('Incident')->find($id);
         $this->view->updateIncidentObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $incident);
+        $this->view->lockIncidentObjPrivilege = Fisma_Acl::hasPrivilegeForObject('lock', $incident);
 
         Fisma_Acl::requirePrivilegeForObject('read', $incident);
                 

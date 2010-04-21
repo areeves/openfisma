@@ -87,7 +87,7 @@ class SourceController extends BaseController
     }
 
     /**
-     * Override parent
+     * Override parent to add source object update and delete privilege for view
      *
      * @return void
      */
@@ -95,6 +95,11 @@ class SourceController extends BaseController
     {
         $id = $this->getRequest()->getParam('id');
         $source = Doctrine::getTable('Source')->find($id);
+
+        if (!$source) {
+            throw new Fisma_Exception("Invalid source ID ($id)");
+        }
+
         $this->view->updateSourceObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $source);
         $this->view->deleteSourceObjPrivilege = Fisma_Acl::hasPrivilegeForObject('delete', $source);
 

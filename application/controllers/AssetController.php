@@ -209,8 +209,8 @@ class AssetController extends BaseController
                 $this->view->url .= '/'.$k.'/'.$v;
             }
         }
-        $this->view->createAssetPrivilege = Fisma_Acl::hasPrivilegeForClass('create', $this->_modelName);
-        $this->view->deleteAssetPrivilege = Fisma_Acl::hasPrivilegeForClass('delete', $this->_modelName);
+        $this->view->createAssetPrivilege = Fisma_Acl::hasPrivilegeForClass('create', 'Asset');
+        $this->view->deleteAssetPrivilege = Fisma_Acl::hasPrivilegeForClass('delete', 'Asset');
         parent::listAction();
     }
     
@@ -223,7 +223,7 @@ class AssetController extends BaseController
     {
         Fisma_Acl::requirePrivilegeForClass('create', 'Asset');
         $this->_request->setParam('source', 'MANUAL');
-        $this->view->createAssetPrivilege = Fisma_Acl::hasPrivilegeForClass('create', $this->_modelName);
+        $this->view->createAssetPrivilege = Fisma_Acl::hasPrivilegeForClass('create', 'Asset');
         parent::createAction();
     }
 
@@ -350,16 +350,20 @@ class AssetController extends BaseController
         $id = $this->_request->getParam('id');
         $asset = new Asset();
         $asset = $asset->getTable('Asset')->find($id);
-        $this->view->createAssetPrivilege = Fisma_Acl::hasPrivilegeForObject('create', $asset);
-        $this->view->updateAssetPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $asset);
-        $this->view->deleteAssetPrivilege = Fisma_Acl::hasPrivilegeForObject('delete', $asset);
+
+        if (!$asset) {
+            throw new Fisma_Exception("Invalid asset ID ($id)");
+        }
+
+        Fisma_Acl::requirePrivilegeForObject('read', $asset);
+
+        $this->view->createAssetPrivilege = Fisma_Acl::hasPrivilegeForClass('create', 'Asset');
+        $this->view->updateAssetObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $asset);
+        $this->view->deleteAssetObjPrivilege = Fisma_Acl::hasPrivilegeForObject('delete', $asset);
         
         // supply searching support for create finding page
         if ($this->_request->getParam('format') == 'ajax') {
             $this->_helper->layout->setLayout('ajax');
-            if (!$asset) {
-                throw new Fisma_Exception("Invalid asset ID");
-            }
             $assetInfo = $asset->toArray();
             $assetInfo['systemName'] = $asset->Organization->name;
             $assetInfo['productName'] = $asset->Product->name;
@@ -406,17 +410,17 @@ class AssetController extends BaseController
                 $type = 'warning';
             } 
         }
-        $this->view->createAssetPrivilege = Fisma_Acl::hasPrivilegeForClass('create', $this->_modelName);
+        $this->view->createAssetPrivilege = Fisma_Acl::hasPrivilegeForClass('create', 'Asset');
         $this->view->priorityMessenger($msg, $type);
         $this->_forward('list');
     }
     
     /**
-     * Overriden parent->editAction()
+     * Overriden parent to add asset object create privilege for view
      */
     public function editAction()
     {
-        $this->view->createAssetPrivilege = Fisma_Acl::hasPrivilegeForClass('create', $this->_modelName);
+        $this->view->createAssetPrivilege = Fisma_Acl::hasPrivilegeForClass('create', 'Asset');
         parent::editAction();
     }
     

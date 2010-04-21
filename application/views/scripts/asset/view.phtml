@@ -1,10 +1,10 @@
 <?php
 echo $this->partial('asset/navibar.phtml', array('createAssetPrivilege' => $this->createAssetPrivilege));
 $operation = '';
-if ($this->updateAssetPrivilege) {
+if ($this->updateAssetObjPrivilege) {
     $operation .= "[<a href='{$this->editLink}'>Edit</a>]";
 }
-if ($this->deleteAssetPrivilege) {
+if ($this->deleteAssetObjPrivilege) {
     $operation .= "&nbsp;&nbsp;[<a href='{$this->deleteLink}'>Delete</a>]";
 }
 Fisma_Format_Section::startSection("Asset $operation"); ?>

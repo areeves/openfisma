@@ -78,7 +78,7 @@ class ProductController extends BaseController
     }
 
     /**
-     * Override parent->viewAction()
+     * Override parent to add product object update and delete privilege for view
      *
      * @return void
      */
@@ -86,6 +86,11 @@ class ProductController extends BaseController
     {
         $id = $this->getRequest()->getParam('id');
         $product = Doctrine::getTable('Product')->find($id);
+
+        if (!$product) {
+            throw new Fisma_Exception("Invalid product ID ($id)");
+        }
+
         $this->view->updateProductObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $product);
         $this->view->deleteProductObjPrivilege = Fisma_Acl::hasPrivilegeForObject('delete', $product);
 
@@ -93,7 +98,7 @@ class ProductController extends BaseController
     }
 
     /**
-     * Override parent->listAction()
+     * Override parent to add product object read privilege for view
      *
      * @return void
      */

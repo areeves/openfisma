@@ -9,8 +9,8 @@
         echo $this->saveChangesButton;
     endif;
     
-    if (Fisma_Acl::hasPrivilegeForObject('lock', $this->incident)):
-        if ($this->incident->isLocked)
+    if ($this->lockIncidentObjPrivilege):
+        if ($incident['isLocked'])
             echo $this->unlockButton;
         else
             echo $this->lockButton;

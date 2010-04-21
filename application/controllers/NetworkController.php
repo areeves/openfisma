@@ -82,7 +82,7 @@ class NetworkController extends BaseController
     }
 
     /**
-     * Override parent->viewAction()
+     * Override parent to add network object update and delete privilege for view
      *
      * @return void
      */
@@ -90,6 +90,11 @@ class NetworkController extends BaseController
     {
         $id = $this->getRequest()->getParam('id');
         $network = Doctrine::getTable('Network')->find($id);
+
+        if (!$network) {
+            throw new Fisma_Exception("Invalid network ID ($id)");
+        }
+
         $this->view->updateNetworkObjPrivilege = Fisma_Acl::hasPrivilegeForObject('update', $network);
         $this->view->deleteNetworkObjPrivilege = Fisma_Acl::hasPrivilegeForObject('delete', $network);
 
