@@ -59,6 +59,8 @@ class AuthController extends Zend_Controller_Action
         $this->view->useNotification = Fisma::configuration()->getConfig('use_notification');
         $this->view->robDuration     = Fisma::configuration()->getConfig('rob_duration');
         $this->view->behaviorRule    = Fisma::configuration()->getConfig('behavior_rule');
+        $this->view->contactEmail    = Fisma::configuration()->getConfig('contact_email');
+        $this->view->contactSubject  = Fisma::configuration()->getConfig('contact_subject');
 
         // If the username isn't passed in the post variables, then just display
         // the login screen without any further processing.
