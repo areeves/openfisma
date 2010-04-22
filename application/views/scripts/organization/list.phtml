@@ -28,7 +28,7 @@ var myColumnDefs = [
     };
 
     // DataSource instance
-    var myDataSource = new YAHOO.util.DataSource("/panel/organization/sub/search");
+    var myDataSource = new YAHOO.util.DataSource("/organization/search");
     myDataSource.responseType = YAHOO.util.DataSource.TYPE_JSON;
     myDataSource.responseSchema = {
         resultsList: "table.records",
