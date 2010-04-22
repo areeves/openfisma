@@ -56,9 +56,12 @@ class SystemDocumentController extends SecurityController
      */
     public function viewAction()
     {
-        $document = Doctrine::getTable('SystemDocument')->find($this->getRequest()->getParam('id'));
-        $document->loadReference('DocumentType');
-        $document->System->loadReference('Organization');
+        // Explicitly load referenced relations
+        $document = Doctrine_Query::create()
+                    ->from('SystemDocument sd')
+                    ->leftJoin('DocumentType dt')
+                    ->leftJoin('dt.Organization o')
+                    ->where('sd.id = ?', $this->getRequest()->getParam('id'));
         
         $organization = $document->System->Organization;
         

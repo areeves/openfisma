@@ -382,15 +382,24 @@ class Finding extends BaseFinding implements Fisma_Acl_OrganizationDependency
             throw new Fisma_Exception("The approval group for evaluations must either be 'action' or 'evidence', 
                 but was actually '$approvalGroup'");
         }
+        
+        // Explicitly load referenced relations by left join operations
+        $findingEvaluationsQuery = Doctrine_Query::create()
+                                   ->from('FindingEvaluation fe')
+                                   ->leftJoin('fe.Evaluation e')
+                                   ->leftJoin('fe.User u')
+                                   ->where('fe.findingId = ?', $this->id)
+                                   ->andWhere('e.approvalGroup = ?', $approvalGroup);
+        $matchedFindingEvaluations = $findingEvaluationsQuery->execute();
+        
         $findingEvaluations = array();
-        foreach ($this->FindingEvaluations as $findingEvaluation) {
-            if ($approvalGroup == $findingEvaluation->Evaluation->approvalGroup) {
-                $findingEvaluations[] = $findingEvaluation;
-            }
+        foreach ($matchedFindingEvaluations as $findingEvaluation) {
+            $findingEvaluations[] = $findingEvaluation;
         }
+        
         return $findingEvaluations;
     }
-
+    
     /**
      * Doctrine hook
      * 

@@ -1394,25 +1394,37 @@ class RemediationController extends SecurityController
     {
         $id = $this->_request->getParam('id');
         
-        $findingQuery = Doctrine_Query::create()->from('Finding finding')->where('finding.id = ' . $id);
+        // Explicitly trigger loading of referenced relations by specified left join operations
+        $findingQuery = Doctrine_Query::create()
+                        ->from('Finding finding')
+                        ->leftJoin('finding.Source findingSource')
+                        ->leftJoin('finding.Upload findingUpload')
+                        ->leftJoin('finding.SecurityControl findingSecurityControl')
+                        ->leftJoin('finding.ResponsibleOrganization responsibleOrganization')
+                        ->leftJoin('finding.Asset findingAsset')
+                        ->leftJoin('findingAsset.Organization findingAssetOrganization')
+                        ->leftJoin('findingAsset.Network findingAssetNetwork')
+                        ->leftJoin('findingAsset.Product findingAssetProduct')
+                        ->leftJoin('finding.CurrentEvaluation findingCurrentEvaluation')
+                        ->leftJoin('findingCurrentEvaluation.NextEvaluation findingCurrentEvaluationNextEvaluation')
+                        ->leftJoin('finding.FindingEvaluations findingEvaluations')
+                        ->leftJoin('findingEvaluations.User findingEvaluationsUser')
+                        ->leftJoin('finding.AuditLog findingAuditLog')
+                        ->leftJoin('findingAuditLog.User findingAuditLogUser')
+                        ->leftJoin('finding.Evidence findingEvidence')
+                        ->leftJoin('findingEvidence.User findingEvidenceUser')
+                        ->leftJoin('findingEvidence.FindingEvaluations findingEvidenceEvaluations')
+                        ->leftJoin('findingEvidenceEvaluations.User findingEvidenceEvaluationsUser')
+                        ->leftJoin('findingEvidenceEvaluations.Evaluation findingEvidenceEvaluationsEvaluation')
+                        ->where('finding.id = ?', $id);
         $finding = $findingQuery->fetchOne();
         
-        $orgNickname = $finding->ResponsibleOrganization->nickname;
-
         // Check that the user is permitted to view this finding
         Fisma_Acl::requirePrivilegeForObject('read', $finding);
         
-        // Convert model method result into array for view reference, which needs to be refactored in the future
-        $actionFindingEvaluations = $finding->getFindingEvaluations('action');
-        foreach ($actionFindingEvaluations as $key => $value) {
-            $actionFindingEvaluations[$key]->loadReference("User");
-            $actionFindingEvaluations[$key]->loadReference("Evaluation");
-            $actionFindingEvaluations[$key] = $value->toArray();
-        }
-        
         $this->view->status = $finding->getStatus();
         $this->view->isEcdEditable = $finding->isEcdEditable();
-        $this->view->actionFindingEvaluations = $actionFindingEvaluations;
+        $this->view->actionFindingEvaluations = $finding->getFindingEvaluations('action')->toArray();
         $this->view->finding = $finding->toArray();
     }
 
