@@ -42,6 +42,20 @@ class SystemController extends BaseController
     protected $_aclResource = 'Organization';
 
     /**
+     * Initialize internal members: ContextSwitch.
+     * 
+     * @return void
+     */
+    public function init()
+    {
+        parent::init();
+        $this->_helper->contextSwitch()
+                      ->addActionContext('search', 'json')
+                      ->setAutoJsonSerialization(false)
+                      ->initContext();
+    }
+    
+    /**
      * Returns the standard form for creating, reading, and updating systems.
      * 
      * @param string|null $formName The specified form name
@@ -132,7 +146,7 @@ class SystemController extends BaseController
         $q->limit($this->_paging['count']);
         $organizations = $q->execute();
 
-        $tableData = array('table' => array(
+        $this->view->tableData = array('table' => array(
             'recordsReturned' => count($organizations),
             'totalRecords' => $totalRecords,
             'startIndex' => $this->_paging['startIndex'],
@@ -141,8 +155,6 @@ class SystemController extends BaseController
             'pageSize' => $this->_paging['count'],
             'records' => $organizations
         ));
-
-        $this->_helper->json($tableData);
     }
     
     /**
