@@ -1424,7 +1424,7 @@ class RemediationController extends SecurityController
         
         $this->view->status = $finding->getStatus();
         $this->view->isEcdEditable = $finding->isEcdEditable();
-        $this->view->actionFindingEvaluations = $finding->getFindingEvaluations('action')->toArray();
+        $this->view->actionFindingEvaluations = $finding->getFindingEvaluations('action');
         $this->view->finding = $finding->toArray();
     }
 

@@ -389,7 +389,8 @@ class Finding extends BaseFinding implements Fisma_Acl_OrganizationDependency
                                    ->leftJoin('fe.Evaluation e')
                                    ->leftJoin('fe.User u')
                                    ->where('fe.findingId = ?', $this->id)
-                                   ->andWhere('e.approvalGroup = ?', $approvalGroup);
+                                   ->andWhere('e.approvalGroup = ?', $approvalGroup)
+                                   ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
         $matchedFindingEvaluations = $findingEvaluationsQuery->execute();
         
         $findingEvaluations = array();
