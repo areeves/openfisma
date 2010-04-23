@@ -40,13 +40,13 @@ Fisma_Format_Section::startSection('Confidentiality');
                   type="textarea" 
                   rows="4"
                   cols="80">
-                <?php echo $this->system['confidentialityDescription']; ?>&nbsp;
+                <?php echo $this->safeHtml('system.confidentialityDescription'); ?>&nbsp;
             </div>
             <?php
             } else {
             ?>
             <div>
-                <?php echo $this->system['confidentialityDescription']; ?>&nbsp;
+                <?php echo $this->safeHtml('system.confidentialityDescription'); ?>&nbsp;
             </div>
             <?php
             }
@@ -97,13 +97,13 @@ Fisma_Format_Section::startSection('Integrity');
                   type="textarea" 
                   rows="4"
                   cols="80">
-                  <?php echo $this->system['integrityDescription']; ?>&nbsp;
+                  <?php echo $this->safeHtml('system.integrityDescription'); ?>&nbsp;
             </div>
             <?php
             } else {
             ?>
             <div>
-                  <?php echo $this->system['integrityDescription']; ?>&nbsp;
+                  <?php echo $this->safeHtml('system.integrityDescription'); ?>&nbsp;
             </div>
             <?php
             }
@@ -154,13 +154,13 @@ Fisma_Format_Section::startSection('Availability');
                   type="textarea" 
                   rows="4"
                   cols="80">
-                  <?php echo $this->system['availabilityDescription']; ?>&nbsp;
+                  <?php echo $this->safeHtml('system.availabilityDescription'); ?>&nbsp;
             </div>
             <?php
             } else {
             ?>
             <div>
-                  <?php echo $this->system['availabilityDescription']; ?>&nbsp;
+                  <?php echo $this->safeHtml('system.availabilityDescription'); ?>&nbsp;
             </div>
             <?php
             }
