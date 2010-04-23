@@ -129,6 +129,8 @@ class Fisma_Form_Manager
             if (count($fieldErrors) > 0) {
                 foreach ($fieldErrors as $error) {
                     $label = $form->getElement($field)->getLabel();
+                    // Error messages should not contain raw markup, so escape any they do have.
+                    $error = htmlentities($error);
                     $errorString .= "$label: $error<br>";
                 }
             }
