@@ -1409,8 +1409,6 @@ class RemediationController extends SecurityController
                         ->leftJoin('findingCurrentEvaluation.NextEvaluation findingCurrentEvaluationNextEvaluation')
                         ->leftJoin('finding.FindingEvaluations findingEvaluations')
                         ->leftJoin('findingEvaluations.User findingEvaluationsUser')
-                        ->leftJoin('finding.AuditLog findingAuditLog')
-                        ->leftJoin('findingAuditLog.User findingAuditLogUser')
                         ->leftJoin('finding.Evidence findingEvidence')
                         ->leftJoin('findingEvidence.User findingEvidenceUser')
                         ->leftJoin('findingEvidence.FindingEvaluations findingEvidenceEvaluations')
@@ -1421,6 +1419,12 @@ class RemediationController extends SecurityController
         
         // Check that the user is permitted to view this finding
         Fisma_Acl::requirePrivilegeForObject('read', $finding);
+        
+        // Since the relation of audit log of model is dynamically registered with different relation name and the 
+        // auditlogs of object are relatively massive on data than other relations so that it is supposed that left
+        // join operation on this relation has low performace, so we just separately fetch object auditlogs by the
+        // specific method from the object itself, which is qualified on performance practically.
+        $finding->AuditLog = Doctrine::getTable("Finding")->find($id)->getAuditLog()->fetch();
         
         $this->view->status = $finding->getStatus();
         $this->view->isEcdEditable = $finding->isEcdEditable();
