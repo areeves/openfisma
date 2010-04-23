@@ -93,13 +93,9 @@ class AssetController extends BaseController
         parent::preDispatch();
         $this->req = $this->getRequest();
         $swCtx = $this->_helper->contextSwitch();
-        $swCtx->addActionContext(
-            'search', 
-            array(
-                'pdf'
-            )
-        );
-        $swCtx->initContext();
+        $swCtx->addActionContext('search', array('pdf', 'json'))
+              ->setAutoJsonSerialization(false)
+              ->initContext();
     }
     
     /**
@@ -294,7 +290,7 @@ class AssetController extends BaseController
         }
         $q->andWhereIn('a.orgSystemId', $orgSystemIds);
         
-        if ($this->_request->getParam('format') == null) {
+        if ($this->_request->getParam('format') === 'json') {
             $q->limit($this->_paging['count'])
             ->offset($this->_paging['startIndex']);
             $totalRecords = $q->count();
@@ -324,15 +320,14 @@ class AssetController extends BaseController
             }
             $i++;
         }
-        if ($this->_request->getParam('format') == null) {
-            $tableData = array('table' => array(
+        if ($this->_request->getParam('format') === 'json') {
+            $this->view->tableData = array('table' => array(
                 'recordsReturned' => count($assetArray),
                 'totalRecords' => $totalRecords,
                 'startIndex' => $this->_paging['startIndex'],
                 'pageSize' => $this->_paging['count'],
                 'records' => $assetArray
             ));
-            $this->_helper->json($tableData);
         } else {
             $this->view->assetColumns = $this->_assetColumns;
             $this->view->assetList = $assetArray;

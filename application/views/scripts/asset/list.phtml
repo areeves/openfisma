@@ -79,7 +79,7 @@ Fisma_Format_Section::startSection("Asset Inventory <span id='searchResultsTotal
         return request;
     };
 
-    var myDataSource = new YAHOO.util.DataSource('/panel/asset/sub/search');
+    var myDataSource = new YAHOO.util.DataSource('/asset/search/format/json');
     myDataSource.responseType = YAHOO.util.DataSource.TYPE_JSON;
     myDataSource.responseSchema = {
         resultsList: "table.records",
