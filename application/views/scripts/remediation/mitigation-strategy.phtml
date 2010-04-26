@@ -29,7 +29,7 @@
     </b>
 </p>
 <div name="finding[mitigationStrategy]" id="mitigation_strategy" type="textarea">
-    <?php echo $finding['mitigationStrategy']; ?> 
+    <?php echo $this->safeHtml('finding.mitigationStrategy'); ?> 
 </div>
 
 <p>
@@ -44,7 +44,7 @@
     </b>
 </p>
 <div name="finding[resourcesRequired]" id="resources_required" type="textarea"> 
-    <?php echo $finding['resourcesRequired']; ?> 
+    <?php echo $this->safeHtml('finding.resourcesRequired'); ?> 
 </div>
 
 <?php 
