@@ -1394,7 +1394,6 @@ class RemediationController extends SecurityController
     {
         $id = $this->_request->getParam('id');
         
-        // Explicitly trigger loading of referenced relations by specified left join operations
         $findingQuery = Doctrine_Query::create()
                         ->from('Finding finding')
                         ->leftJoin('finding.Source findingSource')
@@ -1417,18 +1416,18 @@ class RemediationController extends SecurityController
                         ->where('finding.id = ?', $id);
         $finding = $findingQuery->fetchOne();
         
+        if (!$finding) {
+            throw new Fisma_Exception("Invalid finding ID ($id)");
+        }
+        
         // Check that the user is permitted to view this finding
         Fisma_Acl::requirePrivilegeForObject('read', $finding);
         
-        // Since the relation of audit log of model is dynamically registered with different relation name and the 
-        // auditlogs of object are relatively massive on data than other relations so that it is supposed that left
-        // join operation on this relation has low performace, so we just separately fetch object auditlogs by the
-        // specific method from the object itself, which is qualified on performance practically.
         $finding->AuditLog = Doctrine::getTable("Finding")->find($id)->getAuditLog()->fetch();
         
         $this->view->status = $finding->getStatus();
         $this->view->isEcdEditable = $finding->isEcdEditable();
-        $this->view->actionFindingEvaluations = $finding->getFindingEvaluations('action');
+        $this->view->actionFindingEvaluations = $finding->getFindingEvaluations('action')->toArray(true);
         $this->view->finding = $finding->toArray();
     }
 
@@ -1444,7 +1443,7 @@ class RemediationController extends SecurityController
         $finding = Doctrine::getTable('Finding')->find($id);
 
         if (false == $finding) {
-             throw new Fisma_Exception("FINDING($findingId) is not found. Make sure a valid ID is specified.");
+             throw new Fisma_Exception("FINDING($id) is not found. Make sure a valid ID is specified.");
         }
         
         return $finding;

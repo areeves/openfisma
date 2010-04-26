@@ -373,7 +373,7 @@ class Finding extends BaseFinding implements Fisma_Acl_OrganizationDependency
      * Get the finding evaluations by approval group
      *
      * @param string $approvalGroup The specified evaluation approval group to search
-     * @return array The matched finding evaluations in array
+     * @return array The matched finding evaluations in Doctrine_Collect
      * @throws Fisma_Exception if the specified approval group for evaluations is neither 'action' nor 'evidence'
      */
     public function getFindingEvaluations($approvalGroup)
@@ -383,22 +383,15 @@ class Finding extends BaseFinding implements Fisma_Acl_OrganizationDependency
                 but was actually '$approvalGroup'");
         }
         
-        // Explicitly load referenced relations by left join operations
         $findingEvaluationsQuery = Doctrine_Query::create()
                                    ->from('FindingEvaluation fe')
                                    ->leftJoin('fe.Evaluation e')
                                    ->leftJoin('fe.User u')
                                    ->where('fe.findingId = ?', $this->id)
-                                   ->andWhere('e.approvalGroup = ?', $approvalGroup)
-                                   ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+                                   ->andWhere('e.approvalGroup = ?', $approvalGroup);
         $matchedFindingEvaluations = $findingEvaluationsQuery->execute();
         
-        $findingEvaluations = array();
-        foreach ($matchedFindingEvaluations as $findingEvaluation) {
-            $findingEvaluations[] = $findingEvaluation;
-        }
-        
-        return $findingEvaluations;
+        return $matchedFindingEvaluations;
     }
     
     /**

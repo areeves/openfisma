@@ -56,12 +56,19 @@ class SystemDocumentController extends SecurityController
      */
     public function viewAction()
     {
-        // Explicitly load referenced relations
+        $id = $this->_request->getParam('id');
+        
         $document = Doctrine_Query::create()
                     ->from('SystemDocument sd')
-                    ->leftJoin('DocumentType dt')
-                    ->leftJoin('dt.Organization o')
-                    ->where('sd.id = ?', $this->getRequest()->getParam('id'));
+                    ->leftJoin('sd.DocumentType dt')
+                    ->leftJoin('sd.System sds')
+                    ->leftJoin('sds.Organization sdso')
+                    ->where('sd.id = ?', $id)
+                    ->fetchOne();
+        
+        if (!$document) {
+            throw new Fisma_Exception("Invalid system document ID ($id)");
+        }
         
         $organization = $document->System->Organization;
         
