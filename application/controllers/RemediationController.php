@@ -1423,7 +1423,7 @@ class RemediationController extends SecurityController
         // Check that the user is permitted to view this finding
         Fisma_Acl::requirePrivilegeForObject('read', $finding);
         
-        $finding->AuditLog = Doctrine::getTable("Finding")->find($id)->getAuditLog()->fetch();
+        $finding->AuditLog = $finding->getAuditLog()->fetch();
         
         $this->view->status = $finding->getStatus();
         $this->view->isEcdEditable = $finding->isEcdEditable();
