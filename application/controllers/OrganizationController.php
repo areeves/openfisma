@@ -77,8 +77,6 @@ class OrganizationController extends SecurityController
         parent::init();
         $this->_helper->contextSwitch()
                       ->addActionContext('tree-data', 'json')
-                      ->addActionContext('search', 'json')
-                      ->setAutoJsonSerialization(false)
                       ->initContext();
     }
     
@@ -160,7 +158,7 @@ class OrganizationController extends SecurityController
     {
         Fisma_Acl::requirePrivilegeForClass('read', 'Organization');
         $value = htmlentities(trim($this->_request->getParam('keywords')));
-        $link = '/format/json' . (empty($value) ? '' : '/keywords/' . $value);
+        empty($value) ? $link = '' : $link = '/keywords/' . $value;
         $this->searchbox();
         $this->view->assign('pageInfo', $this->_paging);
         $this->view->assign('link', $link);
@@ -178,6 +176,8 @@ class OrganizationController extends SecurityController
         Fisma_Acl::requirePrivilegeForClass('read', 'Organization');
         $keywords = html_entity_decode(trim($this->_request->getParam('keywords')));
         
+        $this->_helper->layout->setLayout('ajax');
+        $this->_helper->viewRenderer->setNoRender();
         $sortBy = $this->_request->getParam('sortby', 'name');
         $order = $this->_request->getParam('order');
         
@@ -209,7 +209,7 @@ class OrganizationController extends SecurityController
         $totalRecords = $userOrgQuery->count();
         $organizations = $userOrgQuery->execute();
         
-        $this->view->tableData = array('table' => array(
+        $tableData = array('table' => array(
             'recordsReturned' => count($organizations->toArray()),
             'totalRecords' => $totalRecords,
             'startIndex' => $this->_paging['startIndex'],
@@ -218,6 +218,8 @@ class OrganizationController extends SecurityController
             'pageSize' => $this->_paging['count'],
             'records' => $organizations->toArray()
         ));
+        
+        echo Zend_Json::encode($tableData);
     }
     
     /**

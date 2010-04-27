@@ -27,7 +27,7 @@ YAHOO.util.Event.onDOMReady(function () {
                                     {
                                         success: function(o) {
                                             var json = YAHOO.lang.JSON.parse(o.responseText);
-                                            showTree(json);
+                                            showTree(json.treeData);
                                         },
                                         failure: function(o) {
                                             alert('Unable to load the organization tree: ' + o.statusText);
