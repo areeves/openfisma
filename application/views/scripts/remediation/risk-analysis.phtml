@@ -70,7 +70,7 @@ if ($this->readFindingObjPrivilege) {
 </p>
 
 <div type="textarea" id="threat" name="finding[threat]" rows="5" cols="160">
-    <?php echo $this->safeHtml('finding.threat'); ?>
+    <?php echo $finding['threat']; ?>
 </div>
 <?php Fisma_Format_Section::stopSection(); ?>
 
@@ -117,6 +117,6 @@ if ($this->readFindingObjPrivilege) {
 </p>
 
 <div type="textarea" id="countermeasures" name="finding[countermeasures]" rows="5" cols="160">
-    <?php echo $this->safeHtml('finding.countermeasures'); ?>
+    <?php echo $finding['countermeasures']; ?>
 </div>
 <?php Fisma_Format_Section::stopSection(); ?>

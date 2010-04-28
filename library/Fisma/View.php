@@ -78,28 +78,4 @@ class Fisma_View extends Zend_View
         return true;
     }
 
-    /**
-     * A method for use within the view script to output raw values safely, removing bad
-     * markup and potentially malicious markup.
-     *
-     * The string passed to this function is a key, which is either simply the name of the desired
-     * view variable or the the name of the view variable and the nested array keys, seperated with
-     * periods and no spaces.  For example:
-     *
-     * $this->myvar becomes $this->safeHtml('myvar')
-     * $this->myvar['innervar']['yetagain'] becomes $this->safeHtml('myvar.innervar.yetagain')
-     *
-     * @param string $key Key of the value to be cleaned and returned.
-     *
-     * @return string Cleaned value.
-     */
-    public function safeHtml($key)
-    {
-        $keyparts = explode('.', $key);
-        $raw = $this->_raw;
-        foreach ($keyparts as $part) {
-            $raw = $raw[$part];
-        }
-        return HTMLPurifier::instance()->purify($raw);
-    }
 }

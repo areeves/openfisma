@@ -168,7 +168,7 @@ if ($this->updateDescriptionFindingObjPrivilege
 }
 ?>
 <div name="finding[description]" id="finding_description" type="textarea" rows="3" cols="160"> 
-    <?php echo $this->safeHtml('finding.description'); ?>
+    <?php echo $finding['description']; ?>
 </div>
 <?php Fisma_Format_Section::stopSection(); ?>
 
@@ -181,6 +181,6 @@ if (('NEW' == $status || 'DRAFT' == $status)
 }
 ?>
 <div name="finding[recommendation]" id="recommendation" type="textarea" rows="3" cols="160">
-    <?php echo $this->safeHtml('finding.recommendation'); ?>
+    <?php echo $finding['recommendation']; ?>
 </div>
 <?php Fisma_Format_Section::stopSection(); ?>

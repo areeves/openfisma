@@ -111,6 +111,6 @@ if ($this->updateOrganizationObjPrivilege) {
 }
 ?>
 <div name="description" id="system_description" type="textarea" rows="3" cols="120"> 
-    <?php echo $this->safeHtml('organization.description'); ?>
+    <?php echo $this->organization['description']; ?>
 </div>
 <?php Fisma_Format_Section::stopSection(); ?>
