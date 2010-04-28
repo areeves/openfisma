@@ -1,4 +1,6 @@
 SecurityControl:
+    listeners: [IndexListener]
+
     columns:
         code: 
             type: string(5)

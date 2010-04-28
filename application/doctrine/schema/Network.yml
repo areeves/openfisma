@@ -1,11 +1,12 @@
 Network:
-    listeners: [IndexListener, NotificationListener]
+    listeners: [XssListener, IndexListener, NotificationListener]
     
     columns:
         name: 
             type: string(255)
             extra:
                 logicalName: Network Name
+                purify: plaintext
                 searchIndex: unstored
                 notify: true
         nickname:
@@ -13,12 +14,14 @@ Network:
             unique: true
             extra:
                 logicalName: Network Nickname
+                purify: plaintext
                 searchIndex: unstored
                 notify: true
         description: 
             type: string
             extra:
                 logicalName: Description
+                purify: html
                 searchIndex: unstored
                 notify: true
             comment: Any extra information about this network, such as protocols used, geographic location, etc.

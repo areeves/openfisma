@@ -1,10 +1,13 @@
 IrSubCategory:
+    listeners: [XssListener]
     
     columns:
         name: 
             type: string(255)
         description:
             type: string
+            extra: 
+                purify: html
         categoryId: 
             type: integer
         workflowId: 

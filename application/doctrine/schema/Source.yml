@@ -1,11 +1,12 @@
 Source:
-    listeners: [IndexListener, NotificationListener]
+    listeners: [XssListener, IndexListener, NotificationListener]
         
     columns:
         name: 
             type: string(255)
             extra:
                 logicalName: Source Name
+                purify: plaintext
                 searchIndex: unstored
                 notify: true
         nickname: 
@@ -13,12 +14,14 @@ Source:
             unique: true
             extra:
                 logicalName: Source Nickname
+                purify: plaintext
                 searchIndex: unstored
                 notify: true    
         description: 
             type: string
             extra:
                 logicalName: Description
+                purify: html
                 searchIndex: unstored
                 notify: true
             comment: Any extra information about this finding source

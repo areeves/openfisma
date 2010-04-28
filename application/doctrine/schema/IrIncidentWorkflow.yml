@@ -2,8 +2,12 @@ IrIncidentWorkflow:
     columns:
         name: 
             type: string(255)
+            extra:
+                purify: plaintext
         description:
             type: string
+            extra:
+                purify: html
         cardinality: 
             type: integer
         status:
@@ -13,6 +17,8 @@ IrIncidentWorkflow:
             type: timestamp
         comments:
             type: string
+            extra: 
+                purify: html
 
         incidentId: 
             type: integer

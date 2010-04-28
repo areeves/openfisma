@@ -1,5 +1,5 @@
 User:
-    listeners: [IndexListener, NotificationListener]
+    listeners: [XssListener, IndexListener, NotificationListener]
     
     columns:
         createdTs: timestamp
@@ -10,6 +10,7 @@ User:
             unique: true
             extra:
                 logicalName: User Name
+                purify: plaintext
                 searchIndex: unstored
                 notify: true
             comment: This users unique authentication credential
@@ -55,6 +56,7 @@ User:
             type: string(255)
             extra:
                 logicalName: Title
+                purify: plaintext
                 searchIndex: unstored
                 notify: true
             comment: The users position or title within the agency
@@ -62,6 +64,7 @@ User:
             type: string(255)
             extra:
                 logicalName: First Name
+                purify: plaintext
                 searchIndex: unstored
                 notify: true
             comment: The users first name
@@ -69,6 +72,7 @@ User:
             type: string(255)
             extra:
                 logicalName: Last Name
+                purify: plaintext
                 searchIndex: unstored
                 notify: true
             comment: The users last name
@@ -76,6 +80,7 @@ User:
             type: string(255)
             extra:
                 logicalName: E-mail Address
+                purify: plaintext
                 searchIndex: unstored
                 notify: true
             email: 
@@ -90,6 +95,7 @@ User:
             fixed: true
             extra:
                 logicalName: Office Phone
+                purify: plaintext
                 searchIndex: keyword
                 notify: true
             comment: U.S. 10 digit phone number; stored without punctuation
@@ -98,6 +104,7 @@ User:
             fixed: true
             extra:
                 logicalName: Mobile Phone
+                purify: plaintext
                 searchIndex: keyword
                 notify: true
             comment: U.S. 10 digit phone number, stored as 10 digits without punctuation
