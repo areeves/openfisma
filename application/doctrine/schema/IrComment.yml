@@ -4,8 +4,6 @@ IrComment:
             type: timestamp
         comment:
             type: string
-            extra:
-                purify: plaintext
         userId: 
             type: integer
             comment: The user who left this comment

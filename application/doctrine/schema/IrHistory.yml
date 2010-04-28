@@ -1,4 +1,6 @@
 IrHistory:
+    listeners: [XssListener]
+
     columns:
         createdTs: 
             type: timestamp
@@ -7,8 +9,6 @@ IrHistory:
             values: ['COMMENT','WORKFLOW','REPORT','CLASSIFY','RESOLVE','CLOSE']
         name: 
             type: string(255)
-            extra:
-                purify: plaintext
         description:
             type: string
             extra:
