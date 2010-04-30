@@ -983,7 +983,12 @@ class RemediationController extends SecurityController
             Fisma_Acl::hasPrivilegeForObject('update_description', $finding);
         $this->view->updateRecommendationFindingObjPrivilege =
             Fisma_Acl::hasPrivilegeForObject('update_recommendation', $finding);
-        $this->view->readFindingAssetObjPrivilege = Fisma_Acl::hasPrivilegeForObject('read', $finding->Asset);
+        // cannot check privileges on a non-object
+        $findingAsset = $finding->Asset;
+        if (empty($findingAsset)) {
+           $findingAsset = new Asset();
+        }
+        $this->view->readFindingAssetObjPrivilege = Fisma_Acl::hasPrivilegeForObject('read', $findingAsset);
     }
 
     /**

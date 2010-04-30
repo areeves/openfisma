@@ -11,7 +11,7 @@ if ('closed' == $this->incident['status']):
 <?php
 endif;
 
-foreach ($this->steps as $step):
+foreach ($this->steps as $stepIndex => $step):
     switch ($step['iw_status']):
         case 'current':
             $class = 'currentIncidentStep';
@@ -79,7 +79,7 @@ foreach ($this->steps as $step):
                 ?>
                     <tr>
                         <td>Description:</td>
-                        <td><?php echo $step['iw_description']; ?></td>
+                        <td><?php echo $this->_raw['steps'][$stepIndex]['iw_description']; ?></td>
                     </tr>
                 <?php
                 endif;

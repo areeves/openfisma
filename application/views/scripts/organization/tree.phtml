@@ -100,7 +100,15 @@ function renderTreeNodes(treeNodes, parentNode, depth) {
     for (var i in treeNodes) {
         // Create tree node
         treeNode = treeNodes[i];
-        nodeText = "<b>" + treeNode.label + "</b> - <i>" + treeNode.orgTypeLabel + "</i>";
+        tempDiv = document.createElement('div');
+        tempB = document.createElement('b');
+        tempB.appendChild(document.createTextNode(treeNode.label));
+        tempDiv.appendChild(tempB);
+        tempDiv.appendChild(document.createTextNode(' - '));
+        tempI = document.createElement('i');
+        tempI.appendChild(document.createTextNode(treeNode.orgTypeLabel));
+        tempDiv.appendChild(tempI);
+        nodeText = tempDiv.innerHTML;
         var yuiNode = new YAHOO.widget.TextNode(nodeText, parentNode, false);
         yuiNode.labelStyle = treeNode.orgType;
         

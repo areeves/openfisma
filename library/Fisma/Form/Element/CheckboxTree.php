@@ -135,7 +135,8 @@ class Fisma_Form_Element_CheckboxTree extends Zend_Form_Element
                      . " nestedLevel=\"{$checkbox['level']}\""
                      . "$class$checked$disabled>&nbsp;"
                      . "<label for=\"{$groupName}[{$checkbox['group']}][{$checkbox['name']}]\">"
-                     . "{$checkbox['label']}</label>&nbsp;</li>";
+                     . $this->getView()->escape($checkbox['label'])
+                     . "</label>&nbsp;</li>";
         }
         $render .= "</ul></td></tr>\n";
 

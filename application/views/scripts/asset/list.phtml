@@ -60,7 +60,7 @@ Fisma_Format_Section::startSection("Asset Inventory <span id='searchResultsTotal
     var myColumnDefs = [{key: 'id', label:'', formatter: checkboxList}
     <?php
     foreach ($this->columns as $k => $v) {
-        echo ',{key:"' . $k . '", label:"' . $v . '"}';
+        echo ',{key:"' . $k . '", label:"' . $v . '", formatter: "text"}';
     }
     echo ", {key: 'id', label:'View', formatter: operation}];";
     ?>
