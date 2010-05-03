@@ -252,9 +252,6 @@ class RemediationController extends SecurityController
             $acceptEncodingHeader = $this->getRequest()->getHeader('Accept-Encoding');
             $gzipEncode = (strstr($acceptEncodingHeader, 'gzip') !== false);
             $this->view->gzipEncode = $gzipEncode;
-            if ('json' == $this->getRequest()->getParam('format')) {
-                $this->getResponse()->setHeader('Content-Encoding', 'gzip', true);
-            }
 
             // Assign children to parents accordingly
             $temp = array(array());
@@ -265,6 +262,9 @@ class RemediationController extends SecurityController
             }
             $organizations = $temp[0]['children'];
 
+            if ($this->getRequest()->getParam('format') === 'json') {
+                return $this->_helper->json($organizations);
+            }
             $this->view->summaryData = $organizations;
         } 
     }
@@ -540,12 +540,15 @@ class RemediationController extends SecurityController
                           'sortable' => true, 
                           'hidden' => ($visibleColumns & 1) == 0),
             'sourceNickname' => array('label' => 'Source', 
+                                       'formatter' => 'text',
                                        'sortable' => true, 
                                        'hidden' => ($visibleColumns & (1 << 1)) == 0),
             'systemNickname' => array('label' => 'System', 
+                                       'formatter' => 'text',
                                        'sortable' => true, 
                                        'hidden' => ($visibleColumns & (1 << 2)) == 0),
             'assetName' => array('label' => 'Asset', 
+                                  'formatter' => 'text',
                                   'sortable' => true, 
                                   'hidden' => ($visibleColumns & (1 << 3)) == 0),
             'type' => array('label' => 'Type', 

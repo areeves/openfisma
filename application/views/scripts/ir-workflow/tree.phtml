@@ -89,10 +89,11 @@ function renderTreeNodes(treeNodes, parentNode, depth) {
     for (var i in treeNodes) {
         treeNode = treeNodes[i];
         
-        if(treeNode.workflow_id) {
-            nodeText = "<b>" + treeNode.sortorder + ".</b> - " + treeNode.name;
+        nameString = treeNode.name.toString().replace(/&/g, "&#38;").replace(/</g, "&#60;").replace(/>/g, "&#62;");
+        if(treeNode.workflowId) {
+            nodeText = "<b>" + treeNode.cardinality + ".</b> " + nameString;
         } else {
-            nodeText = treeNode.name;
+            nodeText = nameString;
         }
         var yuiNode = new YAHOO.widget.TextNode(nodeText, parentNode, false);
         

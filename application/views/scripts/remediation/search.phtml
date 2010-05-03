@@ -33,6 +33,7 @@ var myColumnDefs = [
     foreach ($this->columns as $columnName => $columnDef) {
         $text .= "{key:\"$columnName\", label:\"{$columnDef['label']}\", "
                . 'sortable: ' . ($columnDef['sortable'] ? 'true' : 'false') . ', '
+               . (isset($columnDef['formatter']) ? "formatter: \"{$columnDef['formatter']}\", " : '')
                . 'hidden: ' . ($columnDef['hidden'] ? 'true' : 'false') . "},";
     }
     $text = substr($text, 0, -1); // remove trailing comma, otherwise IE would throw an exception
