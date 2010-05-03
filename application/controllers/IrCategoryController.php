@@ -251,22 +251,22 @@ class IrCategoryController extends SecurityController
                 // save the data, if failure then return false
                 if (!$ircategory->trySave()) {
                     $msg = "Failure in creation";
-                    $model = self::M_WARNING;
+                    $model = 'warning';
                 } else {
                     /* TODO: ask mark to explain this */
                     $ircategory->getTable()->getRecordListener()->setOption('disabled', true);
                     
                     $msg = "The category is created";
-                    $model = self::M_NOTICE;
+                    $model = 'notice';
                 }
-                $this->message($msg, $model);
+                $this->view->priorityMessenger($msg, $model);
                 $this->_forward('view', null, null, array('id' => $ircategory->id));
                 return;
 
             } else {
                 $errorString = Fisma_Form_Manager::getErrors($form);
                 // Error message
-                $this->message("Unable to create category:<br>$errorString", self::M_WARNING);
+                $this->view->priorityMessenger("Unable to create category:<br>$errorString", 'warning');
             }
         }
         
@@ -310,17 +310,17 @@ class IrCategoryController extends SecurityController
             
             if ($isModify) {
                 $msg = "The category is saved";
-                $model = self::M_NOTICE;
+                $model = 'notice';
             } else {
                 $msg = "Nothing changed";
-                $model = self::M_WARNING;
+                $model = 'warning';
             }
-            $this->message($msg, $model);
+            $this->view->priorityMessenger($msg, $model);
             $this->_forward('view', null, null, array('id' => $ircategory->id));
         } else {
             $errorString = Fisma_Form_Manager::getErrors($form);
             // Error message
-            $this->message("Unable to update category<br>$errorString", self::M_WARNING);
+            $this->view->priorityMessenger("Unable to update category<br>$errorString", 'warning');
             // On error, redirect back to the edit action.
             $this->_forward('view', null, null, array('id' => $id, 'v' => 'edit'));
         }
@@ -365,12 +365,12 @@ class IrCategoryController extends SecurityController
         if ($ircategory) {
             if ($ircategory->delete()) {
                 $msg = "Category deleted successfully";
-                $model = self::M_NOTICE;
+                $model = 'notice';
             } else {
                 $msg = "Failed to delete the Category";
-                $model = self::M_WARNING;
+                $model = 'warning';
             }
-            $this->message($msg, $model);
+            $this->view->priorityMessenger($msg, $model);
         }
         $this->_forward('list');
     }
@@ -395,22 +395,22 @@ class IrCategoryController extends SecurityController
                 // save the data, if failure then return false
                 if (!$irsubcategory->trySave()) {
                     $msg = "Failure in creation";
-                    $model = self::M_WARNING;
+                    $model = 'warning';
                 } else {
                     /* TODO: ask mark to explain this */
                     $irsubcategory->getTable()->getRecordListener()->setOption('disabled', true);
                     
                     $msg = "The category is created";
-                    $model = self::M_NOTICE;
+                    $model = 'notice';
                 }
-                $this->message($msg, $model);
+                $this->view->priorityMessenger($msg, $model);
                 $this->_forward('subview', null, null, array('id' => $irsubcategory->id));
                 return;
 
             } else {
                 $errorString = Fisma_Form_Manager::getErrors($form);
                 // Error message
-                $this->message("Unable to create sub category:<br>$errorString", self::M_WARNING);
+                $this->view->priorityMessenger("Unable to create sub category:<br>$errorString", 'warning');
             }
         }
         
@@ -533,17 +533,17 @@ class IrCategoryController extends SecurityController
             
             if ($isModify) {
                 $msg = "The category is saved";
-                $model = self::M_NOTICE;
+                $model = 'notice';
             } else {
                 $msg = "Nothing changed";
-                $model = self::M_WARNING;
+                $model = 'warning';
             }
-            $this->message($msg, $model);
+            $this->view->priorityMessenger($msg, $model);
             $this->_forward('subview', null, null, array('id' => $irsubcategory->id));
         } else {
             $errorString = Fisma_Form_Manager::getErrors($form);
             // Error message
-            $this->message("Unable to update category<br>$errorString", self::M_WARNING);
+            $this->view->priorityMessenger("Unable to update category<br>$errorString", 'warning');
             // On error, redirect back to the edit action.
             $this->_forward('subview', null, null, array('id' => $id, 'v' => 'subedit'));
         }
@@ -562,12 +562,12 @@ class IrCategoryController extends SecurityController
         if ($irsubcategory) {
             if ($irsubcategory->delete()) {
                 $msg = "Sub Category deleted successfully";
-                $model = self::M_NOTICE;
+                $model = 'notice';
             } else {
                 $msg = "Failed to delete the Sub Category";
-                $model = self::M_WARNING;
+                $model = 'warning';
             }
-            $this->message($msg, $model);
+            $this->view->priorityMessenger($msg, $model);
         }
         $this->_forward('tree');
     }

@@ -213,22 +213,22 @@ class IRWorkflowController extends SecurityController
                 // save the data, if failure then return false
                 if (!$irworkflow->trySave()) {
                     $msg = "Failure in creation";
-                    $model = self::M_WARNING;
+                    $model = 'warning';
                 } else {
                     /* TODO: ask mark to explain this */
                     $irworkflow->getTable()->getRecordListener()->setOption('disabled', true);
                     
                     $msg = "The workflow is created";
-                    $model = self::M_NOTICE;
+                    $model = 'notice';
                 }
-                $this->message($msg, $model);
+                $this->view->priorityMessenger($msg, $model);
                 $this->_forward('view', null, null, array('id' => $irworkflow->id));
                 return;
 
             } else {
                 $errorString = Fisma_Form_Manager::getErrors($form);
                 // Error message
-                $this->message("Unable to create workflow:<br>$errorString", self::M_WARNING);
+                $this->view->priorityMessenger("Unable to create workflow:<br>$errorString", 'warning');
             }
         }
         
@@ -323,17 +323,17 @@ class IRWorkflowController extends SecurityController
             
             if ($isModify) {
                 $msg = "The workflow is saved";
-                $model = self::M_NOTICE;
+                $model = 'notice';
             } else {
                 $msg = "Nothing changed";
-                $model = self::M_WARNING;
+                $model = 'warning';
             }
-            $this->message($msg, $model);
+            $this->view->priorityMessenger($msg, $model);
             $this->_forward('view', null, null, array('id' => $irworkflow->id));
         } else {
             $errorString = Fisma_Form_Manager::getErrors($form);
             // Error message
-            $this->message("Unable to update workflow<br>$errorString", self::M_WARNING);
+            $this->view->priorityMessenger("Unable to update workflow<br>$errorString", 'warning');
             // On error, redirect back to the edit action.
             $this->_forward('view', null, null, array('id' => $id, 'v' => 'edit'));
         }
@@ -365,22 +365,22 @@ class IRWorkflowController extends SecurityController
                 // save the data, if failure then return false
                 if (!$irworkflowstep->trySave()) {
                     $msg = "Failure in creation";
-                    $model = self::M_WARNING;
+                    $model = 'warning';
                 } else {
                     /* TODO: ask mark to explain this */
                     $irworkflowstep->getTable()->getRecordListener()->setOption('disabled', true);
                     
                     $msg = "The workflow step is created";
-                    $model = self::M_NOTICE;
+                    $model = 'notice';
                 }
-                $this->message($msg, $model);
+                $this->view->priorityMessenger($msg, $model);
                 $this->_forward('stepview', null, null, array('id' => $irworkflowstep->id));
                 return;
 
             } else {
                 $errorString = Fisma_Form_Manager::getErrors($form);
                 // Error message
-                $this->message("Unable to create workflow step:<br>$errorString", self::M_WARNING);
+                $this->view->priorityMessenger("Unable to create workflow step:<br>$errorString", 'warning');
             }
         }
         
@@ -526,12 +526,12 @@ class IRWorkflowController extends SecurityController
             
             if ($isModify) {
                 $msg = "The workflow step is saved";
-                $model = self::M_NOTICE;
+                $model = 'notice';
             } else {
                 $msg = "Nothing changed";
-                $model = self::M_WARNING;
+                $model = 'warning';
             }
-            $this->message($msg, $model);
+            $this->view->priorityMessenger($msg, $model);
 
             $this->_sortSteps();
         
@@ -539,7 +539,7 @@ class IRWorkflowController extends SecurityController
         } else {
             $errorString = Fisma_Form_Manager::getErrors($form);
             // Error message
-            $this->message("Unable to update workflow step<br>$errorString", self::M_WARNING);
+            $this->view->priorityMessenger("Unable to update workflow step<br>$errorString", 'warning');
             // On error, redirect back to the edit action.
             $this->_forward('stepview', null, null, array('id' => $id, 'v' => 'stepedit'));
         }
@@ -560,12 +560,12 @@ class IRWorkflowController extends SecurityController
             $irworkflow->unlink('SubCategories');
             if ($irworkflow->delete()) {
                 $msg = "Workflow deleted successfully";
-                $model = self::M_NOTICE;
+                $model = 'notice';
             } else {
                 $msg = "Failed to delete the Workflow";
-                $model = self::M_WARNING;
+                $model = 'warning';
             }
-            $this->message($msg, $model);
+            $this->view->priorityMessenger($msg, $model);
         }
         $this->_forward('list');
     }
@@ -583,12 +583,12 @@ class IRWorkflowController extends SecurityController
         if ($irworkflow) {
             if ($irworkflow->delete()) {
                 $msg = "Workflow Step deleted successfully";
-                $model = self::M_NOTICE;
+                $model = 'notice';
             } else {
                 $msg = "Failed to delete the Workflow Step";
-                $model = self::M_WARNING;
+                $model = 'warning';
             }
-            $this->message($msg, $model);
+            $this->view->priorityMessenger($msg, $model);
             $this->_sortSteps();
         }
         $this->_forward('tree');
