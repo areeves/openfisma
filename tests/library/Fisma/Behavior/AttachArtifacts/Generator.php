@@ -16,40 +16,45 @@
  * {@link http://www.gnu.org/licenses/}.
  */
 
+require_once(realpath(dirname(__FILE__) . '/../../../../FismaUnitTest.php'));
+
 /**
- * Represents the steps that must be performed to resolve an instance of an incident
+ * Tests for the AttachArtifacts behavior generator
  * 
- * @author     Mark E. Haase <mhaase@endeavorsystems.com>
+ * @author     Mark E. Haase
  * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
  * @license    http://www.openfisma.org/content/license GPLv3
- * @package    Model
+ * @package    Test
+ * @subpackage Test_Library
  * @version    $Id$
  */
-class IrIncidentWorkflow extends BaseIrIncidentWorkflow
+class Test_Fisma_Behavior_AttachArtifacts_Generator extends Test_FismaUnitTest
 {
     /**
-     * Override constructor to set default values
-     */
-    public function construct()
-    {
-        // Only operate on new objects (i.e. transient), not persistent objects which are being rehydrated
-        $state = $this->state();
-        if ($state == Doctrine_Record::STATE_TCLEAN || $state == Doctrine_Record::STATE_TDIRTY) {
-        
-            $this->status = 'queued';
-        }
-    }
-    
-    /**
-     * Mark this step as completed and update relevant metadata
+     * Test the blacklist function against a mimetype
      * 
-     * @param string $comment The user's comment associated with completing this step
+     * @expectedException Fisma_Exception_User
      */
-    public function completeStep($comment)
+    public function testMimeTypeBlackList()
     {
-        $this->status = 'completed';
-        $this->completeTs = date('Y-m-d H:i:s');
-        $this->User = User::currentUser();
-        $this->comments = $comment;
+        $incident = new Incident();
+        
+        $file = array('name' => 'Artifact.txt', 'type' => 'application/x-javascript');
+        
+        $incident->getArtifacts()->attach($file);
+    }
+
+    /**
+     * Test the blacklist function against a file extension
+     * 
+     * @expectedException Fisma_Exception_User
+     */
+    public function testExtensionBlackList()
+    {
+        $incident = new Incident();
+        
+        $file = array('name' => 'dangerous.exe');
+        
+        $incident->getArtifacts()->attach($file);
     }
 }

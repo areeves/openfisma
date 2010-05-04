@@ -38,7 +38,7 @@ class Incident extends BaseIncident
         
             // REMOTE_ADDR may not be set (e.g. command line mode)
             if (isset($_SERVER['REMOTE_ADDR'])) {
-                $this->sourceIp = $_SERVER['REMOTE_ADDR'];
+                $this->reporterIp = $_SERVER['REMOTE_ADDR'];
             }
 
             $this->status = 'new';
@@ -153,7 +153,8 @@ class Incident extends BaseIncident
         // Update the completed step first
         $completedStep = $this->CurrentWorkflowStep;
         $completedStep->completeStep($comment);
-        
+        $this->save();
+
         // Log the completed step
         $logMessage = 'Completed workflow step #'
                     . ($completedStep->cardinality + 1)
