@@ -1,0 +1,9 @@
+1. Remove all traces of assets
+	1. Remove from create finding page
+	2. Remove from finding view page
+	3. Remove menu item from system inventory module
+2. File upload max is 20MB instead of 10MB
+3. Remove RAF
+4. Remove System SDLC
+5. Remove Cross-References from finding
+6. IV&V Evaluation is 14 days instead of 7

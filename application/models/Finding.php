@@ -381,7 +381,13 @@ class Finding extends BaseFinding implements Fisma_Zend_Acl_OrganizationDependen
         }
 
         $nextDueDate = new Zend_Date($startDate, 'Y-m-d');
-        $nextDueDate->add($this->_overdue[$this->status], Zend_Date::DAY);
+        
+        if ('EA' == $this->status && is_null($this->currentEvaluationId)) {
+            $nextDueDate->add(14, Zend_Date::DAY);
+        } else {
+            $nextDueDate->add($this->_overdue[$this->status], Zend_Date::DAY);
+        }
+
         $this->_set('nextDueDate', $nextDueDate->toString('Y-m-d'));
     }
 
@@ -699,6 +705,6 @@ class Finding extends BaseFinding implements Fisma_Zend_Acl_OrganizationDependen
     public function isDeleted()
     {
         $oldValues = $this->getModified(true);
-        return ($this->deleted_at && !array_key_exists('deleted_at', $oldValues));
+        return ($this['deleted_at'] && !array_key_exists('deleted_at', $oldValues));
     }
 }
