@@ -104,7 +104,7 @@ if ( !empty( $this->alert['TOTAL'] ) ) {
 ?>
     <div class="panel clear">
         <table width="100%">
-            <tr><td colspan="2"><b>&nbsp;&nbsp;&nbsp;Management Overview </b></td></tr>
+            <tr><td colspan="2"><b>&nbsp;&nbsp;&nbsp;Management Overview </b><br/><br/> </td></tr>
             <tr>
                 <td align="center">
                 <?php echo $this->escape($this->statusChart, 'none'); ?>
@@ -112,10 +112,6 @@ if ( !empty( $this->alert['TOTAL'] ) ) {
                 <td align="center">
                 <?php echo $this->escape($this->typeChart, 'none'); ?>
                 </td>
-            </tr>
-            <tr>
-                <td align="center"><b>Finding Status<br>Distribution</b></td>
-                <td align="center"><b>Mitigation Strategy<br>Distribution</b></td>
             </tr>
         </table>
     </div>

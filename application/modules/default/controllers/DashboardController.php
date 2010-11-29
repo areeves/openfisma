@@ -58,7 +58,9 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
 
         $this->_helper->fismaContextSwitch()
                       ->addActionContext('totalstatus', 'xml')
+                      ->addActionContext('totalstatus', 'json')
                       ->addActionContext('totaltype', 'xml')
+                      ->addActionContext('totaltype', 'json')
                       ->initContext();
     }
 
@@ -170,8 +172,29 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
             $this->view->dismissUrl = "/dashboard/index/dismiss/notifications";
         }
 
-        $this->view->statusChart = new Fisma_Chart('/dashboard/totalstatus/format/xml', 380, 275);
-        $this->view->typeChart = new Fisma_Chart('/dashboard/totaltype/format/xml', 380, 275);
+        $this->view->statusChart = new Fisma_ChartJQP(
+                                    array(
+                                            "width"               => 380,
+                                            "height"              => 275,
+                                            "uniqueid"            => "chartFindingStatusDistribution",
+                                            "title"               => "Finding Status Distribution",
+                                            "chartType"           => "bar",
+                                            "concatXLabel"        => false,
+                                            "externalSource"      => "/dashboard/totalstatus/format/json"
+                                        )
+                                    );
+        
+        $this->view->typeChart = new Fisma_ChartJQP(
+                                    array(
+                                            "width"               => 380,
+                                            "height"              => 275,
+                                            "uniqueid"            => "chartMitigationStrategyDistribution",
+                                            "title"               => "Mitigation Strategy Distribution",
+                                            "chartType"           => "pie",
+                                            "externalSource"      => "/dashboard/totaltype/format/json",
+                                            "linksdebug"          => true
+                                        )
+                                    );
     }
     
     /**
@@ -211,13 +234,13 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
 
         foreach ($results as $result) {
             if (in_array($result['status'], array_keys($arrTotal))) {
-                $arrTotal[$result['status']] = $result['statusCount'];
+                $arrTotal[$result['status']] = (integer) $result['statusCount'];
             } elseif (!empty($result['CurrentEvaluation']['nickname'])) {
-                $arrTotal[$result['CurrentEvaluation']['nickname']] = $result['subStatusCount'];
+                $arrTotal[$result['CurrentEvaluation']['nickname']] = (integer) $result['subStatusCount'];
             }
         }
-
-        $this->view->summary = $arrTotal;
+    
+        $this->view->chart = array('chartData' => array_values($arrTotal), chartDataText => array_keys($arrTotal));
     }
 
     /**
@@ -227,7 +250,7 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
      */
     public function totaltypeAction()
     {
-        $this->view->summary = array(
+        $summary = array(
             'NONE' => 0,
             'CAP' => 0,
             'FP' => 0,
@@ -241,11 +264,13 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
             ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
             ->groupBy('f.type');
         $results =$q->execute()->toArray();
-        $types = array_keys($this->view->summary);
+        $types = array_keys($summary);
         foreach ($results as $result) {
             if (in_array($result['type'], $types)) {
-                $this->view->summary["{$result['type']}"] = $result['typeCount'];
+                $summary[$result['type']] = (integer) $result['typeCount'];
             }
         }
+        
+        $this->view->chart = array('chartData' => array_values($summary), chartDataText => array_keys($summary));
     }
 }

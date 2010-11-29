@@ -1,0 +1,37 @@
+
+<?php /* the div for jqPlot to use (the JavaScript will create canvases in this */ ?>
+<div name="<?php
+        echo $this->escape($this->chartData['uniqueid'], 'none'); 
+    ?>" id="<?php
+        echo $this->escape($this->chartData['uniqueid'], 'none');
+    ?>" style="width:<?php
+                        echo $this->escape($this->chartData['width'], 'none');
+    ?>px; height:<?php 
+                        echo $this->escape($this->chartData['height'], 'none'); 
+    ?>px;">
+</div>
+
+<?php /* Canvas support for IE */ ?>
+<!--[if IE]>
+    <script language="javascript" type="text/javascript" src="/public/javascripts/excanvas.js"></script>
+<![endif]-->
+
+<?php /* jqPlot style */ ?>
+<link rel="stylesheet" type="text/css" href="/javascripts/jquery_jqplot.css" />
+
+<?php /* jqPlot and deps */ ?>
+<script src="/javascripts/jquery-min.js"></script>
+<script src="/javascripts/jquery142min.js"></script>
+<script src="/javascripts/jquery-ui-181custom_min.js"></script>
+<script src="/javascripts/jquery_jqplot.js"></script>
+<script src="/javascripts/jqplot_barRenderer.js"></script>
+<script src="/javascripts/jqplot_categoryAxisRenderer.js"></script>
+<script src="/javascripts/jqplot_pointLabels.js"></script>
+<script src="/javascripts/jqplot_pieRenderer.js"></script>
+<script src="/javascripts/jqplotWrapper.js"></script>
+
+<?php /* call javascript:createChartJQChart(obj) defined in jqplotWrapper.js which will create the chart */ ?>
+<script>
+    var thisChartObjData = <?php echo $this->escape($this->chartData, 'json'); ?>;
+    createJQChart(thisChartObjData);
+</script>
