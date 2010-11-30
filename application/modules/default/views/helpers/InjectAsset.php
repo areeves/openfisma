@@ -77,7 +77,16 @@ class View_Helper_InjectAsset
                                       '/javascripts/Fisma/User.js',
                                       '/javascripts/Fisma/Util.js',
                                       '/javascripts/Fisma/Vulnerability.js',
-                                      '/javascripts/AC_RunActiveContent.js'
+                                      '/javascripts/AC_RunActiveContent.js',
+                                      '/javascripts/jquery-min.js',
+                                      '/javascripts/jquery142min.js',
+                                      '/javascripts/jquery-ui-181custom_min.js',
+                                      '/javascripts/jquery_jqplot.js',
+                                      '/javascripts/jqplot_barRenderer.js',
+                                      '/javascripts/jqplot_categoryAxisRenderer.js',
+                                      '/javascripts/jqplot_pointLabels.js',
+                                      '/javascripts/jqplot_pieRenderer.js',
+                                      '/javascripts/jqplotWrapper.js'
                                  ),
                                 '/stylesheets/combined.css' =>
                                 array('/stylesheets/main.css',
@@ -91,7 +100,8 @@ class View_Helper_InjectAsset
                                       '/stylesheets/Search.css',
                                       '/stylesheets/SwitchButton.css',
                                       '/stylesheets/Toolbar.css',
-                                      '/stylesheets/User.css'
+                                      '/stylesheets/User.css',
+                                      '/stylesheets/jquery_jqplot.css'
                                 )
                             );
 
