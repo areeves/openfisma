@@ -69,6 +69,12 @@ class SecurityControlChartController extends Fisma_Zend_Controller_Action_Securi
             $chartDataText[] = $thisElement['sc_code'];
         }
         
-        $this->view->chart = array("chartDataText" => $chartDataText, "chartData" => $chartData);
+        $this->view->chart = array(
+            'chartDataText' => $chartDataText,
+            'chartData' => $chartData,
+            'links' =>  '/finding/remediation/list/queryType/advanced/denormalizedStatus/textDoesNotContain/CLOSED/' .
+                        'securityControl/textExactMatch/#ColumnLabel#'
+            );
+        
     }
 }

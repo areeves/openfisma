@@ -312,19 +312,27 @@ function chartClickEvent(ev, seriesIndex, pointIndex, data, paramObj) {
 	
 	var theLink = false;
 	if (paramObj['links']) {
-		if (paramObj['links'][seriesIndex]) {
-			if (typeof paramObj['links'][seriesIndex] == "object") {
-				theLink = paramObj['links'][seriesIndex][pointIndex];
-			} else {
-				theLink = paramObj['links'][seriesIndex];
-			}
-		}
+        if (typeof paramObj['links'] == 'string') {
+            theLink = paramObj['links'];
+        } else {
+            if (paramObj['links'][seriesIndex]) {
+                if (typeof paramObj['links'][seriesIndex] == "object") {
+                    theLink = paramObj['links'][seriesIndex][pointIndex];
+                } else {
+                    theLink = paramObj['links'][seriesIndex];
+                }
+            }
+        }
 	}
-
-
+    
+    // Does the link contain a variable?
+    if (theLink != false) {
+        theLink = String(theLink).replace('#ColumnLabel#', paramObj['chartDataText'][pointIndex]);
+    }
+    
 	if (paramObj['linksdebug'] == true) {
 		var msg = "You clicked on layer " + seriesIndex + ", in column " + pointIndex + ", which has the data of " + data[1] + "\n";
-		msg += "The link information for this element should be stored in chartParamData['links'][" + seriesIndex + "][" + pointIndex + "]\n";
+		msg += "The link information for this element should be stored as a string in chartParamData['links'], or as a string in chartParamData['links'][" + seriesIndex + "][" + pointIndex + "]\n";
 		if (theLink != false) { msg += "The link with this element is " + theLink; }
 		alert(msg);
 	} else {
