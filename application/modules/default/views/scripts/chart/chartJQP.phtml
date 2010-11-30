@@ -1,14 +1,18 @@
 
 <?php /* the div for jqPlot to use (the JavaScript will create canvases in this */ ?>
-<div name="<?php
-        echo $this->escape($this->chartData['uniqueid'], 'none'); 
-    ?>" id="<?php
-        echo $this->escape($this->chartData['uniqueid'], 'none');
-    ?>" style="width:<?php
-                        echo $this->escape($this->chartData['width'], 'none');
-    ?>px; height:<?php 
-                        echo $this->escape($this->chartData['height'], 'none'); 
-    ?>px;">
+
+<div <?php echo $this->escape($this->divContainerArgs, 'none');  ?> >
+
+            <div name="<?php
+                    echo $this->escape($this->chartData['uniqueid'], 'none'); 
+                ?>" id="<?php
+                    echo $this->escape($this->chartData['uniqueid'], 'none');
+                ?>" style="width:<?php
+                                    echo $this->escape($this->chartData['width'], 'none');
+                ?>px; height:<?php 
+                                    echo $this->escape($this->chartData['height'], 'none'); 
+                ?>px;">
+            </div>
 </div>
 
 <?php /* call javascript:createChartJQChart(obj) defined in jqplotWrapper.js which will create the chart */ ?>

@@ -36,6 +36,7 @@ class SecurityControlChartController extends Fisma_Zend_Controller_Action_Securi
         
         $this->_helper->fismaContextSwitch()
                       ->setActionContext('control-deficiencies', 'xml')
+                      ->setActionContext('control-deficiencies', 'json')
                       ->initContext();
     }
 
@@ -57,7 +58,17 @@ class SecurityControlChartController extends Fisma_Zend_Controller_Action_Securi
                              ->groupBy('sc.code')
                              ->orderBy('sc.code')
                              ->setHydrationMode(Doctrine::HYDRATE_SCALAR);
-
-        $this->view->deficiencies = $deficienciesQuery->execute();
+        
+        $defQueryRslt = $deficienciesQuery->execute();
+        
+        $chartData = array();
+        $chartDataText = array();
+        
+        foreach ($defQueryRslt as $thisElement) {
+            $chartData[] = (integer) $thisElement['sc_count'];
+            $chartDataText[] = $thisElement['sc_code'];
+        }
+        
+        $this->view->chart = array("chartDataText" => $chartDataText, "chartData" => $chartData);
     }
 }

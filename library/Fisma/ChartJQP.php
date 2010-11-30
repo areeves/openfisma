@@ -59,13 +59,6 @@ class Fisma_ChartJQP
      */
     public function __construct($chartData)
     {
-        
-        if (empty($chartData['width']) || empty($chartData['height'])) {
-            throw new Fisma_Zend_Exception(
-                "Chart width and height must both be defined in array passed to __construct in class Fisma_ChartJQP"
-            );
-        }
-        
         $this->chartData = $chartData;
     }
     
@@ -76,9 +69,35 @@ class Fisma_ChartJQP
      */
     public function __toString()
     {
+        $dataToView = array();
         $view = Zend_Layout::getMvcInstance()->getView();
         
-        $dataToView = array();
+        // width and height are required params
+        if (empty($this->chartData['width']) || empty($this->chartData['height'])) {
+            throw new Fisma_Zend_Exception(
+                "Chart width and height must both be defined in chartData array in class Fisma_ChartJQP"
+            );
+        }
+        
+        // make up a uniqueid is one was not given
+        if (empty($this->chartData['uniqueid'])) {
+            $this->chartData['uniqueid'] = 'chart' . uniqid();
+        }
+        
+        // alignment html to apply to the div that will hold the chart canvas
+        if (empty($this->chartData['align']) || $this->chartData['align'] == 'center' ) {
+            
+            $dataToView['divContainerArgs'] =   'style="width: ' . $this->chartData['width'] . 'px;' .
+                                                'margin-left: auto; ' .
+                                                'margin-right: auto;"';
+        } elseif ($this->chartData['align'] == 'left' || $this->chartData['align'] == 'right' ) {
+            
+            $dataToView['divContainerArgs'] =   'class="' . $this->chartData['align'] . '"';
+            
+        }
+        unset($this->chartData['align']);
+        
+        // send the chart data to the view script as well
         $dataToView['chartData'] = $this->chartData;
         
         return $view->partial('chart/chartJQP.phtml', 'default', $dataToView);

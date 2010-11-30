@@ -39,10 +39,15 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
 
     public function indexAction()
     {
-        $this->view->controlDeficienciesChart = new Fisma_Chart(
-            '/security-control-chart/control-deficiencies/format/xml', 
-            800, 
-            300
+        $this->view->controlDeficienciesChart = new Fisma_ChartJQP(
+                            array(
+                                'width'         => 800,
+                                'height'        => 300,
+                                'chartTitle'    => 'Current Security Control Deficiencies',
+                                'chartType'     => 'bar',
+                                'align'         => 'center',
+                                'externalSource'=> '/security-control-chart/control-deficiencies/format/json'
+                            )
         );
     }
 }
