@@ -191,8 +191,7 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
                                             "uniqueid"            => "chartMitigationStrategyDistribution",
                                             "title"               => "Mitigation Strategy Distribution",
                                             "chartType"           => "pie",
-                                            "externalSource"      => "/dashboard/totaltype/format/json",
-                                            "linksdebug"          => true
+                                            "externalSource"      => "/dashboard/totaltype/format/json"
                                         )
                                     );
     }
@@ -240,7 +239,19 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
             }
         }
     
-        $this->view->chart = array('chartData' => array_values($arrTotal), chartDataText => array_keys($arrTotal));
+        $this->view->chart = array(
+                    'chartData' => array_values($arrTotal),
+                    'chartDataText' => array_keys($arrTotal),
+                    'links' => array(
+                        '/finding/remediation/list/queryType/advanced/denormalizedStatus/textExactMatch/NEW',
+                        '/finding/remediation/list/queryType/advanced/denormalizedStatus/textExactMatch/DRAFT',
+                        '/finding/remediation/list/queryType/advanced/denormalizedStatus/textExactMatch/MS%20ISSO',
+                        '/finding/remediation/list/queryType/advanced/denormalizedStatus/textExactMatch/MS%20IV%26V',
+                        '/finding/remediation/list/queryType/advanced/denormalizedStatus/textExactMatch/EN',
+                        '/finding/remediation/list/queryType/advanced/denormalizedStatus/textExactMatch/EV%20ISSO',
+                        '/finding/remediation/list/queryType/advanced/denormalizedStatus/textExactMatch/EV%20IV%26V'
+                        )
+                    );
     }
 
     /**
@@ -271,6 +282,15 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
             }
         }
         
-        $this->view->chart = array('chartData' => array_values($summary), chartDataText => array_keys($summary));
+        $this->view->chart = array(
+                            'chartData' => array_values($summary),
+                            'chartDataText' => array_keys($summary),
+                            'links' => array(
+                                    '/finding/remediation/list/queryType/advanced/type/enumIs/NONE',
+                                    '/finding/remediation/list/queryType/advanced/type/enumIs/CAP',
+                                    '/finding/remediation/list/queryType/advanced/type/enumIs/FP',
+                                    '/finding/remediation/list/queryType/advanced/type/enumIs/AR'
+                                    )
+                        );
     }
 }

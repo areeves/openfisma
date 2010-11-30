@@ -85,6 +85,7 @@ function createJQChart(param)
 			return createChartJQStackedLine(param);
 			break;
 		case 'pie':
+			param['links'] = [param['links']];
 			return createChartJQPie(param);
 			break;
 		default:
