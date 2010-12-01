@@ -5,15 +5,16 @@
 	Input
 	   Obj[...]
 	      Obj['uniqueid']		The name of the div for jqPlot create canvases inside of. The data within this div will be erased before chart plotting.
-	      Obj['title']		The title to render above the chart
-	      Obj['chartType']		String that must be "bar", "stackedbar", "line", or "pie"
-	      Obj['chartData']		Array to pass to jqPlot as the data to plot (numbers).
+	      Obj['externalSource'] An internal URL to load any of, or the rest of, the elements of this object. The content of the target URL given is expected to be a json responce. Any and all elements within the "chart" variable/object will be imported into this one.
+	      Obj['title']          The title to render above the chart
+	      Obj['chartType']      String that must be "bar", "stackedbar", "line", or "pie"
+	      Obj['chartData']	    Array to pass to jqPlot as the data to plot (numbers).
 	      Obj['chartDataText']	Array of labels (strings) for each data set in chartData (x-axis of bar charts)
-	      Obj['concatXLabel']	Boolean that states if " (#)" should be concatinated at the end of each x-axis label (default=true)
+	      Obj['concatXLabel']   Boolean that states if " (#)" should be concatinated at the end of each x-axis label (default=true)
 	      Obj['chartLayerText']	Array of labels (strings) for each different line/layer in a milti-line-char or stacked-bar-chart
-	      Obj['colors']		(optional) Array of colors for the chart to use across layers
-	      Obj['links']		(optional) Array of links of which the browser should navigate to when a given data element is clicked
-	      Obj['linksdebug']		(optional) Boolean, if set true, an alert box of what was clicked on will pop up instead of browser navigation based on Obj['links']
+	      Obj['colors']         (optional) Array of colors for the chart to use across layers
+	      Obj['links']          (optional) Array of links of which the browser should navigate to when a given data element is clicked
+	      Obj['linksdebug']     (optional) Boolean, if set true, an alert box of what was clicked on will pop up instead of browser navigation based on Obj['links']
 
 	Output
 	   returns true on success, false on failure, or nothing if the success of the chart creation cannot be determind at that time (asynchronous mode)
@@ -66,6 +67,15 @@ function createJQChart(param)
 		return;
 	}
 
+	// handel aliases and short-cut vars
+	if (typeof param['barMargin'] != 'undefined') {
+		param = jQuery.extend(true, param, {'seriesDefaults': {'rendererOptions': {'barMargin': param['barMargin']}}});
+		delete param['barMargin'];
+	}
+	
+	// make sure the numbers to be plotted in param['chartData'] are infact numbers and not an array of strings of numbers
+	param['chartData'] = forceIntegerArray(param['chartData']);
+
 	// call the correct function based on chartType
 	switch(param['chartType'])
 	{
@@ -75,12 +85,27 @@ function createJQChart(param)
 			return createJQChart_StackedBar(param);
 			break;
 		case 'bar':
-			param['chartData'] = [param['chartData']];
-			param['links'] = [param['links']];
-			param['varyBarColor'] = true;
-			param['showlegend'] = false;
+
+			// Is this a simple-bar chart (not-stacked-bar) with multiple series?
+			if (typeof param['chartData'][0] =='object') {
+
+				// the chartData is already a multi dimensional array, and the chartType is bar, not stacked bar. So we assume it is a simple-bar chart with multi series
+				// thus we will leave the chartData array as is (as opposed to forcing it to a 2 dim array, and claming it to be a stacked bar chart with no other layers of bars (a lazy but functional of creating a regular bar charts from the stacked-bar chart renderer)
+
+				param['varyBarColor'] = false;
+				param['showlegend'] = true;
+
+			} else {
+				param['chartData'] = [param['chartData']];	// force to 2 dimensional array
+				param['links'] = [param['links']];
+				param['varyBarColor'] = true;
+				param['showlegend'] = false;
+			}
+			
+			param['stackSeries'] = false;
 			return createJQChart_StackedBar(param);
 			break;
+
 		case 'line':
 			return createChartJQStackedLine(param);
 			break;
@@ -248,6 +273,9 @@ function createJQChart_StackedBar(param)
 				}
 	};
 
+	// merge any jqPlot direct param-arguments into jPlotParamObj from param
+	jPlotParamObj = jQuery.extend(true, jPlotParamObj, param);
+
 	plot1 = $.jqplot(param['uniqueid'], param['chartData'], jPlotParamObj);
 
 	
@@ -341,3 +369,18 @@ function chartClickEvent(ev, seriesIndex, pointIndex, data, paramObj) {
 		}
 	}
 }
+
+function forceIntegerArray(inptArray) {
+	for (var x = 0; x < inptArray.length; x++) {
+		if (typeof inptArray[x] == 'object') {
+			inptArray[x] = forceIntegerArray(inptArray[x]);
+		} else {
+			inptArray[x] = inptArray[x] * 1;	// make sure this is an int, and not a string of a number
+		}
+	}
+
+	return inptArray;
+}
+
+
+

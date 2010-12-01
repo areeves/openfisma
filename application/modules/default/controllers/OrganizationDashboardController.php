@@ -128,16 +128,24 @@ class OrganizationDashboardController extends Fisma_Zend_Controller_Action_Secur
         $this->view->metrics = $metrics;
         
         // Create dashboard charts
-        $this->view->fipsCategoryChart = new Fisma_Chart(
-            '/organization-chart/fips-category/format/xml', 
-            350, 
-            200
+        $this->view->fipsCategoryChart = new Fisma_ChartJQP(
+            array(
+                'width'             => 350,
+                'height'            => 200,
+                'chartType'         => 'pie',
+                'title'             => 'FIPS-199 Categorizations',
+                'externalSource'    => '/organization-chart/fips-category/format/json'
+            )
         );
         
-        $this->view->agencyContractorChart = new Fisma_Chart(
-            '/organization-chart/agency-contractor/format/xml', 
-            350, 
-            200
+        $this->view->agencyContractorChart = new Fisma_ChartJQP(
+            array(
+                'width'             => 350, 
+                'height'            => 200,
+                'chartType'         => 'pie',
+                'title'             => 'Agency & Contractor Systems',
+                'externalSource'    => '/organization-chart/agency-contractor/format/json'
+            )
         );
     }
     

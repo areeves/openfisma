@@ -37,7 +37,9 @@ class OrganizationChartController extends Fisma_Zend_Controller_Action_Security
         
         $this->_helper->fismaContextSwitch()
                       ->setActionContext('fips-category', 'xml')
+                      ->setActionContext('fips-category', 'json')                      
                       ->setActionContext('agency-contractor', 'xml')
+                      ->setActionContext('agency-contractor', 'json')
                       ->initContext();
     }
     
@@ -69,7 +71,16 @@ class OrganizationChartController extends Fisma_Zend_Controller_Action_Security
                            ->orderBy('s.fipsCategory DESC')
                            ->setHydrationMode(Doctrine::HYDRATE_SCALAR);
 
-        $this->view->categories = $categoriesQuery->execute();
+        $catQueryRslt = $categoriesQuery->execute();
+        
+        $chartData = array();
+        $chartDataText = array();
+        foreach ($catQueryRslt as $thisElement) {
+            $chartData[] = (integer) $thisElement['s_fips_count'];
+            $chartDataText[] = $thisElement['s_fips_category'];
+        }
+
+        $this->view->chart = array('chartData' => $chartData, 'chartDataText' => $chartDataText);
     }
     
     /**

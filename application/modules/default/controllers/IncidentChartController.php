@@ -36,8 +36,12 @@ class IncidentChartController extends Fisma_Zend_Controller_Action_Security
         
         $this->_helper->fismaContextSwitch()
                       ->setActionContext('history', 'xml')
+                      ->setActionContext('history', 'json')
                       ->setActionContext('category', 'xml')
+                      ->setActionContext('category', 'json')
                       ->setActionContext('bureau', 'xml')
+                      ->setActionContext('bureau', 'json')
+                      
                       ->initContext();
     }
     
@@ -103,38 +107,51 @@ class IncidentChartController extends Fisma_Zend_Controller_Action_Security
         $mergedData = array();
         $firstMonth = Zend_Date::now()->sub($period, Zend_Date::MONTH);
 
+        $chartData = array('reported' => array(), 'resolved' => array(), 'rejected' => array());
+
         for ($monthOffset = 1; $monthOffset <= $period; $monthOffset++) {
             $currentMonth = clone $firstMonth;
             $currentMonth->add($monthOffset, Zend_Date::MONTH);
             
             // Fill in default values in case one or both queries had no matching records for this month
-            $monthData = array(
-                'reported' => 0, 
-                'resolved' => 0, 
-                'rejected' => 0,
-                'monthName' => $currentMonth->get(Zend_Date::MONTH_NAME_SHORT), // short name for month
-                'year' => $currentMonth->get(Zend_Date::YEAR)
-                
-            );
-
+            $thisReported = 0;
+            $thisResolved = 0;
+            $thisRejected = 0;
+            $thisMonthName = $currentMonth->get(Zend_Date::MONTH_NAME_SHORT); // short name for month
+            $thisYear = $currentMonth->get(Zend_Date::YEAR);
+            
             // Merge reported counts with rejected/resolved counts for each month
             
             // Current month as number with no leading zero
             $currentMonthNumber = $currentMonth->get(Zend_Date::MONTH_SHORT);
             
             if (isset($reportedIncidents[$currentMonthNumber])) {
-                $monthData['reported'] = $reportedIncidents[$currentMonthNumber]['reported'];
+                $thisReported = $reportedIncidents[$currentMonthNumber]['reported'];
             }
 
             if (isset($closedIncidents[$currentMonthNumber])) {
-                $monthData['resolved'] = $closedIncidents[$currentMonthNumber]['resolved'];
-                $monthData['rejected'] = $closedIncidents[$currentMonthNumber]['rejected'];
+                $thisResolved = $closedIncidents[$currentMonthNumber]['resolved'];
+                $thisRejected = $closedIncidents[$currentMonthNumber]['rejected'];
             }
 
-            $mergedData[$currentMonthNumber] = $monthData;
+            $chartData['reported'][] = $thisReported;
+            $chartData['resolved'][] = $thisResolved;
+            $chartData['rejected'][] = $thisRejected;
+            
+            $chartDataText[] = $thisMonthName;
         }
         
-        $this->view->months = $mergedData;
+        $chartData = array_values($chartData);  // whipe out keys
+        
+        $this->view->chart = array(
+            'chartData'         => $chartData,
+            'chartDataText'     => $chartDataText,
+            'chartLayerText'    => array(
+                'Reported Incidents',
+                'Resolved Incidents',
+                'Rejected Incidents'
+            )
+        );
     }
     
     /**
