@@ -72,6 +72,14 @@ function createJQChart(param)
 		param = jQuery.extend(true, param, {'seriesDefaults': {'rendererOptions': {'barMargin': param['barMargin']}}});
 		delete param['barMargin'];
 	}
+	if (typeof param['legendLocation'] != 'undefined') {
+		param = jQuery.extend(true, param, {'legend': {'location': param['legendLocation'] }});
+		delete param['legendLocation'];
+	}
+	if (typeof param['legendRowCount'] != 'undefined') {
+		param = jQuery.extend(true, param, {'legend': {'rendererOptions': {'numberRows': param['legendRowCount']}}});
+		delete param['legendRowCount'];
+	}
 	
 	// make sure the numbers to be plotted in param['chartData'] are infact numbers and not an array of strings of numbers
 	param['chartData'] = forceIntegerArray(param['chartData']);
@@ -129,50 +137,6 @@ function createJQChart_asynchReturn(requestNumber, value, exception, param)
 	}
 }
 
-function createChartJQPie2(param, labelsText, rawData)
-{
-	usedLabelsPie = param['chartDataText'];
-
-	var dataSet = [];
-
-	for (var x = 0; x < param['chartData'].length; x++) {
-		param['chartDataText'][x] += ' (' + param['chartData'][x]  + ')';
-		dataSet[dataSet.length] = [param['chartDataText'][x], param['chartData'][x]];
-	}
-	
-	plot1 = $.jqplot('chart1', [dataSet], {
-		grid: {
-			drawBorder: false,
-			drawGridlines: false,
-			background: '#ffffff',
-			shadow:false
-		},
-		axesDefaults: {
-
-		},
-		seriesDefaults:{
-			renderer:$.jqplot.PieRenderer,
-			rendererOptions: {
-				showDataLabels: true
-			}
-		},
-		legend: {
-			show: true,
-			rendererOptions: {
-				numberRows: 1
-			},
-			location: 's'
-		}
-
-	});
-
-	$('#chart1').bind('jqplotDataClick',
-		function (ev, seriesIndex, pointIndex, data) {
-			alert('You clicked on the section: ' + usedLabelsPie[pointIndex]);
-		}
-	);
-}
-
 function createChartJQPie(param)
 {
 	usedLabelsPie = param['chartDataText'];
@@ -184,7 +148,8 @@ function createChartJQPie(param)
 		dataSet[dataSet.length] = [param['chartDataText'][x], param['chartData'][x]];
 	}
 	
-	plot1 = $.jqplot(param['uniqueid'], [dataSet], {
+
+	var jPlotParamObj = {
 		title: param['title'],
 		seriesColors: param['colors'],
 		grid: {
@@ -196,10 +161,11 @@ function createChartJQPie(param)
 		seriesDefaults:{
 			renderer:$.jqplot.PieRenderer,
 			rendererOptions: {
+				sliceMargin: 2,
 				showDataLabels: true
 			}
 		},
-		legend: {
+                legend: {
 			show: true,
 			rendererOptions: {
 				numberRows: 1
@@ -207,7 +173,14 @@ function createChartJQPie(param)
 			location: 's'
 		}
 
-	});
+
+
+	}
+
+	// merge any jqPlot direct param-arguments into jPlotParamObj from param
+	jPlotParamObj = jQuery.extend(true, jPlotParamObj, param);
+
+	plot1 = $.jqplot(param['uniqueid'], [dataSet], jPlotParamObj);
 
 	// create an event handeling function that calls chartClickEvent while preserving the parm object
 	var EvntHandler = new Function ("ev", "seriesIndex", "pointIndex", "data", "var thisChartParamObj = " + JSON.stringify(param) + "; chartClickEvent(ev, seriesIndex, pointIndex, data, thisChartParamObj);" );

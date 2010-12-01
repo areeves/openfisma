@@ -168,7 +168,22 @@ class IncidentChartController extends Fisma_Zend_Controller_Action_Security
                          ->groupBy('category.id')
                          ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
         
-        $this->view->categoryCounts = $categoryQuery->execute();
+        $catQueryRslt = $categoryQuery->execute();
+        
+        $chartData = array();
+        $chartDataText = array();
+        
+        reset($catQueryRslt);
+        while ($thisElement = current($catQueryRslt)) {
+            
+            $chartData[] = $thisElement['count'];
+            $chartDataText[] = key($catQueryRslt) . ' - ' . $thisElement['name'];
+            
+            next($catQueryRslt);
+        }
+
+        
+        $this->view->chart = array('chartData' => $chartData, 'chartDataText' => $chartDataText);
     }
     
     /**

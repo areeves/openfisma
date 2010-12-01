@@ -98,7 +98,17 @@ class IncidentDashboardController extends Fisma_Zend_Controller_Action_Security
             )
         );
             
-        $this->view->categoryChart = new Fisma_Chart('/incident-chart/category/format/xml', 450, 300);
+        $this->view->categoryChart = new Fisma_ChartJQP(
+            array(
+                'width'             => 450,
+                'height'            => 300,
+                'chartType'         => 'pie',
+                'externalSource'    => '/incident-chart/category/format/json',
+                'legendLocation'    => 's',
+                'legendRowCount'    => 2
+            )
+        );
+        
         $this->view->bureauChart = new Fisma_Chart('/incident-chart/bureau/format/xml', 900, 300);
     }
     
