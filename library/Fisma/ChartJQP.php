@@ -89,10 +89,10 @@ class Fisma_ChartJQP
             
             $dataToView['divContainerArgs'] =   'style="width: ' . $this->chartData['width'] . 'px;' .
                                                 'margin-left: auto; ' .
-                                                'margin-right: auto;"';
+                                                'margin-right: auto; display:none;"';
         } elseif ($this->chartData['align'] == 'left' || $this->chartData['align'] == 'right' ) {
             
-            $dataToView['divContainerArgs'] =   'class="' . $this->chartData['align'] . '"';
+            $dataToView['divContainerArgs'] =   'class="' . $this->chartData['align'] . '; display:none;"';
             
         }
         unset($this->chartData['align']);

@@ -179,7 +179,7 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
                                             "uniqueid"            => "chartFindingStatusDistribution",
                                             "title"               => "Finding Status Distribution",
                                             "chartType"           => "bar",
-                                            "concatXLabel"        => false,
+                                            "concatXLabel"        => true,
                                             "externalSource"      => "/dashboard/totalstatus/format/json"
                                         )
                                     );

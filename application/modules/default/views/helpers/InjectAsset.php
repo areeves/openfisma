@@ -82,8 +82,10 @@ class View_Helper_InjectAsset
                                       '/javascripts/jquery142min.js',
                                       '/javascripts/jquery-ui-181custom_min.js',
                                       '/javascripts/jquery_jqplot.js',
-                                      '/javascripts/jqplot_barRenderer.js',
+                                      '/javascripts/jqplot_canvasTextRenderer_min.js',
+                                      '/javascripts/jqplot_canvasAxisTickRenderer_min.js',
                                       '/javascripts/jqplot_categoryAxisRenderer.js',
+                                      '/javascripts/jqplot_barRenderer.js',
                                       '/javascripts/jqplot_pointLabels.js',
                                       '/javascripts/jqplot_pieRenderer.js',
                                       '/javascripts/jqplotWrapper.js'

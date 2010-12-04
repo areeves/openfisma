@@ -34,9 +34,6 @@ function createJQChart(param)
 		return false;
 	}
 
-	// clear the chart area
-	document.getElementById(param['uniqueid']).innerHTML = '';
-
 	// is the data being loaded from an external source? (Or is it all in the param obj?)
 	if (param['externalSource']) {
 		
@@ -67,6 +64,10 @@ function createJQChart(param)
 		return;
 	}
 
+	// clear the chart area
+	document.getElementById(param['uniqueid']).innerHTML = '';
+	document.getElementById(param['uniqueid']).className = '';
+
 	// handel aliases and short-cut vars
 	if (typeof param['barMargin'] != 'undefined') {
 		param = jQuery.extend(true, param, {'seriesDefaults': {'rendererOptions': {'barMargin': param['barMargin']}}});
@@ -84,13 +85,21 @@ function createJQChart(param)
 	// make sure the numbers to be plotted in param['chartData'] are infact numbers and not an array of strings of numbers
 	param['chartData'] = forceIntegerArray(param['chartData']);
 
+	// hide the loading spinner and show the canvas target
+	document.getElementById(param['uniqueid'] + 'holder').style.display = '';
+	fade(param['uniqueid'] + 'holder', 0);
+
+	fade(param['uniqueid'] + 'loader', 500);
+	document.getElementById(param['uniqueid'] + 'loader').style.position = 'absolute';
+	document.getElementById(param['uniqueid'] + 'loader').finnishFadeCallback = new Function ("document.getElementById('" + param['uniqueid'] + "loader').style.display = 'none'; fade('" + param['uniqueid'] + "holder', 500);");
+
 	// call the correct function based on chartType
 	switch(param['chartType'])
 	{
 		case 'stackedbar':
 			param['varyBarColor'] = false;
 			param['showlegend'] = true;
-			return createJQChart_StackedBar(param);
+			var rtn = createJQChart_StackedBar(param);
 			break;
 		case 'bar':
 
@@ -111,24 +120,29 @@ function createJQChart(param)
 			}
 			
 			param['stackSeries'] = false;
-			return createJQChart_StackedBar(param);
+			var rtn = createJQChart_StackedBar(param);
 			break;
 
 		case 'line':
-			return createChartJQStackedLine(param);
+			var rtn = createChartJQStackedLine(param);
 			break;
 		case 'pie':
 			param['links'] = [param['links']];
-			return createChartJQPie(param);
+			var rtn = createChartJQPie(param);
 			break;
 		default:
 			alert('createJQChart Error - chartType is invalid');
 			return false;
 	}
+
+
+	applyChartBackground(param);
+	return rtn;
 }
 
 function createJQChart_asynchReturn(requestNumber, value, exception, param)
 {
+
 	if (value) {
 		var joinedParam = jQuery.extend(true, param, value['results'][0],true);
 		createJQChart(jQuery.extend(true, param, value));
@@ -162,7 +176,9 @@ function createChartJQPie(param)
 			renderer:$.jqplot.PieRenderer,
 			rendererOptions: {
 				sliceMargin: 2,
-				showDataLabels: true
+				showDataLabels: true,
+				shadowAlpha: 0.15,
+				shadowOffset: 3
 			}
 		},
                 legend: {
@@ -222,8 +238,15 @@ function createJQChart_StackedBar(param)
 		series: seriesParam,
 		seriesDefaults:{
 			renderer: $.jqplot.BarRenderer,
-			rendererOptions:{barMargin: 10, showDataLabels: true, varyBarColor: param['varyBarColor']},
+			rendererOptions:{barMargin: 10, showDataLabels: true, varyBarColor: param['varyBarColor'], shadowAlpha: 0.15, shadowOffset: 3},
 			pointLabels:{show: true, location: 's'}
+		},
+		axesDefaults: {
+			tickRenderer: $.jqplot.CanvasAxisTickRenderer,
+			tickOptions: {
+				angle: -30,
+				fontSize: '10pt'
+			}
 		},
 		axes: {
 			xaxis:{
@@ -355,5 +378,80 @@ function forceIntegerArray(inptArray) {
 	return inptArray;
 }
 
+function applyChartBackground(param) {
+
+	var targDiv = document.getElementById(param['uniqueid']);
+
+	if (param['chartType'] == 'pie') {
+		var cpy = targDiv.childNodes[3];
+		var insertBeforeChild = targDiv.childNodes[4];
+	} else {	
+		var cpy = targDiv.childNodes[6];
+		var insertBeforeChild = targDiv.childNodes[5];
+	}
+
+	var cpyStyl = cpy.style;
+
+	injectedBackgroundImg = document.createElement('span');
+	injectedBackgroundImg.setAttribute('align', 'center');
+	injectedBackgroundImg.setAttribute('style' , 'position: absolute; left: ' + cpyStyl.left + '; top: ' + cpyStyl.top + '; width: ' + cpy.width + 'px; height: ' + cpy.height + 'px;');
+
+	var inserted = targDiv.insertBefore(injectedBackgroundImg, insertBeforeChild);
+	inserted.innerHTML = '<img height="100%" src="/images/logoShark.png" style="opacity:0.15;filter:alpha(opacity=15);opacity:0.15" />';
+}
+
+function fade(eid, TimeToFade)
+{
+	var element = document.getElementById(eid);
+	if (element == null) return;
+
+	element.style.display = '';
+
+	if(element.FadeState == null)
+	{
+		if(element.style.opacity == null || element.style.opacity == '' || element.style.opacity == '1')
+		{
+			element.FadeState = 2;
+		} else {
+			element.FadeState = -2;
+		}
+	}
+
+	if(element.FadeState == 1 || element.FadeState == -1) {
+		element.FadeState = element.FadeState == 1 ? -1 : 1;
+		element.FadeTimeLeft = TimeToFade - element.FadeTimeLeft;
+	} else {
+		element.FadeState = element.FadeState == 2 ? -1 : 1;
+		element.FadeTimeLeft = TimeToFade;
+		setTimeout("animateFade(" + new Date().getTime() + ",'" + eid + "'," + TimeToFade + ")", 33);
+	}  
+}
+
+
+function animateFade(lastTick, eid, TimeToFade)
+{  
+	var curTick = new Date().getTime();
+	var elapsedTicks = curTick - lastTick;
+
+	var element = document.getElementById(eid);
+
+	if(element.FadeTimeLeft <= elapsedTicks)
+	{
+		element.style.opacity = element.FadeState == 1 ? '1' : '0';
+		element.style.filter = 'alpha(opacity = ' + (element.FadeState == 1 ? '100' : '0') + ')';
+		element.FadeState = element.FadeState == 1 ? 2 : -2;
+		if (element.finnishFadeCallback) { element.finnishFadeCallback(); }
+		return;
+	}
+
+	element.FadeTimeLeft -= elapsedTicks;
+	var newOpVal = element.FadeTimeLeft/TimeToFade;
+	if(element.FadeState == 1) newOpVal = 1 - newOpVal;
+
+	element.style.opacity = newOpVal;
+	element.style.filter = 'alpha(opacity = ' + (newOpVal*100) + ')';
+
+	setTimeout("animateFade(" + curTick + ",'" + eid + "'," + TimeToFade + ")", 33);
+}
 
 

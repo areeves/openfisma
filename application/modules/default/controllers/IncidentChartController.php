@@ -181,7 +181,6 @@ class IncidentChartController extends Fisma_Zend_Controller_Action_Security
             
             next($catQueryRslt);
         }
-
         
         $this->view->chart = array('chartData' => $chartData, 'chartDataText' => $chartDataText);
     }
@@ -205,6 +204,16 @@ class IncidentChartController extends Fisma_Zend_Controller_Action_Security
                        ->groupBy('bureau.id')
                        ->setHydrationMode(Doctrine::HYDRATE_SCALAR);
         
-        $this->view->bureaus = $bureauQuery->execute();
+        $burQueryRslt = $bureauQuery->execute();
+        
+        $chartData = array();
+        $chartDataText = array();
+        
+        foreach ($burQueryRslt as $thisElement) {
+            $chartData[] = $thisElement['i_count'];
+            $chartDataText[] = $thisElement['bureau_nickname'];
+        }
+        
+        $this->view->chart = array('chartData' => $chartData, 'chartDataText' => $chartDataText);
     }
 }
