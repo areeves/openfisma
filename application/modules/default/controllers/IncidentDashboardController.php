@@ -87,7 +87,7 @@ class IncidentDashboardController extends Fisma_Zend_Controller_Action_Security
      */
     public function chartsAction()
     {
-        $this->view->statusChart = new Fisma_ChartJQP(
+        $this->view->statusChart = new Fisma_Chart(
             array(
                 'title'             => 'Incidents reported, resolved, and rejected (past 6 months)',
                 'width'             => 450,
@@ -98,7 +98,7 @@ class IncidentDashboardController extends Fisma_Zend_Controller_Action_Security
             )
         );
             
-        $this->view->categoryChart = new Fisma_ChartJQP(
+        $this->view->categoryChart = new Fisma_Chart(
             array(
                 'width'             => 450,
                 'height'            => 300,
@@ -109,7 +109,7 @@ class IncidentDashboardController extends Fisma_Zend_Controller_Action_Security
             )
         );
         
-        $this->view->bureauChart = new Fisma_ChartJQP(
+        $this->view->bureauChart = new Fisma_Chart(
             array(
                 'width'             => 900,
                 'height'            => 300,

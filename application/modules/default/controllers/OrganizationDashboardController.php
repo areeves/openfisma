@@ -128,7 +128,7 @@ class OrganizationDashboardController extends Fisma_Zend_Controller_Action_Secur
         $this->view->metrics = $metrics;
         
         // Create dashboard charts
-        $this->view->fipsCategoryChart = new Fisma_ChartJQP(
+        $this->view->fipsCategoryChart = new Fisma_Chart(
             array(
                 'width'             => 350,
                 'height'            => 200,
@@ -138,7 +138,7 @@ class OrganizationDashboardController extends Fisma_Zend_Controller_Action_Secur
             )
         );
         
-        $this->view->agencyContractorChart = new Fisma_ChartJQP(
+        $this->view->agencyContractorChart = new Fisma_Chart(
             array(
                 'width'             => 350, 
                 'height'            => 200,

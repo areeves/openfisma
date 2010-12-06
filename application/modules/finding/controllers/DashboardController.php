@@ -39,7 +39,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
 
     public function indexAction()
     {
-        $this->view->controlDeficienciesChart = new Fisma_ChartJQP(
+        $this->view->controlDeficienciesChart = new Fisma_Chart(
                             array(
                                 'width'         => 800,
                                 'height'        => 300,

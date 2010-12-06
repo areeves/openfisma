@@ -29,7 +29,7 @@
  * @subpackage Fisma_Chart
  * @version    $Id$
  */
-class Fisma_ChartJQP
+class Fisma_Chart
 {
     /**
      * An array that holds information defining how the chart will be constructed and what it will plot
@@ -75,7 +75,7 @@ class Fisma_ChartJQP
         // width and height are required params
         if (empty($this->chartData['width']) || empty($this->chartData['height'])) {
             throw new Fisma_Zend_Exception(
-                "Chart width and height must both be defined in chartData array in class Fisma_ChartJQP"
+                "Chart width and height must both be defined in chartData array in class Fisma_Chart"
             );
         }
         
@@ -100,6 +100,6 @@ class Fisma_ChartJQP
         // send the chart data to the view script as well
         $dataToView['chartData'] = $this->chartData;
         
-        return $view->partial('chart/chartJQP.phtml', 'default', $dataToView);
+        return $view->partial('chart/chart.phtml', 'default', $dataToView);
     }
 }

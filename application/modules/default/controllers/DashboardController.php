@@ -172,7 +172,7 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
             $this->view->dismissUrl = "/dashboard/index/dismiss/notifications";
         }
 
-        $this->view->statusChart = new Fisma_ChartJQP(
+        $this->view->statusChart = new Fisma_Chart(
                                     array(
                                             "width"               => 380,
                                             "height"              => 275,
@@ -184,7 +184,7 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
                                         )
                                     );
         
-        $this->view->typeChart = new Fisma_ChartJQP(
+        $this->view->typeChart = new Fisma_Chart(
                                     array(
                                             "width"               => 380,
                                             "height"              => 275,
