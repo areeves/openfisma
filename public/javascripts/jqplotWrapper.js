@@ -34,6 +34,9 @@ function createJQChart(param)
 		return false;
 	}
 
+	// Ensure the load spinner is visible
+	makeElementVisible(param['uniqueid'] + 'loader');
+
 	// is the data being loaded from an external source? (Or is it all in the param obj?)
 	if (param['externalSource']) {
 		
@@ -47,6 +50,7 @@ function createJQChart(param)
 		document.getElementById(param['uniqueid']).innerHTML = 'Loading chart data...';
 
 		var externalSource = param['externalSource'];
+		if (!param['oldExternalSource']) { param['oldExternalSource'] = externalSource; }
 		delete param['externalSource'];
 		
 		var myDataSource = new YAHOO.util.DataSource(externalSource);
@@ -87,11 +91,11 @@ function createJQChart(param)
 
 	// hide the loading spinner and show the canvas target
 	document.getElementById(param['uniqueid'] + 'holder').style.display = '';
-	fade(param['uniqueid'] + 'holder', 0);
+	fadeOut(param['uniqueid'] + 'holder', 0);
 
-	fade(param['uniqueid'] + 'loader', 500);
+	fadeOut(param['uniqueid'] + 'loader', 500);
 	document.getElementById(param['uniqueid'] + 'loader').style.position = 'absolute';
-	document.getElementById(param['uniqueid'] + 'loader').finnishFadeCallback = new Function ("document.getElementById('" + param['uniqueid'] + "loader').style.display = 'none'; fade('" + param['uniqueid'] + "holder', 500);");
+	document.getElementById(param['uniqueid'] + 'loader').finnishFadeCallback = new Function ("fadeIn('" + param['uniqueid'] + "holder', 500);");
 
 	// call the correct function based on chartType
 	switch(param['chartType'])
@@ -137,6 +141,8 @@ function createJQChart(param)
 
 
 	applyChartBackground(param);
+	applyChartWidgets(param);
+
 	return rtn;
 }
 
@@ -382,6 +388,29 @@ function applyChartBackground(param) {
 
 	var targDiv = document.getElementById(param['uniqueid']);
 
+	// Dont display a background? Defined in either nobackground or background.nobackground
+	if (param['nobackground']) {
+		if (param['nobackground'] == true) { return; }
+	}
+	if (param['background']) {
+		if (param['background']['nobackground']) {
+			if (param['background']['nobackground'] == true) { return; }
+		}
+	}
+	
+	// What is the HTML we should inject?
+	var backURL = '/images/logoShark.png'; // default location
+	if (param['background']) { if (param['background']['URL']) { backURL = param['background']['URL']; } }
+	var injectHTML = '<img height="100%" src="' + backURL + '" style="opacity:0.15;filter:alpha(opacity=15);opacity:0.15" />';
+
+	// But wait, is there an override issued for the HTML of the background to inject?
+	if (param['background']) {
+		if (param['background']['overrideHTML']) {
+			backURL = param['background']['overrideHTML'];
+		}
+	}
+
+	// Where do we inject the background in the DOM? (different for differnt chart rederers)
 	if (param['chartType'] == 'pie') {
 		var cpy = targDiv.childNodes[3];
 		var insertBeforeChild = targDiv.childNodes[4];
@@ -397,15 +426,145 @@ function applyChartBackground(param) {
 	injectedBackgroundImg.setAttribute('style' , 'position: absolute; left: ' + cpyStyl.left + '; top: ' + cpyStyl.top + '; width: ' + cpy.width + 'px; height: ' + cpy.height + 'px;');
 
 	var inserted = targDiv.insertBefore(injectedBackgroundImg, insertBeforeChild);
-	inserted.innerHTML = '<img height="100%" src="/images/logoShark.png" style="opacity:0.15;filter:alpha(opacity=15);opacity:0.15" />';
+	inserted.innerHTML = injectHTML;
 }
 
-function fade(eid, TimeToFade)
-{
+function applyChartWidgets(param) {
+
+	if (param['widgets']) {
+
+		var wigSpace = document.getElementById(param['uniqueid'] + 'WidgetSpace');
+		wigSpace.innerHTML = '';
+
+		for (var x = 0; x < param['widgets'].length; x++) {
+
+			var addHTML = '';
+			var thisWidget = param['widgets'][x];
+			
+			// create a widget id if one is not explicitly given
+			if (!thisWidget['uniqueid']) {
+				thisWidget['uniqueid'] = param['uniqueid'] + '_widget' + x;
+				param['widgets'][x]['uniqueid'] = thisWidget['uniqueid'];
+			}
+
+			// print the label text to be displayed to the left of the widget if one is given
+			if (thisWidget['label']) {
+				addHTML += thisWidget['label'] + ' ';
+			}
+
+			switch(thisWidget['type']) {
+				case 'combo':
+
+					addHTML += '<select id="' + thisWidget['uniqueid'] + '" onChange="widgetEvent(' + JSON.stringify(param).replace(/"/g, "'") + ');">';
+
+					for (var y = 0; y < thisWidget['options'].length; y++) {
+						
+						addHTML += '<option value="' + thisWidget['options'][y] + '">' + thisWidget['options'][y] + '</option><br/>';
+					}
+					
+					addHTML += '</select>';
+
+					break;
+
+				case 'text':
+	
+					addHTML += '<input onKeyDown="if(event.keyCode==13){widgetEvent(' + JSON.stringify(param).replace(/"/g, "'") + ');};" type="textbox" id="' + thisWidget['uniqueid'] + '" />'
+					break;
+
+				default:
+					alert('Error - Widget ' + x + "'s type (" + thisWidget['type'] + ') is not a known widget type');
+					return false;
+			}
+
+			// add this widget HTML to the DOM
+			wigSpace.innerHTML += addHTML;
+			
+			// load the value for widget
+			var thisWigInDOM = document.getElementById(thisWidget['uniqueid']);
+			var thisWigValue = getCookie(thisWidget['uniqueid']);
+			if (param['value']) {
+				// this widget value is forced to a certain value upon every load/reload
+				thisWigInDOM.value = param['value'];
+			} else {
+				if (thisWigValue != '') {
+					// the value has been coosen in the past and is stored as a cookie
+					thisWigInDOM.value = thisWigValue;
+				} else {
+					// no saved value/cookie. Is there a default given in the param object
+					if (thisWidget['valuedefault']) {
+						thisWigInDOM.value = thisWidget['valuedefault'];
+					}
+				}
+			}
+		}
+	}
+
+}
+
+function widgetEvent(param) {
+
+	// first, save the widget values (as cookies) so they can be retained later when the widgets get redrawn
+	if (param['widgets']) {
+		for (var x = 0; x < param['widgets'].length; x++) {
+			var thisWidgetName = param['widgets'][x]['uniqueid'];
+			var thisWidgetValue = document.getElementById(thisWidgetName).value;
+			setCookie(thisWidgetName,thisWidgetValue,400);
+		}
+	}
+	
+	param['externalSource'] = param['oldExternalSource'];
+	delete param['oldExternalSource'];
+
+	// re-create chart entirly
+	document.getElementById(param['uniqueid'] + 'holder').finnishFadeCallback = new Function ("makeElementVisible('" + param['uniqueid'] + "loader'); createJQChart(" + JSON.stringify(param) + "); this.finnishFadeCallback = '';");
+	fadeOut(param['uniqueid'] + 'holder', 300);
+
+}
+
+function makeElementVisible(eleId) {
+	var ele = document.getElementById(eleId);
+	ele.style.opacity = '1';
+	ele.style.filter = 'alpha(opacity = 100';
+}
+
+function makeElementInvisible(eleId) {
+	var ele = document.getElementById(eleId);
+	ele.style.opacity = '0';
+	ele.style.filter = 'alpha(opacity = 0';
+}
+
+function fadeIn(eid, TimeToFade) {
+
 	var element = document.getElementById(eid);
 	if (element == null) return;
 
-	element.style.display = '';
+	delete element.FadeState;
+	delete element.FadeTimeLeft;
+	element.style.opacity = '0';
+	element.style.filter = "alpha(opacity = '0')";
+
+	fade(eid, TimeToFade);
+}
+
+function fadeOut(eid, TimeToFade) {
+
+	var element = document.getElementById(eid);
+	if (element == null) return;
+
+	delete element.FadeState;
+	delete element.FadeTimeLeft;
+	element.style.opacity = '1';
+	element.style.filter = "alpha(opacity = '100')";
+
+	fade(eid, TimeToFade);
+}
+
+function fade(eid, TimeToFade) {
+
+	var element = document.getElementById(eid);
+	if (element == null) return;
+
+	element.style = '';
 
 	if(element.FadeState == null)
 	{
@@ -452,6 +611,30 @@ function animateFade(lastTick, eid, TimeToFade)
 	element.style.filter = 'alpha(opacity = ' + (newOpVal*100) + ')';
 
 	setTimeout("animateFade(" + curTick + ",'" + eid + "'," + TimeToFade + ")", 33);
+}
+
+function setCookie(c_name,value,expiredays)
+{
+	var exdate=new Date();
+	exdate.setDate(exdate.getDate()+expiredays);
+	document.cookie = c_name + "=" + escape(value)+((expiredays==null) ? "" : ";expires="+exdate.toUTCString());
+}
+
+function getCookie(c_name)
+{
+	if (document.cookie.length>0) {
+
+		c_start=document.cookie.indexOf(c_name + "=");
+
+		if (c_start!=-1) {
+			c_start = c_start + c_name.length + 1;
+			c_end = document.cookie.indexOf(";",c_start);
+			if (c_end==-1) c_end=document.cookie.length;
+			return unescape(document.cookie.substring(c_start,c_end));
+		}
+	}
+
+	return '';
 }
 
 
