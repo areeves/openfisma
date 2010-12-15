@@ -24,7 +24,8 @@ function createJQChart(param)
 
 	// load in default values for paramiters, and replace it with any given params
 	var defaultParams = {
-			concatXLabel: false
+			concatXLabel: false,
+			nobackground: true
 		};
 	param = jQuery.extend(true, defaultParams, param);
 
@@ -49,10 +50,20 @@ function createJQChart(param)
 
 		document.getElementById(param['uniqueid']).innerHTML = 'Loading chart data...';
 
+		// note externalSource, and remove/relocate it from its place in param[] so it dosnt retain and cause us to loop 
 		var externalSource = param['externalSource'];
-		if (!param['oldExternalSource']) { param['oldExternalSource'] = externalSource; }
+		if (!param['oldExternalSource']) { param['oldExternalSource'] = param['externalSource']; }
 		delete param['externalSource'];
 		
+		// Send data from widgets to external data source if needed7 (will load from cookies and defaults if widgets are not drawn yet)
+		param = buildExternalSourceParams(param);
+		externalSource += param['externalSourceParams'];
+
+		// Are we debugging the external source?
+		if (param['externalSourceDebug']) {
+			alert('Now pulling from external source: ' + externalSource);
+		}
+
 		var myDataSource = new YAHOO.util.DataSource(externalSource);
 		myDataSource.responseType = YAHOO.util.DataSource.TYPE_JSON;
 		myDataSource.responseSchema = {resultsList: "chart"};
@@ -479,26 +490,68 @@ function applyChartWidgets(param) {
 			// add this widget HTML to the DOM
 			wigSpace.innerHTML += addHTML;
 			
-			// load the value for widget
+			// load the value for widgets
 			var thisWigInDOM = document.getElementById(thisWidget['uniqueid']);
-			var thisWigValue = getCookie(thisWidget['uniqueid']);
-			if (param['value']) {
+			if (thisWidget['forcevalue']) {
 				// this widget value is forced to a certain value upon every load/reload
-				thisWigInDOM.value = param['value'];
+				thisWigInDOM.value = thisWidget['forcevalue'];
+				thisWigInDOM.text = thisWidget['forcevalue'];
 			} else {
-				if (thisWigValue != '') {
+				var thisWigCookieValue = getCookie(thisWidget['uniqueid']);
+				if (thisWigCookieValue != '') {
 					// the value has been coosen in the past and is stored as a cookie
-					thisWigInDOM.value = thisWigValue;
+					thisWigInDOM.value = thisWigCookieValue;
+					thisWigInDOM.text = thisWigCookieValue;
 				} else {
 					// no saved value/cookie. Is there a default given in the param object
-					if (thisWidget['valuedefault']) {
-						thisWigInDOM.value = thisWidget['valuedefault'];
+					if (thisWidget['defaultvalue']) {
+						thisWigInDOM.value = thisWidget['defaultvalue'];
+						thisWigInDOM.text = thisWidget['defaultvalue'];
 					}
 				}
 			}
 		}
 	}
 
+}
+
+function buildExternalSourceParams(param) {
+
+	// build arguments to send to the remote data source
+
+	var thisWidgetValue = '';
+	param['externalSourceParams'] = '';
+
+	if (param['widgets']) {
+		for (var x = 0; x < param['widgets'].length; x++) {
+
+			var thisWidget = param['widgets'][x];
+			var thisWidgetName = thisWidget['uniqueid'];
+			var thisWidgetOnDOM = document.getElementById(thisWidgetName);
+
+			// is this widget actully on the DOM? Or should we load the cookie?			
+			if (thisWidgetOnDOM) {
+				// widget is on the DOM
+				thisWidgetValue = thisWidgetOnDOM.value;
+			} else {
+				// not on DOM, is there a cookie?
+				var thisWigCookieValue = getCookie(thisWidget['uniqueid']);
+				if (thisWigCookieValue != '') {
+					// there is a cookie value, us it
+					thisWidgetValue = thisWigCookieValue;
+				} else {
+					// there is no cookie, is there a default value?
+					if (thisWidget['defaultvalue']) {
+						thisWidgetValue = thisWidget['defaultvalue'];
+					}
+				}
+			}
+
+			param['externalSourceParams'] += '/' + thisWidgetName + '/' + thisWidgetValue 
+		}
+	}
+
+	return param;
 }
 
 function widgetEvent(param) {
@@ -511,9 +564,16 @@ function widgetEvent(param) {
 			setCookie(thisWidgetName,thisWidgetValue,400);
 		}
 	}
-	
+
+	// build arguments to send to the remote data source
+	param = buildExternalSourceParams(param);
+
+	// restore externalSource so a json request is fired when calling createJQPChart
 	param['externalSource'] = param['oldExternalSource'];
 	delete param['oldExternalSource'];
+
+	delete param['chartData'];
+	delete param['chartDataText'];
 
 	// re-create chart entirly
 	document.getElementById(param['uniqueid'] + 'holder').finnishFadeCallback = new Function ("makeElementVisible('" + param['uniqueid'] + "loader'); createJQChart(" + JSON.stringify(param) + "); this.finnishFadeCallback = '';");
@@ -538,8 +598,9 @@ function fadeIn(eid, TimeToFade) {
 	var element = document.getElementById(eid);
 	if (element == null) return;
 
-	delete element.FadeState;
-	delete element.FadeTimeLeft;
+	element.FadeState = '';
+	element.FadeTimeLeft = '';
+
 	element.style.opacity = '0';
 	element.style.filter = "alpha(opacity = '0')";
 
@@ -549,10 +610,12 @@ function fadeIn(eid, TimeToFade) {
 function fadeOut(eid, TimeToFade) {
 
 	var element = document.getElementById(eid);
-	if (element == null) return;
+/*	if (element == null) return;
 
-	delete element.FadeState;
-	delete element.FadeTimeLeft;
+	element.FadeState = '';
+	element.FadeTimeLeft = '';
+*/
+
 	element.style.opacity = '1';
 	element.style.filter = "alpha(opacity = '100')";
 
@@ -562,9 +625,9 @@ function fadeOut(eid, TimeToFade) {
 function fade(eid, TimeToFade) {
 
 	var element = document.getElementById(eid);
-	if (element == null) return;
+//	if (element == null) return;
 
-	element.style = '';
+//	element.style = '';
 
 	if(element.FadeState == null)
 	{
@@ -586,7 +649,6 @@ function fade(eid, TimeToFade) {
 	}  
 }
 
-
 function animateFade(lastTick, eid, TimeToFade)
 {  
 	var curTick = new Date().getTime();
@@ -596,8 +658,13 @@ function animateFade(lastTick, eid, TimeToFade)
 
 	if(element.FadeTimeLeft <= elapsedTicks)
 	{
-		element.style.opacity = element.FadeState == 1 ? '1' : '0';
-		element.style.filter = 'alpha(opacity = ' + (element.FadeState == 1 ? '100' : '0') + ')';
+		if (element.FadeState == 1) {
+			element.style.filter = 'alpha(opacity = 100)';
+			element.style.opacity = '1';
+		} else {
+			element.style.filter = 'alpha(opacity = 0)';
+			element.style.opacity = '0';
+		}
 		element.FadeState = element.FadeState == 1 ? 2 : -2;
 		if (element.finnishFadeCallback) { element.finnishFadeCallback(); }
 		return;

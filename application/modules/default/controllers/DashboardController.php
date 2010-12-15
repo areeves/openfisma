@@ -61,6 +61,7 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
                       ->addActionContext('totalstatus', 'json')
                       ->addActionContext('totaltype', 'xml')
                       ->addActionContext('totaltype', 'json')
+                      ->addActionContext('findingforecast', 'json')
                       ->initContext();
     }
 
@@ -174,13 +175,26 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
 
         $this->view->statusChart = new Fisma_Chart(
                                     array(
+                                            "uniqueid"            => "chartFindingStatusDistribution",
                                             "width"               => 380,
                                             "height"              => 275,
-                                            "uniqueid"            => "chartFindingStatusDistribution",
-                                            "title"               => "Finding Status Distribution",
-                                            "chartType"           => "bar",
+                                            "title"               => "Finding Forecast",
+                                            "chartType"           => "stackedbar",
+                                            "colors"              => array(
+                                                                        "#FF0000",
+                                                                        "#FF6600",
+                                                                        "#FFC000"
+                                                                    ),
                                             "concatXLabel"        => true,
-                                            "externalSource"      => "/dashboard/totalstatus/format/json"
+                                            "externalSource"      => "/dashboard/findingforecast/format/json",
+                                            "widgets" => array(
+                                                array(
+                                                    "uniqueid"    => "dayRanges",
+                                                    "type"        => "text",
+                                                    "label"       => "Day Ranges:",
+                                                    "defaultvalue" => "30, 60, 90, 120"
+                                                )
+                                            )
                                         )
                                     );
         
@@ -194,6 +208,84 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
                                             "externalSource"      => "/dashboard/totaltype/format/json"
                                         )
                                     );
+    }
+
+    /**
+     * Calculate "finding forcast" data for a chart based on finding.currentecd in the database
+     * 
+     * @return void
+     */
+    public function findingforecastAction()
+    {
+        
+        $dayRange = $this->_request->getParam('dayRanges');
+        $dayRange = str_replace(' ', '', $dayRange);
+        $dayRange = explode(',', $dayRange);
+        
+        $highCount = array();
+        $modCount = array();
+        $lowCount = array();
+        $chartDataText = array();
+        
+        for ($x = 0; $x < count($dayRange); $x++) {
+            
+            if ($x === 0) {
+                $fromDay = new Zend_Date();
+            } else {
+                $fromDay = $lastToDay;
+            }
+            $fromDay = $fromDay->toString('YYY-MM-dd');
+            
+            $toDay = new Zend_Date();
+            $toDay = $toDay->addDay($dayRange[$x]);
+            $toDayStr = $toDay->toString('YYY-MM-dd');
+            
+            // Get the count of High findings
+            $q = Doctrine_Query::create()
+                ->select()
+                ->from('Finding f')
+                ->where(
+                    'f.countermeasureseffectiveness = "HIGH" AND ' .
+                    '(f.currentecd BETWEEN "' . $fromDay. '" AND "' . $toDayStr . '")'
+                )                 
+                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+            $highCount[] = $q->count();
+            
+            // Get the count of Moderate findings
+            $q = Doctrine_Query::create()
+                ->select()
+                ->from('Finding f')
+                ->where(
+                    'f.countermeasureseffectiveness = "MODERATE" AND ' .
+                    '(f.currentecd BETWEEN "' . $fromDay. '" AND "' . $toDayStr . '")'
+                )                 
+                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+            $modCount[] = $q->count();
+            
+            // Get the count of Low findings
+            $q = Doctrine_Query::create()
+                ->select()
+                ->from('Finding f')
+                ->where(
+                    'f.countermeasureseffectiveness = "LOW" AND ' .
+                    '(f.currentecd BETWEEN "' . $fromDay. '" AND "' . $toDayStr . '")'
+                )                 
+                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+            $lowCount[] = $q->count();
+            
+            $chartDataText[] = $dayRange[$x];
+            
+            $lastToDay = $toDay;
+        }
+        
+        $chartData = array($highCount, $modCount, $lowCount);
+        $chartLayerText = array('High', 'Moderate', 'Low');
+        $this->view->chart = array(
+            'chartData' => $chartData,
+            'chartDataText' => $chartDataText,
+            'chartLayerText' => $chartLayerText,
+            'concatXLabel' => false
+        );
     }
     
     /**
