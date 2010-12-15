@@ -25,7 +25,8 @@ function createJQChart(param)
 	// load in default values for paramiters, and replace it with any given params
 	var defaultParams = {
 			concatXLabel: false,
-			nobackground: true
+			nobackground: true,
+			
 		};
 	param = jQuery.extend(true, defaultParams, param);
 
@@ -34,6 +35,9 @@ function createJQChart(param)
 		alert('createJQChart Error - The target div/uniqueid does not exists');
 		return false;
 	}
+
+	// set chart width to param['param']
+	setChartWidthAttribs(param);
 
 	// Ensure the load spinner is visible
 	makeElementVisible(param['uniqueid'] + 'loader');
@@ -103,10 +107,12 @@ function createJQChart(param)
 	// hide the loading spinner and show the canvas target
 	document.getElementById(param['uniqueid'] + 'holder').style.display = '';
 	fadeOut(param['uniqueid'] + 'holder', 0);
-
 	fadeOut(param['uniqueid'] + 'loader', 500);
 	document.getElementById(param['uniqueid'] + 'loader').style.position = 'absolute';
 	document.getElementById(param['uniqueid'] + 'loader').finnishFadeCallback = new Function ("fadeIn('" + param['uniqueid'] + "holder', 500);");
+
+	// now that we have the param['chartData'], do we need to make the chart larger and scrollable?
+	setChartWidthAttribs(param);
 
 	// call the correct function based on chartType
 	switch(param['chartType'])
@@ -678,6 +684,47 @@ function animateFade(lastTick, eid, TimeToFade)
 	element.style.filter = 'alpha(opacity = ' + (newOpVal*100) + ')';
 
 	setTimeout("animateFade(" + curTick + ",'" + eid + "'," + TimeToFade + ")", 33);
+}
+
+function setChartWidthAttribs(param) {
+
+	var makeScrollable = false;
+
+	// Determin if we need to make this chart scrollable...
+	// Do we really have the chart data to plot?
+	if (param['chartData']) {
+		// Is this a bar chart?
+		if (param['chartType'] == 'bar' || param['chartType'] == 'stackedbar') {
+
+			// How many bars does it have? 
+			var barCount = param['chartData'].length;
+
+			// Assuming each bar margin is 10px, And each bar has a minimum width of 40px, how much space is needed total (minimum).
+			var minSpaceRequired = (barCount * 10) + (barCount * 40);
+
+			// Do we not have enough space for a non-scrolling chart?
+			if (param['width'] < minSpaceRequired) {
+				
+				// We need to make this chart scrollable
+				makeScrollable = true;
+			}
+		}
+	}
+
+	if (makeScrollable == true) {
+		
+		document.getElementById(param['uniqueid'] + 'holder').style.width = param['width'] + 'px';
+		document.getElementById(param['uniqueid'] + 'holder').style.overflow = 'auto';
+		document.getElementById(param['uniqueid'] + 'loader').style.width = minSpaceRequired + 'px';
+		document.getElementById(param['uniqueid']).style.width = minSpaceRequired + 'px';
+
+	} else {
+
+		document.getElementById(param['uniqueid'] + 'holder').style.width = param['width'] + 'px';
+		document.getElementById(param['uniqueid'] + 'holder').style.overflow = '';
+		document.getElementById(param['uniqueid'] + 'loader').style.width = param['width'] + 'px';
+		document.getElementById(param['uniqueid']).style.width = param['width'] + 'px';
+	}
 }
 
 function setCookie(c_name,value,expiredays)

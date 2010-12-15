@@ -2,35 +2,22 @@
 <?php /* the div for jqPlot to use (the JavaScript will create canvases in this */ ?>
 
 <div class="yui-navset">
-    <div id="<?php 
-        echo $this->escape($this->chartData['uniqueid'], 'none');
-    ?>loader" class="loading" style="width:<?php
-                        echo $this->escape($this->chartData['width'], 'none');
-                    ?>px; height:<?php 
-                        echo $this->escape($this->chartData['height'], 'none'); 
-                    ?>px;">
+    <div id="<?php echo $this->escape($this->chartId, 'none'); ?>loader" class="loading">
+        
         <div>
         </div>
+        
     </div>
-    <div id="<?php
-                echo $this->escape($this->chartData['uniqueid'], 'none');
-    ?>holder" <?php
-                echo $this->escape($this->divContainerArgs, 'none');
-    ?> >
-                <div name="<?php
-                        echo $this->escape($this->chartData['uniqueid'], 'none'); 
-                    ?>" id="<?php
-                        echo $this->escape($this->chartData['uniqueid'], 'none');
-                    ?>" style="width:<?php
-                                        echo $this->escape($this->chartData['width'], 'none');
-                    ?>px; height:<?php 
-                                        echo $this->escape($this->chartData['height'], 'none'); 
-                    ?>px;">
+    
+    <div id="<?php echo $this->escape($this->chartId, 'none'); ?>holder" <?php
+                    echo $this->escape($this->divContainerArgs, 'none'); ?> >
+    
+                <div id="<?php echo $this->escape($this->chartId, 'none'); ?>" >
                     Loading chart data...
                 </div>
-                <span id="<?php
-                    echo $this->escape($this->chartData['uniqueid'], 'none');
-                ?>WidgetSpace"></span>
+                
+                <span id="<?php echo $this->escape($this->chartId, 'none');?>WidgetSpace">
+                </span>
     </div>
 </div>
 

@@ -87,9 +87,8 @@ class Fisma_Chart
         // alignment html to apply to the div that will hold the chart canvas
         if (empty($this->chartData['align']) || $this->chartData['align'] == 'center' ) {
             
-            $dataToView['divContainerArgs'] =   'style="width: ' . $this->chartData['width'] . 'px;' .
-                                                'margin-left: auto; ' .
-                                                'margin-right: auto; display:none;"';
+            $dataToView['divContainerArgs'] =   'margin-left: auto; margin-right: auto; display:none;"';
+            
         } elseif ($this->chartData['align'] == 'left' || $this->chartData['align'] == 'right' ) {
             
             $dataToView['divContainerArgs'] =   'class="' . $this->chartData['align'] . '; display:none;"';
@@ -99,6 +98,7 @@ class Fisma_Chart
         
         // send the chart data to the view script as well
         $dataToView['chartData'] = $this->chartData;
+        $dataToView['chartId'] = $this->chartData['uniqueid'];
         
         return $view->partial('chart/chart.phtml', 'default', $dataToView);
     }
