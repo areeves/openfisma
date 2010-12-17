@@ -173,41 +173,34 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
             $this->view->dismissUrl = "/dashboard/index/dismiss/notifications";
         }
 
-        $this->view->statusChart = new Fisma_Chart(
-                                    array(
-                                            "uniqueid"            => "chartFindingStatusDistribution",
-                                            "width"               => 380,
-                                            "height"              => 275,
-                                            "title"               => "Finding Forecast",
-                                            "chartType"           => "stackedbar",
-                                            "colors"              => array(
-                                                                        "#FF0000",
-                                                                        "#FF6600",
-                                                                        "#FFC000"
-                                                                    ),
-                                            "concatXLabel"        => true,
-                                            "externalSource"      => "/dashboard/findingforecast/format/json",
-                                            "widgets" => array(
-                                                array(
-                                                    "uniqueid"    => "dayRanges",
-                                                    "type"        => "text",
-                                                    "label"       => "Day Ranges:",
-                                                    "defaultvalue" => "30, 60, 90, 120"
-                                                )
-                                            )
-                                        )
-                                    );
+        $statusChart = new Fisma_Chart();
+        $statusChart
+                ->setUniqueid('chartFindingStatusDistribution')
+                ->setWidth(380)
+                ->setHeight(275)
+                ->setTitle('Finding Forecast')
+                ->setChartType('stackedbar')
+                ->setColors(
+                        array(
+                            "#FF0000",
+                            "#FF6600",
+                            "#FFC000"
+                        )
+                    )
+                ->setConcatXLabel(true)
+                ->setExternalSource('/dashboard/findingforecast/format/json')
+                ->addWidget('dayRanges', 'Day Ranges:', 'text', '30, 60, 90, 120');
+        $this->view->statusChart = $statusChart->export();
         
-        $this->view->typeChart = new Fisma_Chart(
-                                    array(
-                                            "width"               => 380,
-                                            "height"              => 275,
-                                            "uniqueid"            => "chartMitigationStrategyDistribution",
-                                            "title"               => "Mitigation Strategy Distribution",
-                                            "chartType"           => "pie",
-                                            "externalSource"      => "/dashboard/totaltype/format/json"
-                                        )
-                                    );
+        $typeChart = new Fisma_Chart();
+        $typeChart
+                ->setUniqueid('chartMitigationStrategyDistribution')
+                ->setWidth(380)
+                ->setHeight(275)
+                ->setTitle('Mitigation Strategy Distribution')
+                ->setChartType('pie')
+                ->setExternalSource('/dashboard/totaltype/format/json');
+        $this->view->typeChart = $typeChart->export();
     }
 
     /**

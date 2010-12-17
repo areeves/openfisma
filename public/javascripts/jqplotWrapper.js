@@ -25,8 +25,7 @@ function createJQChart(param)
 	// load in default values for paramiters, and replace it with any given params
 	var defaultParams = {
 			concatXLabel: false,
-			nobackground: true,
-			
+			nobackground: true
 		};
 	param = jQuery.extend(true, defaultParams, param);
 

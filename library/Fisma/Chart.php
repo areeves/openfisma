@@ -34,15 +34,10 @@ class Fisma_Chart
     /**
      * An array that holds information defining how the chart will be constructed and what it will plot
      * The array fields are as follows:
-	 *     Obj['uniqueid']        The name of the div for jqPlot create canvases inside of. The HTML within this div
-                                  will be erased before chart plotting.
-	 *     Obj['title']           The title to render above the chart
-	 *     Obj['chartType']       String that must be "bar", "stackedbar", "line", or "pie"
 	 *     Obj['chartData']	      Array to pass to jqPlot as the data to plot (numbers).
 	 *     Obj['chartDataText']	  Array of labels (strings) for each data set in chartData
 	 *     Obj['chartLayerText']  Array of labels (strings) for each different line/layer in a milti-line-char or 
                                   stacked-bar-chart
-	 *     Obj['colors']		  (optional) Array of colors for the chart to use across layers on stacked-bar-charts
 	 *     Obj['links']           (optional) Array of links of which the browser should navigate to when a given data 
            element is clicked on
 	 *     Obj['linksdebug']      (optional) Boolean, if set true, an alert box of what was clicked on will pop up 
@@ -50,55 +45,187 @@ class Fisma_Chart
      *
      * @var Array
      */
-    public $chartData;
-        
+    public $chartParamArr;
+    
     /**
      * Build a jqPlot chart object
      * 
      * @param string $sourceUrl The URL which contains the XML definition/data for this chart
      */
-    public function __construct($chartData)
+    public function __construct($paramArr)
     {
-        $this->chartData = $chartData;
+        $this->chartParamArr = $paramArr;
+        
+        /*
+        $this->setWidth($width);
+        $this->setHeight($height);
+        $this->chartParamArr['chartData'] = array();
+        $this->chartParamArr['widgets'] = array();
+        */
+        
+        return $this;
     }
     
     /**
-     * Render the chart HTML
+     * The chart title to show above the chart
+     * 
+     * @return Fisma_Chart
+     */
+    public function setTitle($inString)
+    {
+        $this->chartParamArr['title'] = $inString;
+        return $this;
+    }
+    
+    /**
+     * The chart type (bar, pie, or stackedbar)
+     * 
+     * @return Fisma_Chart
+     */
+    public function setChartType($inString)
+    {
+        $this->chartParamArr['chartType'] = $inString;
+        return $this;
+    }
+    
+    /**
+     * The chart width in pixels
+     * 
+     * @return Fisma_Chart
+     */
+    public function setWidth($inInteger)
+    {
+        $this->chartParamArr['width'] = $inInteger;
+        return $this;
+    }
+    
+    /**
+     * The chart height in pixels
+     * 
+     * @return Fisma_Chart
+     */
+    public function setHeight($inInteger)
+    {
+        $this->chartParamArr['height'] = $inInteger;
+        return $this;
+    }
+    
+    /**
+     * The uniqueid for this chart, name of the div in which holds the canvases
+     * 
+     * @return Fisma_Chart
+     */
+    public function setUniqueid($inString)
+    {
+        $this->chartParamArr['uniqueid'] = $inString;
+        return $this;
+    }
+    
+    /**
+     * An array of CSS colors to use for each bar (in a bar chart), or each layer of bars (on a stacked bar-chart).
+     * 
+     * @return Fisma_Chart
+     */
+    public function setColors($inStrArray)
+    {
+        $this->chartParamArr['colors'] = $inStrArray;
+        return $this;
+    }
+    
+    public function setConcatXLabel($inBoolean)
+    {
+        $this->chartParamArr['concatXLabel'] = $inBoolean;
+        return $this;
+    }
+    
+    public function setExternalSource($inString)
+    {
+        $this->chartParamArr['externalSource'] = $inString;
+        return $this;
+    }
+    
+    /**
+     * Adds a column onto the chart to render. The input params may either be a value (bar/pie chart), or an array of
+     * values (stacked-bar/stacked-line chart).
+     * 
+     * @return Fisma_Chart
+     */
+    public function addColumn($addValue, $addLink)
+    {
+        $this->chartParamArr['chartData'][] = $addValue;
+        $this->chartParamArr['links'][] = $addLink;
+        return $this;
+    }
+    
+    /**
+     * Adds a widget/option-field onto the chart
+     * 
+     * @return Fisma_Chart
+     */
+    public function addWidget($uniqueid = null, $label = null, $type = 'text', $defaultvalue = null)
+    {
+        if ($type !== 'text' && $type !== 'combo') {
+            throw new Fisma_Zend_Exception(
+                "Unknown widget type in Fisma_Chart->addWidget(). Type must be either 'text' or 'combo'"
+            );
+        }
+        
+        $wigData = array('type' => $type);
+        
+        if (!empty($uniqueid)) {
+            $wigData['uniqueid'] = $uniqueid;
+        }
+        
+        if (!empty($label)) {
+            $wigData['label'] = $label;
+        }
+        
+        if (!empty($defaultvalue)) {
+            $wigData['defaultvalue'] = $defaultvalue;
+        }
+        
+        $this->chartParamArr['widgets'][] = $wigData;
+        
+        return $this;
+    }
+
+    /**
+     * Render the chart to HTML
      * 
      * @return string
      */
-    public function __toString()
+    public function export()
     {
         $dataToView = array();
         $view = Zend_Layout::getMvcInstance()->getView();
         
         // width and height are required params
-        if (empty($this->chartData['width']) || empty($this->chartData['height'])) {
+        if (empty($this->chartParamArr['width']) || empty($this->chartParamArr['height'])) {
             throw new Fisma_Zend_Exception(
-                "Chart width and height must both be defined in chartData array in class Fisma_Chart"
+                "Chart width and height must both be set in Fisma_Chart before export."
             );
         }
         
         // make up a uniqueid is one was not given
-        if (empty($this->chartData['uniqueid'])) {
-            $this->chartData['uniqueid'] = 'chart' . uniqid();
+        if (empty($this->chartParamArr['uniqueid'])) {
+            $this->chartParamArr['uniqueid'] = 'chart' . uniqid();
         }
         
         // alignment html to apply to the div that will hold the chart canvas
-        if (empty($this->chartData['align']) || $this->chartData['align'] == 'center' ) {
+        if (empty($this->chartParamArr['align']) || $this->chartParamArr['align'] == 'center' ) {
             
             $dataToView['divContainerArgs'] =   'margin-left: auto; margin-right: auto; display:none;"';
             
-        } elseif ($this->chartData['align'] == 'left' || $this->chartData['align'] == 'right' ) {
+        } elseif ($this->chartParamArr['align'] == 'left' || $this->chartParamArr['align'] == 'right' ) {
             
-            $dataToView['divContainerArgs'] =   'class="' . $this->chartData['align'] . '; display:none;"';
+            $dataToView['divContainerArgs'] =   'class="' . $this->chartParamArr['align'] . '; display:none;"';
             
         }
-        unset($this->chartData['align']);
+        unset($this->chartParamArr['align']);
         
         // send the chart data to the view script as well
-        $dataToView['chartData'] = $this->chartData;
-        $dataToView['chartId'] = $this->chartData['uniqueid'];
+        $dataToView['chartParamArr'] = $this->chartParamArr;
+        $dataToView['chartId'] = $this->chartParamArr['uniqueid'];
         
         return $view->partial('chart/chart.phtml', 'default', $dataToView);
     }

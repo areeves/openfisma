@@ -23,6 +23,6 @@
 
 <?php /* call javascript:createChartJQChart(obj) defined in jqplotWrapper.js which will create the chart */ ?>
 <script>
-    var thisChartObjData = <?php echo $this->escape($this->chartData, 'json'); ?>;
+    var thisChartObjData = <?php echo $this->escape($this->chartParamArr, 'json'); ?>;
     createJQChart(thisChartObjData);
 </script>
