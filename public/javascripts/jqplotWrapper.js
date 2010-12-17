@@ -60,7 +60,8 @@ function createJQChart(param)
 		
 		// Send data from widgets to external data source if needed7 (will load from cookies and defaults if widgets are not drawn yet)
 		param = buildExternalSourceParams(param);
-		externalSource += param['externalSourceParams'];
+		externalSource += String(param['externalSourceParams']).replace(/ /g,'%20');
+		param['lastURLpull'] = externalSource;
 
 		// Are we debugging the external source?
 		if (param['externalSourceDebug']) {
@@ -158,6 +159,8 @@ function createJQChart(param)
 
 	applyChartBackground(param);
 	applyChartWidgets(param);
+	
+	document.getElementById(param['uniqueid'] + 'table').innerHTML = getTableFromChartData(param);
 
 	return rtn;
 }
@@ -167,6 +170,14 @@ function createJQChart_asynchReturn(requestNumber, value, exception, param)
 
 	if (value) {
 		var joinedParam = jQuery.extend(true, param, value['results'][0],true);
+		
+		if (!param['chartData']) {
+			alert('Chart Error - The remote data source for chart "' + param['uniqueid'] + '" located at ' + param['lastURLpull'] + ' did not return data to plot on a chart');
+		}
+
+//		// Add the remote-data-source URL to the DOM (hidden) so the developer can easily copy/pase it
+//		document.getElementById(param['uniqueid']).innerHTML = '<span >' + param['lastURLpull'] + '</span>';
+
 		createJQChart(jQuery.extend(true, param, value));
 	} else {
 		alert('Error - Chart creation failed. Could not pull from data source.');
@@ -724,6 +735,42 @@ function setChartWidthAttribs(param) {
 		document.getElementById(param['uniqueid'] + 'loader').style.width = param['width'] + 'px';
 		document.getElementById(param['uniqueid']).style.width = param['width'] + 'px';
 	}
+}
+
+function getTableFromChartData(param)
+{
+	var HTML = '<table>';
+	
+	HTML += '<tr>';
+	for (var x = 0; x < param['chartDataText'].length; x++) {
+		HTML += '<td>' + param['chartDataText'][x] + '</td>';
+	}
+	HTML += '</tr>';
+
+	for (var x = 0; x < param['chartData'].length; x++) {
+
+		var thisEle = param['chartData'][x];
+		HTML += '<tr>';
+
+		if (typeof(thisEle) == 'object') {
+
+			for (var y = 0; y < thisEle.length; y++) {
+
+				HTML += '<td>' + thisEle[y] + '</td>';
+			}
+
+		} else {
+
+			HTML += '<td>' + thisEle + '</td>';
+		}
+
+		HTML += '</tr>';
+
+	}
+
+	HTML += '</table>';
+
+	return HTML;
 }
 
 function setCookie(c_name,value,expiredays)

@@ -93,10 +93,18 @@ if ( !empty( $this->alert['TOTAL'] ) ) {
             <tr><td colspan="2"><b>&nbsp;&nbsp;&nbsp;Management Overview </b><br/><br/> </td></tr>
             <tr>
                 <td align="center">
-                <?php echo $this->escape($this->statusChart, 'none'); ?>
+                    <?php echo $this->escape($this->chartTotalStatus, 'none'); ?>
                 </td>
                 <td align="center">
-                <?php echo $this->escape($this->typeChart, 'none'); ?>
+                    <?php echo $this->escape($this->chartTotalType, 'none'); ?>
+                </td>
+            </tr>
+            <tr>
+                <td align="center">
+                    <?php echo $this->escape($this->chartFindForecast, 'none'); ?>
+                </td>
+                <td align="center">
+                    <?php echo $this->escape($this->chartNoMit, 'none'); ?>
                 </td>
             </tr>
         </table>

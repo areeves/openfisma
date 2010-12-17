@@ -62,6 +62,7 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
                       ->addActionContext('totaltype', 'xml')
                       ->addActionContext('totaltype', 'json')
                       ->addActionContext('findingforecast', 'json')
+                      ->addActionContext('findingnomitstrat', 'json')
                       ->initContext();
     }
 
@@ -172,35 +173,113 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
             $this->view->notifications = $user->Notifications;
             $this->view->dismissUrl = "/dashboard/index/dismiss/notifications";
         }
-
-        $statusChart = new Fisma_Chart();
-        $statusChart
-                ->setUniqueid('chartFindingStatusDistribution')
-                ->setWidth(380)
-                ->setHeight(275)
-                ->setTitle('Finding Forecast')
-                ->setChartType('stackedbar')
-                ->setColors(
-                        array(
-                            "#FF0000",
-                            "#FF6600",
-                            "#FFC000"
-                        )
-                    )
-                ->setConcatXLabel(true)
-                ->setExternalSource('/dashboard/findingforecast/format/json')
-                ->addWidget('dayRanges', 'Day Ranges:', 'text', '30, 60, 90, 120');
-        $this->view->statusChart = $statusChart->export();
         
-        $typeChart = new Fisma_Chart();
-        $typeChart
-                ->setUniqueid('chartMitigationStrategyDistribution')
-                ->setWidth(380)
-                ->setHeight(275)
-                ->setTitle('Mitigation Strategy Distribution')
-                ->setChartType('pie')
-                ->setExternalSource('/dashboard/totaltype/format/json');
-        $this->view->typeChart = $typeChart->export();
+        $chartTotalStatus = new Fisma_Chart(380, 275, 'chartTotalStatus', '/dashboard/totalstatus/format/json');
+        $this->view->chartTotalStatus = $chartTotalStatus->export();
+        
+        $chartTotalType = new Fisma_Chart(380, 275, 'chartTotalType', '/dashboard/totaltype/format/json');
+        $this->view->chartTotalType = $chartTotalType->export();
+        
+        $chartFindForecast = new Fisma_Chart(380, 275, 'chartFindForecast', '/dashboard/findingforecast/format/json');
+        $chartFindForecast->addWidget('dayRangesStatChart', 'Day Ranges:', 'text', '30, 60, 90, 120');
+        $this->view->chartFindForecast = $chartFindForecast->export();
+        
+        $chartNoMit = new Fisma_Chart(380, 275);
+        $chartNoMit
+                ->setUniqueid('chartNoMit')
+                ->setExternalSource('/dashboard/findingnomitstrat/format/json')
+                ->addWidget('dayRangesMitChart', 'Day Ranges:', 'text', '30, 60, 90, 120');
+        $this->view->chartNoMit = $chartNoMit->export();
+    }
+
+    /**
+     * Calculate "finding forcast" data for a chart based on finding.currentecd in the database
+     * 
+     * @return void
+     */
+    public function findingnomitstratAction()
+    {
+        
+        $dayRange = $this->_request->getParam('dayRangesMitChart');
+        $dayRange = str_replace(' ', '', $dayRange);
+        $dayRange = explode(',', $dayRange);
+        
+        $highCount = array();
+        $modCount = array();
+        $lowCount = array();
+        $chartDataText = array();
+        
+        for ($x = 1; $x < count($dayRange); $x++) {
+            
+            $fromDay = $dayRange[$x-1];
+            $toDay = $dayRange[$x];
+            
+            // Get the count of High findings
+            $q = Doctrine_Query::create()
+                ->select()
+                ->from('Finding f')
+                ->where(
+                    'f.threatlevel = "LOW" AND ' . 
+                    '(f.status="NEW" OR f.status="DRAFT") AND ' . 
+                    '(DATEDIFF(NOW(), f.createdts) BETWEEN "' . $fromDay . '" AND "' . $toDay . '")'
+                )                
+                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+            $highCount[] = $q->count();
+            
+            // Get the count of Moderate findings
+            $q = Doctrine_Query::create()
+                ->select()
+                ->from('Finding f')
+                ->where(
+                    'f.threatlevel = "MODERATE" AND ' . 
+                    '(f.status="NEW" OR f.status="DRAFT") AND ' . 
+                    '(DATEDIFF(NOW(), f.createdts) BETWEEN "' . $fromDay . '" AND "' . $toDay . '")'
+                )                 
+                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+            $modCount[] = $q->count();
+            
+            // Get the count of Low findings
+            $q = Doctrine_Query::create()
+                ->select()
+                ->from('Finding f')
+                ->where(
+                    'f.threatlevel = "HIGH" AND ' . 
+                    '(f.status="NEW" OR f.status="DRAFT") AND ' . 
+                    '(DATEDIFF(NOW(), f.createdts) BETWEEN "' . $fromDay . '" AND "' . $toDay . '")'
+                )                 
+                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+            $lowCount[] = $q->count();
+            
+            $chartDataText[] = $fromDay . '-' . $toDay . ' days';
+            
+        }
+        
+        $chartData = array($highCount, $modCount, $lowCount);
+        
+        $noMitChart = new Fisma_Chart();
+        $noMitChart
+            ->setTitle('Findings With No Mitigation Strategy')
+            ->setChartType('stackedbar')
+            ->setColors(
+                array(
+                    "#FF0000",
+                    "#FF6600",
+                    "#FFC000"
+                )
+            )
+            ->setConcatXLabel(false)
+            ->setData($chartData)
+            ->setAxisLabelsX($chartDataText)
+            ->setLayerLabels(
+                array(
+                    'High',
+                    'Moderate',
+                    'Low'
+                )
+            );
+        
+        // export as array, the context switch will translate it to a JSON responce
+        $this->view->chart = $noMitChart->export('array');
     }
 
     /**
@@ -211,7 +290,7 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
     public function findingforecastAction()
     {
         
-        $dayRange = $this->_request->getParam('dayRanges');
+        $dayRange = $this->_request->getParam('dayRangesStatChart');
         $dayRange = str_replace(' ', '', $dayRange);
         $dayRange = explode(',', $dayRange);
         
@@ -227,7 +306,7 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
             } else {
                 $fromDay = $lastToDay;
             }
-            $fromDay = $fromDay->toString('YYY-MM-dd');
+            $fromDayStr = $fromDay->toString('YYY-MM-dd');
             
             $toDay = new Zend_Date();
             $toDay = $toDay->addDay($dayRange[$x]);
@@ -239,7 +318,7 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
                 ->from('Finding f')
                 ->where(
                     'f.countermeasureseffectiveness = "HIGH" AND ' .
-                    '(f.currentecd BETWEEN "' . $fromDay. '" AND "' . $toDayStr . '")'
+                    '(f.currentecd BETWEEN "' . $fromDayStr . '" AND "' . $toDayStr . '")'
                 )                 
                 ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
             $highCount[] = $q->count();
@@ -250,7 +329,7 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
                 ->from('Finding f')
                 ->where(
                     'f.countermeasureseffectiveness = "MODERATE" AND ' .
-                    '(f.currentecd BETWEEN "' . $fromDay. '" AND "' . $toDayStr . '")'
+                    '(f.currentecd BETWEEN "' . $fromDayStr . '" AND "' . $toDayStr . '")'
                 )                 
                 ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
             $modCount[] = $q->count();
@@ -261,24 +340,37 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
                 ->from('Finding f')
                 ->where(
                     'f.countermeasureseffectiveness = "LOW" AND ' .
-                    '(f.currentecd BETWEEN "' . $fromDay. '" AND "' . $toDayStr . '")'
+                    '(f.currentecd BETWEEN "' . $fromDayStr . '" AND "' . $toDayStr . '")'
                 )                 
                 ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
             $lowCount[] = $q->count();
             
-            $chartDataText[] = $dayRange[$x];
+            $chartDataText[] = $fromDay->toString('MMM dd') . ' - ' . $toDay->toString('MMM dd');
             
             $lastToDay = $toDay;
         }
         
         $chartData = array($highCount, $modCount, $lowCount);
         $chartLayerText = array('High', 'Moderate', 'Low');
-        $this->view->chart = array(
-            'chartData' => $chartData,
-            'chartDataText' => $chartDataText,
-            'chartLayerText' => $chartLayerText,
-            'concatXLabel' => false
-        );
+        
+        $thisChart = new Fisma_Chart();
+        $thisChart
+                ->setTitle('Finding Forecast')
+                ->setChartType('stackedbar')
+                ->setColors(
+                    array(
+                        "#FF0000",
+                        "#FF6600",
+                        "#FFC000"
+                    )
+                )
+                ->setConcatXLabel(false)
+                ->setData($chartData)
+                ->setAxisLabelsX($chartDataText)
+                ->setLayerLabels(chartLayerText);
+                
+        // export as array, the context switch will translate it to a JSON responce
+        $this->view->chart = $thisChart->export('array');
     }
     
     /**
@@ -323,20 +415,18 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
                 $arrTotal[$result['CurrentEvaluation']['nickname']] = (integer) $result['subStatusCount'];
             }
         }
-    
-        $this->view->chart = array(
-                    'chartData' => array_values($arrTotal),
-                    'chartDataText' => array_keys($arrTotal),
-                    'links' => array(
-                        '/finding/remediation/list/queryType/advanced/denormalizedStatus/textExactMatch/NEW',
-                        '/finding/remediation/list/queryType/advanced/denormalizedStatus/textExactMatch/DRAFT',
-                        '/finding/remediation/list/queryType/advanced/denormalizedStatus/textExactMatch/MS%20ISSO',
-                        '/finding/remediation/list/queryType/advanced/denormalizedStatus/textExactMatch/MS%20IV%26V',
-                        '/finding/remediation/list/queryType/advanced/denormalizedStatus/textExactMatch/EN',
-                        '/finding/remediation/list/queryType/advanced/denormalizedStatus/textExactMatch/EV%20ISSO',
-                        '/finding/remediation/list/queryType/advanced/denormalizedStatus/textExactMatch/EV%20IV%26V'
-                        )
-                    );
+        
+        $thisChart = new Fisma_Chart();
+        $thisChart
+            ->setTitle('Finding Status Distribution')
+            ->setChartType('bar')
+            ->setConcatXLabel(true)
+            ->setData(array_values($arrTotal))
+            ->setAxisLabelsX(array_keys($arrTotal))
+            ->setLinks('/finding/remediation/list/queryType/advanced/denormalizedStatus/textExactMatch/#ColumnLabel#');
+            
+        // export as array, the context switch will translate it to a JSON responce
+        $this->view->chart = $thisChart->export('array');
     }
 
     /**
@@ -367,15 +457,22 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
             }
         }
         
-        $this->view->chart = array(
-                            'chartData' => array_values($summary),
-                            'chartDataText' => array_keys($summary),
-                            'links' => array(
-                                    '/finding/remediation/list/queryType/advanced/type/enumIs/NONE',
-                                    '/finding/remediation/list/queryType/advanced/type/enumIs/CAP',
-                                    '/finding/remediation/list/queryType/advanced/type/enumIs/FP',
-                                    '/finding/remediation/list/queryType/advanced/type/enumIs/AR'
-                                    )
-                        );
+        $thisChart = new Fisma_Chart();
+        $thisChart
+            ->setTitle('Mitigation Strategy Distribution')
+            ->setChartType('pie')
+            ->setData(array_values($summary))
+            ->setAxisLabelsX(array_keys($summary))
+            ->setLinks(
+                array(
+                    '/finding/remediation/list/queryType/advanced/type/enumIs/NONE',
+                    '/finding/remediation/list/queryType/advanced/type/enumIs/CAP',
+                    '/finding/remediation/list/queryType/advanced/type/enumIs/FP',
+                    '/finding/remediation/list/queryType/advanced/type/enumIs/AR'
+                )
+            );
+        
+        // export as array, the context switch will translate it to a JSON responce
+        $this->view->chart = $thisChart->export('array');
     }
 }
