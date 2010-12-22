@@ -59,6 +59,8 @@ class Fisma_Chart
         $this->chartParamArr['chartData'] = array();
         $this->chartParamArr['chartDataText'] = array();
         $this->chartParamArr['widgets'] = array();
+        $this->chartParamArr['links'] = array();
+        $this->inheritanceControle('minimal');
         
         if (!empty($width)) {
             $this->setWidth($width);
@@ -97,6 +99,20 @@ class Fisma_Chart
      */
     public function setChartType($inString)
     {
+        $inString = strtolower($inString);
+        if (
+            $inString !== 'bar' && 
+            $inString !== 'pie' &&
+            $inString !== 'stackedbar' &&
+            $inString !== 'line' &&
+            $inString !== 'stackedline'
+        ) {
+            throw new Fisma_Zend_Exception(
+                "Invalid chart-type given to Fisma_Chart->setChartType(). Paramiter string must be either " .
+                "bar, pie, stackedbar, line, or stacked line"
+            );
+        }
+        
         $this->chartParamArr['chartType'] = $inString;
         return $this;
     }
@@ -157,6 +173,47 @@ class Fisma_Chart
         return $this;
     }
     
+    public function inheritanceControle($inString)
+    {
+        $this->chartParamArr['inheritCtl'] = $inString;
+        return $this;
+    }
+
+    /**
+     * For use with stacked charts. This will inform Fisma_Chart how many layers on the stacked-chart there will be
+     * Or basically, how many rows are in each column.
+     * WARNING: This will initalize (and erase) any plot-data (numerical) previously added with addColumn or setData
+     * 
+     * @return Fisma_Chart
+     */
+    public function setLayerCount($inInteger) {
+        if ($inInteger < 1) {
+            return $this;
+        }
+        for ($l = 0; $l < count($inInteger); $l++) {
+            $this->chartParamArr['chartData'][] = array();
+        }
+        
+        return $this;
+    }
+    
+    /**
+     * When set to true, will force the JavaScript wrapper to show a message-box popup when firing a JSON request and
+     * state the URL the request is pulling from. Not for use in production mode.
+     * 
+     * @return Fisma_Chart
+     */
+    public function setExternalSourceDebug($inBoolean)
+    {
+        if ($inBoolean) {
+            $this->chartParamArr['externalSourceDebug'] = true;
+        } else {
+            unset($this->chartParamArr['externalSourceDebug']);
+        }
+        
+        return $this;
+    }
+    
     public function setAlign($inString)
     {
         $this->chartParamArr['align'] = $inString;
@@ -171,9 +228,61 @@ class Fisma_Chart
      */
     public function addColumn($columnLabel, $addValue, $addLink)
     {
-        $this->chartParamArr['chartData'][] = $addValue;
+        // Add label for this column
         $this->chartParamArr['chartDataText'][] = $columnLabel;
-        $this->chartParamArr['links'][] = $addLink;
+        
+        // We must know the chart type in order to know howto format the data in the data array
+        if (empty($this->chartParamArr['chartType'])) {
+            throw new Fisma_Zend_Exception(
+                "You cannot call Fisma_Chart->addColumn() until a chartType has been " . 
+                "set with Fisma_Chart->setChartType()"
+            );
+        }
+        
+        // Add data to plot
+        if (strpos($this->chartParamArr['chartType'], 'stacked') === false) {
+            // This is not a stacked chart. Each data-point/column-height should be in each element of the data array
+            
+            $this->chartParamArr['chartData'][] = $addValue;
+            
+        } else {
+            // This is a stacked chart. Each element of the chartParamArr['chartType'] array is a layer, not a column
+            
+            // The input should be an array, of each data/number in this column
+            if (!is_array($addValue)) {
+                throw new Fisma_Zend_Exception(
+                    "addValue param in Fisma_Chart->addColumn() is expected to be an array when " . 
+                    "building a stacked chart."
+                );
+            }
+            
+            // We need to know the dimensions of the data array
+            $layerCount = count($this->chartParamArr['chartData']);
+            if ($layerCount === 0) {
+                throw new Fisma_Zend_Exception(
+                    "You cannot call Fisma_Chart->addColumn() with stacked chart types, until a layer-count has been ".
+                    "defined with Fisma_Chart->setLayerCount(), or auto-defined with Fisma-Chart->setLayerLabels()"
+                );
+            }
+            
+            //$colId = count($this->chartParamArr['chartData'][0]);
+            
+            for ($layer = 0; $layer < count($addValue); $layer++) {
+                $this->chartParamArr['chartData'][$layer][] = $addValue[$layer];
+            }
+        }
+        
+        if (!empty($addLink)) {
+            if (is_array($this->chartParamArr['links'])) {
+                $this->chartParamArr['links'][] = $addLink;
+            } else {
+                throw new Fisma_Zend_Exception(
+                    "You are trying to add a link for a certain column (in Fisma_Chart->addColumn), when you " .
+                    "have already set a global link for all columns."
+                );
+            }
+        }
+        
         return $this;
     }
     
@@ -217,6 +326,7 @@ class Fisma_Chart
      */
     public function setLayerLabels($inArray)
     {
+        $this->setLayerCount(count($inArray));
         $this->chartParamArr['chartLayerText'] = $inArray;
         return $this;
     }
@@ -224,9 +334,15 @@ class Fisma_Chart
     /**
      * Adds a widget/option-field onto the chart
      * 
+     * @param uniqueid - an optional name for the widget, the name will also be used to save a cookie to retain the
+     *                   widget infomration on next load.
+     * @param label - the label to show on the user interface next to this widget/chart-option
+     * @param type - should be either 'text' or 'combo', to place a textbox, or drop-down/list-box below the chart
+     * @param defaultvalue - the value to set the textbox or list-box to if there is no previous saved cookie-setting
+     * @param cmboOpts - An array of strings supplied to show as options in a list-box
      * @return Fisma_Chart
      */
-    public function addWidget($uniqueid = null, $label = null, $type = 'text', $defaultvalue = null)
+    public function addWidget($uniqueid = null, $label = null, $type = 'text', $defaultvalue = null, $cmboOpts = null)
     {
         if ($type !== 'text' && $type !== 'combo') {
             throw new Fisma_Zend_Exception(
@@ -246,6 +362,16 @@ class Fisma_Chart
         
         if (!empty($defaultvalue)) {
             $wigData['defaultvalue'] = $defaultvalue;
+        }
+        
+        if (!empty($cmboOpts)) {
+            if (is_array($cmboOpts) === false) {
+                throw new Fisma_Zend_Exception(
+                    'cmboOpts paramiter in Fisma_Chart::addWidget should be an array of strings to appear in a ' .
+                    'list-box (if not empty/null)'
+                );
+            }
+            $wigData['options'] = $cmboOpts;
         }
         
         $this->chartParamArr['widgets'][] = $wigData;

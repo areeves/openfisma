@@ -65,7 +65,10 @@ function createJQChart(param)
 
 		// Are we debugging the external source?
 		if (param['externalSourceDebug']) {
-			alert('Now pulling from external source: ' + externalSource);
+			var doNav = confirm ('Now pulling from external source: ' + externalSource + '\n\nWould you like to navigate here?')
+			if (doNav) {
+				document.location = externalSource;
+			}
 		}
 
 		var myDataSource = new YAHOO.util.DataSource(externalSource);
@@ -169,16 +172,34 @@ function createJQChart_asynchReturn(requestNumber, value, exception, param)
 {
 
 	if (value) {
-		var joinedParam = jQuery.extend(true, param, value['results'][0],true);
 		
-		if (!param['chartData']) {
+		if (value['results'][0]['inheritCtl']) {
+			if (value['results'][0]['inheritCtl'] == 'minimal') {
+
+				var joinedParam = value['results'][0];
+				joinedParam['width'] = param['width'];
+				joinedParam['height'] = param['height'];
+				joinedParam['uniqueid'] = param['uniqueid'];
+				joinedParam['externalSource'] = param['externalSource'];
+				joinedParam['oldExternalSource'] = param['oldExternalSource'];
+				joinedParam['widgets'] = param['widgets'];
+
+			} else if (value['results'][0]['inheritCtl'] == 'none') {
+
+				var joinedParam = value['results'][0];
+
+			} else {
+				alert('Error - Unknown chart inheritance mode');
+			}
+		} else {
+			var joinedParam = jQuery.extend(true, param, value['results'][0],true);
+		}
+
+		if (!joinedParam['chartData']) {
 			alert('Chart Error - The remote data source for chart "' + param['uniqueid'] + '" located at ' + param['lastURLpull'] + ' did not return data to plot on a chart');
 		}
 
-//		// Add the remote-data-source URL to the DOM (hidden) so the developer can easily copy/pase it
-//		document.getElementById(param['uniqueid']).innerHTML = '<span >' + param['lastURLpull'] + '</span>';
-
-		createJQChart(jQuery.extend(true, param, value));
+		createJQChart(joinedParam);
 	} else {
 		alert('Error - Chart creation failed. Could not pull from data source.');
 	}
@@ -504,7 +525,7 @@ function applyChartWidgets(param) {
 			}
 
 			// add this widget HTML to the DOM
-			wigSpace.innerHTML += addHTML;
+			wigSpace.innerHTML += addHTML + '<br/>';
 			
 			// load the value for widgets
 			var thisWigInDOM = document.getElementById(thisWidget['uniqueid']);
@@ -516,6 +537,7 @@ function applyChartWidgets(param) {
 				var thisWigCookieValue = getCookie(thisWidget['uniqueid']);
 				if (thisWigCookieValue != '') {
 					// the value has been coosen in the past and is stored as a cookie
+					thisWigCookieValue = thisWigCookieValue.replace(/%20/g, ' ')
 					thisWigInDOM.value = thisWigCookieValue;
 					thisWigInDOM.text = thisWigCookieValue;
 				} else {

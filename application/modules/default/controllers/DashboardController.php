@@ -57,12 +57,11 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
         $this->_myOrgSystemIds = $orgSystemIds;
 
         $this->_helper->fismaContextSwitch()
-                      ->addActionContext('totalstatus', 'xml')
-                      ->addActionContext('totalstatus', 'json')
-                      ->addActionContext('totaltype', 'xml')
+                      ->addActionContext('chartfindingstatus', 'json')
                       ->addActionContext('totaltype', 'json')
                       ->addActionContext('findingforecast', 'json')
-                      ->addActionContext('findingnomitstrat', 'json')
+                      ->addActionContext('chartfindnomitstrat', 'json')
+                      ->addActionContext('chartfinding', 'json')
                       ->initContext();
     }
 
@@ -174,7 +173,33 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
             $this->view->dismissUrl = "/dashboard/index/dismiss/notifications";
         }
         
-        $chartTotalStatus = new Fisma_Chart(380, 275, 'chartTotalStatus', '/dashboard/totalstatus/format/json');
+        $chartTotalStatus = new Fisma_Chart(380, 275, 'chartTotalStatus', '/dashboard/chartfinding/format/json');
+        $chartTotalStatus
+                ->setExternalSourceDebug(true)
+                ->addWidget(
+                        'findingType',
+                        'Finding Type:',
+                        'combo',
+                        'All Divided',
+                        array(
+                            'All Combined',
+                            'All Divided',
+                            'High',
+                            'Moderate',
+                            'Low'
+                            )
+                )
+                ->addWidget(
+                        'displayBy',
+                        'Display By:',
+                        'combo',
+                        'Status Distribution',
+                        array(
+                            'Status Distribution',
+                            'Organization Owner'
+                    )
+                );
+        
         $this->view->chartTotalStatus = $chartTotalStatus->export();
         
         $chartTotalType = new Fisma_Chart(380, 275, 'chartTotalType', '/dashboard/totaltype/format/json');
@@ -187,9 +212,190 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
         $chartNoMit = new Fisma_Chart(380, 275);
         $chartNoMit
                 ->setUniqueid('chartNoMit')
-                ->setExternalSource('/dashboard/findingnomitstrat/format/json')
+                ->setExternalSource('/dashboard/chartfindnomitstrat/format/json')
                 ->addWidget('dayRangesMitChart', 'Day Ranges:', 'text', '30, 60, 90, 120');
         $this->view->chartNoMit = $chartNoMit->export();
+    }
+
+
+    public function chartfindingAction()
+    {
+        $displayBy = urldecode($this->_request->getParam('displayBy'));
+        
+        switch ($displayBy) {
+            case "Status Distribution":
+                $rtnChart = $this->_chartfindingstatus();
+                break;
+            case "Organization Owner":
+                $rtnChart = $this->_chartfindingorg();
+                break;
+        }
+        
+        // export as array, the context switch will translate it to a JSON responce
+        $this->view->chart = $rtnChart->export('array');
+    }
+
+    /**
+     * Calculate the finding statistics by Org
+     * 
+     * @return Fisma_Chart
+     */
+    private function _chartfindingorg()
+    {
+        $findingType = urldecode($this->_request->getParam('findingType'));
+        
+        if ($findingType === 'All Combined') {
+            
+            $thisChart = new Fisma_Chart();
+            $thisChart
+                ->setTitle('Finding Status Distribution')
+                ->setChartType('bar')
+                ->setConcatXLabel(true);
+            
+            $q = Doctrine_Query::create()
+                ->select('count(*), nickname')
+                ->from('organization o')
+                ->leftJoin('o.Findings f')
+                ->groupBy('o.id')
+                ->orderBy('o.nickname')
+                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+            $orgCounts = $q->execute();
+            
+            foreach ($orgCounts as $thisOrg) {
+                
+                $thisChart->addColumn(
+                        $thisOrg['nickname'],
+                        $thisOrg['count'],
+                        'http://www.google.com'
+                    );
+                
+            }
+            
+            return $thisChart;
+            
+        } elseif ($findingType === 'All Divided') {
+            
+            $thisChart = new Fisma_Chart();
+            $thisChart
+                ->inheritanceControle('minimal')
+                ->setTitle('Finding Status Distribution')
+                ->setChartType('stackedbar')
+                ->setConcatXLabel(true)
+                ->setColors(
+                        array(
+                            "#FF0000",
+                            "#FF6600",
+                            "#FFC000"
+                        )
+                    )
+                ->setLayerLabels(
+                    array(
+                        'HIGH',
+                        'MODERATE',
+                        'LOW'
+                    )
+                );
+            
+            $q = Doctrine_Query::create()
+                ->select('count(f.threatlevel), nickname, f.threatlevel')
+                ->from('organization o')
+                ->leftJoin('o.Findings f')
+                ->groupBy('o.id, f.threatlevel')
+                ->orderBy('o.nickname, f.threatlevel')
+                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+            
+            $orgCounts = $q->execute();
+            
+            foreach ($orgCounts as $thisOrg) {
+                
+                // initalize counts to 0
+                $thisHigh = 0;
+                $thisMod = 0;
+                $thisLow = 0;
+                
+                foreach ($thisOrg['Findings'] as $thisLevel) {
+                    switch ($thisLevel['threatLevel']) {
+                        case 'LOW':
+                            $thisHigh = $thisLevel['count'];
+                            break;
+                        case 'MODERATE':
+                            $thisMod = $thisLevel['count'];
+                            break;
+                        case 'HIGH':
+                            $thisLow = $thisLevel['count'];
+                            break;
+                    }
+                }
+                
+                $thisChart->addColumn(
+                        $thisOrg['nickname'],
+                        array(
+                            $thisHigh,
+                            $thisMod,
+                            $thisLow
+                        ),
+                        'http://www.google.com'
+                    );
+                
+            }
+            
+            return $thisChart;
+        }
+    }
+    
+    /**
+     * Calculate the finding statistics by status
+     * 
+     * @return Fisma_Chart
+     */
+    private function _chartfindingstatus()
+    {        
+        $q = Doctrine_Query::create()
+             ->select('f.status, e.nickname')
+             ->addSelect('COUNT(f.status) AS statusCount, COUNT(e.nickname) AS subStatusCount')
+             ->from('Finding f')
+             ->leftJoin('f.CurrentEvaluation e')
+             ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
+             ->groupBy('f.status, e.nickname')
+             ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+        $results = $q->execute();
+        
+        // initialize 3 basic status
+        $arrTotal = array('NEW' => 0, 'DRAFT' => 0);
+        // initialize current evaluation status
+        $q = Doctrine_Query::create()
+             ->select()
+             ->from('Evaluation e')
+             // keep the the 'action' approvalGroup is first fetched
+             ->orderBy('e.approvalGroup ASC')
+             ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+        $evaluations = $q->execute();
+
+        foreach ($evaluations as $evaluation) {
+            if ($evaluation['approvalGroup'] == 'evidence') {
+                $arrTotal['EN'] = 0;
+            }
+            $arrTotal[$evaluation['nickname']] = 0;
+        }
+
+        foreach ($results as $result) {
+            if (in_array($result['status'], array_keys($arrTotal))) {
+                $arrTotal[$result['status']] = (integer) $result['statusCount'];
+            } elseif (!empty($result['CurrentEvaluation']['nickname'])) {
+                $arrTotal[$result['CurrentEvaluation']['nickname']] = (integer) $result['subStatusCount'];
+            }
+        }
+        
+        $thisChart = new Fisma_Chart();
+        $thisChart
+            ->setTitle('Finding Status Distribution')
+            ->setChartType('bar')
+            ->setConcatXLabel(true)
+            ->setData(array_values($arrTotal))
+            ->setAxisLabelsX(array_keys($arrTotal))
+            ->setLinks('/finding/remediation/list/queryType/advanced/denormalizedStatus/textExactMatch/#ColumnLabel#');
+            
+        return $thisChart;
     }
 
     /**
@@ -197,7 +403,7 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
      * 
      * @return void
      */
-    public function findingnomitstratAction()
+    public function chartfindnomitstratAction()
     {
         
         $dayRange = $this->_request->getParam('dayRangesMitChart');
@@ -268,16 +474,10 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
                 )
             )
             ->setConcatXLabel(false)
+            ->setLayerLabels(array('High', 'Moderate', 'Low'))
             ->setData($chartData)
-            ->setAxisLabelsX($chartDataText)
-            ->setLayerLabels(
-                array(
-                    'High',
-                    'Moderate',
-                    'Low'
-                )
-            );
-        
+            ->setAxisLabelsX($chartDataText);
+            
         // export as array, the context switch will translate it to a JSON responce
         $this->view->chart = $noMitChart->export('array');
     }
@@ -356,6 +556,7 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
         $thisChart = new Fisma_Chart();
         $thisChart
                 ->setTitle('Finding Forecast')
+                ->setLayerLabels($chartLayerText)
                 ->setChartType('stackedbar')
                 ->setColors(
                     array(
@@ -366,65 +567,8 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
                 )
                 ->setConcatXLabel(false)
                 ->setData($chartData)
-                ->setAxisLabelsX($chartDataText)
-                ->setLayerLabels(chartLayerText);
+                ->setAxisLabelsX($chartDataText);
                 
-        // export as array, the context switch will translate it to a JSON responce
-        $this->view->chart = $thisChart->export('array');
-    }
-    
-    /**
-     * Calculate the statistics by status
-     * 
-     * @return void
-     */
-    public function totalstatusAction()
-    {        
-        $q = Doctrine_Query::create()
-             ->select('f.status, e.nickname')
-             ->addSelect('COUNT(f.status) AS statusCount, COUNT(e.nickname) AS subStatusCount')
-             ->from('Finding f')
-             ->leftJoin('f.CurrentEvaluation e')
-             ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
-             ->groupBy('f.status, e.nickname')
-             ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
-        $results = $q->execute();
-        
-        // initialize 3 basic status
-        $arrTotal = array('NEW' => 0, 'DRAFT' => 0);
-        // initialize current evaluation status
-        $q = Doctrine_Query::create()
-             ->select()
-             ->from('Evaluation e')
-             // keep the the 'action' approvalGroup is first fetched
-             ->orderBy('e.approvalGroup ASC')
-             ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
-        $evaluations = $q->execute();
-
-        foreach ($evaluations as $evaluation) {
-            if ($evaluation['approvalGroup'] == 'evidence') {
-                $arrTotal['EN'] = 0;
-            }
-            $arrTotal[$evaluation['nickname']] = 0;
-        }
-
-        foreach ($results as $result) {
-            if (in_array($result['status'], array_keys($arrTotal))) {
-                $arrTotal[$result['status']] = (integer) $result['statusCount'];
-            } elseif (!empty($result['CurrentEvaluation']['nickname'])) {
-                $arrTotal[$result['CurrentEvaluation']['nickname']] = (integer) $result['subStatusCount'];
-            }
-        }
-        
-        $thisChart = new Fisma_Chart();
-        $thisChart
-            ->setTitle('Finding Status Distribution')
-            ->setChartType('bar')
-            ->setConcatXLabel(true)
-            ->setData(array_values($arrTotal))
-            ->setAxisLabelsX(array_keys($arrTotal))
-            ->setLinks('/finding/remediation/list/queryType/advanced/denormalizedStatus/textExactMatch/#ColumnLabel#');
-            
         // export as array, the context switch will translate it to a JSON responce
         $this->view->chart = $thisChart->export('array');
     }
