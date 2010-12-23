@@ -176,26 +176,26 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
         $chartTotalStatus = new Fisma_Chart(380, 275, 'chartTotalStatus', '/dashboard/chartfinding/format/json');
         $chartTotalStatus
                 ->addWidget(
-                        'findingType',
-                        'Finding Type:',
-                        'combo',
+                    'findingType',
+                    'Finding Type:',
+                    'combo',
+                    'All Divided',
+                    array(
+                        'All Combined',
                         'All Divided',
-                        array(
-                            'All Combined',
-                            'All Divided',
-                            'High',
-                            'Moderate',
-                            'Low'
-                            )
+                        'High',
+                        'Moderate',
+                        'Low'
+                    )
                 )
                 ->addWidget(
-                        'displayBy',
-                        'Display By:',
-                        'combo',
+                    'displayBy',
+                    'Display By:',
+                    'combo',
+                    'Status Distribution',
+                    array(
                         'Status Distribution',
-                        array(
-                            'Status Distribution',
-                            'Organization Owner'
+                        'Organization Owner'
                     )
                 );
         
@@ -215,7 +215,6 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
                 ->addWidget('dayRangesMitChart', 'Day Ranges:', 'text', '30, 60, 90, 120');
         $this->view->chartNoMit = $chartNoMit->export();
     }
-
 
     public function chartfindingAction()
     {
@@ -281,12 +280,12 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
                 ->setChartType('stackedbar')
                 ->setConcatXLabel(true)
                 ->setColors(
-                        array(
-                            "#FF0000",
-                            "#FF6600",
-                            "#FFC000"
-                        )
+                    array(
+                        "#FF0000",
+                        "#FF6600",
+                        "#FFC000"
                     )
+                )
                 ->setLayerLabels(
                     array(
                         'HIGH',
@@ -327,24 +326,24 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
                 }
                 
                 $thisChart->addColumn(
-                        $thisOrg['nickname'],
-                        array(
-                            $thisLow,
-                            $thisMod,
-                            $thisHigh
-                        ),
-                        array(
-                            '/finding/remediation/list/queryType/advanced/' . 
-                            'organization/textExactMatch/' . $thisOrg['nickname'] . 
-                            '/threatLevel/enumIs/HIGH',
-                            '/finding/remediation/list/queryType/advanced/' . 
-                            'organization/textExactMatch/' . $thisOrg['nickname'] . 
-                            '/threatLevel/enumIs/MODERATE',
-                            '/finding/remediation/list/queryType/advanced/' . 
-                            'organization/textExactMatch/' . $thisOrg['nickname'] . 
-                            '/threatLevel/enumIs/LOW'
-                        )
-                    );
+                    $thisOrg['nickname'],
+                    array(
+                        $thisLow,
+                        $thisMod,
+                        $thisHigh
+                    ),
+                    array(
+                        '/finding/remediation/list/queryType/advanced/' . 
+                        'organization/textExactMatch/' . $thisOrg['nickname'] . 
+                        '/threatLevel/enumIs/HIGH',
+                        '/finding/remediation/list/queryType/advanced/' . 
+                        'organization/textExactMatch/' . $thisOrg['nickname'] . 
+                        '/threatLevel/enumIs/MODERATE',
+                        '/finding/remediation/list/queryType/advanced/' . 
+                        'organization/textExactMatch/' . $thisOrg['nickname'] . 
+                        '/threatLevel/enumIs/LOW'
+                    )
+                );
                 
             }
             
@@ -385,12 +384,12 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
             
             foreach ($orgThisThreatCounts as $thisThreatCount) {
                 $thisChart->addColumn(
-                        $thisThreatCount['nickname'],
-                        $thisThreatCount['count'],
-                        '/finding/remediation/list/queryType/advanced' .
-                        '/organization/textExactMatch/' . $thisThreatCount['nickname'] . 
-                        '/threatLevel/enumIs/' . strtoupper($findingType)
-                    );
+                    $thisThreatCount['nickname'],
+                    $thisThreatCount['count'],
+                    '/finding/remediation/list/queryType/advanced' .
+                    '/organization/textExactMatch/' . $thisThreatCount['nickname'] . 
+                    '/threatLevel/enumIs/' . strtoupper($findingType)
+                );
             }
             
             return $thisChart;
@@ -492,19 +491,19 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
             $thisChart
                 ->setChartType('stackedbar')
                 ->setColors(
-                        array(
-                            "#FF0000",
-                            "#FF6600",
-                            "#FFC000"
-                        )
+                    array(
+                        "#FF0000",
+                        "#FF6600",
+                        "#FFC000"
                     )
+                )
                 ->setLayerLabels(
-                        array(
-                            'High',
-                            'Moderate',
-                            'Low'
-                        )
-                    );
+                    array(
+                        'High',
+                        'Moderate',
+                        'Low'
+                    )
+                );
             
         }
         
@@ -581,10 +580,10 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
             }
             
             $thisChart->addColumn(
-                    $thisStatus,
-                    $addColumnData,
-                    $addLink
-                );
+                $thisStatus,
+                $addColumnData,
+                $addLink
+            );
         }
         
         return $thisChart;
@@ -691,6 +690,26 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
         $lowCount = array();
         $chartDataText = array();
         
+        $thisChart = new Fisma_Chart();
+        $thisChart
+            ->setTitle('Finding Forecast')
+            ->setChartType('stackedbar')
+            ->setConcatXLabel(false)
+            ->setLayerLabels(
+                array(
+                    'High',
+                    'Moderate',
+                    'Low'
+                )
+            )
+            ->setColors(
+                array(
+                    "#FF0000",
+                    "#FF6600",
+                    "#FFC000"
+                )
+            );
+        
         for ($x = 0; $x < count($dayRange); $x++) {
             
             if ($x === 0) {
@@ -713,7 +732,7 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
                     '(f.currentecd BETWEEN "' . $fromDayStr . '" AND "' . $toDayStr . '")'
                 )                 
                 ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
-            $highCount[] = $q->count();
+            $highCount = $q->count();
             
             // Get the count of Moderate findings
             $q = Doctrine_Query::create()
@@ -724,7 +743,7 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
                     '(f.currentecd BETWEEN "' . $fromDayStr . '" AND "' . $toDayStr . '")'
                 )                 
                 ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
-            $modCount[] = $q->count();
+            $modCount = $q->count();
             
             // Get the count of Low findings
             $q = Doctrine_Query::create()
@@ -735,32 +754,31 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
                     '(f.currentecd BETWEEN "' . $fromDayStr . '" AND "' . $toDayStr . '")'
                 )                 
                 ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
-            $lowCount[] = $q->count();
+            $lowCount = $q->count();
             
-            $chartDataText[] = $fromDay->toString('MMM dd') . ' - ' . $toDay->toString('MMM dd');
+            $thisChart->addColumn(
+                $fromDay->toString('MMM dd') . ' - ' . $toDay->toString('MMM dd'),
+                array(
+                    $highCount,
+                    $modCount,
+                    $lowCount
+                ),
+                array(
+                    '/finding/remediation/list/queryType/advanced' . 
+                    '/currentEcd/dateBetween/' . $fromDay->toString('YYYY-MM-dd').'/'.$toDay->toString('YYYY-MM-dd') .
+                    '/threatLevel/enumIs/HIGH',
+                    '/finding/remediation/list/queryType/advanced' . 
+                    '/currentEcd/dateBetween/' . $fromDay->toString('YYYY-MM-dd').'/'.$toDay->toString('YYYY-MM-dd') .
+                    '/threatLevel/enumIs/MODERATE',
+                    '/finding/remediation/list/queryType/advanced' . 
+                    '/currentEcd/dateBetween/' . $fromDay->toString('YYYY-MM-dd').'/'.$toDay->toString('YYYY-MM-dd') .
+                    '/threatLevel/enumIs/LOW'
+                )
+            );
             
             $lastToDay = $toDay;
         }
         
-        $chartData = array($highCount, $modCount, $lowCount);
-        $chartLayerText = array('High', 'Moderate', 'Low');
-        
-        $thisChart = new Fisma_Chart();
-        $thisChart
-                ->setTitle('Finding Forecast')
-                ->setLayerLabels($chartLayerText)
-                ->setChartType('stackedbar')
-                ->setColors(
-                    array(
-                        "#FF0000",
-                        "#FF6600",
-                        "#FFC000"
-                    )
-                )
-                ->setConcatXLabel(false)
-                ->setData($chartData)
-                ->setAxisLabelsX($chartDataText);
-                
         // export as array, the context switch will translate it to a JSON responce
         $this->view->chart = $thisChart->export('array');
     }
