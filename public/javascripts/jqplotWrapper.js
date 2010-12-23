@@ -527,6 +527,20 @@ function applyChartWidgets(param) {
 			// add this widget HTML to the DOM
 			wigSpace.innerHTML += addHTML + '<br/>';
 			
+		}
+	}
+
+	applyChartWidgetSettings(param);
+}
+
+function applyChartWidgetSettings(param) {
+
+	if (param['widgets']) {
+
+		for (var x = 0; x < param['widgets'].length; x++) {
+
+			var thisWidget = param['widgets'][x];
+			
 			// load the value for widgets
 			var thisWigInDOM = document.getElementById(thisWidget['uniqueid']);
 			if (thisWidget['forcevalue']) {
@@ -537,7 +551,7 @@ function applyChartWidgets(param) {
 				var thisWigCookieValue = getCookie(thisWidget['uniqueid']);
 				if (thisWigCookieValue != '') {
 					// the value has been coosen in the past and is stored as a cookie
-					thisWigCookieValue = thisWigCookieValue.replace(/%20/g, ' ')
+					thisWigCookieValue = thisWigCookieValue.replace(/%20/g, ' ');
 					thisWigInDOM.value = thisWigCookieValue;
 					thisWigInDOM.text = thisWigCookieValue;
 				} else {
@@ -728,8 +742,12 @@ function setChartWidthAttribs(param) {
 		// Is this a bar chart?
 		if (param['chartType'] == 'bar' || param['chartType'] == 'stackedbar') {
 
-			// How many bars does it have? 
-			var barCount = param['chartData'].length;
+			// How many bars does it have?
+			if (param['chartType'] == 'stackedbar') {
+				var barCount = param['chartData'][0].length;
+			} else if (param['chartType'] == 'bar') {
+				var barCount = param['chartData'].length;
+			}
 
 			// Assuming each bar margin is 10px, And each bar has a minimum width of 40px, how much space is needed total (minimum).
 			var minSpaceRequired = (barCount * 10) + (barCount * 40);
