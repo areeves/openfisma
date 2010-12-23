@@ -175,7 +175,6 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
         
         $chartTotalStatus = new Fisma_Chart(380, 275, 'chartTotalStatus', '/dashboard/chartfinding/format/json');
         $chartTotalStatus
-                ->setExternalSourceDebug(true)
                 ->addWidget(
                         'findingType',
                         'Finding Type:',
@@ -250,7 +249,7 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
             $thisChart
                 ->setTitle('Finding Status Distribution')
                 ->setChartType('bar')
-                ->setConcatXLabel(true);
+                ->setConcatXLabel(false);
             
             $q = Doctrine_Query::create()
                 ->select('count(*), nickname')
@@ -264,10 +263,10 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
             foreach ($orgCounts as $thisOrg) {
                 
                 $thisChart->addColumn(
-                        $thisOrg['nickname'],
-                        $thisOrg['count'],
-                        'http://www.google.com'
-                    );
+                    $thisOrg['nickname'],
+                    $thisOrg['count'],
+                    '/finding/remediation/list/queryType/advanced/organization/textExactMatch/' . $thisOrg['nickname']
+                );
                 
             }
             
@@ -330,13 +329,68 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
                 $thisChart->addColumn(
                         $thisOrg['nickname'],
                         array(
-                            $thisHigh,
+                            $thisLow,
                             $thisMod,
-                            $thisLow
+                            $thisHigh
                         ),
-                        'http://www.google.com'
+                        array(
+                            '/finding/remediation/list/queryType/advanced/' . 
+                            'organization/textExactMatch/' . $thisOrg['nickname'] . 
+                            '/threatLevel/enumIs/HIGH',
+                            '/finding/remediation/list/queryType/advanced/' . 
+                            'organization/textExactMatch/' . $thisOrg['nickname'] . 
+                            '/threatLevel/enumIs/MODERATE',
+                            '/finding/remediation/list/queryType/advanced/' . 
+                            'organization/textExactMatch/' . $thisOrg['nickname'] . 
+                            '/threatLevel/enumIs/LOW'
+                        )
                     );
                 
+            }
+            
+            return $thisChart;
+            
+        } else {
+            // findingType is High, Mod, or Low
+            
+            $thisChart = new Fisma_Chart();
+            $thisChart
+                ->setTitle('Finding Status Distribution')
+                ->setChartType('bar')
+                ->setConcatXLabel(false);
+            
+            // Decide color of every bar based on High/Mod/Low
+            switch (strtoupper($findingType)) {
+            case 'HIGH':
+                $thisChart->setColors(array('#FF0000'));    // red
+                break;
+            case 'MODERATE':
+                $thisChart->setColors(array('#FF6600'));    // orange
+                break;
+            case 'LOW':
+                $thisChart->setColors(array('#FFC000'));    // yellow
+                break;
+            }
+            
+            $q = Doctrine_Query::create()
+                ->select('count(f.threatlevel), nickname, f.threatlevel')
+                ->from('organization o')
+                ->leftJoin('o.Findings f')
+                ->groupBy('o.id')
+                ->orderBy('o.nickname, f.threatlevel')
+                ->where('f.threatlevel = ?', strtoupper($findingType))
+                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+            
+            $orgThisThreatCounts = $q->execute();
+            
+            foreach ($orgThisThreatCounts as $thisThreatCount) {
+                $thisChart->addColumn(
+                        $thisThreatCount['nickname'],
+                        $thisThreatCount['count'],
+                        '/finding/remediation/list/queryType/advanced' .
+                        '/organization/textExactMatch/' . $thisThreatCount['nickname'] . 
+                        '/threatLevel/enumIs/' . strtoupper($findingType)
+                    );
             }
             
             return $thisChart;
@@ -509,14 +563,27 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
                         $sortedRslts[$thisStatus]['MODERATE'],
                         $sortedRslts[$thisStatus]['LOW']
                     );
+                $addLink = array(
+                        '/finding/remediation/list/queryType/advanced' .
+                            '/denormalizedStatus/textExactMatch/' . strtoupper($thisStatus) . 
+                            '/threatLevel/enumIs/HIGH',
+                        '/finding/remediation/list/queryType/advanced' .
+                            '/denormalizedStatus/textExactMatch/' . strtoupper($thisStatus) . 
+                            '/threatLevel/enumIs/MODERATE',
+                        '/finding/remediation/list/queryType/advanced' .
+                            '/denormalizedStatus/textExactMatch/' . strtoupper($thisStatus) . 
+                            '/threatLevel/enumIs/LOW'
+                    );
             } else {
                 $addColumnData = $sortedRslts[$thisStatus][strtoupper($findingType)];
+                $addLink = '/finding/remediation/list/queryType/advanced' .
+                            '/denormalizedStatus/textExactMatch/' . strtoupper($thisStatus);
             }
             
             $thisChart->addColumn(
                     $thisStatus,
                     $addColumnData,
-                    'http://www.google.com'
+                    $addLink
                 );
         }
         

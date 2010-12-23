@@ -250,11 +250,21 @@ class Fisma_Chart
             );
         }
         
+        if (!empty($addLink)) {
+            if (is_string($this->chartParamArr['links'])) {
+                throw new Fisma_Zend_Exception(
+                    "You are trying to add a link for a certain column (in Fisma_Chart->addColumn), when you " .
+                    "have already set a global link for all columns."
+                );
+            }
+        }
+        
         // Add data to plot
         if (strpos($this->chartParamArr['chartType'], 'stacked') === false) {
             // This is not a stacked chart. Each data-point/column-height should be in each element of the data array
             
             $this->chartParamArr['chartData'][] = $addValue;
+            $this->chartParamArr['links'][] = $addLink;
             
         } else {
             // This is a stacked chart. Each element of the chartParamArr['chartType'] array is a layer, not a column
@@ -276,21 +286,9 @@ class Fisma_Chart
                 );
             }
             
-            //$colId = count($this->chartParamArr['chartData'][0]);
-            
             for ($layer = 0; $layer < count($addValue); $layer++) {
                 $this->chartParamArr['chartData'][$layer][] = $addValue[$layer];
-            }
-        }
-        
-        if (!empty($addLink)) {
-            if (is_array($this->chartParamArr['links'])) {
-                $this->chartParamArr['links'][] = $addLink;
-            } else {
-                throw new Fisma_Zend_Exception(
-                    "You are trying to add a link for a certain column (in Fisma_Chart->addColumn), when you " .
-                    "have already set a global link for all columns."
-                );
+                $this->chartParamArr['links'][$layer][] = $addLink[$layer];
             }
         }
         
@@ -318,7 +316,18 @@ class Fisma_Chart
         $this->chartParamArr['links'] = $inArray;
         return $this;
     }
-    
+
+    /**
+     * When set to true, will stop chart-linking/"drill-down" and instead, show a popup message about navigation
+     * 
+     * @return Fisma_Chart
+     */
+    public function setLinksDebug($inBoolean)
+    {
+        $this->chartParamArr['linksdebug'] = $inBoolean;
+        return $this;
+    }
+
     /**
      * Overrides, erases, and sets the labels to use on the x-axis
      * 
