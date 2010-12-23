@@ -155,7 +155,7 @@ function createJQChart(param)
 			var rtn = createChartJQPie(param);
 			break;
 		default:
-			alert('createJQChart Error - chartType is invalid');
+			alert('createJQChart Error - chartType is invalid (' + param['chartType'] + ')');
 			return false;
 	}
 

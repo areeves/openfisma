@@ -349,52 +349,177 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
      * @return Fisma_Chart
      */
     private function _chartfindingstatus()
-    {        
-        $q = Doctrine_Query::create()
-             ->select('f.status, e.nickname')
-             ->addSelect('COUNT(f.status) AS statusCount, COUNT(e.nickname) AS subStatusCount')
-             ->from('Finding f')
-             ->leftJoin('f.CurrentEvaluation e')
-             ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
-             ->groupBy('f.status, e.nickname')
-             ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
-        $results = $q->execute();
+    {
+        $findingType = urldecode($this->_request->getParam('findingType'));
         
-        // initialize 3 basic status
-        $arrTotal = array('NEW' => 0, 'DRAFT' => 0);
-        // initialize current evaluation status
-        $q = Doctrine_Query::create()
-             ->select()
-             ->from('Evaluation e')
-             // keep the the 'action' approvalGroup is first fetched
-             ->orderBy('e.approvalGroup ASC')
-             ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
-        $evaluations = $q->execute();
+        if ($findingType === 'All Combined') {
+            
+            $q = Doctrine_Query::create()
+                 ->select('f.status, e.nickname')
+                 ->addSelect('COUNT(f.status) AS statusCount, COUNT(e.nickname) AS subStatusCount')
+                 ->from('Finding f')
+                 ->leftJoin('f.CurrentEvaluation e')
+                 ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
+                 ->groupBy('f.status, e.nickname')
+                 ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+            $results = $q->execute();
+            
+            // initialize 3 basic status
+            $arrTotal = array('NEW' => 0, 'DRAFT' => 0);
+            // initialize current evaluation status
+            $q = Doctrine_Query::create()
+                 ->select()
+                 ->from('Evaluation e')
+                 // keep the the 'action' approvalGroup is first fetched
+                 ->orderBy('e.approvalGroup ASC')
+                 ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+            $evaluations = $q->execute();
 
-        foreach ($evaluations as $evaluation) {
-            if ($evaluation['approvalGroup'] == 'evidence') {
-                $arrTotal['EN'] = 0;
+            foreach ($evaluations as $evaluation) {
+                if ($evaluation['approvalGroup'] == 'evidence') {
+                    $arrTotal['EN'] = 0;
+                }
+                $arrTotal[$evaluation['nickname']] = 0;
             }
-            $arrTotal[$evaluation['nickname']] = 0;
-        }
 
-        foreach ($results as $result) {
-            if (in_array($result['status'], array_keys($arrTotal))) {
-                $arrTotal[$result['status']] = (integer) $result['statusCount'];
-            } elseif (!empty($result['CurrentEvaluation']['nickname'])) {
-                $arrTotal[$result['CurrentEvaluation']['nickname']] = (integer) $result['subStatusCount'];
+            foreach ($results as $result) {
+                if (in_array($result['status'], array_keys($arrTotal))) {
+                    $arrTotal[$result['status']] = (integer) $result['statusCount'];
+                } elseif (!empty($result['CurrentEvaluation']['nickname'])) {
+                    $arrTotal[$result['CurrentEvaluation']['nickname']] = (integer) $result['subStatusCount'];
+                }
             }
+            
+            $thisChart = new Fisma_Chart();
+            $thisChart
+                ->setTitle('Finding Status Distribution')
+                ->setChartType('bar')
+                ->setConcatXLabel(false)
+                ->setData(array_values($arrTotal))
+                ->setAxisLabelsX(array_keys($arrTotal))
+                ->setLinks(
+                    '/finding/remediation/list/queryType/advanced/denormalizedStatus/textExactMatch/#ColumnLabel#'
+                );
+                
+            return $thisChart;
+            
         }
+        
+        // If we have not returned by this line, then the findingType is either High/Moderate/Low/All-Divided
         
         $thisChart = new Fisma_Chart();
         $thisChart
             ->setTitle('Finding Status Distribution')
-            ->setChartType('bar')
-            ->setConcatXLabel(true)
-            ->setData(array_values($arrTotal))
-            ->setAxisLabelsX(array_keys($arrTotal))
-            ->setLinks('/finding/remediation/list/queryType/advanced/denormalizedStatus/textExactMatch/#ColumnLabel#');
+            ->setConcatXLabel(true);
+        
+        if ($findingType === 'High'|| $findingType === 'Moderate' || $findingType === 'Low') {
             
+            // Display a simple bar chart of just High/Mod/Low findings
+            $thisChart
+                ->setChartType('bar')
+                ->setConcatXLabel(false);
+            
+            // Decise color of every bar based on High/Mod/Low
+            switch (strtoupper($findingType)) {
+            case 'HIGH':
+                $thisChart->setColors(array('#FF0000'));
+                break;
+            case 'MODERATE':
+                $thisChart->setColors(array('#FF6600'));
+                break;
+            case 'LOW':
+                $thisChart->setColors(array('#FFC000'));
+                break;
+            }
+            
+        } elseif ($findingType === 'All Divided') {
+            
+            // Display a stacked-bar chart with High/Mod/Low findings in each column
+            $thisChart
+                ->setChartType('stackedbar')
+                ->setColors(
+                        array(
+                            "#FF0000",
+                            "#FF6600",
+                            "#FFC000"
+                        )
+                    )
+                ->setLayerLabels(
+                        array(
+                            'High',
+                            'Moderate',
+                            'Low'
+                        )
+                    );
+            
+        }
+        
+        // Query database
+        $q = Doctrine_Query::create()
+            ->select('count(*), threatlevel, denormalizedstatus')
+            ->from('Finding f')
+            ->groupBy('f.denormalizedstatus, f.threatlevel')
+            ->orderBy('f.denormalizedstatus, f.threatlevel')
+            ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+        $rslts = $q->execute();
+        
+        // sort results into $sortedRslts[FindingStatusName][High/Mod/Low] = TheCount
+        $sortedRslts = array();
+        foreach ($rslts as $thisRslt) {
+            
+            if (empty($sortedRslts[$thisRslt['denormalizedStatus']])) {
+                $sortedRslts[$thisRslt['denormalizedStatus']] = array();
+            }
+            
+            $sortedRslts[$thisRslt['denormalizedStatus']][$thisRslt['threatLevel']] = $thisRslt['count'];
+        }
+        
+        // Go in order adding columns to chart; New,Draft,MS ISSO, MS IV&V, EN, EV ISSO, EV IV&V
+        for ($x = 0; $x < 7; $x++) {
+            
+            // Which status are we adding this time?
+            switch ($x) {
+            case 0:
+                $thisStatus = 'NEW';
+                break;
+            case 1:
+                $thisStatus = 'DRAFT';
+                break;
+            case 2:
+                $thisStatus = 'MS ISSO';
+                break;
+            case 3:
+                $thisStatus = 'MS IV&V';
+                break;
+            case 4:
+                $thisStatus = 'EN';
+                break;
+            case 5:
+                $thisStatus = 'EV ISSO';
+                break;
+            case 6:
+                $thisStatus = 'EV IV&V';
+                break;
+            }
+            
+            // Is it Or All-Migh&Mod&Low in a stacked bar chart? Or just High, Mod, or Low in a regular chart?
+            if ($findingType === 'All Divided') {
+                $addColumnData = array(
+                        $sortedRslts[$thisStatus]['HIGH'],
+                        $sortedRslts[$thisStatus]['MODERATE'],
+                        $sortedRslts[$thisStatus]['LOW']
+                    );
+            } else {
+                $addColumnData = $sortedRslts[$thisStatus][strtoupper($findingType)];
+            }
+            
+            $thisChart->addColumn(
+                    $thisStatus,
+                    $addColumnData,
+                    'http://www.google.com'
+                );
+        }
+        
         return $thisChart;
     }
 

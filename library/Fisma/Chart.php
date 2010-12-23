@@ -117,6 +117,17 @@ class Fisma_Chart
         return $this;
     }
     
+    public function getChartType()
+    {
+        if (empty($this->chartParamArr['chartType'])) {
+            throw new Fisma_Zend_Exception(
+                "You cannot call Fisma_Chart->getChartType() when a chart-type has not been set yet."
+            );
+        }
+        
+        return $this->chartParamArr['chartType'];
+    }
+    
     /**
      * The chart width in pixels
      * 
