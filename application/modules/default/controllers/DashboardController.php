@@ -209,14 +209,15 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
         $chartFindForecast->addWidget('dayRangesStatChart', 'Day Ranges:', 'text', '30, 60, 90, 120');
         $this->view->chartFindForecast = $chartFindForecast->export();
         
-        $chartOverdueFinding = new Fisma_Chart(380, 275, 'chartOverdueFinding', '/dashboard/chartoverdue/format/json/');
+        $chartOverdueFinding = new Fisma_Chart(380, 275, 'chartOverdueFinding', '/dashboard/chartoverdue/format/json');
+        $chartOverdueFinding->addWidget('dayRanges', 'Day Ranges:', 'text', '1, 30, 60, 90, 120');
         $this->view->chartOverdueFinding = $chartOverdueFinding->export();
         
         $chartNoMit = new Fisma_Chart(380, 275);
         $chartNoMit
                 ->setUniqueid('chartNoMit')
                 ->setExternalSource('/dashboard/chartfindnomitstrat/format/json')
-                ->addWidget('dayRangesMitChart', 'Day Ranges:', 'text', '30, 60, 90, 120');
+                ->addWidget('dayRangesMitChart', 'Day Ranges:', 'text', '1, 30, 60, 90, 120');
         $this->view->chartNoMit = $chartNoMit->export();
     }
     
@@ -239,20 +240,8 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
 
     public function chartoverdueAction()
     {
-        $q = Doctrine_Query::create()
-            ->addSelect('SUM(IF(DATEDIFF(NOW(), f.nextduedate) BETWEEN 0 AND 29, 1, 0)) a')
-            ->addSelect('SUM(IF(DATEDIFF(NOW(), f.nextduedate) BETWEEN 30 AND 59, 1, 0)) b')
-            ->addSelect('SUM(IF(DATEDIFF(NOW(), f.nextduedate) BETWEEN 60 AND 89, 1, 0)) c')
-            ->addSelect('SUM(IF(DATEDIFF(NOW(), f.nextduedate) BETWEEN 90 AND 119, 1, 0)) d')
-            ->addSelect('SUM(IF(DATEDIFF(NOW(), f.nextduedate) >= 120, 1, 0)) e')
-            ->addSelect('IFNULL(COUNT(f.id), 0) f')
-            ->addSelect('SUM(IF(DATEDIFF(NOW(), f.nextduedate) >= 120, 1, 0)) h')
-            ->from('Finding f')
-            ->where('DATEDIFF(NOW(), f.nextduedate) > 0')
-            ->setHydrationMode(Doctrine::HYDRATE_SCALAR);
-        
-        $rslt = $q->execute();
-        $rslt = $rslt[0];   // we are only expecting 1 result row
+        $dayRanges = str_replace(' ', '', urldecode($this->_request->getParam('dayRanges')));
+        $dayRanges = explode(',', $dayRanges);
         
         $thisChart = new Fisma_Chart();
         $thisChart
@@ -260,51 +249,58 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
             ->setChartType('bar')
             ->setConcatXLabel(true);
         
+        // Get counts in between the day ranges given
+        for ($x = 1; $x < count($dayRanges); $x++) {
+            
+            $fromDayDiff = $dayRanges[$x-1];
+            $toDayDiff = $dayRanges[$x];
+            
+            $q = Doctrine_Query::create();
+            $q
+                ->addSelect(
+                    'SUM(IF(DATEDIFF(NOW(), f.nextduedate) BETWEEN ' . 
+                    $fromDayDiff .
+                    ' AND ' . 
+                    $toDayDiff . 
+                    ', 1, 0)) a'
+                )
+                ->from('Finding f')
+                ->where('DATEDIFF(NOW(), f.nextduedate) > 0')
+                ->setHydrationMode(Doctrine::HYDRATE_SCALAR);
+            
+            $rslt = $q->execute();
+            $rslt = $rslt[0];   // we are only expecting 1 result row
+            
+            $thisFromDate = new Zend_Date();
+            $thisFromDate = $thisFromDate->addDay($fromDayDiff)->toString('YYY-MM-dd');
+            $thisToDate = new Zend_Date();
+            $thisToDate = $thisToDate->addDay($toDayDiff)->toString('YYY-MM-dd');
+            $thisChart->addColumn(
+                $fromDayDiff . '-' . $toDayDiff . ' days',
+                $rslt['f_a'],
+                '/finding/remediation/list/queryType/advanced/nextDueDate/dateBetween/'.$thisFromDate.'/'.$thisToDate
+            );
+            
+        }
+        
+        // Get the count from the last day range on
+        $fromDayDiff = $dayRanges[count($dayRanges)-1];
+        
+        $q = Doctrine_Query::create();
+        $q
+            ->addSelect('SUM(IF(DATEDIFF(NOW(), f.nextduedate) >= ' . $fromDayDiff . ', 1, 0)) a')
+            ->from('Finding f')
+            ->where('DATEDIFF(NOW(), f.nextduedate) > 0')
+            ->setHydrationMode(Doctrine::HYDRATE_SCALAR);
+            
+        $rslt = $q->execute();
+        $rslt = $rslt[0];   // we are only expecting 1 result row
+        
         $thisFromDate = new Zend_Date();
-        $thisFromDate = $thisFromDate->addDay(1)->toString('YYY-MM-dd');
-        $thisToDate = new Zend_Date();
-        $thisToDate = $thisToDate->addDay(29)->toString('YYY-MM-dd');
+        $thisFromDate = $thisFromDate->addDay($fromDayDiff)->toString('YYY-MM-dd');
         $thisChart->addColumn(
-            '1-29 days',
+            $fromDayDiff . '+ days',
             $rslt['f_a'],
-            '/finding/remediation/list/queryType/advanced/nextDueDate/dateBetween/'.$thisFromDate.'/'.$thisToDate
-        );
-        
-        $thisFromDate = new Zend_Date();
-        $thisFromDate = $thisFromDate->addDay(30)->toString('YYY-MM-dd');
-        $thisToDate = new Zend_Date();
-        $thisToDate = $thisToDate->addDay(59)->toString('YYY-MM-dd');
-        $thisChart->addColumn(
-            '30-59 days',
-            $rslt['f_b'],
-            '/finding/remediation/list/queryType/advanced/nextDueDate/dateBetween/'.$thisFromDate.'/'.$thisToDate
-        );
-        
-        $thisFromDate = new Zend_Date();
-        $thisFromDate = $thisFromDate->addDay(60)->toString('YYY-MM-dd');
-        $thisToDate = new Zend_Date();
-        $thisToDate = $thisToDate->addDay(89)->toString('YYY-MM-dd');
-        $thisChart->addColumn(
-            '60-89 days',
-            $rslt['f_c'],
-            '/finding/remediation/list/queryType/advanced/nextDueDate/dateBetween/'.$thisFromDate.'/'.$thisToDate
-        );
-        
-        $thisFromDate = new Zend_Date();
-        $thisFromDate = $thisFromDate->addDay(90)->toString('YYY-MM-dd');
-        $thisToDate = new Zend_Date();
-        $thisToDate = $thisToDate->addDay(119)->toString('YYY-MM-dd');
-        $thisChart->addColumn(
-            '90-119 days',
-            $rslt['f_d'],
-            '/finding/remediation/list/queryType/advanced/nextDueDate/dateBetween/'.$thisFromDate.'/'.$thisToDate
-        );
-        
-        $thisFromDate = new Zend_Date();
-        $thisFromDate = $thisFromDate->addDay(120)->toString('YYY-MM-dd');
-        $thisChart->addColumn(
-            '120+ days',
-            $rslt['f_e'],
             '/finding/remediation/list/queryType/advanced/nextDueDate/dateAfter/'.$thisFromDate
         );
             
