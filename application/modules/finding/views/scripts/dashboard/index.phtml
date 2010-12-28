@@ -1,7 +1,78 @@
-<?php Fisma_Format_Section::startSection('Finding Dashboard'); ?>
+<div class="column left">
+    <div style='text-align: center;'>
+        <?php
+            Fisma_Format_Section::startSection('Finding Forecast');
+            echo $this->escape($this->chartFindForecast, 'none');
+        ?>
+        
+        <em>
+            Findings Due in (X) Number of Days.
+        </em>
+
+        <?php
+            Fisma_Format_Section::stopSection();
+        ?>
+    </div>
+</div>
+
+<div class="column right">
+    <div style='text-align: center;'>
+        <?php
+            Fisma_Format_Section::startSection('Findings Past Due');
+            echo $this->escape($this->chartOverdueFinding, 'none');
+        ?>
+        
+        <em>
+            Findings Past Due by (x) Number of Days.
+        </em>
+
+        <?php
+            Fisma_Format_Section::stopSection();
+        ?>
+    </div>
+</div>
+
+<div class="clear"></div>
+
+<div class="column left">
+    <div style='text-align: center;'>
+        <?php
+            Fisma_Format_Section::startSection('Findings by Worklow Process');
+            echo $this->escape($this->chartTotalStatus, 'none');
+        ?>
+        
+        <em>
+            Workflow Process (Includes Only Open Findings).
+        </em>
+
+        <?php
+        Fisma_Format_Section::stopSection();
+        ?>
+    </div>
+</div>
+
+<div class="column right">
+    <div style='text-align: center;'>
+        <?php
+            Fisma_Format_Section::startSection('Findings Without Corrective Actions');
+            echo $this->escape($this->chartNoMit, 'none');
+        ?>
+        
+        <em>
+            Findings Past Due by (x) Number of Days.
+        </em>
+
+        <?php
+        Fisma_Format_Section::stopSection();
+        ?>
+    </div>
+</div>
+
+<div class="clear"></div>
+
+<?php Fisma_Format_Section::startSection('Current Security Control Deficiencies'); ?>
 
 <div class='dashboardChart'>
-    Current Security Control Deficiencies
     <?php echo $this->escape($this->controlDeficienciesChart, 'none'); ?>
 </div>
 
