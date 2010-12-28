@@ -150,6 +150,9 @@ function createJQChart(param)
 		case 'line':
 			var rtn = createChartJQStackedLine(param);
 			break;
+		case 'stackedline':
+			var rtn = createChartJQStackedLine(param);
+			break;
 		case 'pie':
 			param['links'] = [param['links']];
 			var rtn = createChartJQPie(param);
@@ -349,8 +352,8 @@ function createChartJQStackedLine(param)
 		
 		param['chartDataText'][x] += ' (' + thisSum  + ')';
 	}
-    
-	plot1 = $.jqplot(param['uniqueid'], ['chartData'], {
+    	
+	plot1 = $.jqplot(param['uniqueid'], param['chartData'], {
 		title: param['title'],
 		seriesColors: ["#F4FA58", "#FAAC58","#FA5858"],
 		series: [{label: 'Open Findings', lineWidth:4, markerOptions:{style:'square'}}, {label: 'Closed Findings', lineWidth:4, markerOptions:{style:'square'}}, {lineWidth:4, markerOptions:{style:'square'}}],

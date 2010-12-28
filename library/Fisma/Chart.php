@@ -250,6 +250,13 @@ class Fisma_Chart
             );
         }
         
+        // Columns are for bar charts
+        if ($this->chartParamArr['chartType'] === 'line' || $this->chartParamArr['chartType'] === 'stackedline') {
+            throw new Fisma_Zend_Exception(
+                "You cannot call Fisma_Chart->addColumn() when building a line graph. Use Fisma_Chart->addLine()"
+            );
+        }
+        
         if (!empty($addLink)) {
             if (is_string($this->chartParamArr['links'])) {
                 throw new Fisma_Zend_Exception(
@@ -295,6 +302,35 @@ class Fisma_Chart
         return $this;
     }
     
+    /**
+     * Adds a line onto the chart to render. The input params should be an array of values.
+     * 
+     * @return Fisma_Chart
+     */
+    public function addLine($lineValues, $setColumnLabels = '')
+    {
+        // Add label for this column
+        if (!empty($setColumnLabels) && $setColumnLabels !== '') {
+            $this->chartParamArr['chartDataText'] = $setColumnLabels;
+        }
+        
+        $this->chartParamArr['chartData'][] = $lineValues;
+        
+        return $this;
+    }
+
+    /**
+     * Adds a value onto a line in a line or stacked line chart.
+     * 
+     * @return Fisma_Chart
+     */
+    public function addToLine($value, $lineIndex = 0)
+    {
+        $this->chartParamArr['chartData'][0][] = $value;
+        
+        return $this;
+    }
+
     /**
      * Overrides, erases, and sets the data array (numbers to plot) to the array given
      * 
