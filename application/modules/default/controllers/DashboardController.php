@@ -168,6 +168,9 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
             $this->view->notifications = $user->Notifications;
             $this->view->dismissUrl = "/dashboard/index/dismiss/notifications";
         }
+        
+        $chartTotalType = new Fisma_Chart(380, 275, 'chartTotalType', '/dashboard/totaltype/format/json');
+        $this->view->chartTotalType = $chartTotalType->export();
     }
     
     /**

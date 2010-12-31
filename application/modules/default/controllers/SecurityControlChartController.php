@@ -45,36 +45,40 @@ class SecurityControlChartController extends Fisma_Zend_Controller_Action_Securi
      */
     public function controlDeficienciesAction()
     {
+        $rtnChart = new Fisma_Chart();
+        $rtnChart
+            ->setColors(array('#3366FF'))
+            ->setChartType('bar')
+            ->setConcatXLabel(false);
+    
         $userOrganizations = $this->_me->getOrganizationsByPrivilege('organization', 'read')
-                             ->toKeyValueArray('id', 'id');
+            ->toKeyValueArray('id', 'id');
         
         $deficienciesQuery = Doctrine_Query::create()
-                             ->select('COUNT(*) AS count, sc.code')
-                             ->from('SecurityControl sc')
-                             ->innerJoin('sc.Findings f')
-                             ->innerJoin('f.ResponsibleOrganization o')
-                             ->andWhere('f.status <> ?', 'CLOSED')
-                             ->whereIn('o.id', $userOrganizations)
-                             ->groupBy('sc.code')
-                             ->orderBy('sc.code')
-                             ->setHydrationMode(Doctrine::HYDRATE_SCALAR);
+            ->select('COUNT(*) AS count, sc.code')
+            ->from('SecurityControl sc')
+            ->innerJoin('sc.Findings f')
+            ->innerJoin('f.ResponsibleOrganization o')
+            ->andWhere('f.status <> ?', 'CLOSED')
+            ->whereIn('o.id', $userOrganizations)
+            ->groupBy('sc.code')
+            ->orderBy('sc.code')
+            ->setHydrationMode(Doctrine::HYDRATE_SCALAR);
         
         $defQueryRslt = $deficienciesQuery->execute();
         
-        $chartData = array();
-        $chartDataText = array();
-        
         foreach ($defQueryRslt as $thisElement) {
-            $chartData[] = (integer) $thisElement['sc_count'];
-            $chartDataText[] = $thisElement['sc_code'];
+            $rtnChart->addColumn($thisElement['sc_code'], $thisElement['sc_count']);
         }
         
-        $this->view->chart = array(
-            'chartDataText' => $chartDataText,
-            'chartData' => $chartData,
-            'links' =>  '/finding/remediation/list/queryType/advanced/denormalizedStatus/textDoesNotContain/CLOSED/' .
-                        'securityControl/textExactMatch/#ColumnLabel#'
-            );
+        // pass a string instead of an array to Fisma_Chart to set all columns to link with this URL-rule
+        $rtnChart->setLinks(
+            '/finding/remediation/list/queryType/advanced/denormalizedStatus/textDoesNotContain/CLOSED' .
+            '/securityControl/textExactMatch/#ColumnLabel#'
+        );
+            
+        // the context switch will convert this array to a JSON resonce
+        $this->view->chart = $rtnChart->export('array');
         
     }
 }

@@ -235,7 +235,7 @@ function createChartJQPie(param)
 				sliceMargin: 2,
 				showDataLabels: true,
 				shadowAlpha: 0.15,
-				shadowOffset: 3
+				shadowOffset: 0
 			}
 		},
                 legend: {
@@ -295,7 +295,7 @@ function createJQChart_StackedBar(param)
 		series: seriesParam,
 		seriesDefaults:{
 			renderer: $.jqplot.BarRenderer,
-			rendererOptions:{barMargin: 10, showDataLabels: true, varyBarColor: param['varyBarColor'], shadowAlpha: 0.15, shadowOffset: 3},
+			rendererOptions:{barMargin: 10, showDataLabels: true, varyBarColor: param['varyBarColor'], shadowAlpha: 0.15, shadowOffset: 0},
 			pointLabels:{show: true, location: 's'}
 		},
 		axesDefaults: {

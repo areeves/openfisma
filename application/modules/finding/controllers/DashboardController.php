@@ -43,6 +43,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                       ->addActionContext('findingforecast', 'json')
                       ->addActionContext('chartfindnomitstrat', 'json')
                       ->addActionContext('chartfinding', 'json')
+                      ->addActionContext('chartfindingbyorgdetail', 'json')
                       ->initContext();
     }
 
@@ -95,9 +96,6 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 ->addWidget('dayRangesMitChart', 'Day Ranges:', 'text', '1, 30, 60, 90, 120');
         $this->view->chartNoMit = $chartNoMit->export();
         
-        $chartTotalType = new Fisma_Chart(380, 275, 'chartTotalType', '/finding/dashboard/totaltype/format/json');
-        $this->view->chartTotalType = $chartTotalType->export();
-        
         // Bottom chart - Current Security Control Deficiencies
         $controlDeficienciesChart = new Fisma_Chart();
         $controlDeficienciesChart
@@ -111,6 +109,49 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         $this->view->controlDeficienciesChart = $controlDeficienciesChart->export();
     }
     
+    /**
+     * Calculate Organization statistics based on params.
+     * Params expected by $this->_request->getParam(...)
+     * Expected params: displayBy
+     * Returns exported Fisma_Chart
+     * 
+     * @return array
+     */
+    public function chartfindingbyorgdetailAction()
+    {
+        $displayBy = $this->_request->getParam('displayBy');
+        
+        $this->view->chart = $this->_getAllChildrenOfSystem(13);
+    }
+    
+    private function _getAllChildrenOfSystem($sysId)
+    {
+        // get the left and right nodes (lft and rgt) of the target system from the system table
+        $q = Doctrine_Query::create();
+        $q
+            ->addSelect('lft, rgt')
+            ->from('Organization o')
+            ->where('id = ?', $sysId)
+            ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+        $row = $q->execute();
+        $row = $row[0];     // we are only expecting 1 row result
+        $parLft = $row['lft'];
+        $parRgt = $row['rgt'];
+        
+        $q = Doctrine_Query::create();
+        $q
+            ->addSelect('COUNT(f.id), o.nickname')
+            ->from('Organization o')
+            ->leftJoin('o.Findings f')
+            ->whereIn('f.responsibleorganizationid=o.id')
+            ->where($parLft . ' < o.lft')
+            ->andWhere($parRgt . ' > o.rgt')
+            ->groupBy('o.nickname')
+            ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+        
+        return $q->execute();
+    }
+    
     public function chartfindingAction()
     {
         $displayBy = urldecode($this->_request->getParam('displayBy'));
@@ -120,7 +161,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 $rtnChart = $this->_chartfindingstatus();
                 break;
             case "Organization Owner":
-                $rtnChart = $this->_chartfindingorg();
+                $rtnChart = $this->_chartfindingorgbasic();
                 break;
         }
         
@@ -201,7 +242,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
      * 
      * @return Fisma_Chart
      */
-    private function _chartfindingorg()
+    private function _chartfindingorgbasic()
     {
         $findingType = urldecode($this->_request->getParam('findingType'));
         
@@ -214,7 +255,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             
             $q = Doctrine_Query::create()
                 ->select('count(*), nickname')
-                ->from('organization o')
+                ->from('Organization o')
                 ->leftJoin('o.Findings f')
                 ->groupBy('o.id')
                 ->orderBy('o.nickname')
@@ -257,7 +298,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             
             $q = Doctrine_Query::create()
                 ->select('count(f.threatlevel), nickname, f.threatlevel')
-                ->from('organization o')
+                ->from('Organization o')
                 ->leftJoin('o.Findings f')
                 ->groupBy('o.id, f.threatlevel')
                 ->orderBy('o.nickname, f.threatlevel')
@@ -409,6 +450,17 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 ->setConcatXLabel(false)
                 ->setData(array_values($arrTotal))
                 ->setAxisLabelsX(array_keys($arrTotal))
+                ->setColors(
+                    array(
+                        '#CECECE',
+                        '#67F967',
+                        '#FFCACA',
+                        '#FF2424',
+                        '#FF9E3D',
+                        '#CACAFF',
+                        '#2424FF'
+                    )
+                )
                 ->setLinks(
                     '/finding/remediation/list/queryType/advanced/denormalizedStatus/textExactMatch/#ColumnLabel#'
                 );
