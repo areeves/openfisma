@@ -146,10 +146,6 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
                                              . '/denormalizedStatus/textExactMatch/EN'
                                              . '/nextDueDate/dateBefore/'
                                              . $today;
-                                             
-        // URLs for chart click event handlers
-        $this->view->barChartBaseUrl = $baseUrl . '/denormalizedStatus/textExactMatch/';
-        $this->view->pieChartBaseUrl = $baseUrl . '/type/enumIs/';
         
         // Look up the last login information. If it's their first time logging in, then the view
         // script will show a different message.
@@ -169,8 +165,18 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
             $this->view->dismissUrl = "/dashboard/index/dismiss/notifications";
         }
         
+        // left-side chart (bar) - Finding Status chart
+        $extSrcURL = '/finding/dashboard/chartfinding/format/json';                 // the external source of this chart on the FIndings Dashboard
+        // rather than showing widgets, hard-code widget-options into external-source-URL
+        $extSrcURL .= '/findingType/All Combined';
+        $extSrcURL .= '/displayBy/Status Distribution';
+        $chartTotalStatus = new Fisma_Chart(380, 275, 'chartTotalStatus', $extSrcURL);
+        $this->view->chartTotalStatus = $chartTotalStatus->export();
+        
+        // right-side chart (pie) - Mit Strategy Distribution chart
         $chartTotalType = new Fisma_Chart(380, 275, 'chartTotalType', '/dashboard/totaltype/format/json');
         $this->view->chartTotalType = $chartTotalType->export();
+        
     }
     
     /**
@@ -207,6 +213,14 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
             ->setChartType('pie')
             ->setData(array_values($summary))
             ->setAxisLabelsX(array_keys($summary))
+            ->setColors(
+                array(
+                    '#FFA347',
+                    '#75FF75',
+                    '#47D147',
+                    '#FF2B2B'
+                )
+            )
             ->setLinks(
                 array(
                     '/finding/remediation/list/queryType/advanced/type/enumIs/NONE',

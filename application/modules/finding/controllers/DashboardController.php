@@ -52,6 +52,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         // Top-left chart - Finding Forecast
         $chartFindForecast = new Fisma_Chart(380, 275, 'chartFindForecast', '/finding/dashboard/findingforecast/format/json');
         $chartFindForecast->addWidget('dayRangesStatChart', 'Day Ranges:', 'text', '30, 60, 90, 120');
+        
         $this->view->chartFindForecast = $chartFindForecast->export();
         
         // Top-right chart - Findings Past Due
@@ -62,6 +63,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         // Mid-left chart - Findings by Worklow Process
         $chartTotalStatus = new Fisma_Chart(380, 275, 'chartTotalStatus', '/finding/dashboard/chartfinding/format/json');
         $chartTotalStatus
+                ->setExternalSourceDebug(true)
                 ->addWidget(
                     'findingType',
                     'Finding Type:',
@@ -278,8 +280,8 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             
             $thisChart = new Fisma_Chart();
             $thisChart
-                ->inheritanceControle('minimal')
                 ->setChartType('stackedbar')
+                ->setThreatLegendVisibility(true)
                 ->setConcatXLabel(true)
                 ->setColors(
                     array(
@@ -374,7 +376,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             
             $q = Doctrine_Query::create()
                 ->select('count(f.threatlevel), nickname, f.threatlevel')
-                ->from('organization o')
+                ->from('Organization o')
                 ->leftJoin('o.Findings f')
                 ->groupBy('o.id')
                 ->orderBy('o.nickname, f.threatlevel')
@@ -500,6 +502,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             // Display a stacked-bar chart with High/Mod/Low findings in each column
             $thisChart
                 ->setChartType('stackedbar')
+                ->setThreatLegendVisibility(true)
                 ->setColors(
                     array(
                         "#FF0000",
@@ -666,6 +669,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         $noMitChart = new Fisma_Chart();
         $noMitChart
             ->setChartType('stackedbar')
+            ->setThreatLegendVisibility(true)
             ->setColors(
                 array(
                     "#FF0000",
@@ -703,6 +707,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         $thisChart
             ->setChartType('stackedbar')
             ->setConcatXLabel(false)
+            ->setThreatLegendVisibility(true)
             ->setLayerLabels(
                 array(
                     'High',

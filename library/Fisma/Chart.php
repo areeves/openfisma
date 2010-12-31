@@ -34,13 +34,13 @@ class Fisma_Chart
     /**
      * An array that holds information defining how the chart will be constructed and what it will plot
      * The array fields are as follows:
-	 *     Obj['chartData']	      Array to pass to jqPlot as the data to plot (numbers).
-	 *     Obj['chartDataText']	  Array of labels (strings) for each data set in chartData
-	 *     Obj['chartLayerText']  Array of labels (strings) for each different line/layer in a milti-line-char or 
+     *     Obj['chartData']       Array to pass to jqPlot as the data to plot (numbers).
+     *     Obj['chartDataText']   Array of labels (strings) for each data set in chartData
+     *     Obj['chartLayerText']  Array of labels (strings) for each different line/layer in a milti-line-char or 
                                   stacked-bar-chart
-	 *     Obj['links']           (optional) Array of links of which the browser should navigate to when a given data 
+     *     Obj['links']           (optional) Array of links of which the browser should navigate to when a given data 
            element is clicked on
-	 *     Obj['linksdebug']      (optional) Boolean, if set true, an alert box of what was clicked on will pop up 
+     *     Obj['linksdebug']      (optional) Boolean, if set true, an alert box of what was clicked on will pop up 
                                   instead of browser navigation based on Obj['links']
      *
      * @var Array
@@ -372,6 +372,40 @@ class Fisma_Chart
     public function setAxisLabelsX($inArray)
     {
         $this->chartParamArr['chartDataText'] = $inArray;
+        return $this;
+    }
+    
+    /**
+     * Turns on or off jqPlot legend visibility based on input boolean.
+     * Note that this is seperate from the ThreatLegend.
+     * 
+     * @param boolean  
+     * @return Fisma_Chart
+     */
+    public function setStandardLegendVisibility($inBoolean)
+    {
+        $this->chartParamArr['showlegend'] = $inBoolean;
+        return $this;
+    }
+    
+    /**
+     * Set weather a threat-level-legend should be injected above the chart. Note that this is different than the jqPlot-legend.
+     * The jqPlot legend's visibility can be set with Fisma_Chart->setStandardLegendVisibility(true/false).
+     * NOTICE: This will set the standard jqPlot legend's visibility to false when this function is fed true.
+     * NOTICE: The colors on the threat-level-legend are static.
+     * 
+     * @param boolean  
+     * @return Fisma_Chart
+     */
+    public function setThreatLegendVisibility($inBoolean)
+    {
+        $this->chartParamArr['showThreatLegend'] = $inBoolean;
+        
+        if ($inBoolean === true) {
+            // hide the jqPlot legen since we are injecting our own (handeled in the JavaScript wrapper)
+            $this->setStandardLegendVisibility(false);
+        }
+        
         return $this;
     }
     

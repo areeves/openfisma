@@ -88,7 +88,8 @@ function createJQChart(param)
 
 	// clear the chart area
 	document.getElementById(param['uniqueid']).innerHTML = '';
-	document.getElementById(param['uniqueid']).className = '';
+        document.getElementById(param['uniqueid']).className = '';
+        document.getElementById(param['uniqueid'] + 'toplegend').innerHTML = '';
 
 	// handel aliases and short-cut vars
 	if (typeof param['barMargin'] != 'undefined') {
@@ -122,7 +123,7 @@ function createJQChart(param)
 	{
 		case 'stackedbar':
 			param['varyBarColor'] = false;
-			param['showlegend'] = true;
+                        if (typeof param['showlegend'] == 'undefined') { param['showlegend'] = true; }
 			var rtn = createJQChart_StackedBar(param);
 			break;
 		case 'bar':
@@ -163,8 +164,10 @@ function createJQChart(param)
 	}
 
 
+        // chart tweeking external to the jqPlot library
 	applyChartBackground(param);
 	applyChartWidgets(param);
+        createChartThreatLegend(param);
 	
 	document.getElementById(param['uniqueid'] + 'table').innerHTML = getTableFromChartData(param);
 
@@ -176,27 +179,33 @@ function createJQChart_asynchReturn(requestNumber, value, exception, param)
 
 	if (value) {
 		
-		if (value['results'][0]['inheritCtl']) {
-			if (value['results'][0]['inheritCtl'] == 'minimal') {
+                if (value['results'][0]) {
+                        if (value['results'][0]['inheritCtl']) {
+                                if (value['results'][0]['inheritCtl'] == 'minimal') {
 
-				var joinedParam = value['results'][0];
-				joinedParam['width'] = param['width'];
-				joinedParam['height'] = param['height'];
-				joinedParam['uniqueid'] = param['uniqueid'];
-				joinedParam['externalSource'] = param['externalSource'];
-				joinedParam['oldExternalSource'] = param['oldExternalSource'];
-				joinedParam['widgets'] = param['widgets'];
+                                        var joinedParam = value['results'][0];
+                                        joinedParam['width'] = param['width'];
+                                        joinedParam['height'] = param['height'];
+                                        joinedParam['uniqueid'] = param['uniqueid'];
+                                        joinedParam['externalSource'] = param['externalSource'];
+                                        joinedParam['oldExternalSource'] = param['oldExternalSource'];
+                                        joinedParam['widgets'] = param['widgets'];
 
-			} else if (value['results'][0]['inheritCtl'] == 'none') {
+                                } else if (value['results'][0]['inheritCtl'] == 'none') {
 
-				var joinedParam = value['results'][0];
+                                        var joinedParam = value['results'][0];
 
-			} else {
-				alert('Error - Unknown chart inheritance mode');
-			}
-		} else {
-			var joinedParam = jQuery.extend(true, param, value['results'][0],true);
-		}
+                                } else {
+                                        alert('Error - Unknown chart inheritance mode');
+                                }
+                        } else {
+                                var joinedParam = jQuery.extend(true, param, value['results'][0],true);
+                        }
+                } else {
+                        if (confirm('Error - Chart creation failed due to data source error.\nIf you continuously see this message, please click Ok to navigate to data source, and copy-and-pase the text&data from there into email to Endeavor Systems.\n\nNavigate to the error-source?')) {
+                                document.location = param['lastURLpull'];
+                        }
+                }
 
 		if (!joinedParam['chartData']) {
 			alert('Chart Error - The remote data source for chart "' + param['uniqueid'] + '" located at ' + param['lastURLpull'] + ' did not return data to plot on a chart');
@@ -204,7 +213,9 @@ function createJQChart_asynchReturn(requestNumber, value, exception, param)
 
 		createJQChart(joinedParam);
 	} else {
-		alert('Error - Chart creation failed. Could not pull from data source.');
+                if (confirm('Error - Chart creation failed due to data source error.\nIf you continuously see this message, please click Ok to navigate to data source, and copy-and-pase the text&data from there into email to Endeavor Systems.\n\nNavigate to the error-source?')) {
+                        document.location = param['lastURLpull'];
+                }
 	}
 }
 
@@ -299,16 +310,16 @@ function createJQChart_StackedBar(param)
 			pointLabels:{show: true, location: 's'}
 		},
 		axesDefaults: {
-			tickRenderer: $.jqplot.CanvasAxisTickRenderer,
-			tickOptions: {
-				angle: -30,
-				fontSize: '10pt'
-			}
+			tickRenderer: $.jqplot.CanvasAxisTickRenderer
 		},
 		axes: {
 			xaxis:{
 				renderer: $.jqplot.CategoryAxisRenderer,
-				ticks: param['chartDataText']
+				ticks: param['chartDataText'],
+                                tickOptions: {
+                                        angle: -25,
+                                        fontSize: '10pt'
+                                }
 			},
 			yaxis:{
 				min: 0,
@@ -334,6 +345,8 @@ function createJQChart_StackedBar(param)
 	
 	var EvntHandler = new Function ("ev", "seriesIndex", "pointIndex", "data", "var thisChartParamObj = " + JSON.stringify(param) + "; chartClickEvent(ev, seriesIndex, pointIndex, data, thisChartParamObj);" );
 	$('#' + param['uniqueid']).bind('jqplotDataClick', EvntHandler);
+
+        removeDecFromPointLabels(param);
 
 }
 
@@ -387,6 +400,24 @@ function createChartJQStackedLine(param)
 		}
 	);
 
+}
+
+function createChartThreatLegend(param)
+{
+        /*
+                Creates a red-orange-yellow legent above the chart
+        */
+
+        if (param['showThreatLegend']) {
+                if (param['showThreatLegend'] == true) {
+        
+                        var injectHTML = '<table width="100%">  <tr>    <td width="40%"><b>Threat Level</b></td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FF0000" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;<b>High</b></td>      </tr>    </table>    </td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FF6600" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;<b>Moderate&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></td>      </tr>    </table>    </td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FFC000" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;<b>Low</b></td>      </tr>    </table>    </td>  </tr></table>';
+                        var thisChartId = param['uniqueid'];
+                        var topLegendOnDOM = document.getElementById(thisChartId + 'toplegend');
+
+                        topLegendOnDOM.innerHTML = injectHTML;
+                }
+        }        
 }
 
 function chartClickEvent(ev, seriesIndex, pointIndex, data, paramObj) {
@@ -507,9 +538,9 @@ function applyChartWidgets(param) {
 				case 'combo':
 
 					addHTML += '<select id="' + thisWidget['uniqueid'] + '" onChange="widgetEvent(' + JSON.stringify(param).replace(/"/g, "'") + ');">';
+                                        // " // ( comment double quote to fix syntax highlight errors with /"/g on previus line )
 
 					for (var y = 0; y < thisWidget['options'].length; y++) {
-						
 						addHTML += '<option value="' + thisWidget['options'][y] + '">' + thisWidget['options'][y] + '</option><br/>';
 					}
 					
@@ -519,7 +550,8 @@ function applyChartWidgets(param) {
 
 				case 'text':
 	
-					addHTML += '<input onKeyDown="if(event.keyCode==13){widgetEvent(' + JSON.stringify(param).replace(/"/g, "'") + ');};" type="textbox" id="' + thisWidget['uniqueid'] + '" />'
+					addHTML += '<input onKeyDown="if(event.keyCode==13){widgetEvent(' + JSON.stringify(param).replace(/"/g, "'") + ');};" type="textbox" id="' + thisWidget['uniqueid'] + '" />';
+                                        // " // ( comment double quote to fix syntax highlight errors with /"/g on previus line )
 					break;
 
 				default:
@@ -778,6 +810,8 @@ function setChartWidthAttribs(param) {
 		document.getElementById(param['uniqueid'] + 'loader').style.width = param['width'] + 'px';
 		document.getElementById(param['uniqueid']).style.width = param['width'] + 'px';
 	}
+        
+        document.getElementById(param['uniqueid'] + 'toplegend').width = param['width'] + 'px';
 }
 
 function getTableFromChartData(param)
@@ -814,6 +848,30 @@ function getTableFromChartData(param)
 	HTML += '</table>';
 
 	return HTML;
+}
+
+function removeDecFromPointLabels(param)
+{
+        var chartOnDOM = document.getElementById(param['uniqueid']);
+        
+        for (var x = 0; x < chartOnDOM.childNodes.length; x++) {
+                
+                var thisChld = chartOnDOM.childNodes[x];
+                if (thisChld.classList[0] == 'jqplot-point-label') {
+                
+                        // convert this from a string to a number to a string again (removes decimal if its needless)
+                        thisChld.innerHTML = thisChld.innerHTML * 1;
+                        
+                        // move the label to the right a little bit since with the decemal trimmed, it will seem offcentered
+                        var thisLeftNbrValue = String(thisChld.style.left).replace('px', '') * 1;       // remove "px" from string, and conver to number
+                        thisLeftNbrValue += 5;                                                          // move (add) right 5 pixels
+                        thisChld.style.left = thisLeftNbrValue + 'px';
+
+                        // force color to black
+                        thisChld.style.color = 'black';
+                }
+                
+        }
 }
 
 function setCookie(c_name,value,expiredays)
