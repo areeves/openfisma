@@ -168,7 +168,7 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
         // left-side chart (bar) - Finding Status chart
         $extSrcURL = '/finding/dashboard/chartfinding/format/json';                 // the external source of this chart on the FIndings Dashboard
         // rather than showing widgets, hard-code widget-options into external-source-URL
-        $extSrcURL .= '/findingType/All Combined';
+        $extSrcURL .= '/findingType/Totals';
         $extSrcURL .= '/displayBy/Status Distribution';
         $chartTotalStatus = new Fisma_Chart(380, 275, 'chartTotalStatus', $extSrcURL);
         $this->view->chartTotalStatus = $chartTotalStatus->export();

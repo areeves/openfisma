@@ -243,7 +243,7 @@ function createChartJQPie(param)
 		seriesDefaults:{
 			renderer:$.jqplot.PieRenderer,
 			rendererOptions: {
-				sliceMargin: 2,
+				sliceMargin: 0,
 				showDataLabels: true,
 				shadowAlpha: 0.15,
 				shadowOffset: 0
@@ -306,7 +306,7 @@ function createJQChart_StackedBar(param)
 		series: seriesParam,
 		seriesDefaults:{
 			renderer: $.jqplot.BarRenderer,
-			rendererOptions:{barMargin: 10, showDataLabels: true, varyBarColor: param['varyBarColor'], shadowAlpha: 0.15, shadowOffset: 0},
+			rendererOptions:{barWidth: 35, showDataLabels: true, varyBarColor: param['varyBarColor'], shadowAlpha: 0.15, shadowOffset: 0},
 			pointLabels:{show: true, location: 's'}
 		},
 		axesDefaults: {
@@ -411,7 +411,7 @@ function createChartThreatLegend(param)
         if (param['showThreatLegend']) {
                 if (param['showThreatLegend'] == true) {
         
-                        var injectHTML = '<table width="100%">  <tr>    <td width="40%"><b>Threat Level</b></td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FF0000" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;<b>High</b></td>      </tr>    </table>    </td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FF6600" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;<b>Moderate&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></td>      </tr>    </table>    </td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FFC000" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;<b>Low</b></td>      </tr>    </table>    </td>  </tr></table>';
+                        var injectHTML = '<table width="100%">  <tr>    <td style="text-align: center;" width="40%"><b>Threat Level</b></td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FF0000" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;<b>High</b></td>      </tr>    </table>    </td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FF6600" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;<b>Moderate&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></td>      </tr>    </table>    </td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FFC000" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;<b>Low</b></td>      </tr>    </table>    </td>  </tr></table>';
                         var thisChartId = param['uniqueid'];
                         var topLegendOnDOM = document.getElementById(thisChartId + 'toplegend');
 
@@ -513,10 +513,56 @@ function applyChartBackground(param) {
 
 function applyChartWidgets(param) {
 
+        if (param['widgets']) {
+
+                var addHTML = '';
+                var wigSpace = document.getElementById(param['uniqueid'] + 'WidgetSpace');
+                wigSpace.innerHTML = '';                
+
+                for (var x = 0; x < param['widgets'].length; x++) {
+
+                        var thisWidget = param['widgets'][x];
+                        
+                        // load the value for widgets
+                        var thisWigValue = '';
+                        var thisWigInDOM = document.getElementById(thisWidget['uniqueid']);
+                        if (thisWidget['forcevalue']) {
+                                // this widget value is forced to a certain value upon every load/reload
+                                thisWigValue = thisWidget['forcevalue'];
+                        } else {
+                                var thisWigCookieValue = getCookie(thisWidget['uniqueid']);
+                                if (thisWigCookieValue != '') {
+                                        // the value has been coosen in the past and is stored as a cookie
+                                        thisWigValue = thisWigCookieValue.replace(/%20/g, ' ');
+                                } else {
+                                        // no saved value/cookie. Is there a default given in the param object
+                                        if (thisWidget['defaultvalue']) {
+                                                thisWigValue = thisWidget['defaultvalue'];
+                                        }
+                                }
+                        }
+                        
+                        addHTML += thisWidget['label'] + ' ' + thisWigValue + ' (<a href="JavaScript: // click to change chart query options">change</a>)<br/>';
+                }
+                
+                addHTML = '<span style="font-size:75%">' + addHTML + '</span>';
+                addHTML = '<span style="font-size:75%"><b>Chart Parameters:</b><br/></span>' + addHTML;
+                addHTML = '<br/><span OnClick="applyChartWidgetsInEditMode(' + JSON.stringify(param).replace(/"/g, "'") + ');">' + addHTML + '</span>';
+
+                // " // ( comment double quote to fix syntax highlight errors with /"/g on previus line )
+
+       
+        }
+
+        wigSpace.innerHTML = addHTML;
+}
+
+function applyChartWidgetsInEditMode(param) {
+
 	if (param['widgets']) {
 
 		var wigSpace = document.getElementById(param['uniqueid'] + 'WidgetSpace');
-		wigSpace.innerHTML = '';
+		wigSpace.innerHTML = '<br/>';
 
 		for (var x = 0; x < param['widgets'].length; x++) {
 
@@ -861,6 +907,9 @@ function removeDecFromPointLabels(param)
                 
                         // convert this from a string to a number to a string again (removes decimal if its needless)
                         thisChld.innerHTML = thisChld.innerHTML * 1;
+                        
+                        // make it bold
+                        thisChld.innerHTML = '<b>' + thisChld.innerHTML + '</b>';
                         
                         // move the label to the right a little bit since with the decemal trimmed, it will seem offcentered
                         var thisLeftNbrValue = String(thisChld.style.left).replace('px', '') * 1;       // remove "px" from string, and conver to number

@@ -495,11 +495,11 @@ class Fisma_Chart
                 // alignment html to apply to the div that will hold the chart canvas
                 if (empty($this->chartParamArr['align']) || $this->chartParamArr['align'] == 'center' ) {
                     
-                    $dataToView['divContainerArgs'] =   'style="margin-left: auto; margin-right: auto; display:none;"';
+                    $dataToView['divContainerArgs'] =   'style="text-align: left; margin-left: auto; margin-right: auto; display:none;"';
                     
                 } elseif ($this->chartParamArr['align'] == 'left' || $this->chartParamArr['align'] == 'right' ) {
                     
-                    $dataToView['divContainerArgs'] =   'class="' . $this->chartParamArr['align'] . '; display:none;"';
+                    $dataToView['divContainerArgs'] =   'class="' . $this->chartParamArr['align'] . '; display:none;" style="text-align: left;"';
                     
                 }
                 unset($this->chartParamArr['align']);

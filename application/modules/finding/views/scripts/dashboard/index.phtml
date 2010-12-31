@@ -6,6 +6,7 @@
         ?>
         
         <em>
+            <br/>
             Findings Due in (X) Number of Days.
         </em>
 
@@ -23,6 +24,7 @@
         ?>
         
         <em>
+            <br/>
             Findings Past Due by (x) Number of Days.
         </em>
 
@@ -37,11 +39,12 @@
 <div class="column left">
     <div style='text-align: center;'>
         <?php
-            Fisma_Format_Section::startSection('Findings by Worklow Process');
+            Fisma_Format_Section::startSection('Findings by Workflow Process');
             echo $this->escape($this->chartTotalStatus, 'none');
         ?>
         
         <em>
+            <br/>
             Workflow Process (Includes Only Open Findings).
         </em>
 
@@ -59,6 +62,7 @@
         ?>
         
         <em>
+            <br/>
             Findings Past Due by (x) Number of Days.
         </em>
 

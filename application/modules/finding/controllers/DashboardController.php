@@ -63,15 +63,14 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         // Mid-left chart - Findings by Worklow Process
         $chartTotalStatus = new Fisma_Chart(380, 275, 'chartTotalStatus', '/finding/dashboard/chartfinding/format/json');
         $chartTotalStatus
-                ->setExternalSourceDebug(true)
                 ->addWidget(
                     'findingType',
                     'Finding Type:',
                     'combo',
-                    'All Divided',
+                    'High, Moderate, and Low',
                     array(
-                        'All Combined',
-                        'All Divided',
+                        'Totals',
+                        'High, Moderate, and Low',
                         'High',
                         'Moderate',
                         'Low'
@@ -248,12 +247,13 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
     {
         $findingType = urldecode($this->_request->getParam('findingType'));
         
-        if ($findingType === 'All Combined') {
+        if ($findingType === 'Totals') {
             
             $thisChart = new Fisma_Chart();
             $thisChart
                 ->setChartType('bar')
-                ->setConcatXLabel(false);
+                ->setConcatXLabel(false)
+                ->setColors(array('#3366FF'));
             
             $q = Doctrine_Query::create()
                 ->select('count(*), nickname')
@@ -276,7 +276,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             
             return $thisChart;
             
-        } elseif ($findingType === 'All Divided') {
+        } elseif ($findingType === 'High, Moderate, and Low') {
             
             $thisChart = new Fisma_Chart();
             $thisChart
@@ -408,7 +408,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
     {
         $findingType = urldecode($this->_request->getParam('findingType'));
         
-        if ($findingType === 'All Combined') {
+        if ($findingType === 'Totals') {
             
             $q = Doctrine_Query::create()
                  ->select('f.status, e.nickname')
@@ -497,7 +497,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 break;
             }
             
-        } elseif ($findingType === 'All Divided') {
+        } elseif ($findingType === 'High, Moderate, and Low') {
             
             // Display a stacked-bar chart with High/Mod/Low findings in each column
             $thisChart
@@ -569,7 +569,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             }
             
             // Is it Or All-Migh&Mod&Low in a stacked bar chart? Or just High, Mod, or Low in a regular chart?
-            if ($findingType === 'All Divided') {
+            if ($findingType === 'High, Moderate, and Low') {
                 $addColumnData = array(
                         $sortedRslts[$thisStatus]['HIGH'],
                         $sortedRslts[$thisStatus]['MODERATE'],

@@ -73,14 +73,20 @@ class OrganizationChartController extends Fisma_Zend_Controller_Action_Security
 
         $catQueryRslt = $categoriesQuery->execute();
         
-        $chartData = array();
-        $chartDataText = array();
+        $rtnChart = new Fisma_Chart();
+        $rtnChart
+            ->setTitle('FIPS-199 Categorizations')
+            ->setChartType('pie');
+        
         foreach ($catQueryRslt as $thisElement) {
-            $chartData[] = (integer) $thisElement['s_fips_count'];
-            $chartDataText[] = $thisElement['s_fips_category'];
+            //$chartData[] = (integer) $thisElement['s_fips_count'];
+            //$chartDataText[] = $thisElement['s_fips_category'];
+            
+            $rtnChart->addColumn($thisElement['s_fips_category'], $thisElement['s_fips_count']);
+            
         }
 
-        $this->view->chart = array('chartData' => $chartData, 'chartDataText' => $chartDataText);
+        $this->view->chart = $rtnChart->export('array');
     }
     
     /**
@@ -101,6 +107,20 @@ class OrganizationChartController extends Fisma_Zend_Controller_Action_Security
                                  ->orderBy('s.controlledBy')
                                  ->setHydrationMode(Doctrine::HYDRATE_SCALAR);
 
-        $this->view->agencyContractor = $agencyContractorQuery->execute();
+        $rslt = $agencyContractorQuery->execute();
+        
+        $rtnChart = new Fisma_Chart();
+        $rtnChart
+            ->setTitle('Agency & Contractor Systems')
+            ->setChartType('pie');
+        
+        foreach ($rslt as $thisRslt) {
+            $rtnChart->addColumn(
+                $thisRslt['s_controlled_by'],
+                $thisRslt['s_count']
+            );
+        }
+        
+        $this->view->chart = $rtnChart->export('array');
     }
 }
