@@ -530,7 +530,7 @@ function applyChartWidgets(param) {
                                 // this widget value is forced to a certain value upon every load/reload
                                 thisWigValue = thisWidget['forcevalue'];
                         } else {
-                                var thisWigCookieValue = getCookie(thisWidget['uniqueid']);
+                                var thisWigCookieValue = getCookie(param['uniqueid'] + '_' + thisWidget['uniqueid']);
                                 if (thisWigCookieValue != '') {
                                         // the value has been coosen in the past and is stored as a cookie
                                         thisWigValue = thisWigCookieValue.replace(/%20/g, ' ');
@@ -629,7 +629,7 @@ function applyChartWidgetSettings(param) {
 				thisWigInDOM.value = thisWidget['forcevalue'];
 				thisWigInDOM.text = thisWidget['forcevalue'];
 			} else {
-				var thisWigCookieValue = getCookie(thisWidget['uniqueid']);
+				var thisWigCookieValue = getCookie(param['uniqueid'] + '_' + thisWidget['uniqueid']);
 				if (thisWigCookieValue != '') {
 					// the value has been coosen in the past and is stored as a cookie
 					thisWigCookieValue = thisWigCookieValue.replace(/%20/g, ' ');
@@ -668,7 +668,7 @@ function buildExternalSourceParams(param) {
 				thisWidgetValue = thisWidgetOnDOM.value;
 			} else {
 				// not on DOM, is there a cookie?
-				var thisWigCookieValue = getCookie(thisWidget['uniqueid']);
+				var thisWigCookieValue = getCookie(param['uniqueid'] + '_' + thisWidget['uniqueid']);
 				if (thisWigCookieValue != '') {
 					// there is a cookie value, us it
 					thisWidgetValue = thisWigCookieValue;
@@ -694,7 +694,7 @@ function widgetEvent(param) {
 		for (var x = 0; x < param['widgets'].length; x++) {
 			var thisWidgetName = param['widgets'][x]['uniqueid'];
 			var thisWidgetValue = document.getElementById(thisWidgetName).value;
-			setCookie(thisWidgetName,thisWidgetValue,400);
+			setCookie(param['uniqueid'] + '_' + thisWidgetName,thisWidgetValue,400);
 		}
 	}
 

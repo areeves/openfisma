@@ -74,6 +74,17 @@
 
 <div class="clear"></div>
 
+<?php Fisma_Format_Section::startSection('Open Findings By Organization'); ?>
+
+<div class='dashboardChart'>
+    <?php echo $this->escape($this->findingOrgChart, 'none'); ?>
+</div>
+
+<div class="clear"></div>
+
+<?php Fisma_Format_Section::stopSection(); ?>
+
+
 <?php Fisma_Format_Section::startSection('Current Security Control Deficiencies'); ?>
 
 <div class='dashboardChart'>
