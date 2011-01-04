@@ -111,7 +111,10 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                         'Agency',
                         'Bureau',
                         'Organization',
-                        'System'
+                        'System',
+                        'Major',
+                        'Minor',
+                        'GSS'
                     )
                 );
                 
@@ -145,6 +148,8 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         
         $rtnChart = new Fisma_Chart();
         $rtnChart
+            ->setThreatLegendVisibility(true)
+            ->setThreatLegendWidth(350)
             ->setChartType('stackedbar')
             ->setColors(
                 array(
@@ -160,9 +165,8 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                     'LOW'
                 )
             );
-
     
-        // get a list of requested organization-parent types (either Agency-organizations, Bureau-organizations, etc)
+        // get a list of requested organization-parent types (Agency-organizations, Bureau-organizations, gss, etc)
         $parents = $this->_getOrganizationsByOrgType($displayBy);
         
         // for each parent (foreach agency, or bBureau, etc)
@@ -241,14 +245,14 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
      *
      * @return array
      */
-    private function _getAllChildrenOfOrg($sysId)
+    private function _getAllChildrenOfOrg($orgId, $includeParent = true)
     {
         // get the left and right nodes (lft and rgt) of the target system from the system table
         $q = Doctrine_Query::create();
         $q
             ->addSelect('lft, rgt')
             ->from('Organization o')
-            ->where('id = ?', $sysId)
+            ->where('id = ?', $orgId)
             ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
         $row = $q->execute();
         $row = $row[0];     // we are only expecting 1 row result
@@ -266,7 +270,24 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             ->groupBy('o.nickname, f.threatlevel')
             ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
 
-        return $q->execute();
+        $rtn = $q->execute();
+        
+        if ($includeParent === true) {
+
+            $q = Doctrine_Query::create();
+            $q
+                ->addSelect('COUNT(f.id), o.id, o.nickname, f.threatlevel')
+                ->from('Organization o')
+                ->leftJoin('o.Findings f')
+                ->whereIn('f.responsibleorganizationid=o.id')
+                ->where('o.id = ?', $orgId)
+                ->groupBy('o.nickname, f.threatlevel')
+                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+
+            $rtn = array_merge($rtn, $q->execute());
+        }
+        
+        return $rtn;
     }
     
     /**
@@ -278,14 +299,29 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
      */
     private function _getOrganizationsByOrgType($orgType) {
 
-        $q = Doctrine_Query::create();
-        $q
-            ->addSelect('id, nickname')
-            ->from('Organization o')
-            ->where('orgtype = ?', $orgType)
-            ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+        if ($orgType === 'gss' || $orgType === 'major' || $orgType === 'minor') {
         
-        return $q->execute();
+            $q = Doctrine_Query::create();
+            $q
+                ->addSelect('o.id, o.nickname')
+                ->from('Organization o')
+                ->leftJoin('o.System s')
+                ->where('s.type = ?', $orgType)
+                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+
+            return $q->execute(); 
+            
+        } else {
+        
+            $q = Doctrine_Query::create();
+            $q
+                ->addSelect('id, nickname')
+                ->from('Organization o')
+                ->where('orgtype = ?', $orgType)
+                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+
+            return $q->execute();
+        }
     }
 
     public function chartfindingAction()

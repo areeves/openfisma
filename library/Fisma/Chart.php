@@ -402,12 +402,31 @@ class Fisma_Chart
         $this->chartParamArr['showThreatLegend'] = $inBoolean;
         
         if ($inBoolean === true) {
+        
+            $this->setThreatLegendWidth = "100%";
+        
             // hide the jqPlot legen since we are injecting our own (handeled in the JavaScript wrapper)
             $this->setStandardLegendVisibility(false);
         }
         
         return $this;
     }
+    
+    /**
+     * Controles the width of the red-orange-yellow threat-level legend above the chart when it is show
+     * By default this is set to "100%", for wide charts this may be an eyesore.
+     * 
+     * @param string  
+     * @return Fisma_Chart
+     */
+    public function setThreatLegendWidth($inWidth)
+    {
+        // pass this to the JavaScript wrapper on export
+        $this->chartParamArr['threatLegendWidth'] = $inWidth;
+        
+        return $this;
+    }
+    
     
     /**
      * Overrides, erases, and sets the labels to use on for the different layers of bars on a stacked bar/line chart

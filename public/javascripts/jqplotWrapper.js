@@ -25,7 +25,8 @@ function createJQChart(param)
 	// load in default values for paramiters, and replace it with any given params
 	var defaultParams = {
 			concatXLabel: false,
-			nobackground: true
+			nobackground: true,
+			drawGridLines: false
 		};
 	param = jQuery.extend(true, defaultParams, param);
 
@@ -236,9 +237,7 @@ function createChartJQPie(param)
 		seriesColors: param['colors'],
 		grid: {
 			drawBorder: false,
-			drawGridlines: false,
-			background: '#ffffff',
-			shadow:true
+			drawGridlines: true
 		},
 		seriesDefaults:{
 			renderer:$.jqplot.PieRenderer,
@@ -317,17 +316,28 @@ function createJQChart_StackedBar(param)
 				renderer: $.jqplot.CategoryAxisRenderer,
 				ticks: param['chartDataText'],
                                 tickOptions: {
-                                        angle: -25,
+                                        angle: -30,
                                         fontSize: '10pt'
                                 }
 			},
 			yaxis:{
 				min: 0,
-				max: Math.round(maxSumOfAll * 1.1)
+				max: Math.round(maxSumOfAll * 1)
 			}
 
 		},
-		highlighter: { show: false },
+		highlighter: { 
+			show: false 
+			},
+		grid: {
+			gridLineWidth: 0,
+			shadow: false,
+			borderWidth: 1,
+			gridLineColor: '#FFFFFF',
+			background: '#FFFFFF',
+			drawGridLines: param['drawGridLines'],
+			show: param['drawGridLines']
+			},
 		legend: {
 					show: param['showlegend'],
 					rendererOptions: {
@@ -411,7 +421,13 @@ function createChartThreatLegend(param)
         if (param['showThreatLegend']) {
                 if (param['showThreatLegend'] == true) {
         
-                        var injectHTML = '<table width="100%">  <tr>    <td style="text-align: center;" width="40%"><b>Threat Level</b></td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FF0000" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;<b>High</b></td>      </tr>    </table>    </td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FF6600" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;<b>Moderate&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></td>      </tr>    </table>    </td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FFC000" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;<b>Low</b></td>      </tr>    </table>    </td>  </tr></table>';
+        		// Is a width given for the width of the legend? OR should we assume 100%?
+        		var tLegWidth = '100%';
+        		if (param['threatLegendWidth']) {
+        			tLegWidth = param['threatLegendWidth'];
+        		}
+        
+                        var injectHTML = '<table width="' + tLegWidth + '">  <tr>    <td style="text-align: center;" width="40%"><b>Threat Level</b></td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FF0000" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;<b>High</b></td>      </tr>    </table>    </td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FF6600" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;<b>Moderate&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></td>      </tr>    </table>    </td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FFC000" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;<b>Low</b></td>      </tr>    </table>    </td>  </tr></table>';
                         var thisChartId = param['uniqueid'];
                         var topLegendOnDOM = document.getElementById(thisChartId + 'toplegend');
 
@@ -907,6 +923,11 @@ function removeDecFromPointLabels(param)
                 
                         // convert this from a string to a number to a string again (removes decimal if its needless)
                         thisChld.innerHTML = thisChld.innerHTML * 1;
+                        
+                        // if this number is 0, hide it (0s overlap with other numbers on bar charts)
+                        if (thisChld.innerHTML * 1 == 0) {
+                        	thisChld.innerHTML = '';
+                        }
                         
                         // make it bold
                         thisChld.innerHTML = '<b>' + thisChld.innerHTML + '</b>';
