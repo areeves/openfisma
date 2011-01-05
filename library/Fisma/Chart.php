@@ -189,6 +189,64 @@ class Fisma_Chart
         $this->chartParamArr['inheritCtl'] = $inString;
         return $this;
     }
+    
+    public function setBorderVisibilityLeft($inBoolean)
+    {
+        $this->_setBorderTag('L', $inBoolean);
+        return $this;
+    }
+    
+    public function setBorderVisibilityRight($inBoolean)
+    {
+        $this->_setBorderTag('R', $inBoolean);
+        return $this;
+    }
+    
+    public function setBorderVisibilityTop($inBoolean)
+    {
+        $this->_setBorderTag('T', $inBoolean);
+        return $this;
+    }
+    
+    public function setBorderVisibilityBottom($inBoolean)
+    {
+        $this->_setBorderTag('B', $inBoolean);
+        return $this;
+    }
+    
+    private function _setBorderTag($tagLetter, $borderVisible)
+    {
+        if (empty($this->chartParamArr['borders'])) {
+            $b = '';
+        } else {
+            $b = $this->chartParamArr['borders'];
+        }
+        
+        // remove tag (remove from visibility list
+        $b = str_replace($tagLetter, '', $b);
+
+        // add tag if needed
+        if ($borderVisible === true) {
+            $b .= $tagLetter;
+        }
+        
+        $this->chartParamArr['borders'] = $b;
+    }
+
+    /**
+     * Sets the style for the nummbers floating ontop of the bars in stacked-bar and bar charts
+     * Inside the system this will wrap each floating number with <span style="YOURINPUT">~</span>
+     * Example of use: Fisma_Chart->setFloatingNumbersFontStyle('color: green; font-size: 10pt; font-weight: bold');
+     * The default value is 'color: black; font-size: 12pt; font-weight: bold' set by the JavaScript wrapper
+     * If set empty with setFloatingNumbersFontStyle(''), the default will fall back to jqPlot lib's default
+     *
+     * @return Fisma_Chart
+     */
+    public function setFloatingNumbersFontStyle($innerStyleCodeCSS)
+    {
+        $this->chartParamArr['pointLabelStyle'] = $innerStyleCodeCSS;
+    }
+
 
     /**
      * For use with stacked charts. This will inform Fisma_Chart how many layers on the stacked-chart there will be

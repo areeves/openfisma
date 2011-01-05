@@ -26,7 +26,10 @@ function createJQChart(param)
 	var defaultParams = {
 			concatXLabel: false,
 			nobackground: true,
-			drawGridLines: false
+			drawGridLines: false,
+			pointLabelStyle: 'color: black; font-size: 12pt; font-weight: bold',
+			pointLabelAdjustX: 2,
+			pointLabelAdjustY: -5
 		};
 	param = jQuery.extend(true, defaultParams, param);
 
@@ -169,6 +172,7 @@ function createJQChart(param)
 	applyChartBackground(param);
 	applyChartWidgets(param);
         createChartThreatLegend(param);
+        applyChartBorders(param);
 	
 	document.getElementById(param['uniqueid'] + 'table').innerHTML = getTableFromChartData(param);
 
@@ -237,7 +241,8 @@ function createChartJQPie(param)
 		seriesColors: param['colors'],
 		grid: {
 			drawBorder: false,
-			drawGridlines: true
+			drawGridlines: false,
+			shadow: false
 		},
 		seriesDefaults:{
 			renderer:$.jqplot.PieRenderer,
@@ -259,6 +264,8 @@ function createChartJQPie(param)
 
 
 	}
+	
+	jPlotParamObj.seriesDefaults.renderer.prototype.startAngle = 0;
 
 	// merge any jqPlot direct param-arguments into jPlotParamObj from param
 	jPlotParamObj = jQuery.extend(true, jPlotParamObj, param);
@@ -298,6 +305,25 @@ function createJQChart_StackedBar(param)
 		}
 	}
 
+
+/*
+	// Determin the left-side (Y-axis) labels since jsPlot will show decimals and we dont want that
+	if (typeof param['chartDataTextY'] == 'undefined') {
+		
+		// How many labels should we put on the left side? Default to 5, but was that overriden somewhere?
+		var yCount = 5;
+		if (param['chartDataTextYCount']) {
+			yCount = param['chartDataTextYCount'];
+		}
+		
+		param['chartDataTextY'] = [0];
+		for (var y = 0; y < yCount; y++) {
+			param['chartDataTextY'][y] = Math.round(maxSumOfAll * (y/yCount));
+		}
+		
+	}
+*/
+
 	var jPlotParamObj = {
 		title: param['title'],
 		seriesColors: param['colors'],
@@ -309,7 +335,8 @@ function createJQChart_StackedBar(param)
 			pointLabels:{show: true, location: 's'}
 		},
 		axesDefaults: {
-			tickRenderer: $.jqplot.CanvasAxisTickRenderer
+			tickRenderer: $.jqplot.CanvasAxisTickRenderer,
+			borderWidth: 0
 		},
 		axes: {
 			xaxis:{
@@ -322,6 +349,7 @@ function createJQChart_StackedBar(param)
 			},
 			yaxis:{
 				min: 0,
+				ticks: param['chartDataTextY'],
 				max: Math.round(maxSumOfAll * 1)
 			}
 
@@ -334,7 +362,6 @@ function createJQChart_StackedBar(param)
 			shadow: false,
 			borderWidth: 1,
 			gridLineColor: '#FFFFFF',
-			background: '#FFFFFF',
 			drawGridLines: param['drawGridLines'],
 			show: param['drawGridLines']
 			},
@@ -480,6 +507,76 @@ function forceIntegerArray(inptArray) {
 	}
 
 	return inptArray;
+}
+
+function applyChartBorders(param) {
+
+	// What borders should be drawn? (L = left, B = bottom, R = right, T = top)
+	if (typeof param['borders'] == 'undefined') {
+		if (param['chartType'] == 'bar' || param['chartType'] == 'stackedbar') {
+			// default for bar and stacked bar charts are bottom-left (BL)
+			param['borders'] = 'BL';
+		} else {
+			// assume no default for other chart types
+			return;
+		}
+	}
+
+	// Get the area of our containing divs
+	var targDiv = document.getElementById(param['uniqueid']);
+	var children = targDiv.childNodes;
+	
+	for (var x = children.length - 1; x > 0; x++) {
+		// search for a canvs
+		if (children[x].nodeName == 'CANVAS') {
+			
+			// search for a canvas that is the shadow canvas
+			if (children[x].className = 'jqplot-series-shadowCanvas') {
+			
+				// this is the canvas we want to draw on
+				var targCanv = children[x];
+				var context = targCanv.getContext('2d');
+				
+				var h = children[x].height;
+				var w = children[x].width;
+				
+				context.strokeStyle = '#777777'
+				context.lineWidth = 3;
+				context.beginPath();
+				
+				// Draw left border?
+				if (param['borders'].indexOf('L') != -1) {
+					context.moveTo(0,0);
+					context.lineTo(0, h);
+					context.stroke();
+				}				
+				
+				// Draw bottom border?
+				if (param['borders'].indexOf('B') != -1) {
+					context.moveTo(0, h);
+					context.lineTo(w, h);
+					context.stroke();
+				}
+				
+				// Draw right border?
+				if (param['borders'].indexOf('R') != -1) {
+					context.moveTo(w, 0);
+					context.lineTo(w, h);
+					context.stroke();
+				}
+				
+				// Draw top border?
+				if (param['borders'].indexOf('T') != -1) {
+					context.moveTo(0, 0);
+					context.lineTo(w, 0);
+					context.stroke();
+				}
+				
+        			return;
+			}
+		}
+	}
+	
 }
 
 function applyChartBackground(param) {
@@ -929,13 +1026,16 @@ function removeDecFromPointLabels(param)
                         	thisChld.innerHTML = '';
                         }
                         
-                        // make it bold
-                        thisChld.innerHTML = '<b>' + thisChld.innerHTML + '</b>';
+                        // apply font override (default just makes it bold)
+                        thisChld.innerHTML = '<span style="' + param['pointLabelStyle'] + '">' + thisChld.innerHTML + '</span>';
                         
-                        // move the label to the right a little bit since with the decemal trimmed, it will seem offcentered
+                        // adjust the label to the a little bit since with the decemal trimmed, it may seem off-centered
                         var thisLeftNbrValue = String(thisChld.style.left).replace('px', '') * 1;       // remove "px" from string, and conver to number
-                        thisLeftNbrValue += 5;                                                          // move (add) right 5 pixels
+                        var thisTopNbrValue = String(thisChld.style.top).replace('px', '') * 1;       // remove "px" from string, and conver to number
+                        thisLeftNbrValue += param['pointLabelAdjustX'];
+                        thisTopNbrValue += param['pointLabelAdjustY'];
                         thisChld.style.left = thisLeftNbrValue + 'px';
+                        thisChld.style.top = thisTopNbrValue + 'px';
 
                         // force color to black
                         thisChld.style.color = 'black';

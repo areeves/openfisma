@@ -340,7 +340,7 @@
         this._diameter = this.diameter  || d - this.sliceMargin;
 
         var r = this._radius = this._diameter/2;
-        var sa = this.startAngle / 180 * Math.PI;
+        var sa = -90 / 180 * Math.PI;
         this._center = [(cw - trans * offx)/2 + trans * offx, (ch - trans*offy)/2 + trans * offy];
         
         if (this.shadow) {

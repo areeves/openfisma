@@ -112,9 +112,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                         'Bureau',
                         'Organization',
                         'System',
-                        'Major',
-                        'Minor',
-                        'GSS'
+                        'GSS and Majors'
                     )
                 );
                 
@@ -299,8 +297,8 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
      */
     private function _getOrganizationsByOrgType($orgType) {
 
-        if ($orgType === 'gss' || $orgType === 'major' || $orgType === 'minor') {
-        
+        if ($orgType === 'major') {
+            
             $q = Doctrine_Query::create();
             $q
                 ->addSelect('o.id, o.nickname')
@@ -309,8 +307,20 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 ->where('s.type = ?', $orgType)
                 ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
 
-            return $q->execute(); 
+            return $q->execute();
             
+        } elseif ($orgType === 'gss and majors') {
+            
+            $q = Doctrine_Query::create();
+            $q
+                ->addSelect('o.id, o.nickname')
+                ->from('Organization o')
+                ->leftJoin('o.System s')
+                ->where('s.type = "gss" OR s.type = "major"')
+                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+
+            return $q->execute();
+        
         } else {
         
             $q = Doctrine_Query::create();
