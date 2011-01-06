@@ -148,6 +148,8 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         $rtnChart
             ->setThreatLegendVisibility(true)
             ->setThreatLegendWidth(350)
+            ->setColumnLabelAngle(0)
+            ->setAxisLabelY('number of findings')
             ->setChartType('stackedbar')
             ->setColors(
                 array(
@@ -359,7 +361,10 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         $thisChart = new Fisma_Chart();
         $thisChart
             ->setChartType('bar')
-            ->setConcatXLabel(true);
+            ->setConcatColumnLabels(false)
+            ->setAxisLabelX('days ago')
+            ->setAxisLabelY('number of findings')
+            ->setColumnLabelAngle(0);
 
         // Get counts in between the day ranges given
         for ($x = 1; $x < count($dayRanges); $x++) {
@@ -388,7 +393,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             $thisToDate = new Zend_Date();
             $thisToDate = $thisToDate->addDay($toDayDiff)->toString('YYY-MM-dd');
             $thisChart->addColumn(
-                $fromDayDiff . '-' . $toDayDiff . ' days',
+                $fromDayDiff . '-' . $toDayDiff,
                 $rslt['f_a'],
                 '/finding/remediation/list/queryType/advanced/nextDueDate/dateBetween/'.$thisFromDate.'/'.$thisToDate
             );
@@ -411,7 +416,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         $thisFromDate = new Zend_Date();
         $thisFromDate = $thisFromDate->addDay($fromDayDiff)->toString('YYY-MM-dd');
         $thisChart->addColumn(
-            $fromDayDiff . '+ days',
+            $fromDayDiff . '+',
             $rslt['f_a'],
             '/finding/remediation/list/queryType/advanced/nextDueDate/dateAfter/'.$thisFromDate
         );
@@ -433,7 +438,8 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             $thisChart = new Fisma_Chart();
             $thisChart
                 ->setChartType('bar')
-                ->setConcatXLabel(false)
+                ->setConcatColumnLabels(false)
+                ->setAxisLabelY('number of findings')
                 ->setColors(array('#3366FF'));
 
             $q = Doctrine_Query::create()
@@ -463,7 +469,8 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             $thisChart
                 ->setChartType('stackedbar')
                 ->setThreatLegendVisibility(true)
-                ->setConcatXLabel(true)
+                ->setConcatColumnLabels(true)
+                ->setAxisLabelY('number of findings')
                 ->setColors(
                     array(
                         "#FF0000",
@@ -540,7 +547,8 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             $thisChart = new Fisma_Chart();
             $thisChart
                 ->setChartType('bar')
-                ->setConcatXLabel(false);
+                ->setConcatColumnLabels(false)
+                ->setAxisLabelY('number of findings');
 
             // Decide color of every bar based on High/Mod/Low
             switch (strtoupper($findingType)) {
@@ -630,7 +638,8 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             $thisChart = new Fisma_Chart();
             $thisChart
                 ->setChartType('bar')
-                ->setConcatXLabel(false)
+                ->setAxisLabelY('number of findings')
+                ->setConcatColumnLabels(false)
                 ->setData(array_values($arrTotal))
                 ->setAxisLabelsX(array_keys($arrTotal))
                 ->setColors(
@@ -656,14 +665,15 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
 
         $thisChart = new Fisma_Chart();
         $thisChart
-            ->setConcatXLabel(true);
+            ->setAxisLabelY('number of findings')
+            ->setConcatColumnLabels(true);
 
         if ($findingType === 'High'|| $findingType === 'Moderate' || $findingType === 'Low') {
 
             // Display a simple bar chart of just High/Mod/Low findings
             $thisChart
                 ->setChartType('bar')
-                ->setConcatXLabel(false);
+                ->setConcatColumnLabels(false);
 
             // Decise color of every bar based on High/Mod/Low
             switch (strtoupper($findingType)) {
@@ -790,7 +800,6 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
      */
     public function chartfindnomitstratAction()
     {
-
         $dayRange = $this->_request->getParam('dayRangesMitChart');
         $dayRange = str_replace(' ', '', $dayRange);
         $dayRange = explode(',', $dayRange);
@@ -841,7 +850,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
             $lowCount[] = $q->count();
 
-            $chartDataText[] = $fromDay . '-' . $toDay . ' days';
+            $chartDataText[] = $fromDay . '-' . $toDay;
 
         }
 
@@ -849,8 +858,11 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
 
         $noMitChart = new Fisma_Chart();
         $noMitChart
+            ->setAxisLabelX('days ago')
+            ->setAxisLabelY('number of findings')
             ->setChartType('stackedbar')
             ->setThreatLegendVisibility(true)
+            ->setColumnLabelAngle(0)
             ->setColors(
                 array(
                     "#FF0000",
@@ -858,7 +870,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                     "#FFC000"
                 )
             )
-            ->setConcatXLabel(false)
+            ->setConcatColumnLabels(false)
             ->setLayerLabels(array('High', 'Moderate', 'Low'))
             ->setData($chartData)
             ->setAxisLabelsX($chartDataText);
@@ -887,8 +899,11 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         $thisChart = new Fisma_Chart();
         $thisChart
             ->setChartType('stackedbar')
-            ->setConcatXLabel(false)
+            ->setConcatColumnLabels(false)
+            ->setColumnLabelAngle(0)
             ->setThreatLegendVisibility(true)
+            ->setAxisLabelX('days ago')
+            ->setAxisLabelY('number of findings')
             ->setLayerLabels(
                 array(
                     'High',
@@ -904,7 +919,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 )
             );
 
-        for ($x = 0; $x < count($dayRange); $x++) {
+        for ($x = 0; $x < count($dayRange) - 1; $x++) {
 
             if ($x === 0) {
                 $fromDay = new Zend_Date();
@@ -951,7 +966,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             $lowCount = $q->count();
 
             $thisChart->addColumn(
-                $fromDay->toString('MMM dd') . ' - ' . $toDay->toString('MMM dd'),
+                $dayRange[$x] . '-' . $dayRange[$x + 1],
                 array(
                     $highCount,
                     $modCount,

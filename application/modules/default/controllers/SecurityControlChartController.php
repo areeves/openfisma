@@ -45,11 +45,15 @@ class SecurityControlChartController extends Fisma_Zend_Controller_Action_Securi
      */
     public function controlDeficienciesAction()
     {
+        $displayBy = urldecode($this->_request->getParam('displayBy'));
+        $displayBy = strtolower($displayBy);
+
         $rtnChart = new Fisma_Chart();
         $rtnChart
             ->setColors(array('#3366FF'))
             ->setChartType('bar')
-            ->setConcatXLabel(false);
+            ->setConcatColumnLabels(false)
+            ->setAxisLabelY('number of findings');
     
         $userOrganizations = $this->_me->getOrganizationsByPrivilege('organization', 'read')
             ->toKeyValueArray('id', 'id');
@@ -67,15 +71,29 @@ class SecurityControlChartController extends Fisma_Zend_Controller_Action_Securi
         
         $defQueryRslt = $deficienciesQuery->execute();
         
-        foreach ($defQueryRslt as $thisElement) {
-            $rtnChart->addColumn($thisElement['sc_code'], $thisElement['sc_count']);
+        if ($displayBy = '') {
+
+            foreach ($defQueryRslt as $thisElement) {
+                $rtnChart->addColumn($thisElement['sc_code'], $thisElement['sc_count']);
+            }
+            
+        } else {
+            
+            $thisCode = '';
+            $thisCount = '';
+
+            foreach ($defQueryRslt as $thisElement) {
+
+                $rtnChart->addColumn($thisElement['sc_code'], $thisElement['sc_count']);
+
+            }
+            
         }
         
         // pass a string instead of an array to Fisma_Chart to set all columns to link with this URL-rule
-        $rtnChart->setLinks(
-            '/finding/remediation/list/queryType/advanced/denormalizedStatus/textDoesNotContain/CLOSED' .
-            '/securityControl/textExactMatch/#ColumnLabel#'
-        );
+        $rtnChart
+            ->setLinks('/finding/remediation/list/queryType/advanced/denormalizedStatus/textDoesNotContain/CLOSED' .
+            '/securityControl/textExactMatch/#ColumnLabel#');
             
         // the context switch will convert this array to a JSON resonce
         $this->view->chart = $rtnChart->export('array');

@@ -28,8 +28,11 @@ function createJQChart(param)
 			nobackground: true,
 			drawGridLines: false,
 			pointLabelStyle: 'color: black; font-size: 12pt; font-weight: bold',
-			pointLabelAdjustX: 2,
-			pointLabelAdjustY: -5
+			pointLabelAdjustX: -5,
+			pointLabelAdjustY: -5,
+			AxisLabelX: '',
+			AxisLabelY: '',
+			DataTextAngle: -30
 		};
 	param = jQuery.extend(true, defaultParams, param);
 
@@ -305,25 +308,6 @@ function createJQChart_StackedBar(param)
 		}
 	}
 
-
-/*
-	// Determin the left-side (Y-axis) labels since jsPlot will show decimals and we dont want that
-	if (typeof param['chartDataTextY'] == 'undefined') {
-		
-		// How many labels should we put on the left side? Default to 5, but was that overriden somewhere?
-		var yCount = 5;
-		if (param['chartDataTextYCount']) {
-			yCount = param['chartDataTextYCount'];
-		}
-		
-		param['chartDataTextY'] = [0];
-		for (var y = 0; y < yCount; y++) {
-			param['chartDataTextY'][y] = Math.round(maxSumOfAll * (y/yCount));
-		}
-		
-	}
-*/
-
 	var jPlotParamObj = {
 		title: param['title'],
 		seriesColors: param['colors'],
@@ -340,17 +324,24 @@ function createJQChart_StackedBar(param)
 		},
 		axes: {
 			xaxis:{
+				label: param['AxisLabelX'],
+				labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
 				renderer: $.jqplot.CategoryAxisRenderer,
 				ticks: param['chartDataText'],
                                 tickOptions: {
-                                        angle: -30,
+                                        angle: param['DataTextAngle'],
                                         fontSize: '10pt'
                                 }
 			},
 			yaxis:{
+				label: param['AxisLabelY'],
+				labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
 				min: 0,
-				ticks: param['chartDataTextY'],
-				max: Math.round(maxSumOfAll * 1)
+				max: Math.round(maxSumOfAll * 1),
+				autoscale:true,
+				tickOptions:{
+					formatString:'%.0f'
+				}
 			}
 
 		},

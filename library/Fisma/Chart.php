@@ -172,7 +172,7 @@ class Fisma_Chart
         return $this;
     }
     
-    public function setConcatXLabel($inBoolean)
+    public function setConcatColumnLabels($inBoolean)
     {
         $this->chartParamArr['concatXLabel'] = $inBoolean;
         return $this;
@@ -232,7 +232,19 @@ class Fisma_Chart
         
         $this->chartParamArr['borders'] = $b;
     }
-
+    
+    public function setAxisLabelX($inString)
+    {
+        $this->chartParamArr['AxisLabelX'] = $inString;
+        return $this;
+    }
+    
+    public function setAxisLabelY($inString)
+    {
+        $this->chartParamArr['AxisLabelY'] = $inString;
+        return $this;
+    }
+    
     /**
      * Sets the style for the nummbers floating ontop of the bars in stacked-bar and bar charts
      * Inside the system this will wrap each floating number with <span style="YOURINPUT">~</span>
@@ -286,6 +298,12 @@ class Fisma_Chart
     public function setAlign($inString)
     {
         $this->chartParamArr['align'] = $inString;
+        return $this;
+    }
+    
+    public function setColumnLabelAngle($inInteger)
+    {
+        $this->chartParamArr['DataTextAngle'] = $inInteger;
         return $this;
     }
     
