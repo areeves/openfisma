@@ -254,11 +254,10 @@ class Fisma_Chart
      *
      * @return Fisma_Chart
      */
-    public function setFloatingNumbersFontStyle($innerStyleCodeCSS)
+    public function setFloatingNumbersFontStyle($innerStyleCodeCss)
     {
-        $this->chartParamArr['pointLabelStyle'] = $innerStyleCodeCSS;
+        $this->chartParamArr['pointLabelStyle'] = $innerStyleCodeCss;
     }
-
 
     /**
      * For use with stacked charts. This will inform Fisma_Chart how many layers on the stacked-chart there will be
@@ -465,7 +464,8 @@ class Fisma_Chart
     }
     
     /**
-     * Set weather a threat-level-legend should be injected above the chart. Note that this is different than the jqPlot-legend.
+     * Set weather a threat-level-legend should be injected above the chart.
+     * Note that this is different than the jqPlot-legend.
      * The jqPlot legend's visibility can be set with Fisma_Chart->setStandardLegendVisibility(true/false).
      * NOTICE: This will set the standard jqPlot legend's visibility to false when this function is fed true.
      * NOTICE: The colors on the threat-level-legend are static.
@@ -502,8 +502,7 @@ class Fisma_Chart
         
         return $this;
     }
-    
-    
+        
     /**
      * Overrides, erases, and sets the labels to use on for the different layers of bars on a stacked bar/line chart
      * 
@@ -573,43 +572,49 @@ class Fisma_Chart
     {
         switch ($expMode)
         {
-            case 'array':
-                
-                return $this->chartParamArr;
-                
-            case 'html':
-                
-                $dataToView = array();
-                $view = Zend_Layout::getMvcInstance()->getView();
-                
-                // make up a uniqueid is one was not given
-                if (empty($this->chartParamArr['uniqueid'])) {
-                    $this->chartParamArr['uniqueid'] = 'chart' . uniqid();
-                }
-                
-                // alignment html to apply to the div that will hold the chart canvas
-                if (empty($this->chartParamArr['align']) || $this->chartParamArr['align'] == 'center' ) {
-                    
-                    $dataToView['divContainerArgs'] =   'style="text-align: left; margin-left: auto; margin-right: auto; display:none;"';
-                    
-                } elseif ($this->chartParamArr['align'] == 'left' || $this->chartParamArr['align'] == 'right' ) {
-                    
-                    $dataToView['divContainerArgs'] =   'class="' . $this->chartParamArr['align'] . '; display:none;" style="text-align: left;"';
-                    
-                }
-                unset($this->chartParamArr['align']);
-                
-                // send the chart data to the view script as well
-                $dataToView['chartParamArr'] = $this->chartParamArr;
-                $dataToView['chartId'] = $this->chartParamArr['uniqueid'];
-                
-                return $view->partial('chart/chart.phtml', 'default', $dataToView);
-                
-            default:
-                
-                throw new Fisma_Zend_Exception(
-                    "Unknown export-mode (expMode) given to Fisma_Chart->export(). Given mode was: " . $expMode
-                );
+        case 'array':
+
+            return $this->chartParamArr;
+
+        case 'html':
+
+            $dataToView = array();
+            $view = Zend_Layout::getMvcInstance()->getView();
+
+            // make up a uniqueid is one was not given
+            if (empty($this->chartParamArr['uniqueid'])) {
+                $this->chartParamArr['uniqueid'] = 'chart' . uniqid();
+            }
+
+            // alignment html to apply to the div that will hold the chart canvas
+            if (empty($this->chartParamArr['align']) || $this->chartParamArr['align'] == 'center' ) {
+
+                $dataToView['divContainerArgs'] = 'style="' . 
+                    'text-align: left; ' .
+                    'margin-left: auto; ' .
+                    'margin-right: auto; ' .
+                    'display:none;"';
+
+            } elseif ($this->chartParamArr['align'] == 'left' || $this->chartParamArr['align'] == 'right' ) {
+
+                $dataToView['divContainerArgs'] = 
+                    'class="' . $this->chartParamArr['align'] . '; display:none;" style="text-align: left;"';
+
+            }
+            unset($this->chartParamArr['align']);
+
+            // send the chart data to the view script as well
+            $dataToView['chartParamArr'] = $this->chartParamArr;
+            $dataToView['chartId'] = $this->chartParamArr['uniqueid'];
+
+            return $view->partial('chart/chart.phtml', 'default', $dataToView);
+
+        default:
+
+            throw new Fisma_Zend_Exception(
+                "Unknown export-mode (expMode) given to Fisma_Chart->export(). Given mode was: " . $expMode
+            );
         }
     }
+    
 }
