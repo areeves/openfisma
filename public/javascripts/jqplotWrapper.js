@@ -28,11 +28,12 @@ function createJQChart(param)
 			nobackground: true,
 			drawGridLines: false,
 			pointLabelStyle: 'color: black; font-size: 12pt; font-weight: bold',
-			pointLabelAdjustX: -5,
-			pointLabelAdjustY: -5,
+			pointLabelAdjustX: -3,
+			pointLabelAdjustY: -7,
 			AxisLabelX: '',
 			AxisLabelY: '',
-			DataTextAngle: -30
+			DataTextAngle: -30,
+			autoWidth: true
 		};
 	param = jQuery.extend(true, defaultParams, param);
 
@@ -172,6 +173,7 @@ function createJQChart(param)
 
 
         // chart tweeking external to the jqPlot library
+        removeOverlappingPointLabels(param);
 	applyChartBackground(param);
 	applyChartWidgets(param);
         createChartThreatLegend(param);
@@ -934,8 +936,8 @@ function setChartWidthAttribs(param) {
 				var barCount = param['chartData'].length;
 			}
 
-			// Assuming each bar margin is 10px, And each bar has a minimum width of 40px, how much space is needed total (minimum).
-			var minSpaceRequired = (barCount * 10) + (barCount * 40);
+			// Assuming each bar margin is 10px, And each bar has a minimum width of 35px, how much space is needed total (minimum).
+			var minSpaceRequired = (barCount * 10) + (barCount * 35) + 70;
 
 			// Do we not have enough space for a non-scrolling chart?
 			if (param['width'] < minSpaceRequired) {
@@ -947,6 +949,26 @@ function setChartWidthAttribs(param) {
 	}
 
 	if (makeScrollable == true) {
+		
+		// Is auto-width enabeled? (set widht to 100% when scrolling is needed)
+		if (typeof param['autoWidth'] != 'undefined') {
+			if (param['autoWidth'] == true) {
+
+				document.getElementById(param['uniqueid'] + 'holder').style.width = '100%'; //param['width'] + 'px';
+				document.getElementById(param['uniqueid'] + 'holder').style.overflow = 'auto';
+				document.getElementById(param['uniqueid'] + 'loader').style.width = minSpaceRequired + 'px';
+				document.getElementById(param['uniqueid']).style.width = minSpaceRequired + 'px';
+
+				// handel alignment
+				if (param['align'] == 'center') {
+					document.getElementById(param['uniqueid']).style.marginLeft = 'auto';
+					document.getElementById(param['uniqueid']).style.marginRight = 'auto';		
+				}
+
+				// do not continue the rest of this function as it is for static width
+				return;
+			}
+		}
 		
 		document.getElementById(param['uniqueid'] + 'holder').style.width = param['width'] + 'px';
 		document.getElementById(param['uniqueid'] + 'holder').style.overflow = 'auto';
@@ -960,7 +982,7 @@ function setChartWidthAttribs(param) {
 		document.getElementById(param['uniqueid'] + 'loader').style.width = param['width'] + 'px';
 		document.getElementById(param['uniqueid']).style.width = param['width'] + 'px';
 	}
-        
+	
         document.getElementById(param['uniqueid'] + 'toplegend').width = param['width'] + 'px';
 }
 
@@ -1003,14 +1025,16 @@ function getTableFromChartData(param)
 function removeDecFromPointLabels(param)
 {
         var chartOnDOM = document.getElementById(param['uniqueid']);
-        
+	
         for (var x = 0; x < chartOnDOM.childNodes.length; x++) {
                 
                 var thisChld = chartOnDOM.childNodes[x];
                 if (thisChld.classList[0] == 'jqplot-point-label') {
                 
                         // convert this from a string to a number to a string again (removes decimal if its needless)
-                        thisChld.innerHTML = thisChld.innerHTML * 1;
+                        thisLabelValue = thisChld.innerHTML * 1;
+                        thisChld.innerHTML = thisLabelValue;
+                        thisChld.value = thisLabelValue;
                         
                         // if this number is 0, hide it (0s overlap with other numbers on bar charts)
                         if (thisChld.innerHTML * 1 == 0) {
@@ -1031,8 +1055,104 @@ function removeDecFromPointLabels(param)
                         // force color to black
                         thisChld.style.color = 'black';
                 }
-                
         }
+        
+}
+
+function removeOverlappingPointLabels(param) {
+
+        // This function will deal with removing point labels that collie with eachother
+        // There is no need for this unless this is a stacked-bar or stacked-line chart
+        if (param['chartType'] != 'stackedbar' && param['chartType'] != 'stackedline') {
+        	return;
+        }
+
+        var chartOnDOM = document.getElementById(param['uniqueid']);
+
+        var pointLabels_info = {};
+	var pointLabels_indexes = [];
+	var thisLabelValue = 0;
+	var d = 0;
+        
+        for (var x = 0; x < chartOnDOM.childNodes.length; x++) {
+                
+                var thisChld = chartOnDOM.childNodes[x];
+                if (thisChld.classList[0] == 'jqplot-point-label') {
+
+			var chldIsRemoved = false;
+			
+			if (typeof thisChld.isRemoved != 'undefined') {
+				chldIsRemoved = thisChld.isRemoved;
+			}
+
+			if (chldIsRemoved == false) {
+				// index this point labels position
+
+				var thisLeftNbrValue = String(thisChld.style.left).replace('px', '') * 1; // remove "px" from string, and conver to number
+				var thisTopNbrValue = String(thisChld.style.top).replace('px', '') * 1; // remove "px" from string, and conver to number
+				thisLabelValue = thisChld.value; // the value property should be given to this element form removeDecFromPointLabels
+
+				var thisIndex = 'left_' + thisLeftNbrValue;
+				if (typeof pointLabels_info[thisIndex] == 'undefined') {
+					pointLabels_info[thisIndex] = [];
+					pointLabels_indexes.push(thisIndex);
+				}
+
+				var thispLabelInfo = {
+						left: thisLeftNbrValue, 
+						top: thisTopNbrValue, 
+						value: thisLabelValue, 
+						obj: thisChld
+					};
+
+				pointLabels_info[thisIndex].push(thispLabelInfo);
+			}
+                }
+        }
+        
+        // Ensure point labels do not collide with others
+        for (var x = 0; x < pointLabels_indexes.length; x++) {
+        	
+        	var thisIndex = pointLabels_indexes[x];
+        	
+        	for (var y = 0; y < pointLabels_info[thisIndex].length; y++) {
+        		
+        		/* now determin the distance between this point label, and all
+        		   point labels within this column. pointLabels_info[thisIndex]
+        		   holds all point labels within this column. */
+        		
+        		var thisPointLabel = pointLabels_info[thisIndex][y];
+        		
+        		for (var c = 0; c < pointLabels_info[thisIndex].length; c++) {
+        		
+        			var checkAgainst = pointLabels_info[thisIndex][c];
+        			
+        			// get the distance from thisPointLabel to checkAgainst point label
+        			d = Math.abs(checkAgainst['top'] - thisPointLabel['top']);
+        			
+        			if (d < 12 && d != 0) {
+        				
+        				// remove whichever label has the lower number
+        				
+        				if (checkAgainst['value'] < thisPointLabel['value']) {
+        					checkAgainst['obj'].innerHTML = '';
+        					checkAgainst['obj'].isRemoved = true;
+        				} else {
+        					thisPointLabel['obj'].innerHTML = '';
+        					checkAgainst['obj'].isRemoved = true;
+        				}
+        				
+        				// We jave just removed a point label, so this function will need to be run again
+        				// as the labels will need to be reindexed.
+        				
+        				removeOverlappingPointLabels(param)
+        				return;
+        			}
+        		}
+        	}
+        	
+        }
+        
 }
 
 function setCookie(c_name,value,expiredays)

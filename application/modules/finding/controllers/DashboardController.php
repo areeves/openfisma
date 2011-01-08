@@ -70,7 +70,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
 
         // Mid-left chart - Findings by Worklow Process
         $chartTotalStatus 
-            = new Fisma_Chart(380, 275, 'chartTotalStatus', '/finding/dashboard/chartfinding/format/json');
+            = new Fisma_Chart(420, 275, 'chartTotalStatus', '/finding/dashboard/chartfinding/format/json');
         $chartTotalStatus
                 ->addWidget('findingType',
                     'Finding Type:',
@@ -81,15 +81,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                         'High, Moderate, and Low',
                         'High',
                         'Moderate',
-                        'Low'))
-                ->addWidget('displayBy',
-                    'Display By:',
-                    'combo',
-                    'Status Distribution',
-                    array(
-                        'Status Distribution',
-                        'Organization Owner'
-                    ));
+                        'Low'));
 
         $this->view->chartTotalStatus = $chartTotalStatus->export();
 
@@ -110,23 +102,41 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                     'combo',
                     'Organization',
                     array(
+                        'Everything',
                         'Agency',
                         'Bureau',
                         'Organization',
                         'System',
-                        'GSS and Majors'));
+                        'GSS and Majors'))
+                ->addWidget('threatLevel',
+                        'Threat Level:',
+                        'combo',
+                        'Totals',
+                        array(
+                            'Totals',
+                            'High, Moderate, and Low',
+                            'High',
+                            'Moderate',
+                            'Low'));
                 
         $this->view->findingOrgChart = $findingOrgChart->export();
 
         // Bottom-Bottom chart - Current Security Control Deficiencies
         $controlDeficienciesChart = new Fisma_Chart();
         $controlDeficienciesChart
-                ->setUniqueid('chartFindingStatusDistribution')
+                ->setUniqueid('chartSecurityControlDeficiencies')
                 ->setWidth(800)
                 ->setHeight(275)
                 ->setChartType('bar')
                 ->setExternalSource('/security-control-chart/control-deficiencies/format/json')
-                ->setAlign('center');
+                ->setAlign('center')
+                ->addWidget('displayBy',
+                    'Display By:',
+                    'combo',
+                    'Family',
+                    array(
+                        'Family',
+                        'Family and Code'));
 
         $this->view->controlDeficienciesChart = $controlDeficienciesChart->export();
     }
@@ -143,39 +153,82 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
     {
         $displayBy = urldecode($this->_request->getParam('displayBy'));
         $displayBy = strtolower($displayBy);
-        
-        $rtnChart = new Fisma_Chart();
-        $rtnChart
-            ->setThreatLegendVisibility(true)
-            ->setThreatLegendWidth(350)
-            ->setColumnLabelAngle(0)
-            ->setAxisLabelY('number of findings')
-            ->setChartType('stackedbar')
-            ->setColors(array(
-                    "#FF0000",
-                    "#FF6600",
-                    "#FFC000"))
-            ->setLayerLabels(array(
-                    'HIGH',
-                    'MODERATE',
-                    'LOW'));
-    
-        // get a list of requested organization-parent types (Agency-organizations, Bureau-organizations, gss, etc)
-        $parents = $this->_getOrganizationsByOrgType($displayBy);
-        
-        // for each parent (foreach agency, or bBureau, etc)
-        foreach ($parents as $thisParentOrg) {
-        
-            $childrenTotaled = $this->_getSumsOfOrgChildren($thisParentOrg['id']);
 
-            // do not use association, high/mod/low is defined on the chart with Fisma_Chart->setLayerLabels()
-            $childrenTotaled = array_values($childrenTotaled);
+        $threatLevel = urldecode($this->_request->getParam('threatLevel'));
+        $threatLevel = strtolower($threatLevel);
+        
+        if ($displayBy === 'everything') {
             
-            $rtnChart->addColumn($thisParentOrg['nickname'],
-                $childrenTotaled);
+            $rtnChart = $this->_chartfindingorgbasic();
             
+        } else {
+        
+            $rtnChart = new Fisma_Chart();
+            $rtnChart
+                ->setThreatLegendVisibility(true)
+                ->setThreatLegendWidth(350)
+                ->setColumnLabelAngle(0)
+                ->setAxisLabelY('number of findings')
+                ->setChartType('stackedbar')
+                ->setColors(array(
+                        "#FF0000",
+                        "#FF6600",
+                        "#FFC000"))
+                ->setLayerLabels(array(
+                        'HIGH',
+                        'MODERATE',
+                        'LOW'));
+
+            // get a list of requested organization-parent types (Agency-organizations, Bureau-organizations, gss, etc)
+            $parents = $this->_getOrganizationsByOrgType($displayBy);
+
+            // for each parent (foreach agency, or bBureau, etc)
+            foreach ($parents as $thisParentOrg) {
+
+                $childrenTotaled = $this->_getSumsOfOrgChildren($thisParentOrg['id']);
+
+                // do not use association, high/mod/low is defined on the chart with Fisma_Chart->setLayerLabels()
+                $childrenTotaled = array_values($childrenTotaled);
+
+                $rtnChart->addColumn($thisParentOrg['nickname'],
+                    $childrenTotaled);
+
+            }
         }
 
+        if ($rtnChart->isStacked() == true && $threatLevel !== 'High, Moderate, and Low') {
+            switch ($threatLevel) {
+            
+                case 'totals':
+                    $rtnChart
+                        ->convertFromStackedToRegular()
+                        ->setColors(array('#3366FF'))
+                        ->setThreatLegendVisibility(false);
+                    break;
+                case 'high':
+                    $rtnChart
+                        ->deleteLayer(1)
+                        ->deleteLayer(0)
+                        ->setColors(array('#FF0000'));
+                    break;                        
+                case 'moderate':
+                    $rtnChart
+                        ->deleteLayer(2)
+                        ->deleteLayer(0)
+                        ->setColors(array('#FF6600'));
+                    break;
+                case 'low';
+                    $rtnChart
+                        ->deleteLayer(2)
+                        ->deleteLayer(1)
+                        ->setColors(array('#FFC000'));
+                    break;
+            }
+        }
+        
+        // set link
+        $rtnChart->setLinks('/finding/remediation/list/queryType/advanced/organization/textExactMatch/#ColumnLabel#');
+        
         // the context switch will turn this array into a json reply (the responce to the external source)
         $this->view->chart = $rtnChart->export('array');
     }
@@ -331,15 +384,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
     public function chartfindingAction()
     {
         $displayBy = urldecode($this->_request->getParam('displayBy'));
-
-        switch ($displayBy) {
-            case "Status Distribution":
-                $rtnChart = $this->_chartfindingstatus();
-                break;
-            case "Organization Owner":
-                $rtnChart = $this->_chartfindingorgbasic();
-                break;
-        }
+        $rtnChart = $this->_chartfindingstatus();
 
         // export as array, the context switch will translate it to a JSON responce
         $this->view->chart = $rtnChart->export('array');
@@ -417,7 +462,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
      */
     private function _chartfindingorgbasic()
     {
-        $findingType = urldecode($this->_request->getParam('findingType'));
+        $findingType = urldecode($this->_request->getParam('threatLevel'));
 
         if ($findingType === 'Totals') {
 

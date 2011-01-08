@@ -61,6 +61,7 @@ class Fisma_Chart
         $this->chartParamArr['widgets'] = array();
         $this->chartParamArr['links'] = array();
         $this->inheritanceControle('minimal');
+        $this->setAlign('center');
         
         if (!empty($width)) {
             $this->setWidth($width);
@@ -129,6 +130,20 @@ class Fisma_Chart
     }
     
     /**
+     * If the chart type is stacked-bar or stacked-line chart, return true
+     * 
+     * @return boolean
+     */
+    public function isStacked()
+    {
+        if (strpos($this->getChartType(), 'stacked') !== false) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    /**
      * The chart width in pixels
      * 
      * @return Fisma_Chart
@@ -137,6 +152,20 @@ class Fisma_Chart
     {
         $this->chartParamArr['width'] = $inInteger;
         return $this;
+    }
+    
+    private function setWidthAuto()
+    {
+        $barWidth = 35;
+        $barSpacing = 10;
+        $extraSpace = 75;
+        
+        $totalWidth = 
+            ( $this->getColumnCount() * $barWidth ) +
+            ( ($this->getColumnCount() + 1) * $barSpacing) +
+            $extraSpace;
+            
+        $this->setWidth($totalWidth);
     }
     
     /**
@@ -342,7 +371,7 @@ class Fisma_Chart
         }
         
         // Add data to plot
-        if (strpos($this->chartParamArr['chartType'], 'stacked') === false) {
+        if (strpos($this->getChartType(), 'stacked') === false) {
             // This is not a stacked chart. Each data-point/column-height should be in each element of the data array
             
             $this->chartParamArr['chartData'][] = $addValue;
@@ -375,6 +404,15 @@ class Fisma_Chart
         }
         
         return $this;
+    }
+    
+    public function getColumnCount()
+    {
+        if (strpos($this->getChartType(), 'stacked') === false) {
+            return count($this->chartParamArr['chartData']);
+        } else {
+            return count($this->chartParamArr['chartData'][0]);
+        }
     }
     
     /**
@@ -416,6 +454,44 @@ class Fisma_Chart
         $this->chartParamArr['chartData'] = $inArray;
         return $this;
     }
+    
+    /**
+     * Will take a stacked bar-chart and convert it to a regualr bar chart by totalling
+     * all the stacks in each column togeather.
+     * WARNING: This process is not undoable.
+     * NOTICE: All columns elements will loose their links from this process.
+     * 
+     * @return Fisma_Chart
+     */
+    public function convertFromStackedToRegular()
+    {
+        // total layers
+        
+        $layers = $this->chartParamArr['chartData'];
+        $newColData = array();
+
+        for ($C = 0; $C < count($layers[0]); $C++) {                    
+            
+            $thisColumnTotal = 0;
+            
+            for ($L = 0; $L < count($layers); $L++) {
+                $thisColumnTotal += $layers[$L][$C];
+            }
+            
+            $newColData[$C] = $thisColumnTotal;
+        }
+        
+        // update chart type
+        $t = $this->getChartType();
+        $t = str_replace('stacked', '', $t);
+        $this->setChartType($t);
+        
+        $this->setLinks(array());
+        $this->setData($newColData);
+        
+        return $this;
+    }
+    
     
     /**
      * Overrides, erases, and sets the link array (or string) for chart elements to link to
@@ -516,6 +592,36 @@ class Fisma_Chart
     }
     
     /**
+     * On a stacked-bar or stacked-line chart removes a row/line from the chart
+     * NOTICE: When removing a layer, the layer array is obviously reindexed. This means
+     * if you do Fisma_Chart->deleteLayer(0), what WAS layer 1, is now 0.
+     * If you were to do a Fisma_Chart->deleteLayer(0)->deleteLayer(1), in the end
+     * you have actully deleted what initally was layers 1 and 3 before the deletion.
+     *
+     * @return Fisma_Chart
+     */
+    public function deleteLayer($layerNumber)
+    {
+        unset($this->chartParamArr['chartData'][$layerNumber]);
+        unset($this->chartParamArr['chartLayerText'][$layerNumber]);
+        
+        if (!empty($this->chartParamArr['links'])) {
+            
+            if (!empty($this->chartParamArr['links'][$layerNumber])) {
+                unset($this->chartParamArr['links'][$layerNumber]);
+            }
+            
+        }
+        
+        // bug killer
+        $this->chartParamArr['chartData'] = array_values($this->chartParamArr['chartData']);
+        $this->chartParamArr['chartLayerText'] = array_values($this->chartParamArr['chartLayerText']);
+        $this->chartParamArr['links'] = array_values($this->chartParamArr['links']);
+        
+        return $this;
+    }
+    
+    /**
      * Adds a widget/option-field onto the chart
      * 
      * @param uniqueid - an optional name for the widget, the name will also be used to save a cookie to retain the
@@ -573,7 +679,7 @@ class Fisma_Chart
         switch ($expMode)
         {
         case 'array':
-
+            $this->setWidthAuto();
             return $this->chartParamArr;
 
         case 'html':
@@ -588,7 +694,9 @@ class Fisma_Chart
 
             // alignment html to apply to the div that will hold the chart canvas
             if (empty($this->chartParamArr['align']) || $this->chartParamArr['align'] == 'center' ) {
-
+                
+                $this->setAlign('center');
+                
                 $dataToView['divContainerArgs'] = 'style="' . 
                     'text-align: left; ' .
                     'margin-left: auto; ' .
@@ -601,7 +709,6 @@ class Fisma_Chart
                     'class="' . $this->chartParamArr['align'] . '; display:none;" style="text-align: left;"';
 
             }
-            unset($this->chartParamArr['align']);
 
             // send the chart data to the view script as well
             $dataToView['chartParamArr'] = $this->chartParamArr;
