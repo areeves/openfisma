@@ -94,7 +94,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         $this->view->chartNoMit = $chartNoMit->export();
 
         // Bottom-Upper chart - Open Findings By Organization
-        $findingOrgChart = new Fisma_Chart(800, 275, 'findingOrgChart');
+        $findingOrgChart = new Fisma_Chart(400, 275, 'findingOrgChart');
         $findingOrgChart
                 ->setExternalSource('/finding/dashboard/chartfindingbyorgdetail/format/json')
                 ->addWidget('displayBy',
@@ -166,8 +166,8 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             $rtnChart = new Fisma_Chart();
             $rtnChart
                 ->setThreatLegendVisibility(true)
-                ->setThreatLegendWidth(350)
                 ->setColumnLabelAngle(0)
+                ->setThreatLegendWidth(450)
                 ->setAxisLabelY('number of findings')
                 ->setChartType('stackedbar')
                 ->setColors(array(
@@ -498,6 +498,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             $thisChart
                 ->setChartType('stackedbar')
                 ->setThreatLegendVisibility(true)
+                ->setThreatLegendWidth(450)
                 ->setConcatColumnLabels(true)
                 ->setAxisLabelY('number of findings')
                 ->setColors(array(

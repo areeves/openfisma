@@ -32,8 +32,7 @@ function createJQChart(param)
 			pointLabelAdjustY: -7,
 			AxisLabelX: '',
 			AxisLabelY: '',
-			DataTextAngle: -30,
-			autoWidth: true
+			DataTextAngle: -30
 		};
 	param = jQuery.extend(true, defaultParams, param);
 
@@ -118,10 +117,10 @@ function createJQChart(param)
 
 	// hide the loading spinner and show the canvas target
 	document.getElementById(param['uniqueid'] + 'holder').style.display = '';
-	fadeOut(param['uniqueid'] + 'holder', 0);
-	fadeOut(param['uniqueid'] + 'loader', 500);
+	makeElementInvisible(param['uniqueid'] + 'holder');
 	document.getElementById(param['uniqueid'] + 'loader').style.position = 'absolute';
 	document.getElementById(param['uniqueid'] + 'loader').finnishFadeCallback = new Function ("fadeIn('" + param['uniqueid'] + "holder', 500);");
+	fadeOut(param['uniqueid'] + 'loader', 500);
 
 	// now that we have the param['chartData'], do we need to make the chart larger and scrollable?
 	setChartWidthAttribs(param);
@@ -823,13 +822,13 @@ function widgetEvent(param) {
 function makeElementVisible(eleId) {
 	var ele = document.getElementById(eleId);
 	ele.style.opacity = '1';
-	ele.style.filter = 'alpha(opacity = 100';
+	ele.style.filter = "alpha(opacity = '100')";
 }
 
 function makeElementInvisible(eleId) {
 	var ele = document.getElementById(eleId);
 	ele.style.opacity = '0';
-	ele.style.filter = 'alpha(opacity = 0';
+	ele.style.filter = "alpha(opacity = '0')";
 }
 
 function fadeIn(eid, TimeToFade) {
@@ -837,9 +836,17 @@ function fadeIn(eid, TimeToFade) {
 	var element = document.getElementById(eid);
 	if (element == null) return;
 
-	element.FadeState = '';
-	element.FadeTimeLeft = '';
+	if (typeof element.isFadingNow != 'undefined') {
+		if (element.isFadingNow == true) {
+			return;
+		}
+	}
+	element.isFadingNow = true;
 
+	element.FadeState = null;
+	delete element.FadeTimeLeft;
+
+	makeElementInvisible(eid);
 	element.style.opacity = '0';
 	element.style.filter = "alpha(opacity = '0')";
 
@@ -849,12 +856,19 @@ function fadeIn(eid, TimeToFade) {
 function fadeOut(eid, TimeToFade) {
 
 	var element = document.getElementById(eid);
-/*	if (element == null) return;
+	if (element == null) return;
 
-	element.FadeState = '';
-	element.FadeTimeLeft = '';
-*/
+	if (typeof element.isFadingNow != 'undefined') {
+		if (element.isFadingNow == true) {
+			return;
+		}
+	}
+	element.isFadingNow = true;
 
+	element.FadeState = null;
+	delete element.FadeTimeLeft;
+
+	makeElementVisible(eid);
 	element.style.opacity = '1';
 	element.style.filter = "alpha(opacity = '100')";
 
@@ -864,7 +878,7 @@ function fadeOut(eid, TimeToFade) {
 function fade(eid, TimeToFade) {
 
 	var element = document.getElementById(eid);
-//	if (element == null) return;
+	if (element == null) return;
 
 //	element.style = '';
 
@@ -878,7 +892,7 @@ function fade(eid, TimeToFade) {
 		}
 	}
 
-	if(element.FadeState == 1 || element.FadeState == -1) {
+	if (element.FadeState == 1 || element.FadeState == -1) {
 		element.FadeState = element.FadeState == 1 ? -1 : 1;
 		element.FadeTimeLeft = TimeToFade - element.FadeTimeLeft;
 	} else {
@@ -904,8 +918,13 @@ function animateFade(lastTick, eid, TimeToFade)
 			element.style.filter = 'alpha(opacity = 0)';
 			element.style.opacity = '0';
 		}
+		element.isFadingNow = false;
 		element.FadeState = element.FadeState == 1 ? 2 : -2;
-		if (element.finnishFadeCallback) { element.finnishFadeCallback(); }
+		
+		if (element.finnishFadeCallback) {
+			element.finnishFadeCallback();
+			element.finnishFadeCallback = '';
+		}
 		return;
 	}
 
@@ -914,7 +933,7 @@ function animateFade(lastTick, eid, TimeToFade)
 	if(element.FadeState == 1) newOpVal = 1 - newOpVal;
 
 	element.style.opacity = newOpVal;
-	element.style.filter = 'alpha(opacity = ' + (newOpVal*100) + ')';
+	element.style.filter = 'alpha(opacity = "' + (newOpVal*100) + '")';
 
 	setTimeout("animateFade(" + curTick + ",'" + eid + "'," + TimeToFade + ")", 33);
 }
@@ -937,7 +956,7 @@ function setChartWidthAttribs(param) {
 			}
 
 			// Assuming each bar margin is 10px, And each bar has a minimum width of 35px, how much space is needed total (minimum).
-			var minSpaceRequired = (barCount * 10) + (barCount * 35) + 70;
+			var minSpaceRequired = (barCount * 10) + (barCount * 35) + 40;
 
 			// Do we not have enough space for a non-scrolling chart?
 			if (param['width'] < minSpaceRequired) {
@@ -948,42 +967,41 @@ function setChartWidthAttribs(param) {
 		}
 	}
 
-	if (makeScrollable == true) {
-		
-		// Is auto-width enabeled? (set widht to 100% when scrolling is needed)
-		if (typeof param['autoWidth'] != 'undefined') {
-			if (param['autoWidth'] == true) {
-
-				document.getElementById(param['uniqueid'] + 'holder').style.width = '100%'; //param['width'] + 'px';
-				document.getElementById(param['uniqueid'] + 'holder').style.overflow = 'auto';
-				document.getElementById(param['uniqueid'] + 'loader').style.width = minSpaceRequired + 'px';
-				document.getElementById(param['uniqueid']).style.width = minSpaceRequired + 'px';
-
-				// handel alignment
-				if (param['align'] == 'center') {
-					document.getElementById(param['uniqueid']).style.marginLeft = 'auto';
-					document.getElementById(param['uniqueid']).style.marginRight = 'auto';		
-				}
-
-				// do not continue the rest of this function as it is for static width
-				return;
-			}
+	// Is auto-width enabeled? (set width to 100% and make scrollable)
+	if (typeof param['autoWidth'] != 'undefined') {
+		if (param['autoWidth'] == true) {
+			makeScrollable = true;
 		}
-		
-		document.getElementById(param['uniqueid'] + 'holder').style.width = param['width'] + 'px';
+	}
+
+	if (makeScrollable == true) {
+
+		document.getElementById(param['uniqueid'] + 'holder').style.width = '100%'; //param['width'] + 'px';
 		document.getElementById(param['uniqueid'] + 'holder').style.overflow = 'auto';
 		document.getElementById(param['uniqueid'] + 'loader').style.width = minSpaceRequired + 'px';
 		document.getElementById(param['uniqueid']).style.width = minSpaceRequired + 'px';
+		document.getElementById(param['uniqueid']  + 'WidgetSpace').style.width = minSpaceRequired + 'px';
+		document.getElementById(param['uniqueid']  + 'toplegend').style.width = minSpaceRequired + 'px';
 
+		// handel alignment
+		if (param['align'] == 'center') {
+			document.getElementById(param['uniqueid']).style.marginLeft = 'auto';
+			document.getElementById(param['uniqueid']).style.marginRight = 'auto';	
+			document.getElementById(param['uniqueid'] + 'WidgetSpace').style.marginLeft = 'auto';
+			document.getElementById(param['uniqueid'] + 'WidgetSpace').style.marginRight = 'auto';
+			document.getElementById(param['uniqueid'] + 'toplegend').style.marginLeft = 'auto';
+			document.getElementById(param['uniqueid'] + 'toplegend').style.marginRight = 'auto';
+		}
+		
 	} else {
 
 		document.getElementById(param['uniqueid'] + 'holder').style.width = param['width'] + 'px';
 		document.getElementById(param['uniqueid'] + 'holder').style.overflow = '';
 		document.getElementById(param['uniqueid'] + 'loader').style.width = param['width'] + 'px';
 		document.getElementById(param['uniqueid']).style.width = param['width'] + 'px';
+		document.getElementById(param['uniqueid'] + 'toplegend').width = param['width'] + 'px';
 	}
 	
-        document.getElementById(param['uniqueid'] + 'toplegend').width = param['width'] + 'px';
 }
 
 function getTableFromChartData(param)

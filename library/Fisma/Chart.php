@@ -154,18 +154,9 @@ class Fisma_Chart
         return $this;
     }
     
-    private function setWidthAuto()
+    private function setWidthAuto($inBoolean)
     {
-        $barWidth = 35;
-        $barSpacing = 10;
-        $extraSpace = 75;
-        
-        $totalWidth = 
-            ( $this->getColumnCount() * $barWidth ) +
-            ( ($this->getColumnCount() + 1) * $barSpacing) +
-            $extraSpace;
-            
-        $this->setWidth($totalWidth);
+        $this->chartParamArr['autoWidth'] = $inBoolean;
     }
     
     /**
@@ -555,7 +546,7 @@ class Fisma_Chart
         
         if ($inBoolean === true) {
         
-            $this->setThreatLegendWidth = "100%";
+            $this->setThreatLegendWidth('100%');
         
             // hide the jqPlot legen since we are injecting our own (handeled in the JavaScript wrapper)
             $this->setStandardLegendVisibility(false);
@@ -679,7 +670,6 @@ class Fisma_Chart
         switch ($expMode)
         {
         case 'array':
-            $this->setWidthAuto();
             return $this->chartParamArr;
 
         case 'html':
