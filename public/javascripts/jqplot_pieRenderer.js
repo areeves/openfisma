@@ -353,6 +353,20 @@
             }
             
         }
+        
+         
+         // damian: required for line labels
+         var origin = {
+                 x: parseInt(ctx.canvas.style.left) + cw/2,
+                 y: parseInt(ctx.canvas.style.top) + ch/2
+         };
+         
+         var total = 0;
+         for (var i=0; i<gd.length; i++) {
+             total += this._plotData[i][1];
+         }  
+                 
+        
         for (var i=0; i<gd.length; i++) {
             var ang1 = (i == 0) ? sa : gd[i-1][1] + sa;
             // Adjust ang1 and ang2 for sliceMargin
@@ -361,6 +375,66 @@
             this._sliceAngles.push([ang1, ang2]);
             
             this.renderer.drawSlice.call (this, ctx, ang1, ang2, colorGenerator.next(), false);
+            
+            
+            
+             // damian: line labels
+             if (typeof(this.lineLabels !== 'undefined') && this.lineLabels) {
+             
+                 // percentage
+                 var percentage = this._plotData[i][1] * 100 / total;
+                 percentage = (percentage < 1) ? percentage.toFixed(2) : Math.round(percentage);
+                     
+                 var mid_ang = ang2 + (gd[i][1]-ang2)/2;
+                 
+                 // line style
+                 if (typeof(this.lineLabelsLineColor) !== 'undefined') {
+                     ctx.strokeStyle = this.lineLabelsLineColor;
+                 } else {
+                     ctx.strokeStyle = '#777';
+                 }
+                 ctx.lineWidth   = 1;
+     
+                 // line 1
+                 //ctx.beginPath();
+                 var line1_start_x = Math.cos(mid_ang) * this._diameter/1.9;
+                 var line1_start_y = Math.sin(mid_ang) * this._diameter/1.9;
+                 //ctx.moveTo(line1_start_x, line1_start_y); 
+                 var line1_end_x = Math.cos(mid_ang) * this._diameter/1.63;
+                 var line1_end_y = Math.sin(mid_ang) * this._diameter/1.63;
+                 //ctx.lineTo(line1_end_x, line1_end_y);
+                 
+                 // line 2
+                 var line2_end_x_offset = (mid_ang >= 4.712 || mid_ang <= 1.57) ? 6 : -6;
+                 var line2_end_x = line1_end_x + line2_end_x_offset;
+                 var line2_end_y = line1_end_y;    
+                 /*ctx.lineTo(line2_end_x, line2_end_y);
+                 ctx.stroke();
+                 ctx.closePath();*/
+                 
+                 // label
+                 var l = $("<div class='jqplot-pie-line-label' style='position: absolute;'>"+gd[i][0]+"</div>").insertAfter(ctx.canvas);
+                 var l_x_offset = (mid_ang >= 4.712 || mid_ang <= 1.57) ? 4 : -1 * l.width() - 4;
+                 var l_y_offset = -1 * l.height() / 2;
+                 var l_x = line2_end_x + origin.x + l_x_offset;
+                 var l_y = line2_end_y + origin.y + l_y_offset;
+                 l.css({left: l_x+"px", top: l_y+"px"});
+                 
+     //            console.log(gd[i][0]+':');
+     //            console.log('  mid_ang: '+mid_ang);
+     //            console.log('  l_x_offset: '+l_x_offset);
+     //            console.log('  l_y_offset: '+l_y_offset);
+     //            console.log('  l_x: '+l_x);
+     //            console.log('  l_y: '+l_y);
+     //            console.log('  line1_start_x: '+line1_start_x);
+     //            console.log('  line1_start_y: '+line1_start_y);
+     //            console.log('  line1_end_x: '+line1_end_x);
+     //            console.log('  line1_end_y: '+line1_end_y);
+     //            console.log('  line2_end_x_offset: '+line2_end_x_offset);
+     //            console.log('  line2_end_x: '+line2_end_x);
+     //            console.log('  line2_end_y: '+line2_end_y);
+             }
+            
             
             if (this.showDataLabels && gd[i][2]*100 >= this.dataLabelThreshold) {
                 var fstr, avgang = (ang1+ang2)/2, label;

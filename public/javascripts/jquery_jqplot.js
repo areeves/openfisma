@@ -2317,7 +2317,7 @@
         
         
         // function to check if event location is over a area area
-        function checkIntersection(gridpos, plot) {
+        function checkIntersection(gridpos, plot, theCanvas) {
             var series = plot.series;
             var i, j, k, s, r, x, y, theta, sm, sa, minang, maxang;
             var d0, d, p, pp, points, bw;
@@ -2384,8 +2384,8 @@
                         
                     case $.jqplot.PieRenderer:
                         sa = s.startAngle/180*Math.PI;
-                        x = gridpos.x - s._center[0];
-                        y = gridpos.y - s._center[1];
+                        x = gridpos.x - (theCanvas.width / 2); // s._center[0];
+                        y = gridpos.y - (theCanvas.height / 2); //s._center[1];
                         r = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
                         if (x > 0 && -y >= 0) {
                             theta = 2*Math.PI - Math.atan(-y/x);
@@ -2608,7 +2608,7 @@
             // Event passed out is unnormalized.
             var positions = getEventPosition(ev);
             var p = ev.data.plot;
-            var neighbor = checkIntersection(positions.gridPos, p);
+            var neighbor = checkIntersection(positions.gridPos, p, this);
             var evt = jQuery.Event('jqplotClick');
             evt.pageX = ev.pageX;
             evt.pageY = ev.pageY;
@@ -2620,7 +2620,7 @@
             // Event passed out is unnormalized.
             var positions = getEventPosition(ev);
             var p = ev.data.plot;
-            var neighbor = checkIntersection(positions.gridPos, p);
+            var neighbor = checkIntersection(positions.gridPos, p, this);
             var evt = jQuery.Event('jqplotDblClick');
             evt.pageX = ev.pageX;
             evt.pageY = ev.pageY;
@@ -2630,7 +2630,7 @@
         this.onMouseDown = function(ev) {
             var positions = getEventPosition(ev);
             var p = ev.data.plot;
-            var neighbor = checkIntersection(positions.gridPos, p);
+            var neighbor = checkIntersection(positions.gridPos, p, this);
             var evt = jQuery.Event('jqplotMouseDown');
             evt.pageX = ev.pageX;
             evt.pageY = ev.pageY;
@@ -2648,7 +2648,7 @@
         this.onRightClick = function(ev) {
             var positions = getEventPosition(ev);
             var p = ev.data.plot;
-            var neighbor = checkIntersection(positions.gridPos, p);
+            var neighbor = checkIntersection(positions.gridPos, p, this);
             if (p.captureRightClick) {
                 if (ev.which == 3) {
                 var evt = jQuery.Event('jqplotRightClick');
@@ -2668,7 +2668,7 @@
         this.onMouseMove = function(ev) {
             var positions = getEventPosition(ev);
             var p = ev.data.plot;
-            var neighbor = checkIntersection(positions.gridPos, p);
+            var neighbor = checkIntersection(positions.gridPos, p, this);
             var evt = jQuery.Event('jqplotMouseMove');
             evt.pageX = ev.pageX;
             evt.pageY = ev.pageY;

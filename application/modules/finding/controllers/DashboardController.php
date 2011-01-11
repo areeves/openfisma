@@ -56,8 +56,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 275, 
                 'chartFindForecast', 
                 '/finding/dashboard/findingforecast/format/json');
-                
-        $chartFindForecast->addWidget('dayRangesStatChart', 'Day Ranges:', 'text', '30, 60, 90, 120');
+        $chartFindForecast->addWidget('dayRangesStatChart', 'Day Ranges:', 'text', '0, 15, 30, 60, 90');
 
         $this->view->chartFindForecast = $chartFindForecast->export();
 
@@ -102,7 +101,6 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                     'combo',
                     'Organization',
                     array(
-                        'Everything',
                         'Agency',
                         'Bureau',
                         'Organization',
@@ -136,7 +134,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                     'Family',
                     array(
                         'Family',
-                        'Family and Code'));
+                        'Family and Controle-Number'));
 
         $this->view->controlDeficienciesChart = $controlDeficienciesChart->export();
     }
@@ -168,7 +166,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 ->setThreatLegendVisibility(true)
                 ->setColumnLabelAngle(0)
                 ->setThreatLegendWidth(450)
-                ->setAxisLabelY('number of findings')
+                ->setAxisLabelY('Number of Findings')
                 ->setChartType('stackedbar')
                 ->setColors(array(
                         "#FF0000",
@@ -352,7 +350,8 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 ->from('Organization o')
                 ->leftJoin('o.System s')
                 ->where('s.type = ?', $orgType)
-                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+                ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
+                ->orderBy('o.nickname');
 
             return $q->execute();
             
@@ -364,7 +363,8 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 ->from('Organization o')
                 ->leftJoin('o.System s')
                 ->where('s.type = "gss" OR s.type = "major"')
-                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+                ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
+                ->orderBy('o.nickname');
 
             return $q->execute();
         
@@ -375,7 +375,8 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 ->addSelect('id, nickname')
                 ->from('Organization o')
                 ->where('orgtype = ?', $orgType)
-                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+                ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
+                ->orderBy('o.nickname');
 
             return $q->execute();
         }
@@ -399,15 +400,15 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         $thisChart
             ->setChartType('bar')
             ->setConcatColumnLabels(false)
-            ->setAxisLabelX('days ago')
-            ->setAxisLabelY('number of findings')
+            ->setAxisLabelX('Number of Days Past Due')
+            ->setAxisLabelY('Number of Findings')
             ->setColumnLabelAngle(0);
 
         // Get counts in between the day ranges given
         for ($x = 1; $x < count($dayRanges); $x++) {
 
             $fromDayDiff = $dayRanges[$x-1];
-            $toDayDiff = $dayRanges[$x];
+            $toDayDiff = $dayRanges[$x] - 1;
 
             $q = Doctrine_Query::create();
             $q
@@ -470,7 +471,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             $thisChart
                 ->setChartType('bar')
                 ->setConcatColumnLabels(false)
-                ->setAxisLabelY('number of findings')
+                ->setAxisLabelY('Number of Findings')
                 ->setColors(array('#3366FF'));
 
             $q = Doctrine_Query::create()
@@ -500,7 +501,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 ->setThreatLegendVisibility(true)
                 ->setThreatLegendWidth(450)
                 ->setConcatColumnLabels(true)
-                ->setAxisLabelY('number of findings')
+                ->setAxisLabelY('Number of Findings')
                 ->setColors(array(
                         "#FF0000",
                         "#FF6600",
@@ -571,7 +572,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             $thisChart
                 ->setChartType('bar')
                 ->setConcatColumnLabels(false)
-                ->setAxisLabelY('number of findings');
+                ->setAxisLabelY('Number of Findings');
 
             // Decide color of every bar based on High/Mod/Low
             switch (strtoupper($findingType)) {
@@ -659,7 +660,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             $thisChart = new Fisma_Chart();
             $thisChart
                 ->setChartType('bar')
-                ->setAxisLabelY('number of findings')
+                ->setAxisLabelY('Number of Findings')
                 ->setConcatColumnLabels(false)
                 ->setData(array_values($arrTotal))
                 ->setAxisLabelsX(array_keys($arrTotal))
@@ -683,7 +684,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
 
         $thisChart = new Fisma_Chart();
         $thisChart
-            ->setAxisLabelY('number of findings')
+            ->setAxisLabelY('Number of Findings')
             ->setConcatColumnLabels(true);
 
         if ($findingType === 'High'|| $findingType === 'Moderate' || $findingType === 'Low') {
@@ -824,7 +825,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         for ($x = 1; $x < count($dayRange); $x++) {
 
             $fromDay = $dayRange[$x-1];
-            $toDay = $dayRange[$x];
+            $toDay = $dayRange[$x] - 1;
 
             // Get the count of High findings
             $q = Doctrine_Query::create()
@@ -864,8 +865,8 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
 
         $noMitChart = new Fisma_Chart();
         $noMitChart
-            ->setAxisLabelX('days ago')
-            ->setAxisLabelY('number of findings')
+            ->setAxisLabelX('Number of Days Without Mitigation Strategy')
+            ->setAxisLabelY('Number of Findings')
             ->setChartType('stackedbar')
             ->setThreatLegendVisibility(true)
             ->setColumnLabelAngle(0)
@@ -906,8 +907,8 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             ->setConcatColumnLabels(false)
             ->setColumnLabelAngle(0)
             ->setThreatLegendVisibility(true)
-            ->setAxisLabelX('days ago')
-            ->setAxisLabelY('number of findings')
+            ->setAxisLabelX('Number of Days Until Overdue')
+            ->setAxisLabelY('Number of Findings')
             ->setLayerLabels(array(
                     'High',
                     'Moderate',
@@ -930,7 +931,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
 
             $toDay = new Zend_Date();
             $toDay = $toDay->addDay($dayRange[$x]);
-            $toDayStr = $toDay->toString('YYY-MM-dd');
+            $toDayStr = $toDay->addDay(-1)->toString('YYY-MM-dd');
 
             // Get the count of High findings
             $q = Doctrine_Query::create()
@@ -960,7 +961,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             $lowCount = $q->count();
 
             $thisChart
-                ->addColumn($dayRange[$x] . '-' . $dayRange[$x + 1],
+                ->addColumn($dayRange[$x] . '-' . ( $dayRange[$x + 1] - 1 ),
                 array(
                     $highCount,
                     $modCount,

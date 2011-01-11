@@ -2,7 +2,19 @@
 <?php /* the div for jqPlot to use (the JavaScript will create canvases in this */ ?>
 
 <div class="yui-navset">
-    <div id="<?php echo $this->escape($this->chartId, 'none'); ?>loader" class="loading">
+
+    <table width="100%" style="position: absolute; z-index: 1">
+        <tr>
+            <td align=right>
+                <a href="JavaScript: // Click to show chart options";
+                onClick="document.getElementById('<?php echo $this->escape($this->chartId, 'none'); ?>WidgetSpaceHolder').style.display='';">
+                    <img src="/images/gear.png" width="35" />
+                </a>
+            </td>
+        </tr>
+    </table>
+
+    <div id="<?php echo $this->escape($this->chartId, 'none'); ?>loader" class="loading" style="width: 100%;">
         
         <div>
         </div>
@@ -15,16 +27,53 @@
             <div id="<?php echo $this->escape($this->chartId, 'none'); ?>toplegend">
             </div>
             
-                <div id="<?php echo $this->escape($this->chartId, 'none'); ?>" >
-                    Loading chart data...
-                </div>
-                
-                <div id="<?php echo $this->escape($this->chartId, 'none');?>WidgetSpace">
-                </div>
+            <div id="<?php echo $this->escape($this->chartId, 'none'); ?>" >
+                Loading chart data...
+            </div>
     </div>
+
+    <br/>
+    <div id="<?php echo $this->escape($this->chartId, 'none');?>WidgetSpaceHolder" class="yui-navset" style="display: none; width: 400px; margin-left: auto; margin-right: auto;">
+        <ul class="yui-nav">
+            <li class="selected">
+                <a href="#tab1">
+                    <em>Chart Paramiters</em>
+                </a>
+            </li>
+            <li>
+                <a href="#tab1">
+                    <em>Global Settings</em>
+                </a>
+            </li>
+        </ul>            
+        <div class="yui-content">
+            <div id="tab1">
+                <div id="<?php echo $this->escape($this->chartId, 'none');?>WidgetSpace">
+                    <!-- char params and widgets placed here by JavaScript -->
+                </div>
+            </div>
+            <div id="tab2" onClick="chartGlobalSettingUpdate(this);" style="text-align: left; ">
+                <input type="checkbox" id="chartGlobal_barShadows" />
+                    Draw shadows behind bars <br/>
+                <input type="textbox" id="chartGlobal_barShadowDepth" value="3" style="width:10px" />
+                    Depth of shadows behind bars (in pixels) <br/>                            
+                <input type="checkbox" id="chartGlobal_dropShadows" />
+                    Draw shadows behind charts <br/>
+                <input type="checkbox" id="chartGlobal_gridLies"/>
+                    Draw grid-lines <br/>
+                <input type="checkbox" id="chartGlobal_fadingDisabeled"/>
+                    Disable fading effects <br/>
+            </div>
+        </div>
+    </div>    
+
+    <script type="text/javascript">
+        var thisName = <?php echo $this->escape($this->chartId, 'none');?>WidgetSpaceHolder;
+        var tabView = new YAHOO.widget.TabView(thisName);
+    </script> 
     
     <div id="<?php echo $this->escape($this->chartId, 'none'); ?>table" style="display:none">
-    </div>
+    </div>   
     
 </div>
 

@@ -19,6 +19,9 @@
 	Output
 	   returns true on success, false on failure, or nothing if the success of the chart creation cannot be determind at that time (asynchronous mode)
 */
+
+var chartsOnDOM = {};	// all chart paramiter objects which are drawn on the DOM
+
 function createJQChart(param)
 {
 
@@ -125,6 +128,10 @@ function createJQChart(param)
 	// now that we have the param['chartData'], do we need to make the chart larger and scrollable?
 	setChartWidthAttribs(param);
 
+	// Store this charts paramiter object into the global variable chartsOnDOM, so it can be redrawn
+	// This must be done before the next switch block that translates some data within the param object for jqPlot
+	chartsOnDOM[param['uniqueid']] = jQuery.extend(true, {}, param);
+	
 	// call the correct function based on chartType
 	switch(param['chartType'])
 	{
@@ -254,11 +261,13 @@ function createChartJQPie(param)
 				sliceMargin: 0,
 				showDataLabels: true,
 				shadowAlpha: 0.15,
-				shadowOffset: 0
+				shadowOffset: 0,
+				lineLabels: true,
+				lineLabelsLineColor: '#777'
 			}
 		},
                 legend: {
-			show: true,
+			show: false,
 			rendererOptions: {
 				numberRows: 1
 			},
@@ -316,7 +325,13 @@ function createJQChart_StackedBar(param)
 		series: seriesParam,
 		seriesDefaults:{
 			renderer: $.jqplot.BarRenderer,
-			rendererOptions:{barWidth: 35, showDataLabels: true, varyBarColor: param['varyBarColor'], shadowAlpha: 0.15, shadowOffset: 0},
+			rendererOptions:{
+				barWidth: 35,
+				showDataLabels: true,
+				varyBarColor: param['varyBarColor'],
+				shadowAlpha: 0.15,
+				shadowOffset: 0
+			},
 			pointLabels:{show: true, location: 's'}
 		},
 		axesDefaults: {
@@ -368,6 +383,9 @@ function createJQChart_StackedBar(param)
 
 	// merge any jqPlot direct param-arguments into jPlotParamObj from param
 	jPlotParamObj = jQuery.extend(true, jPlotParamObj, param);
+	
+	// override any jqPlot direct param-arguments based on globals setting from cookies (set by user)
+	jPlotParamObj = alterChartByGlobals(jPlotParamObj);
 
 	plot1 = $.jqplot(param['uniqueid'], param['chartData'], jPlotParamObj);
 
@@ -835,7 +853,18 @@ function fadeIn(eid, TimeToFade) {
 
 	var element = document.getElementById(eid);
 	if (element == null) return;
-
+	
+	
+	var chartGlobal_fadingDisabeled = getCookie('chartGlobal_fadingDisabeled', 'true');
+	if (chartGlobal_fadingDisabeled != 'false') {
+		makeElementVisible(eid);
+		if (element.finnishFadeCallback) {
+			element.finnishFadeCallback();
+			element.finnishFadeCallback = '';
+		}
+		return;
+	}
+	
 	if (typeof element.isFadingNow != 'undefined') {
 		if (element.isFadingNow == true) {
 			return;
@@ -857,6 +886,16 @@ function fadeOut(eid, TimeToFade) {
 
 	var element = document.getElementById(eid);
 	if (element == null) return;
+
+	var chartGlobal_fadingDisabeled = getCookie('chartGlobal_fadingDisabeled', 'true');
+	if (chartGlobal_fadingDisabeled != 'false') {
+		makeElementInvisible(eid);
+		if (element.finnishFadeCallback) {
+			element.finnishFadeCallback();
+			element.finnishFadeCallback = '';
+		}
+		return;
+	}
 
 	if (typeof element.isFadingNow != 'undefined') {
 		if (element.isFadingNow == true) {
@@ -976,28 +1015,28 @@ function setChartWidthAttribs(param) {
 
 	if (makeScrollable == true) {
 
-		document.getElementById(param['uniqueid'] + 'holder').style.width = '100%'; //param['width'] + 'px';
+		document.getElementById(param['uniqueid'] + 'loader').style.width = '100%';
+		document.getElementById(param['uniqueid'] + 'holder').style.width = '100%';
 		document.getElementById(param['uniqueid'] + 'holder').style.overflow = 'auto';
-		document.getElementById(param['uniqueid'] + 'loader').style.width = minSpaceRequired + 'px';
 		document.getElementById(param['uniqueid']).style.width = minSpaceRequired + 'px';
-		document.getElementById(param['uniqueid']  + 'WidgetSpace').style.width = minSpaceRequired + 'px';
+		//document.getElementById(param['uniqueid']  + 'WidgetSpace').style.width = minSpaceRequired + 'px';
 		document.getElementById(param['uniqueid']  + 'toplegend').style.width = minSpaceRequired + 'px';
 
 		// handel alignment
 		if (param['align'] == 'center') {
 			document.getElementById(param['uniqueid']).style.marginLeft = 'auto';
 			document.getElementById(param['uniqueid']).style.marginRight = 'auto';	
-			document.getElementById(param['uniqueid'] + 'WidgetSpace').style.marginLeft = 'auto';
-			document.getElementById(param['uniqueid'] + 'WidgetSpace').style.marginRight = 'auto';
+			//document.getElementById(param['uniqueid'] + 'WidgetSpace').style.marginLeft = 'auto';
+			//document.getElementById(param['uniqueid'] + 'WidgetSpace').style.marginRight = 'auto';
 			document.getElementById(param['uniqueid'] + 'toplegend').style.marginLeft = 'auto';
 			document.getElementById(param['uniqueid'] + 'toplegend').style.marginRight = 'auto';
 		}
 		
 	} else {
 
+		document.getElementById(param['uniqueid'] + 'loader').style.width = '100%';
 		document.getElementById(param['uniqueid'] + 'holder').style.width = param['width'] + 'px';
 		document.getElementById(param['uniqueid'] + 'holder').style.overflow = '';
-		document.getElementById(param['uniqueid'] + 'loader').style.width = param['width'] + 'px';
 		document.getElementById(param['uniqueid']).style.width = param['width'] + 'px';
 		document.getElementById(param['uniqueid'] + 'toplegend').width = param['width'] + 'px';
 	}
@@ -1060,18 +1099,22 @@ function removeDecFromPointLabels(param)
                         }
                         
                         // apply font override (default just makes it bold)
-                        thisChld.innerHTML = '<span style="' + param['pointLabelStyle'] + '">' + thisChld.innerHTML + '</span>';
+                        thisChld.innerHTML = '<span style="text-shadow: #FFFFFF 0px -1px 0px, #FFFFFF 0px 1px 0px, #FFFFFF 1px 0px 0px, #FFFFFF -1px 1px 0px, #FFFFFF -1px -1px 0px, #FFFFFF 1px 1px 0px; ' + param['pointLabelStyle'] + '">' + thisChld.innerHTML + '</span>';
                         
                         // adjust the label to the a little bit since with the decemal trimmed, it may seem off-centered
                         var thisLeftNbrValue = String(thisChld.style.left).replace('px', '') * 1;       // remove "px" from string, and conver to number
                         var thisTopNbrValue = String(thisChld.style.top).replace('px', '') * 1;       // remove "px" from string, and conver to number
                         thisLeftNbrValue += param['pointLabelAdjustX'];
                         thisTopNbrValue += param['pointLabelAdjustY'];
+                        if (thisLabelValue >= 100) { thisLeftNbrValue -= 2; }
                         thisChld.style.left = thisLeftNbrValue + 'px';
                         thisChld.style.top = thisTopNbrValue + 'px';
 
                         // force color to black
                         thisChld.style.color = 'black';
+                        
+                        // add outline to this point label so it is easily visible on dark color backgrounds (outlines are done through white-shadows)
+                        thisChld.style.textShadow = 'text-shadow: #FFFFFF 0px -1px 0px, #FFFFFF 0px 1px 0px, #FFFFFF 1px 0px 0px, #FFFFFF -1px 1px 0px, #FFFFFF -1px -1px 0px, #FFFFFF 1px 1px 0px;';
                 }
         }
         
@@ -1173,6 +1216,76 @@ function removeOverlappingPointLabels(param) {
         
 }
 
+function chartGlobalSettingUpdate(settingsMenue)
+{
+	var settingOpts = settingsMenue.childNodes;
+	
+	for (var x = 0; x < settingOpts.length; x++) {
+		var thisOpt = settingOpts[x];
+		if (thisOpt.nodeName == 'INPUT') {
+			if (thisOpt.type == 'checkbox') {
+				setCookie(thisOpt.id, thisOpt.checked);
+			} else {
+				setCookie(thisOpt.id, thisOpt.value);
+			}
+		}
+	}
+	
+	redrawAllCharts();
+}
+
+function alterChartByGlobals(chartParamObj) {
+	
+	/*
+	  Global settings by cookie name are: 
+	  	chartGlobal_barShadows, chartGlobal_barShadowDepth,
+	  	chartGlobal_dropShadows, chartGlobal_gridLies, 
+	  	chartGlobal_fadingDisabeled
+	*/
+	
+	// Show bar shadows?
+	var chartGlobal_barShadows = getCookie('chartGlobal_barShadows', 'no-setting');
+	if (chartGlobal_barShadows == 'true') {
+		chartParamObj.seriesDefaults.rendererOptions.shadowDepth = 3;
+		chartParamObj.seriesDefaults.rendererOptions.shadowOffset = 3;
+	}
+	
+	// Depth of bar shadows?
+	var chartGlobal_barShadowDepth = getCookie('chartGlobal_barShadowDepth', 'no-setting');
+	if (chartGlobal_barShadowDepth != 'no-setting' && chartGlobal_barShadows == 'true') {
+		chartParamObj.seriesDefaults.rendererOptions.shadowDepth = chartGlobal_barShadowDepth;
+		chartParamObj.seriesDefaults.rendererOptions.shadowOffset = chartGlobal_barShadowDepth;
+	}
+	
+	// grid-lines?
+	var chartGlobal_gridLies = getCookie('chartGlobal_gridLies', 'false');
+	if (chartGlobal_gridLies != 'false') {
+		chartParamObj.seriesDefaults.rendererOptions.shadowDepth = chartGlobal_barShadowDepth;
+		chartParamObj.grid.gridLineWidth = 1;
+		chartParamObj.grid.borderWidth = 0;
+		delete chartParamObj.grid.gridLineColor;
+		chartParamObj.grid.drawGridLines = true;
+		chartParamObj.grid.show = true;
+	}
+	
+	// grid-lines?
+	var chartGlobal_dropShadows = getCookie('chartGlobal_dropShadows', 'false');
+	if (chartGlobal_dropShadows != 'false') {
+		chartParamObj.grid.shadow = true;
+	}	
+	
+	return chartParamObj;
+}
+
+function redrawAllCharts() {
+
+	for (var uniqueid in chartsOnDOM) {	
+		var thisParamObj = chartsOnDOM[uniqueid];		
+		createJQChart(thisParamObj);
+	}
+
+}
+
 function setCookie(c_name,value,expiredays)
 {
 	var exdate=new Date();
@@ -1180,7 +1293,7 @@ function setCookie(c_name,value,expiredays)
 	document.cookie = c_name + "=" + escape(value)+((expiredays==null) ? "" : ";expires="+exdate.toUTCString());
 }
 
-function getCookie(c_name)
+function getCookie(c_name, defaultValue)
 {
 	if (document.cookie.length>0) {
 
@@ -1194,7 +1307,11 @@ function getCookie(c_name)
 		}
 	}
 
-	return '';
+	if (typeof defaultValue != 'undefined') {
+		return defaultValue;
+	} else {
+		return '';
+	}
 }
 
 
