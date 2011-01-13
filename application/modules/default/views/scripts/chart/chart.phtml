@@ -52,17 +52,23 @@
                     <!-- char params and widgets placed here by JavaScript -->
                 </div>
             </div>
-            <div id="tab2" onClick="chartGlobalSettingUpdate(this);" style="text-align: left; ">
-                <input type="checkbox" id="chartGlobal_barShadows" />
+            <div id="tab2" onClick="globalSettingUpdate('<?php echo $this->escape($this->chartId, 'none');?>');" style="text-align: left; ">
+                <div id="<?php echo $this->escape($this->chartId, 'none');?>GlobSettings">
+                <input type="checkbox" id="pointLabels" />
+                    Draw point-labels (numbers on top of bars) <br/>
+                <input type="checkbox" id="pointLabelsOutline" />
+                    Outline point-labels <br/>
+                <input type="checkbox" id="barShadows" />
                     Draw shadows behind bars <br/>
-                <input type="textbox" id="chartGlobal_barShadowDepth" value="3" style="width:10px" />
+                <input type="textbox" id="barShadowDepth" value="3" style="width:10px" />
                     Depth of shadows behind bars (in pixels) <br/>                            
-                <input type="checkbox" id="chartGlobal_dropShadows" />
+                <input type="checkbox" id="dropShadows" />
                     Draw shadows behind charts <br/>
-                <input type="checkbox" id="chartGlobal_gridLies"/>
+                <input type="checkbox" id="gridLines"/>
                     Draw grid-lines <br/>
-                <input type="checkbox" id="chartGlobal_fadingDisabeled"/>
+                <input type="checkbox" id="fadingDisabeled"/>
                     Disable fading effects <br/>
+                </div>
             </div>
         </div>
     </div>    
