@@ -128,13 +128,13 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 ->setChartType('bar')
                 ->setExternalSource('/security-control-chart/control-deficiencies/format/json')
                 ->setAlign('center')
-                ->addWidget('displayBy',
+                ->addWidget('displaySecurityBy',
                     'Display By:',
                     'combo',
                     'Family',
                     array(
                         'Family',
-                        'Family and Controle-Number'));
+                        'Family and Controle Number'));
 
         $this->view->controlDeficienciesChart = $controlDeficienciesChart->export();
     }

@@ -313,6 +313,7 @@ function createJQChart_StackedBar(param)
 	var dataSet = [];
 	var thisSum = 0;
 	var maxSumOfAll = 0;
+	var chartCeilingValue = 0;
 
 	for (var x = 0; x < param['chartDataText'].length; x++) {
 	
@@ -322,8 +323,12 @@ function createJQChart_StackedBar(param)
 			thisSum += param['chartData'][y][x];
 		}
 		
-		if (param['concatXLabel'] == true) { param['chartDataText'][x] += ' (' + thisSum  + ')'; }
 		if (thisSum > maxSumOfAll) { maxSumOfAll = thisSum; }
+
+		if (param['concatXLabel'] == true) {
+			param['chartDataText'][x] += ' (' + thisSum  + ')';
+		}
+		
 	}
 
 	var seriesParam = [];
@@ -332,6 +337,12 @@ function createJQChart_StackedBar(param)
 			seriesParam[x] = {label: param['chartLayerText'][x]};
 		}
 	}
+
+	// Make sure the Y-axis (row labels) are not offset by the formatter string rounding their values...
+	// (make the top most row label divisible by 4)
+	chartCeilingValue = getNextNumberDivisibleBy4(maxSumOfAll);
+
+	$.jqplot.config.enablePlugins = true
 
 	var jPlotParamObj = {
 		title: param['title'],
@@ -368,10 +379,10 @@ function createJQChart_StackedBar(param)
 				label: param['AxisLabelY'],
 				labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
 				min: 0,
-				max: Math.round(maxSumOfAll * 1),
-				autoscale:true,
-				tickOptions:{
-					formatString:'%.0f'
+				max: chartCeilingValue,
+				autoscale: true,
+				tickOptions: {
+					formatString: '%.0f'
 				}
 			}
 
@@ -746,7 +757,7 @@ function applyChartWidgets(param) {
 		}
 
 		// add this widget HTML to the DOM
-		wigSpace.innerHTML = '<br/><table>' + addHTML + '</table>';
+		wigSpace.innerHTML = '<table>' + addHTML + '</table>';
 	}
 
 	applyChartWidgetSettings(param);
@@ -1234,6 +1245,26 @@ function removeOverlappingPointLabels(param) {
         
 }
 
+function setChartSettingsVisibility(chartId, boolVisible)
+{
+	var menuHolderId = chartId + 'WidgetSpaceHolder';
+	var menuObj = document.getElementById(menuHolderId);
+	
+	if (boolVisible == 'toggle') {
+		if (menuObj.style.display == 'none') {
+			boolVisible = true;
+		} else {
+			boolVisible = false;
+		}
+	}
+	
+	if (boolVisible == true) {
+		menuObj.style.display = '';
+	} else {
+		menuObj.style.display = 'none';
+	}
+}
+
 function globalSettingUpdate(chartUniqueId)
 {
 	// get this chart's GlobSettings menue
@@ -1358,6 +1389,25 @@ function redrawAllCharts() {
 		
 		// refreash Global Settings UI
 		globalSettingRefreashUI(thisParamObj);
+	}
+
+}
+
+function getNextNumberDivisibleBy4(nbr) {
+
+	nbr = Math.round(nbr);
+
+	for (var x = 0; x < 8; x++ ) {
+	
+		var dividedBy4 = (nbr / 4) * 1;
+
+		// is this a whole number?
+		if (dividedBy4 == Math.round(dividedBy4)) {
+			return nbr;
+		} else {
+			// currently nbr is not divisible by 4, increment and keep searching
+			nbr++;
+		}
 	}
 
 }

@@ -45,7 +45,7 @@ class SecurityControlChartController extends Fisma_Zend_Controller_Action_Securi
      */
     public function controlDeficienciesAction()
     {
-        $displayBy = urldecode($this->_request->getParam('displayBy'));
+        $displayBy = urldecode($this->_request->getParam('displaySecurityBy'));
         $displayBy = strtolower($displayBy);
 
         $rtnChart = new Fisma_Chart();

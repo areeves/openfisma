@@ -7,7 +7,7 @@
         <tr>
             <td align=right>
                 <a href="JavaScript: // Click to show chart options";
-                onClick="document.getElementById('<?php echo $this->escape($this->chartId, 'none'); ?>WidgetSpaceHolder').style.display='';">
+                onClick="setChartSettingsVisibility('<?php echo $this->escape($this->chartId, 'none'); ?>', 'toggle');">
                     <img src="/images/gear.png" width="35" />
                 </a>
             </td>
@@ -48,12 +48,17 @@
         </ul>            
         <div class="yui-content">
             <div id="tab1">
+            
                 <div id="<?php echo $this->escape($this->chartId, 'none');?>WidgetSpace">
                     <!-- char params and widgets placed here by JavaScript -->
                 </div>
+                
+                <div style="width: 100%; text-align: right;"><input type="button" value="Hide Settings" onClick="setChartSettingsVisibility('<?php echo $this->escape($this->chartId, 'none'); ?>', false);" /></div>
+                
             </div>
-            <div id="tab2" onClick="globalSettingUpdate('<?php echo $this->escape($this->chartId, 'none');?>');" style="text-align: left; ">
-                <div id="<?php echo $this->escape($this->chartId, 'none');?>GlobSettings">
+            <div id="tab2">
+                
+                <div id="<?php echo $this->escape($this->chartId, 'none');?>GlobSettings" onClick="globalSettingUpdate('<?php echo $this->escape($this->chartId, 'none');?>');" style="text-align: left; ">
                 <input type="checkbox" id="pointLabels" />
                     Draw point-labels (numbers on top of bars) <br/>
                 <input type="checkbox" id="pointLabelsOutline" />
@@ -69,6 +74,9 @@
                 <input type="checkbox" id="fadingDisabeled"/>
                     Disable fading effects <br/>
                 </div>
+                
+                <div style="width: 100%; text-align: right;"><input type="button" value="Hide Settings" onClick="setChartSettingsVisibility('<?php echo $this->escape($this->chartId, 'none'); ?>', false);" /></div>
+                
             </div>
         </div>
     </div>    
