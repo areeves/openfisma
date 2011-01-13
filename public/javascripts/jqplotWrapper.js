@@ -20,21 +20,7 @@
 	   returns true on success, false on failure, or nothing if the success of the chart creation cannot be determind at that time (asynchronous mode)
 */
 
-// Defaults for global chart settings definition:
-var globalSettingsDefaults = {
-	fadingDisabeled:	true,
-	barShadows:			false,
-	barShadowDepth:		5,
-	dropShadows:		false,
-	gridLines:			false,
-	pointLabels:		false,
-	pointLabelsOutline:	false
-}
-
-// Remember all chart paramiter objects which are drawn on the DOM within global var chartsOnDom
-var chartsOnDOM = {};
-
-
+var chartsOnDOM = {};	// all chart paramiter objects which are drawn on the DOM
 
 function createJQChart(param)
 {
@@ -193,12 +179,11 @@ function createJQChart(param)
 
 
         // chart tweeking external to the jqPlot library
-		removeOverlappingPointLabels(param);
-		applyChartBackground(param);
-		applyChartWidgets(param);
-		createChartThreatLegend(param);
-		applyChartBorders(param);
-		globalSettingRefreashUI(param);
+        removeOverlappingPointLabels(param);
+	applyChartBackground(param);
+	applyChartWidgets(param);
+        createChartThreatLegend(param);
+        applyChartBorders(param);
 	
 	document.getElementById(param['uniqueid'] + 'table').innerHTML = getTableFromChartData(param);
 
@@ -347,7 +332,7 @@ function createJQChart_StackedBar(param)
 				shadowAlpha: 0.15,
 				shadowOffset: 0
 			},
-			pointLabels:{show: false, location: 's'}
+			pointLabels:{show: true, location: 's'}
 		},
 		axesDefaults: {
 			tickRenderer: $.jqplot.CanvasAxisTickRenderer,
@@ -408,7 +393,7 @@ function createJQChart_StackedBar(param)
 	var EvntHandler = new Function ("ev", "seriesIndex", "pointIndex", "data", "var thisChartParamObj = " + JSON.stringify(param) + "; chartClickEvent(ev, seriesIndex, pointIndex, data, thisChartParamObj);" );
 	$('#' + param['uniqueid']).bind('jqplotDataClick', EvntHandler);
 
-	removeDecFromPointLabels(param);
+        removeDecFromPointLabels(param);
 
 }
 
@@ -649,7 +634,7 @@ function applyChartBackground(param) {
 	inserted.innerHTML = injectHTML;
 }
 
-function applyChartWidgets_old(param) {
+function applyChartWidgets(param) {
 
         if (param['widgets']) {
 
@@ -695,15 +680,16 @@ function applyChartWidgets_old(param) {
         wigSpace.innerHTML = addHTML;
 }
 
-function applyChartWidgets(param) {
+function applyChartWidgetsInEditMode(param) {
 
 	if (param['widgets']) {
 
 		var wigSpace = document.getElementById(param['uniqueid'] + 'WidgetSpace');
-		var addHTML = '';
+		wigSpace.innerHTML = '<br/>';
 
 		for (var x = 0; x < param['widgets'].length; x++) {
 
+			var addHTML = '';
 			var thisWidget = param['widgets'][x];
 			
 			// create a widget id if one is not explicitly given
@@ -713,7 +699,9 @@ function applyChartWidgets(param) {
 			}
 
 			// print the label text to be displayed to the left of the widget if one is given
-			addHTML += '<tr><td align=left>' + thisWidget['label'] + ' </td><td><td width="10"></td><td align=left>';
+			if (thisWidget['label']) {
+				addHTML += thisWidget['label'] + ' ';
+			}
 
 			switch(thisWidget['type']) {
 				case 'combo':
@@ -740,13 +728,10 @@ function applyChartWidgets(param) {
 					return false;
 			}
 
-			
-			addHTML += '</td></tr>';
+			// add this widget HTML to the DOM
+			wigSpace.innerHTML += addHTML + '<br/>';
 			
 		}
-
-		// add this widget HTML to the DOM
-		wigSpace.innerHTML = '<br/><table>' + addHTML + '</table>';
 	}
 
 	applyChartWidgetSettings(param);
@@ -870,7 +855,7 @@ function fadeIn(eid, TimeToFade) {
 	if (element == null) return;
 	
 	
-	var chartGlobal_fadingDisabeled = getGlobalSetting('fadingDisabeled');
+	var chartGlobal_fadingDisabeled = getCookie('chartGlobal_fadingDisabeled', 'true');
 	if (chartGlobal_fadingDisabeled != 'false') {
 		makeElementVisible(eid);
 		if (element.finnishFadeCallback) {
@@ -902,7 +887,7 @@ function fadeOut(eid, TimeToFade) {
 	var element = document.getElementById(eid);
 	if (element == null) return;
 
-	var chartGlobal_fadingDisabeled = getGlobalSetting('fadingDisabeled');
+	var chartGlobal_fadingDisabeled = getCookie('chartGlobal_fadingDisabeled', 'true');
 	if (chartGlobal_fadingDisabeled != 'false') {
 		makeElementInvisible(eid);
 		if (element.finnishFadeCallback) {
@@ -1112,15 +1097,10 @@ function removeDecFromPointLabels(param)
                         if (thisChld.innerHTML * 1 == 0) {
                         	thisChld.innerHTML = '';
                         }
-
-                        // add outline to this point label so it is easily visible on dark color backgrounds (outlines are done through white-shadows)
-						if (getGlobalSetting('pointLabelsOutline') == 'true') {
-							thisChld.innerHTML = '<span style="text-shadow: #FFFFFF 0px -1px 0px, #FFFFFF 0px 1px 0px, #FFFFFF 1px 0px 0px, #FFFFFF -1px 1px 0px, #FFFFFF -1px -1px 0px, #FFFFFF 1px 1px 0px; ' + param['pointLabelStyle'] + '">' + thisChld.innerHTML + '</span>';
-                        	thisChld.style.textShadow = 'text-shadow: #FFFFFF 0px -1px 0px, #FFFFFF 0px 1px 0px, #FFFFFF 1px 0px 0px, #FFFFFF -1px 1px 0px, #FFFFFF -1px -1px 0px, #FFFFFF 1px 1px 0px;';
-                        } else {
-							thisChld.innerHTML = '<span style="' + param['pointLabelStyle'] + '">' + thisChld.innerHTML + '</span>';
-                        }
-						
+                        
+                        // apply font override (default just makes it bold)
+                        thisChld.innerHTML = '<span style="text-shadow: #FFFFFF 0px -1px 0px, #FFFFFF 0px 1px 0px, #FFFFFF 1px 0px 0px, #FFFFFF -1px 1px 0px, #FFFFFF -1px -1px 0px, #FFFFFF 1px 1px 0px; ' + param['pointLabelStyle'] + '">' + thisChld.innerHTML + '</span>';
+                        
                         // adjust the label to the a little bit since with the decemal trimmed, it may seem off-centered
                         var thisLeftNbrValue = String(thisChld.style.left).replace('px', '') * 1;       // remove "px" from string, and conver to number
                         var thisTopNbrValue = String(thisChld.style.top).replace('px', '') * 1;       // remove "px" from string, and conver to number
@@ -1133,6 +1113,8 @@ function removeDecFromPointLabels(param)
                         // force color to black
                         thisChld.style.color = 'black';
                         
+                        // add outline to this point label so it is easily visible on dark color backgrounds (outlines are done through white-shadows)
+                        thisChld.style.textShadow = 'text-shadow: #FFFFFF 0px -1px 0px, #FFFFFF 0px 1px 0px, #FFFFFF 1px 0px 0px, #FFFFFF -1px 1px 0px, #FFFFFF -1px -1px 0px, #FFFFFF 1px 1px 0px;';
                 }
         }
         
@@ -1234,21 +1216,17 @@ function removeOverlappingPointLabels(param) {
         
 }
 
-function globalSettingUpdate(chartUniqueId)
+function chartGlobalSettingUpdate(settingsMenue)
 {
-	// get this chart's GlobSettings menue
-	var settingsMenue = document.getElementById(chartUniqueId + 'GlobSettings');
-	
-	// get all elements of this chart's GlobSettings menue
 	var settingOpts = settingsMenue.childNodes;
 	
 	for (var x = 0; x < settingOpts.length; x++) {
 		var thisOpt = settingOpts[x];
 		if (thisOpt.nodeName == 'INPUT') {
 			if (thisOpt.type == 'checkbox') {
-				setGlobalSetting(thisOpt.id, thisOpt.checked);
+				setCookie(thisOpt.id, thisOpt.checked);
 			} else {
-				setGlobalSetting(thisOpt.id, thisOpt.value);
+				setCookie(thisOpt.id, thisOpt.value);
 			}
 		}
 	}
@@ -1256,73 +1234,33 @@ function globalSettingUpdate(chartUniqueId)
 	redrawAllCharts();
 }
 
-function globalSettingRefreashUI(param)
-{
-	/*
-		Every input-element (setting UI) has an id equal to the cookie name 
-		to which its value is stored. So wee we have to do is look for a
-		cookie based on the id for each input element
-	*/
-	
-	// get this chart's GlobSettings menue
-	var settingsMenue = document.getElementById(param['uniqueid'] + 'GlobSettings');
-	
-	// get all elements of this chart's GlobSettings menue
-	var settingOpts = settingsMenue.childNodes;
-	
-	for (var x = 0; x < settingOpts.length; x++) {
-		var thisOpt = settingOpts[x];
-		if (thisOpt.nodeName == 'INPUT') {
-		
-			// By this line (and in this block), we know we have found an input element on this GlobSettings menue
-			
-			if (thisOpt.type == 'checkbox') {
-				thisOpt.checked = (getGlobalSetting(thisOpt.id)=='true') ? true : false;
-			} else {
-				thisOpt.value = getGlobalSetting(thisOpt.id);
-				thisOpt.text = thisOpt.value;
-			}
-		}
-	}
-}
-
-function getGlobalSetting(settingName) {
-
-	var rtnValue = getCookie('chartGlobSetting_' + settingName, '-RETURN-DEFAULT-SETTING-');
-
-	if (rtnValue != '-RETURN-DEFAULT-SETTING-') {
-		return rtnValue;
-	} else {
-	
-		if (typeof globalSettingsDefaults[settingName] == 'undefined') {
-			alert('You have referenced a global setting (' + settingName + '), but have not defined a default value for it! Please defined a def-value in the object called globalSettingsDefaults that is located within the global scope of jqplotWrapper.js');
-		} else {
-			return String(globalSettingsDefaults[settingName]);
-		}
-	}
-
-}
-
-function setGlobalSetting(settingName, newValue) {
-	setCookie('chartGlobSetting_' + settingName, newValue);
-}
-
 function alterChartByGlobals(chartParamObj) {
 	
+	/*
+	  Global settings by cookie name are: 
+	  	chartGlobal_barShadows, chartGlobal_barShadowDepth,
+	  	chartGlobal_dropShadows, chartGlobal_gridLies, 
+	  	chartGlobal_fadingDisabeled
+	*/
+	
 	// Show bar shadows?
-	if (getGlobalSetting('barShadows') == 'true') {
+	var chartGlobal_barShadows = getCookie('chartGlobal_barShadows', 'no-setting');
+	if (chartGlobal_barShadows == 'true') {
 		chartParamObj.seriesDefaults.rendererOptions.shadowDepth = 3;
 		chartParamObj.seriesDefaults.rendererOptions.shadowOffset = 3;
 	}
 	
 	// Depth of bar shadows?
-	if (getGlobalSetting('barShadowDepth') != 'no-setting' && getGlobalSetting('barShadows') == 'true') {
-		chartParamObj.seriesDefaults.rendererOptions.shadowDepth = getGlobalSetting('barShadowDepth');
-		chartParamObj.seriesDefaults.rendererOptions.shadowOffset = getGlobalSetting('barShadowDepth');
+	var chartGlobal_barShadowDepth = getCookie('chartGlobal_barShadowDepth', 'no-setting');
+	if (chartGlobal_barShadowDepth != 'no-setting' && chartGlobal_barShadows == 'true') {
+		chartParamObj.seriesDefaults.rendererOptions.shadowDepth = chartGlobal_barShadowDepth;
+		chartParamObj.seriesDefaults.rendererOptions.shadowOffset = chartGlobal_barShadowDepth;
 	}
 	
 	// grid-lines?
-	if (getGlobalSetting('gridLines') == 'true') {
+	var chartGlobal_gridLies = getCookie('chartGlobal_gridLies', 'false');
+	if (chartGlobal_gridLies != 'false') {
+		chartParamObj.seriesDefaults.rendererOptions.shadowDepth = chartGlobal_barShadowDepth;
 		chartParamObj.grid.gridLineWidth = 1;
 		chartParamObj.grid.borderWidth = 0;
 		delete chartParamObj.grid.gridLineColor;
@@ -1331,33 +1269,19 @@ function alterChartByGlobals(chartParamObj) {
 	}
 	
 	// grid-lines?
-	if (getGlobalSetting('dropShadows') != 'false') {
+	var chartGlobal_dropShadows = getCookie('chartGlobal_dropShadows', 'false');
+	if (chartGlobal_dropShadows != 'false') {
 		chartParamObj.grid.shadow = true;
 	}	
-
-	// point labels?
-	if (getGlobalSetting('pointLabels') == 'true') {
-		chartParamObj.seriesDefaults.pointLabels.show = true;
-	}
-	
-	// point labels outline?
-		/* no alterations to the chartParamObject needs to be done here, this is handeled by removeDecFromPointLabels() */	
-	
 	
 	return chartParamObj;
 }
 
 function redrawAllCharts() {
 
-	for (var uniqueid in chartsOnDOM) {
-	
-		var thisParamObj = chartsOnDOM[uniqueid];
-		
-		// redraw chart
+	for (var uniqueid in chartsOnDOM) {	
+		var thisParamObj = chartsOnDOM[uniqueid];		
 		createJQChart(thisParamObj);
-		
-		// refreash Global Settings UI
-		globalSettingRefreashUI(thisParamObj);
 	}
 
 }
