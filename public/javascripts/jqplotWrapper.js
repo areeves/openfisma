@@ -395,6 +395,7 @@ function createJQChart_StackedBar(param)
 			shadow: false,
 			borderWidth: 1,
 			gridLineColor: '#FFFFFF',
+			background: 'transparent',
 			drawGridLines: param['drawGridLines'],
 			show: param['drawGridLines']
 			},

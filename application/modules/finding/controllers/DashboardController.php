@@ -35,7 +35,15 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         parent::preDispatch();
 
         $this->_acl->requireArea('finding');
-
+        
+        // Get a list of organization IDs that this user can see
+        $orgSystems = $this->_me->getOrganizationsByPrivilege('finding', 'read')->toArray();
+        $orgSystemIds = array(0);
+        foreach ($orgSystems as $orgSystem) {
+            $orgSystemIds[] = $orgSystem['id'];
+        }
+        $this->_myOrgSystemIds = $orgSystemIds;
+        
         $this->_helper->fismaContextSwitch()
                       ->addActionContext('chartoverdue', 'json')
                       ->addActionContext('chartfindingstatus', 'json')
@@ -308,6 +316,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             ->from('Organization o')
             ->leftJoin('o.Findings f')
             ->whereIn('f.responsibleorganizationid=o.id')
+            ->andWhereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
             ->where($parLft . ' < o.lft')
             ->andWhere($parRgt . ' > o.rgt')
             ->groupBy('o.nickname, f.threatlevel')
@@ -315,7 +324,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
 
         $rtn = $q->execute();
         
-        if ($includeParent === true) {
+        if ($includeParent === true && array_search($orgId, $this->_myOrgSystemIds) !== false) {
 
             $q = Doctrine_Query::create();
             $q
@@ -350,6 +359,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 ->from('Organization o')
                 ->leftJoin('o.System s')
                 ->where('s.type = ?', $orgType)
+                ->whereIn('o.id ', $this->_myOrgSystemIds)
                 ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
                 ->orderBy('o.nickname');
 
@@ -363,6 +373,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 ->from('Organization o')
                 ->leftJoin('o.System s')
                 ->where('s.type = "gss" OR s.type = "major"')
+                ->whereIn('o.id ', $this->_myOrgSystemIds)
                 ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
                 ->orderBy('o.nickname');
 
@@ -375,6 +386,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 ->addSelect('id, nickname')
                 ->from('Organization o')
                 ->where('orgtype = ?', $orgType)
+                ->whereIn('o.id ', $this->_myOrgSystemIds)
                 ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
                 ->orderBy('o.nickname');
 
@@ -419,6 +431,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                     ', 1, 0)) a')
                 ->from('Finding f')
                 ->where('DATEDIFF(NOW(), f.nextduedate) > 0')
+                ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
                 ->setHydrationMode(Doctrine::HYDRATE_SCALAR);
 
             $rslt = $q->execute();
@@ -732,6 +745,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             ->from('Finding f')
             ->groupBy('f.denormalizedstatus, f.threatlevel')
             ->orderBy('f.denormalizedstatus, f.threatlevel')
+            ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
             ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
         $rslts = $q->execute();
 
@@ -834,6 +848,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 ->where('f.threatlevel = "LOW" AND ' .
                     '(f.status="NEW" OR f.status="DRAFT") AND ' .
                     '(DATEDIFF(NOW(), f.createdts) BETWEEN "' . $fromDay . '" AND "' . $toDay . '")')
+                ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
                 ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
             $highCount[] = $q->count();
 
@@ -844,6 +859,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 ->where('f.threatlevel = "MODERATE" AND ' .
                     '(f.status="NEW" OR f.status="DRAFT") AND ' .
                     '(DATEDIFF(NOW(), f.createdts) BETWEEN "' . $fromDay . '" AND "' . $toDay . '")')
+                ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
                 ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
             $modCount[] = $q->count();
 
@@ -854,6 +870,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 ->where('f.threatlevel = "HIGH" AND ' .
                     '(f.status="NEW" OR f.status="DRAFT") AND ' .
                     '(DATEDIFF(NOW(), f.createdts) BETWEEN "' . $fromDay . '" AND "' . $toDay . '")')
+                ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
                 ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
             $lowCount[] = $q->count();
 
@@ -939,6 +956,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 ->from('Finding f')
                 ->where('f.countermeasureseffectiveness = "HIGH" AND ' .
                     '(f.currentecd BETWEEN "' . $fromDayStr . '" AND "' . $toDayStr . '")')
+                ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
                 ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
             $highCount = $q->count();
 
@@ -948,6 +966,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 ->from('Finding f')
                 ->where('f.countermeasureseffectiveness = "MODERATE" AND ' .
                     '(f.currentecd BETWEEN "' . $fromDayStr . '" AND "' . $toDayStr . '")')
+                ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
                 ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
             $modCount = $q->count();
 
@@ -957,6 +976,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 ->from('Finding f')
                 ->where('f.countermeasureseffectiveness = "LOW" AND ' .
                     '(f.currentecd BETWEEN "' . $fromDayStr . '" AND "' . $toDayStr . '")')
+                ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
                 ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
             $lowCount = $q->count();
 
