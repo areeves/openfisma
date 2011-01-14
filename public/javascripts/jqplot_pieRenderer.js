@@ -5,8 +5,8 @@
  * choose the license that best suits your project and use it accordingly. 
  *
  * The author would appreciate an email letting him know of any substantial
- * use of jqPlot.  You can reach the author at: chris dot leonello at gmail 
- * dot com or see http://www.jqplot.com/info.php .  This is, of course, 
+ * use of jqPlot.  You can reach the author at: chris at jqplot dot com 
+ * or see http://www.jqplot.com/info.php .  This is, of course, 
  * not required.
  *
  * If you are feeling kind and generous, consider supporting the project by
@@ -131,8 +131,10 @@
         // -90 = on the positive y axis.
         // 90 = on the negaive y axis.
         // 180 or - 180 = on the negative x axis.
-        this.startAngle = 0;
+        this.startAngle = -90;
         this.tickRenderer = $.jqplot.PieTickRenderer;
+        // Used as check for conditions where pie shouldn't be drawn.
+        this._drawData = true;
         
         // if user has passed in highlightMouseDown option and not set highlightMouseOver, disable highlightMouseOver
         if (options.highlightMouseDown && options.highlightMouseOver == null) {
@@ -183,7 +185,13 @@
         var td = [];
         var sa = this.startAngle/180*Math.PI;
         var tot = 0;
+        // don't know if we have any valid data yet, so set plot to not draw.
+        this._drawData = false;
         for (var i=0; i<this.data.length; i++){
+            if (this.data[i][1] != 0) {
+                // we have data, O.K. to draw.
+                this._drawData = true;
+            }
             stack.push(this.data[i][1]);
             td.push([this.data[i][0]]);
             if (i>0) {
@@ -205,7 +213,13 @@
         var td = [];
         var tot = 0;
         var sa = this.startAngle/180*Math.PI;
+        // don't know if we have any valid data yet, so set plot to not draw.
+        this._drawData = false;
         for (var i=0; i<data.length; i++){
+            if (this.data[i][1] != 0) {
+                // we have data, O.K. to draw.
+                this._drawData = true;
+            }
             stack.push(data[i][1]);
             td.push([data[i][0]]);
             if (i>0) {
@@ -223,25 +237,27 @@
     };
     
     $.jqplot.PieRenderer.prototype.drawSlice = function (ctx, ang1, ang2, color, isShadow) {
-        var r = this._diameter / 2;
-        var fill = this.fill;
-        var lineWidth = this.lineWidth;
-        ctx.save();
-        ctx.translate(this._center[0], this._center[1]);
-        ctx.translate(this.sliceMargin*Math.cos((ang1+ang2)/2), this.sliceMargin*Math.sin((ang1+ang2)/2));
-        
-        if (isShadow) {
-            for (var i=0; i<this.shadowDepth; i++) {
-                ctx.save();
-                ctx.translate(this.shadowOffset*Math.cos(this.shadowAngle/180*Math.PI), this.shadowOffset*Math.sin(this.shadowAngle/180*Math.PI));
+        if (this._drawData) {
+            var r = this._diameter / 2;
+            var fill = this.fill;
+            var lineWidth = this.lineWidth;
+            ctx.save();
+            ctx.translate(this._center[0], this._center[1]);
+            ctx.translate(this.sliceMargin*Math.cos((ang1+ang2)/2), this.sliceMargin*Math.sin((ang1+ang2)/2));
+    
+            if (isShadow) {
+                for (var i=0; i<this.shadowDepth; i++) {
+                    ctx.save();
+                    ctx.translate(this.shadowOffset*Math.cos(this.shadowAngle/180*Math.PI), this.shadowOffset*Math.sin(this.shadowAngle/180*Math.PI));
+                    doDraw();
+                }
+            }
+    
+            else {
                 doDraw();
             }
         }
-        
-        else {
-            doDraw();
-        }
-        
+    
         function doDraw () {
             // Fix for IE and Chrome that can't seem to draw circles correctly.
             // ang2 should always be <= 2 pi since that is the way the data is converted.
@@ -253,10 +269,10 @@
             }
             // Fix for IE, where it can't seem to handle 0 degree angles.  Also avoids
             // ugly line on unfilled pies.
-            if (ang1 == ang2) {
+            if (ang1 >= ang2) {
                 return;
             }            
-            
+        
             ctx.beginPath();  
             ctx.fillStyle = color;
             ctx.strokeStyle = color;
@@ -264,7 +280,7 @@
             ctx.arc(0, 0, r, ang1, ang2, false);
             ctx.lineTo(0,0);
             ctx.closePath();
-            
+        
             if (fill) {
                 ctx.fill();
             }
@@ -340,7 +356,7 @@
         this._diameter = this.diameter  || d - this.sliceMargin;
 
         var r = this._radius = this._diameter/2;
-        var sa = -90 / 180 * Math.PI;
+        var sa = this.startAngle / 180 * Math.PI;
         this._center = [(cw - trans * offx)/2 + trans * offx, (ch - trans*offy)/2 + trans * offy];
         
         if (this.shadow) {
@@ -354,18 +370,16 @@
             
         }
         
-         
          // damian: required for line labels
          var origin = {
                  x: parseInt(ctx.canvas.style.left) + cw/2,
                  y: parseInt(ctx.canvas.style.top) + ch/2
          };
-         
+
          var total = 0;
          for (var i=0; i<gd.length; i++) {
              total += this._plotData[i][1];
          }  
-                 
         
         for (var i=0; i<gd.length; i++) {
             var ang1 = (i == 0) ? sa : gd[i-1][1] + sa;
@@ -373,79 +387,19 @@
             ang1 += this.sliceMargin/180*Math.PI;
             var ang2 = gd[i][1] + sa;
             this._sliceAngles.push([ang1, ang2]);
-            
+                      
             this.renderer.drawSlice.call (this, ctx, ang1, ang2, colorGenerator.next(), false);
-            
-            
-            
-             // damian: line labels
-             if (typeof(this.lineLabels !== 'undefined') && this.lineLabels) {
-             
-                 // percentage
-                 var percentage = this._plotData[i][1] * 100 / total;
-                 percentage = (percentage < 1) ? percentage.toFixed(2) : Math.round(percentage);
-                     
-                 var mid_ang = ang2 + (gd[i][1]-ang2)/2;
-                 
-                 // line style
-                 if (typeof(this.lineLabelsLineColor) !== 'undefined') {
-                     ctx.strokeStyle = this.lineLabelsLineColor;
-                 } else {
-                     ctx.strokeStyle = '#777';
-                 }
-                 ctx.lineWidth   = 1;
-     
-                 // line 1
-                 //ctx.beginPath();
-                 var line1_start_x = Math.cos(mid_ang) * this._diameter/1.9;
-                 var line1_start_y = Math.sin(mid_ang) * this._diameter/1.9;
-                 //ctx.moveTo(line1_start_x, line1_start_y); 
-                 var line1_end_x = Math.cos(mid_ang) * this._diameter/1.63;
-                 var line1_end_y = Math.sin(mid_ang) * this._diameter/1.63;
-                 //ctx.lineTo(line1_end_x, line1_end_y);
-                 
-                 // line 2
-                 var line2_end_x_offset = (mid_ang >= 4.712 || mid_ang <= 1.57) ? 6 : -6;
-                 var line2_end_x = line1_end_x + line2_end_x_offset;
-                 var line2_end_y = line1_end_y;    
-                 /*ctx.lineTo(line2_end_x, line2_end_y);
-                 ctx.stroke();
-                 ctx.closePath();*/
-                 
-                 // label
-                 var l = $("<div class='jqplot-pie-line-label' style='position: absolute;'>"+gd[i][0]+"</div>").insertAfter(ctx.canvas);
-                 var l_x_offset = (mid_ang >= 4.712 || mid_ang <= 1.57) ? 4 : -1 * l.width() - 4;
-                 var l_y_offset = -1 * l.height() / 2;
-                 var l_x = line2_end_x + origin.x + l_x_offset;
-                 var l_y = line2_end_y + origin.y + l_y_offset;
-                 l.css({left: l_x+"px", top: l_y+"px"});
-                 
-     //            console.log(gd[i][0]+':');
-     //            console.log('  mid_ang: '+mid_ang);
-     //            console.log('  l_x_offset: '+l_x_offset);
-     //            console.log('  l_y_offset: '+l_y_offset);
-     //            console.log('  l_x: '+l_x);
-     //            console.log('  l_y: '+l_y);
-     //            console.log('  line1_start_x: '+line1_start_x);
-     //            console.log('  line1_start_y: '+line1_start_y);
-     //            console.log('  line1_end_x: '+line1_end_x);
-     //            console.log('  line1_end_y: '+line1_end_y);
-     //            console.log('  line2_end_x_offset: '+line2_end_x_offset);
-     //            console.log('  line2_end_x: '+line2_end_x);
-     //            console.log('  line2_end_y: '+line2_end_y);
-             }
-            
-            
+        
             if (this.showDataLabels && gd[i][2]*100 >= this.dataLabelThreshold) {
                 var fstr, avgang = (ang1+ang2)/2, label;
-                
+            
                 if (this.dataLabels == 'label') {
                     fstr = this.dataLabelFormatString || '%s';
                     label = $.jqplot.sprintf(fstr, gd[i][0]);
                 }
                 else if (this.dataLabels == 'value') {
                     fstr = this.dataLabelFormatString || '%d';
-                    label = $.jqplot.sprintf(fstr, gd[i][1]);
+                    label = $.jqplot.sprintf(fstr, this.data[i][1]);
                 }
                 else if (this.dataLabels == 'percent') {
                     fstr = this.dataLabelFormatString || '%d%%';
@@ -455,12 +409,12 @@
                     fstr = this.dataLabelFormatString || '%s';
                     label = $.jqplot.sprintf(fstr, this.dataLabels[i]);
                 }
-                
+            
                 var fact = (this._radius ) * this.dataLabelPositionFactor + this.sliceMargin + this.dataLabelNudge;
-                
+            
                 var x = this._center[0] + Math.cos(avgang) * fact + this.canvas._offsets.left;
                 var y = this._center[1] + Math.sin(avgang) * fact + this.canvas._offsets.top;
-                
+            
                 var labelelem = $('<div class="jqplot-pie-series jqplot-data-label" style="position:absolute;">' + label + '</div>').insertBefore(plot.eventCanvas._elem);
                 if (this.dataLabelCenterOn) {
                     x -= labelelem.width()/2;
@@ -474,6 +428,40 @@
                 y = Math.round(y);
                 labelelem.css({left: x, top: y});
             }
+            
+             // damian: line labels
+             if (typeof(this.lineLabels !== 'undefined') && this.lineLabels) {
+             
+                 // percentage
+                 var percentage = this._plotData[i][1] * 100 / total;
+                 percentage = (percentage < 1) ? percentage.toFixed(2) : Math.round(percentage);
+                    
+                 var mid_ang = (ang1 + (gd[i][1]-ang1)/2);
+                 mid_ang += 5.49778714; 4.71238898; //(3 * Math.pi) / 2 ; // 4.71238898;
+                 
+                 // line 1
+                 var incDiameter = 10;
+                 var line1_start_x = Math.cos(mid_ang) * ((this._diameter/1.9) + incDiameter);
+                 var line1_start_y = Math.sin(mid_ang) * ((this._diameter/1.9) + incDiameter);
+                 var line1_end_x = Math.cos(mid_ang) * ((this._diameter/1.63) + incDiameter);
+                 var line1_end_y = Math.sin(mid_ang) * ((this._diameter/1.63) + incDiameter);
+                 
+                 // line 2
+                 var line2_end_x_offset = (mid_ang >= 4.712 || mid_ang <= 1.57) ? 6 : -6;
+                 var line2_end_x = line1_end_x + line2_end_x_offset;
+                 var line2_end_y = line1_end_y;    
+                 
+                 // label
+                 var l = $("<div class='jqplot-pie-line-label' style='position: absolute;'>"+gd[i][0]+"</div>").insertAfter(ctx.canvas);
+                 var l_x_offset = (mid_ang >= 4.712 || mid_ang <= 1.57) ? 4 : -1 * l.width() - 4;
+                 var l_y_offset = -1 * l.height() / 2;
+                 var l_x = line2_end_x + origin.x + l_x_offset;
+                 var l_y = line2_end_y + origin.y + l_y_offset;
+                 l_x -= 30;
+                 //l_y += 10;
+                 l.css({left: l_x+"px", top: l_y+"px"});
+            }    
+            
         }
                
     };
@@ -680,6 +668,7 @@
             options.axesDefaults.renderer = $.jqplot.PieAxisRenderer;
             options.legend.renderer = $.jqplot.PieLegendRenderer;
             options.legend.preDraw = true;
+            options.seriesDefaults.pointLabels = {show: false};
         }
     }
     
@@ -797,9 +786,9 @@
         this.plugins.pieRenderer.highlightCanvas = new $.jqplot.GenericCanvas();
         
         // do we have any data labels?  if so, put highlight canvas before those
-        var labels = this.target.find('.jqplot-data-label:first');
+        var labels = $(this.targetId+' .jqplot-data-label');
         if (labels.length) {
-            labels.before(this.plugins.pieRenderer.highlightCanvas.createElement(this._gridPadding, 'jqplot-pieRenderer-highlight-canvas', this._plotDimensions));
+            $(labels[0]).before(this.plugins.pieRenderer.highlightCanvas.createElement(this._gridPadding, 'jqplot-pieRenderer-highlight-canvas', this._plotDimensions));
         }
         // else put highlight canvas before event canvas.
         else {

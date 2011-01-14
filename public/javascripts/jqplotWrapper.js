@@ -286,6 +286,21 @@ function createChartJQPie(param)
             drawGridlines: false,
             shadow: false
         },
+        axes: {
+            xaxis:{
+                tickOptions: {
+                    angle: param['DataTextAngle'],
+                    fontSize: '10pt',
+                    formatString: '%.0f'
+                }
+            },
+            yaxis:{
+                tickOptions: {
+                    formatString: '%.0f'
+                }
+            }
+
+        },
         seriesDefaults:{
             renderer:$.jqplot.PieRenderer,
             rendererOptions: {
@@ -297,12 +312,12 @@ function createChartJQPie(param)
                 lineLabelsLineColor: '#777'
             }
         },
-                legend: {
+        legend: {
+            location: 's',
             show: false,
             rendererOptions: {
                 numberRows: 1
-            },
-            location: 's'
+            }
         }
 
 
