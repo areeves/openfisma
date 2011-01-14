@@ -33,7 +33,11 @@
     </div>
 
     <br/>
-    <div id="<?php echo $this->escape($this->chartId, 'none');?>WidgetSpaceHolder" class="yui-navset" style="display: none; width: 400px; margin-left: auto; margin-right: auto;">
+    <div 
+        id="<?php echo $this->escape($this->chartId, 'none');?>WidgetSpaceHolder" 
+        class="yui-navset" 
+        style="display: none; width: 400px; margin-left: auto; margin-right: auto;"
+    >
         <ul class="yui-nav">
             <li class="selected">
                 <a href="#tab1">
@@ -53,12 +57,22 @@
                     <!-- char params and widgets placed here by JavaScript -->
                 </div>
                 
-                <div style="width: 100%; text-align: right;"><input type="button" value="Hide Settings" onClick="setChartSettingsVisibility('<?php echo $this->escape($this->chartId, 'none'); ?>', false);" /></div>
+                <div style="width: 100%; text-align: right;">
+                    <input 
+                        type="button" value="Hide Settings" 
+                        onClick="setChartSettingsVisibility('<?php 
+                            echo $this->escape($this->chartId, 'none');
+                            ?>', false);" 
+                    />
+                </div>
                 
             </div>
             <div id="tab2">
                 
-                <div id="<?php echo $this->escape($this->chartId, 'none');?>GlobSettings" onClick="globalSettingUpdate('<?php echo $this->escape($this->chartId, 'none');?>');" style="text-align: left; ">
+                <div 
+                    id="<?php echo $this->escape($this->chartId, 'none');?>GlobSettings" 
+                    onClick="globalSettingUpdate('<?php echo $this->escape($this->chartId, 'none');?>');" 
+                    style="text-align: left; ">
                 <input type="checkbox" id="pointLabels" />
                     Draw point-labels (numbers on top of bars) <br/>
                 <input type="checkbox" id="pointLabelsOutline" />
@@ -75,7 +89,13 @@
                     Disable fading effects <br/>
                 </div>
                 
-                <div style="width: 100%; text-align: right;"><input type="button" value="Hide Settings" onClick="setChartSettingsVisibility('<?php echo $this->escape($this->chartId, 'none'); ?>', false);" /></div>
+                <div style="width: 100%; text-align: right;">
+                    <input type="button" value="Hide Settings"
+                        onClick="setChartSettingsVisibility('<?php 
+                            echo $this->escape($this->chartId, 'none'); 
+                            ?>', false);"
+                    />
+                </div>
                 
             </div>
         </div>
@@ -96,3 +116,4 @@
     var thisChartObjData = <?php echo $this->escape($this->chartParamArr, 'json'); ?>;
     createJQChart(thisChartObjData);
 </script>
+

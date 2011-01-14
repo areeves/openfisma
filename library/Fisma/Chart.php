@@ -154,6 +154,14 @@ class Fisma_Chart
         return $this;
     }
     
+    /**
+     * Forces the canvas objects to be held in a scrollable div
+     * If this is set false, the JavaScript wrapper may still place the canvases into
+     * scrollable div if the width given by Fisma_Chart->setWidth() is too narrow to
+     * contain the chart.
+     * 
+     * @return Fisma_Chart
+     */
     private function setWidthAuto($inBoolean)
     {
         $this->chartParamArr['autoWidth'] = $inBoolean;
@@ -397,6 +405,11 @@ class Fisma_Chart
         return $this;
     }
     
+    /**
+     * Returns the number of columns/bar in Fisma_Chart's data array so far.
+     * 
+     * @return integer
+     */
     public function getColumnCount()
     {
         if (strpos($this->getChartType(), 'stacked') === false) {
@@ -461,15 +474,15 @@ class Fisma_Chart
         $layers = $this->chartParamArr['chartData'];
         $newColData = array();
 
-        for ($C = 0; $C < count($layers[0]); $C++) {                    
+        for ($c = 0; $c < count($layers[0]); $c++) {
             
             $thisColumnTotal = 0;
             
-            for ($L = 0; $L < count($layers); $L++) {
-                $thisColumnTotal += $layers[$L][$C];
+            for ($l = 0; $l < count($layers); $l++) {
+                $thisColumnTotal += $layers[$l][$c];
             }
             
-            $newColData[$C] = $thisColumnTotal;
+            $newColData[$c] = $thisColumnTotal;
         }
         
         // update chart type
@@ -481,8 +494,7 @@ class Fisma_Chart
         $this->setData($newColData);
         
         return $this;
-    }
-    
+    }    
     
     /**
      * Overrides, erases, and sets the link array (or string) for chart elements to link to
