@@ -28,7 +28,8 @@ var globalSettingsDefaults = {
     dropShadows:        false,
     gridLines:          false,
     pointLabels:        false,
-    pointLabelsOutline: false
+    pointLabelsOutline: false,
+    showDataTable: false
 }
 
 // Remember all chart paramiter objects which are drawn on the DOM within global var chartsOnDom
@@ -206,7 +207,21 @@ function createJQChart(param)
     applyChartBorders(param);
     globalSettingRefreashUI(param);
     
-    document.getElementById(param['uniqueid'] + 'table').innerHTML = getTableFromChartData(param);
+    // Handel table for screen readers
+    var dataTableObj = document.getElementById(param['uniqueid'] + 'table');
+    dataTableObj.innerHTML = getTableFromChartData(param);
+    if (getGlobalSetting('showDataTable') === 'true') {
+        // Show the table generated based on chart data
+        dataTableObj.style.display = '';
+        // Hide, erase, and collapse the container of the chart divs
+        document.getElementById(param['uniqueid']).innerHTML = '';
+        document.getElementById(param['uniqueid']).style.width = 0;
+        document.getElementById(param['uniqueid']).style.height = 0;
+        // Ensure the threat-level-legend is hidden
+        document.getElementById(param['uniqueid'] + 'toplegend').style.display = 'none';
+    } else {
+        dataTableObj.style.display = 'none';
+    }
 
     return rtn;
 }
@@ -1125,11 +1140,11 @@ function setChartWidthAttribs(param) {
  */
 function getTableFromChartData(param)
 {
-    var HTML = '<table>';
+    var HTML = '<table width="100%" border=1>';
     
     HTML += '<tr>';
     for (var x = 0; x < param['chartDataText'].length; x++) {
-        HTML += '<td>' + param['chartDataText'][x] + '</td>';
+        HTML += '<th nowrap><b>' + param['chartDataText'][x] + '</b></th>';
     }
     HTML += '</tr>';
 

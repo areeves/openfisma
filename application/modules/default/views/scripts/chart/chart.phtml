@@ -31,7 +31,14 @@
                 Loading chart data...
             </div>
     </div>
-
+    
+    <div
+        id="<?php echo $this->escape($this->chartId, 'none'); ?>table"
+        style="display: none; width: 100%;"
+        width="100%"
+    >
+    </div>   
+    
     <br/>
     <div 
         id="<?php echo $this->escape($this->chartId, 'none');?>WidgetSpaceHolder" 
@@ -86,7 +93,9 @@
                 <input type="checkbox" id="gridLines"/>
                     Draw grid-lines <br/>
                 <input type="checkbox" id="fadingDisabeled"/>
-                    Disable fading effects <br/>
+		    Disable fading effects <br/>
+                <input type="checkbox" id="showDataTable"/>
+		    Show table of raw numbers instead of chart <br/>
                 </div>
                 
                 <div style="width: 100%; text-align: right;">
@@ -105,9 +114,6 @@
         var thisName = <?php echo $this->escape($this->chartId, 'none');?>WidgetSpaceHolder;
         var tabView = new YAHOO.widget.TabView(thisName);
     </script> 
-    
-    <div id="<?php echo $this->escape($this->chartId, 'none'); ?>table" style="display:none">
-    </div>   
     
 </div>
 
