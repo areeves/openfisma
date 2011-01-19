@@ -172,7 +172,6 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             $rtnChart = new Fisma_Chart();
             $rtnChart
                 ->setThreatLegendVisibility(true)
-                ->setColumnLabelAngle(0)
                 ->setThreatLegendWidth(450)
                 ->setAxisLabelY('Number of Findings')
                 ->setChartType('stackedbar')

@@ -589,9 +589,12 @@ function chartClickEvent(ev, seriesIndex, pointIndex, data, paramObj) {
         if (theLink != false) { msg += "The link with this element is " + theLink; }
         alert(msg);
     } else {
-        if (theLink != false) {
+    
+        // We are not in link-debug mode, navigate if there is a link
+        if (theLink != false && String(theLink) != 'null') {
             document.location = theLink;
         }
+        
     }
 }
 
