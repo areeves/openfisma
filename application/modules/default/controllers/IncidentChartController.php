@@ -72,6 +72,19 @@ class IncidentChartController extends Fisma_Zend_Controller_Action_Security
          * the query is structured (indexed by month number, which would wrap around with a 12+ month period)
          */
         $period = $this->getRequest()->getParam('period');
+        $period = substr($period, 0, 1) * 1;    // converts "5 months of history" to 5
+        
+        $rtnChart = new Fisma_Chart();
+        $rtnChart
+            ->setLayerLabels(
+                array(
+                    'Reported Incidents',
+                    'Resolved Incidents',
+                    'Rejected Incidents'
+                )
+            )
+            ->setChartType('stackedbar')
+            ->setTitle('Incidents reported, resolved, and rejected (past ' . $period . ' months)');
         
         if (!is_int((int)$period) || $period > 12) {
             $message = "Incident status chart period parameter must be an integer less than or equal to 12.";
@@ -134,24 +147,14 @@ class IncidentChartController extends Fisma_Zend_Controller_Action_Security
                 $thisRejected = $closedIncidents[$currentMonthNumber]['rejected'];
             }
 
-            $chartData['reported'][] = $thisReported;
-            $chartData['resolved'][] = $thisResolved;
-            $chartData['rejected'][] = $thisRejected;
-            
-            $chartDataText[] = $thisMonthName;
+            $rtnChart->addColumn(
+                $thisMonthName,
+                array($thisReported, $thisResolved, $thisRejected)
+            );
+                
         }
         
-        $chartData = array_values($chartData);  // whipe out keys
-        
-        $this->view->chart = array(
-            'chartData'         => $chartData,
-            'chartDataText'     => $chartDataText,
-            'chartLayerText'    => array(
-                'Reported Incidents',
-                'Resolved Incidents',
-                'Rejected Incidents'
-            )
-        );
+        $this->view->chart = $rtnChart->export('array');
     }
     
     /**
@@ -159,6 +162,11 @@ class IncidentChartController extends Fisma_Zend_Controller_Action_Security
      */
     public function categoryAction()
     {
+        $rtnChart = new Fisma_Chart();
+        $rtnChart
+            ->setChartType('pie')
+            ->setTitle('Breakdown of all open incidents by category');
+    
         $categoryQuery = Doctrine_Query::create()
                          ->select('category.name, category.category, COUNT(category.id) AS count')
                          ->from('IrCategory category INDEXBY category')
@@ -176,13 +184,13 @@ class IncidentChartController extends Fisma_Zend_Controller_Action_Security
         reset($catQueryRslt);
         while ($thisElement = current($catQueryRslt)) {
             
-            $chartData[] = $thisElement['count'];
-            $chartDataText[] = key($catQueryRslt) . ' - ' . $thisElement['name'];
+            $thisLabel = key($catQueryRslt) . ' - ' . $thisElement['name'];
+            $rtnChart->addColumn($thisLabel, $thisElement['count']);
             
             next($catQueryRslt);
         }
         
-        $this->view->chart = array('chartData' => $chartData, 'chartDataText' => $chartDataText);
+        $this->view->chart = $rtnChart->export('array');
     }
     
     /**
@@ -190,6 +198,11 @@ class IncidentChartController extends Fisma_Zend_Controller_Action_Security
      */
     public function bureauAction()
     {
+        $rtnChart = new Fisma_Chart();
+        $rtnChart
+            ->setChartType('bar')
+            ->setTitle('Incidents per bureau reported in the last 90 days');
+    
         $cutoffDate = Zend_Date::now()->subDay(90)->toString(Fisma_Date::FORMAT_DATETIME);
 
         $bureauQuery = Doctrine_Query::create()
@@ -206,14 +219,10 @@ class IncidentChartController extends Fisma_Zend_Controller_Action_Security
         
         $burQueryRslt = $bureauQuery->execute();
         
-        $chartData = array();
-        $chartDataText = array();
-        
         foreach ($burQueryRslt as $thisElement) {
-            $chartData[] = $thisElement['i_count'];
-            $chartDataText[] = $thisElement['bureau_nickname'];
+            $rtnChart->addColumn($thisElement['bureau_nickname'], $thisElement['i_count']);
         }
-        
-        $this->view->chart = array('chartData' => $chartData, 'chartDataText' => $chartDataText);
+
+        $this->view->chart = $rtnChart->export('array'); 
     }
 }

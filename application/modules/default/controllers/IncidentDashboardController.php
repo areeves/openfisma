@@ -87,37 +87,28 @@ class IncidentDashboardController extends Fisma_Zend_Controller_Action_Security
      */
     public function chartsAction()
     {
-        $this->view->statusChart = new Fisma_Chart(
-            array(
-                'title'             => 'Incidents reported, resolved, and rejected (past 6 months)',
-                'width'             => 450,
-                'height'            => 300,
-                'chartType'         => 'bar',
-                'barMargin'         => 0,
-                'externalSource'    => '/incident-chart/history/period/6/format/json'
-            )
-        );
+        $statusChart = new Fisma_Chart(450, 300, 'incidentHistory', '/incident-chart/history/format/json');
+        $statusChart
+            ->addWidget('period',
+                'Show:',
+                'combo',
+                '6 months of history',
+                array(
+                    '4 months of history',
+                    '5 months of history',
+                    '6 months of history',
+                    '7 months of history',
+                    '8 months of history'
+                )
+            );
             
-        $this->view->categoryChart = new Fisma_Chart(
-            array(
-                'width'             => 450,
-                'height'            => 300,
-                'chartType'         => 'pie',
-                'externalSource'    => '/incident-chart/category/format/json',
-                'legendLocation'    => 's',
-                'legendRowCount'    => 2
-            )
-        );
+        $this->view->statusChart = $statusChart->export('html');
         
-        $this->view->bureauChart = new Fisma_Chart(
-            array(
-                'width'             => 900,
-                'height'            => 300,
-                'title'             => 'Incidents per bureau reported in the last 90 days',
-                'chartType'         => 'bar',
-                'externalSource'    => '/incident-chart/bureau/format/json'
-            )
-        );
+        $categoryChart = new Fisma_Chart(450, 300, 'incidentCategories', '/incident-chart/category/format/json');
+        $this->view->categoryChart = $categoryChart->export('html');
+
+        $bureauChart = new Fisma_Chart(900, 300, 'incidentBureau', '/incident-chart/bureau/format/json');
+        $this->view->bureauChart = $bureauChart->export('html');
     }
     
     /**

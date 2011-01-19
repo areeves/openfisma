@@ -340,7 +340,7 @@ class Fisma_Chart
      * 
      * @return Fisma_Chart
      */
-    public function addColumn($columnLabel, $addValue, $addLink)
+    public function addColumn($columnLabel, $addValue, $addLink = null)
     {
         // Add label for this column
         $this->chartParamArr['chartDataText'][] = $columnLabel;
@@ -398,7 +398,10 @@ class Fisma_Chart
             
             for ($layer = 0; $layer < count($addValue); $layer++) {
                 $this->chartParamArr['chartData'][$layer][] = $addValue[$layer];
-                $this->chartParamArr['links'][$layer][] = $addLink[$layer];
+                
+                if (!empty($addLink)) {
+                    $this->chartParamArr['links'][$layer][] = $addLink[$layer];
+                }
             }
         }
         

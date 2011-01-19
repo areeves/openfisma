@@ -741,9 +741,19 @@ function applyChartBackground(param) {
  */
 function applyChartWidgets(param) {
 
+    var wigSpace = document.getElementById(param['uniqueid'] + 'WidgetSpace');
+
+    // Are there widgets for this chart?
+    if (typeof param['widgets'] == 'undefined') {
+        wigSpace.innerHTML = '<br/><i>There are no parameters for this chart.</i><br/><br/>';
+        return;
+    } else if (param['widgets'].length == 0) {
+        wigSpace.innerHTML = '<br/><i>There are no parameters for this chart.</i><br/><br/>';
+        return;
+    }
+
     if (param['widgets']) {
 
-        var wigSpace = document.getElementById(param['uniqueid'] + 'WidgetSpace');
         var addHTML = '';
 
         for (var x = 0; x < param['widgets'].length; x++) {
@@ -757,7 +767,7 @@ function applyChartWidgets(param) {
             }
 
             // print the label text to be displayed to the left of the widget if one is given
-            addHTML += '<tr><td align=left>' + thisWidget['label'] + ' </td><td><td width="10"></td><td align=left>';
+            addHTML += '<tr><td nowrap align=left>' + thisWidget['label'] + ' </td><td><td nowrap width="10"></td><td width="99%" align=left>';
 
             switch(thisWidget['type']) {
                 case 'combo':
@@ -791,6 +801,7 @@ function applyChartWidgets(param) {
 
         // add this widget HTML to the DOM
         wigSpace.innerHTML = '<table>' + addHTML + '</table>';
+        
     }
 
     applyChartWidgetSettings(param);
