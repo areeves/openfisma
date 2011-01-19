@@ -22,7 +22,7 @@
 
 // Defaults for global chart settings definition:
 var globalSettingsDefaults = {
-    fadingDisabeled:    true,
+    fadingEnabled:      false,
     barShadows:         false,
     barShadowDepth:     5,
     dropShadows:        false,
@@ -539,26 +539,26 @@ function createChartJQStackedLine(param)
  */
 function createChartThreatLegend(param)
 {
-        /*
-                Creates a red-orange-yellow legent above the chart
-        */
+    /*
+        Creates a red-orange-yellow legent above the chart
+    */
 
-        if (param['showThreatLegend']) {
-                if (param['showThreatLegend'] == true) {
-        
-                // Is a width given for the width of the legend? OR should we assume 100%?
-                var tLegWidth = '100%';
-                if (param['threatLegendWidth']) {
-                    tLegWidth = param['threatLegendWidth'];
-                }
-        
-                        var injectHTML = '<table width="' + tLegWidth + '">  <tr>    <td style="text-align: center;" width="40%"><b>Threat Level</b></td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FF0000" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;<b>High</b></td>      </tr>    </table>    </td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FF6600" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;<b>Moderate&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></td>      </tr>    </table>    </td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FFC000" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;<b>Low</b></td>      </tr>    </table>    </td>  </tr></table>';
-                        var thisChartId = param['uniqueid'];
-                        var topLegendOnDOM = document.getElementById(thisChartId + 'toplegend');
+    if (param['showThreatLegend']) {
+        if (param['showThreatLegend'] == true) {
 
-                        topLegendOnDOM.innerHTML = injectHTML;
-                }
-        }        
+            // Is a width given for the width of the legend? OR should we assume 100%?
+            var tLegWidth = '100%';
+            if (param['threatLegendWidth']) {
+                tLegWidth = param['threatLegendWidth'];
+            }
+
+            var injectHTML = '<table style="font-size: 12px" width="' + tLegWidth + '">  <tr>    <td style="text-align: center;" width="40%">Threat Level</td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FF0000" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;High</td>      </tr>    </table>    </td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FF6600" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;Moderate&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>      </tr>    </table>    </td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FFC000" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;Low</td>      </tr>    </table>    </td>  </tr></table>';
+            var thisChartId = param['uniqueid'];
+            var topLegendOnDOM = document.getElementById(thisChartId + 'toplegend');
+
+            topLegendOnDOM.innerHTML = injectHTML;
+        }
+    }        
 }
 
 function chartClickEvent(ev, seriesIndex, pointIndex, data, paramObj) {
@@ -951,12 +951,12 @@ function fadeIn(eid, TimeToFade) {
     if (element == null) return;
     
     
-    var chartGlobal_fadingDisabeled = getGlobalSetting('fadingDisabeled');
-    if (chartGlobal_fadingDisabeled != 'false') {
+    var fadingEnabled = getGlobalSetting('fadingEnabled');
+    if (fadingEnabled == 'false') {
         makeElementVisible(eid);
         if (element.finnishFadeCallback) {
             element.finnishFadeCallback();
-            element.finnishFadeCallback = '';
+            element.finnishFadeCallback = undefined;
         }
         return;
     }
@@ -983,12 +983,12 @@ function fadeOut(eid, TimeToFade) {
     var element = document.getElementById(eid);
     if (element == null) return;
 
-    var chartGlobal_fadingDisabeled = getGlobalSetting('fadingDisabeled');
-    if (chartGlobal_fadingDisabeled != 'false') {
+    var fadingEnabled = getGlobalSetting('fadingEnabled');
+    if (fadingEnabled == 'false') {
         makeElementInvisible(eid);
         if (element.finnishFadeCallback) {
             element.finnishFadeCallback();
-            element.finnishFadeCallback = '';
+            element.finnishFadeCallback = undefined;
         }
         return;
     }
@@ -1163,7 +1163,7 @@ function getTableFromChartData(param)
 {
     var HTML = '<table width="100%" border=1>';
     
-    HTML += '<tr>';
+    HTML += '<tr><td></td>';
     for (var x = 0; x < param['chartDataText'].length; x++) {
         HTML += '<th nowrap><b>' + param['chartDataText'][x] + '</b></th>';
     }
@@ -1173,6 +1173,7 @@ function getTableFromChartData(param)
 
         var thisEle = param['chartData'][x];
         HTML += '<tr>';
+        HTML += '<th><b>' + param['chartDataText'][x] + '</b></th>';
 
         if (typeof(thisEle) == 'object') {
 
@@ -1197,11 +1198,18 @@ function getTableFromChartData(param)
 
 function removeDecFromPointLabels(param)
 {
+        var outlineStyle = '';
         var chartOnDOM = document.getElementById(param['uniqueid']);
     
         for (var x = 0; x < chartOnDOM.childNodes.length; x++) {
                 
                 var thisChld = chartOnDOM.childNodes[x];
+                
+                // IE Support - IE does not support .classList, manually make this
+                if (typeof thisChld.classList == 'undefined') {
+                    thisChld.classList = String(thisChld.className).split(' ');
+                }
+                
                 if (thisChld.classList) {
                     if (thisChld.classList[0] == 'jqplot-point-label') {
 
@@ -1217,8 +1225,18 @@ function removeDecFromPointLabels(param)
 
                             // add outline to this point label so it is easily visible on dark color backgrounds (outlines are done through white-shadows)
                             if (getGlobalSetting('pointLabelsOutline') == 'true') {
-                                thisChld.innerHTML = '<span style="text-shadow: #FFFFFF 0px -1px 0px, #FFFFFF 0px 1px 0px, #FFFFFF 1px 0px 0px, #FFFFFF -1px 1px 0px, #FFFFFF -1px -1px 0px, #FFFFFF 1px 1px 0px; ' + param['pointLabelStyle'] + '">' + thisChld.innerHTML + '</span>';
+
+                                outlineStyle = 'text-shadow: ';
+                                outlineStyle += '#FFFFFF 0px -1px 0px, ';
+                                outlineStyle += '#FFFFFF 0px 1px 0px, ';
+                                outlineStyle += '#FFFFFF 1px 0px 0px, ';
+                                outlineStyle += '#FFFFFF -1px 1px 0px, ';
+                                outlineStyle += '#FFFFFF -1px -1px 0px, ';
+                                outlineStyle += '#FFFFFF 1px 1px 0px; ';
+                                
+                                thisChld.innerHTML = '<span style="' + outlineStyle + param['pointLabelStyle'] + '">' + thisChld.innerHTML + '</span>';
                                 thisChld.style.textShadow = 'text-shadow: #FFFFFF 0px -1px 0px, #FFFFFF 0px 1px 0px, #FFFFFF 1px 0px 0px, #FFFFFF -1px 1px 0px, #FFFFFF -1px -1px 0px, #FFFFFF 1px 1px 0px;';
+                                
                             } else {
                                 thisChld.innerHTML = '<span style="' + param['pointLabelStyle'] + '">' + thisChld.innerHTML + '</span>';
                             }

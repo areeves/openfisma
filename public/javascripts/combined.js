@@ -12338,7 +12338,7 @@ b.dequeue()})})}})(jQuery);
 
 // Defaults for global chart settings definition:
 var globalSettingsDefaults = {
-    fadingDisabeled:    true,
+    fadingEnabled:      false,
     barShadows:         false,
     barShadowDepth:     5,
     dropShadows:        false,
@@ -12350,6 +12350,9 @@ var globalSettingsDefaults = {
 
 // Remember all chart paramiter objects which are drawn on the DOM within global var chartsOnDom
 var chartsOnDOM = {};
+
+// Is this client/browser Internet Explorer?
+isIE = (window.ActiveXObject) ? true : false;
 
 /**
  * Creates a chart within a div by the name of param['uniqueid'].
@@ -12403,7 +12406,7 @@ function createJQChart(param)
         // note externalSource, and remove/relocate it from its place in param[] so it dosnt retain and cause us to loop 
         var externalSource = param['externalSource'];
         if (!param['oldExternalSource']) { param['oldExternalSource'] = param['externalSource']; }
-        delete param['externalSource'];
+        param['externalSource'] = undefined;
         
         // Send data from widgets to external data source if needed7 (will load from cookies and defaults if widgets are not drawn yet)
         param = buildExternalSourceParams(param);
@@ -12441,15 +12444,15 @@ function createJQChart(param)
     // handel aliases and short-cut vars
     if (typeof param['barMargin'] != 'undefined') {
         param = jQuery.extend(true, param, {'seriesDefaults': {'rendererOptions': {'barMargin': param['barMargin']}}});
-        delete param['barMargin'];
+        param['barMargin'] = undefined;
     }
     if (typeof param['legendLocation'] != 'undefined') {
         param = jQuery.extend(true, param, {'legend': {'location': param['legendLocation'] }});
-        delete param['legendLocation'];
+        param['legendLocation'] = undefined;
     }
     if (typeof param['legendRowCount'] != 'undefined') {
         param = jQuery.extend(true, param, {'legend': {'rendererOptions': {'numberRows': param['legendRowCount']}}});
-        delete param['legendRowCount'];
+        param['legendRowCount'] = undefined;
     }
     
     // make sure the numbers to be plotted in param['chartData'] are infact numbers and not an array of strings of numbers
@@ -12769,7 +12772,12 @@ function createJQChart_StackedBar(param)
                     location: 'nw'
                 }
     };
-
+    
+    // bug killer - The canvas object for IE does not understand what transparency is...
+    if (isIE) {
+        jPlotParamObj.grid.background = '#FFFFFF';
+    }
+    
     // merge any jqPlot direct param-arguments into jPlotParamObj from param
     jPlotParamObj = jQuery.extend(true, jPlotParamObj, param);
     
@@ -12847,26 +12855,26 @@ function createChartJQStackedLine(param)
  */
 function createChartThreatLegend(param)
 {
-        /*
-                Creates a red-orange-yellow legent above the chart
-        */
+    /*
+        Creates a red-orange-yellow legent above the chart
+    */
 
-        if (param['showThreatLegend']) {
-                if (param['showThreatLegend'] == true) {
-        
-                // Is a width given for the width of the legend? OR should we assume 100%?
-                var tLegWidth = '100%';
-                if (param['threatLegendWidth']) {
-                    tLegWidth = param['threatLegendWidth'];
-                }
-        
-                        var injectHTML = '<table width="' + tLegWidth + '">  <tr>    <td style="text-align: center;" width="40%"><b>Threat Level</b></td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FF0000" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;<b>High</b></td>      </tr>    </table>    </td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FF6600" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;<b>Moderate&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></td>      </tr>    </table>    </td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FFC000" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;<b>Low</b></td>      </tr>    </table>    </td>  </tr></table>';
-                        var thisChartId = param['uniqueid'];
-                        var topLegendOnDOM = document.getElementById(thisChartId + 'toplegend');
+    if (param['showThreatLegend']) {
+        if (param['showThreatLegend'] == true) {
 
-                        topLegendOnDOM.innerHTML = injectHTML;
-                }
-        }        
+            // Is a width given for the width of the legend? OR should we assume 100%?
+            var tLegWidth = '100%';
+            if (param['threatLegendWidth']) {
+                tLegWidth = param['threatLegendWidth'];
+            }
+
+            var injectHTML = '<table style="font-size: 12px" width="' + tLegWidth + '">  <tr>    <td style="text-align: center;" width="40%">Threat Level</td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FF0000" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;High</td>      </tr>    </table>    </td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FF6600" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;Moderate&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>      </tr>    </table>    </td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FFC000" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;Low</td>      </tr>    </table>    </td>  </tr></table>';
+            var thisChartId = param['uniqueid'];
+            var topLegendOnDOM = document.getElementById(thisChartId + 'toplegend');
+
+            topLegendOnDOM.innerHTML = injectHTML;
+        }
+    }        
 }
 
 function chartClickEvent(ev, seriesIndex, pointIndex, data, paramObj) {
@@ -12952,51 +12960,53 @@ function applyChartBorders(param) {
     
     for (var x = children.length - 1; x > 0; x++) {
         // search for a canvs
-        if (children[x].nodeName == 'CANVAS') {
-            
-            // search for a canvas that is the shadow canvas
-            if (children[x].className = 'jqplot-series-shadowCanvas') {
-            
-                // this is the canvas we want to draw on
-                var targCanv = children[x];
-                var context = targCanv.getContext('2d');
-                
-                var h = children[x].height;
-                var w = children[x].width;
-                
-                context.strokeStyle = '#777777'
-                context.lineWidth = 3;
-                context.beginPath();
-                
-                // Draw left border?
-                if (param['borders'].indexOf('L') != -1) {
-                    context.moveTo(0,0);
-                    context.lineTo(0, h);
-                    context.stroke();
-                }               
-                
-                // Draw bottom border?
-                if (param['borders'].indexOf('B') != -1) {
-                    context.moveTo(0, h);
-                    context.lineTo(w, h);
-                    context.stroke();
+        if (typeof children[x].nodeName != 'undefined') {
+            if (String(children[x].nodeName).toLowerCase() == 'canvas') {
+
+                // search for a canvas that is the shadow canvas
+                if (children[x].className = 'jqplot-series-shadowCanvas') {
+
+                    // this is the canvas we want to draw on
+                    var targCanv = children[x];
+                    var context = targCanv.getContext('2d');
+
+                    var h = children[x].height;
+                    var w = children[x].width;
+
+                    context.strokeStyle = '#777777'
+                    context.lineWidth = 3;
+                    context.beginPath();
+
+                    // Draw left border?
+                    if (param['borders'].indexOf('L') != -1) {
+                        context.moveTo(0,0);
+                        context.lineTo(0, h);
+                        context.stroke();
+                    }               
+
+                    // Draw bottom border?
+                    if (param['borders'].indexOf('B') != -1) {
+                        context.moveTo(0, h);
+                        context.lineTo(w, h);
+                        context.stroke();
+                    }
+
+                    // Draw right border?
+                    if (param['borders'].indexOf('R') != -1) {
+                        context.moveTo(w, 0);
+                        context.lineTo(w, h);
+                        context.stroke();
+                    }
+
+                    // Draw top border?
+                    if (param['borders'].indexOf('T') != -1) {
+                        context.moveTo(0, 0);
+                        context.lineTo(w, 0);
+                        context.stroke();
+                    }
+
+                        return;
                 }
-                
-                // Draw right border?
-                if (param['borders'].indexOf('R') != -1) {
-                    context.moveTo(w, 0);
-                    context.lineTo(w, h);
-                    context.stroke();
-                }
-                
-                // Draw top border?
-                if (param['borders'].indexOf('T') != -1) {
-                    context.moveTo(0, 0);
-                    context.lineTo(w, 0);
-                    context.stroke();
-                }
-                
-                    return;
             }
         }
     }
@@ -13057,9 +13067,19 @@ function applyChartBackground(param) {
  */
 function applyChartWidgets(param) {
 
+    var wigSpace = document.getElementById(param['uniqueid'] + 'WidgetSpace');
+
+    // Are there widgets for this chart?
+    if (typeof param['widgets'] == 'undefined') {
+        wigSpace.innerHTML = '<br/><i>There are no parameters for this chart.</i><br/><br/>';
+        return;
+    } else if (param['widgets'].length == 0) {
+        wigSpace.innerHTML = '<br/><i>There are no parameters for this chart.</i><br/><br/>';
+        return;
+    }
+
     if (param['widgets']) {
 
-        var wigSpace = document.getElementById(param['uniqueid'] + 'WidgetSpace');
         var addHTML = '';
 
         for (var x = 0; x < param['widgets'].length; x++) {
@@ -13073,7 +13093,7 @@ function applyChartWidgets(param) {
             }
 
             // print the label text to be displayed to the left of the widget if one is given
-            addHTML += '<tr><td align=left>' + thisWidget['label'] + ' </td><td><td width="10"></td><td align=left>';
+            addHTML += '<tr><td nowrap align=left>' + thisWidget['label'] + ' </td><td><td nowrap width="10"></td><td width="99%" align=left>';
 
             switch(thisWidget['type']) {
                 case 'combo':
@@ -13107,6 +13127,7 @@ function applyChartWidgets(param) {
 
         // add this widget HTML to the DOM
         wigSpace.innerHTML = '<table>' + addHTML + '</table>';
+        
     }
 
     applyChartWidgetSettings(param);
@@ -13217,10 +13238,10 @@ function widgetEvent(param) {
 
     // restore externalSource so a json request is fired when calling createJQPChart
     param['externalSource'] = param['oldExternalSource'];
-    delete param['oldExternalSource'];
+    param['oldExternalSource'] = undefined;
 
-    delete param['chartData'];
-    delete param['chartDataText'];
+    param['chartData'] = undefined;
+    param['chartDataText'] = undefined;
 
     // re-create chart entirly
     document.getElementById(param['uniqueid'] + 'holder').finnishFadeCallback = new Function ("makeElementVisible('" + param['uniqueid'] + "loader'); createJQChart(" + JSON.stringify(param) + "); this.finnishFadeCallback = '';");
@@ -13246,12 +13267,12 @@ function fadeIn(eid, TimeToFade) {
     if (element == null) return;
     
     
-    var chartGlobal_fadingDisabeled = getGlobalSetting('fadingDisabeled');
-    if (chartGlobal_fadingDisabeled != 'false') {
+    var fadingEnabled = getGlobalSetting('fadingEnabled');
+    if (fadingEnabled == 'false') {
         makeElementVisible(eid);
         if (element.finnishFadeCallback) {
             element.finnishFadeCallback();
-            element.finnishFadeCallback = '';
+            element.finnishFadeCallback = undefined;
         }
         return;
     }
@@ -13264,7 +13285,7 @@ function fadeIn(eid, TimeToFade) {
     element.isFadingNow = true;
 
     element.FadeState = null;
-    delete element.FadeTimeLeft;
+    element.FadeTimeLeft = undefined;
 
     makeElementInvisible(eid);
     element.style.opacity = '0';
@@ -13278,12 +13299,12 @@ function fadeOut(eid, TimeToFade) {
     var element = document.getElementById(eid);
     if (element == null) return;
 
-    var chartGlobal_fadingDisabeled = getGlobalSetting('fadingDisabeled');
-    if (chartGlobal_fadingDisabeled != 'false') {
+    var fadingEnabled = getGlobalSetting('fadingEnabled');
+    if (fadingEnabled == 'false') {
         makeElementInvisible(eid);
         if (element.finnishFadeCallback) {
             element.finnishFadeCallback();
-            element.finnishFadeCallback = '';
+            element.finnishFadeCallback = undefined;
         }
         return;
     }
@@ -13296,7 +13317,7 @@ function fadeOut(eid, TimeToFade) {
     element.isFadingNow = true;
 
     element.FadeState = null;
-    delete element.FadeTimeLeft;
+    element.FadeTimeLeft = undefined;
 
     makeElementVisible(eid);
     element.style.opacity = '1';
@@ -13458,7 +13479,7 @@ function getTableFromChartData(param)
 {
     var HTML = '<table width="100%" border=1>';
     
-    HTML += '<tr>';
+    HTML += '<tr><td></td>';
     for (var x = 0; x < param['chartDataText'].length; x++) {
         HTML += '<th nowrap><b>' + param['chartDataText'][x] + '</b></th>';
     }
@@ -13468,6 +13489,7 @@ function getTableFromChartData(param)
 
         var thisEle = param['chartData'][x];
         HTML += '<tr>';
+        HTML += '<th><b>' + param['chartDataText'][x] + '</b></th>';
 
         if (typeof(thisEle) == 'object') {
 
@@ -13492,43 +13514,62 @@ function getTableFromChartData(param)
 
 function removeDecFromPointLabels(param)
 {
+        var outlineStyle = '';
         var chartOnDOM = document.getElementById(param['uniqueid']);
     
         for (var x = 0; x < chartOnDOM.childNodes.length; x++) {
                 
                 var thisChld = chartOnDOM.childNodes[x];
-                if (thisChld.classList[0] == 'jqplot-point-label') {
                 
-                        // convert this from a string to a number to a string again (removes decimal if its needless)
-                        thisLabelValue = thisChld.innerHTML * 1;
-                        thisChld.innerHTML = thisLabelValue;
-                        thisChld.value = thisLabelValue;
-                        
-                        // if this number is 0, hide it (0s overlap with other numbers on bar charts)
-                        if (thisChld.innerHTML * 1 == 0) {
-                            thisChld.innerHTML = '';
-                        }
+                // IE Support - IE does not support .classList, manually make this
+                if (typeof thisChld.classList == 'undefined') {
+                    thisChld.classList = String(thisChld.className).split(' ');
+                }
+                
+                if (thisChld.classList) {
+                    if (thisChld.classList[0] == 'jqplot-point-label') {
 
-                        // add outline to this point label so it is easily visible on dark color backgrounds (outlines are done through white-shadows)
-                        if (getGlobalSetting('pointLabelsOutline') == 'true') {
-                            thisChld.innerHTML = '<span style="text-shadow: #FFFFFF 0px -1px 0px, #FFFFFF 0px 1px 0px, #FFFFFF 1px 0px 0px, #FFFFFF -1px 1px 0px, #FFFFFF -1px -1px 0px, #FFFFFF 1px 1px 0px; ' + param['pointLabelStyle'] + '">' + thisChld.innerHTML + '</span>';
-                            thisChld.style.textShadow = 'text-shadow: #FFFFFF 0px -1px 0px, #FFFFFF 0px 1px 0px, #FFFFFF 1px 0px 0px, #FFFFFF -1px 1px 0px, #FFFFFF -1px -1px 0px, #FFFFFF 1px 1px 0px;';
-                        } else {
-                            thisChld.innerHTML = '<span style="' + param['pointLabelStyle'] + '">' + thisChld.innerHTML + '</span>';
-                        }
-                        
-                        // adjust the label to the a little bit since with the decemal trimmed, it may seem off-centered
-                        var thisLeftNbrValue = String(thisChld.style.left).replace('px', '') * 1;       // remove "px" from string, and conver to number
-                        var thisTopNbrValue = String(thisChld.style.top).replace('px', '') * 1;       // remove "px" from string, and conver to number
-                        thisLeftNbrValue += param['pointLabelAdjustX'];
-                        thisTopNbrValue += param['pointLabelAdjustY'];
-                        if (thisLabelValue >= 100) { thisLeftNbrValue -= 2; }
-                        thisChld.style.left = thisLeftNbrValue + 'px';
-                        thisChld.style.top = thisTopNbrValue + 'px';
+                            // convert this from a string to a number to a string again (removes decimal if its needless)
+                            thisLabelValue = thisChld.innerHTML * 1;
+                            thisChld.innerHTML = thisLabelValue;
+                            thisChld.value = thisLabelValue;
 
-                        // force color to black
-                        thisChld.style.color = 'black';
-                        
+                            // if this number is 0, hide it (0s overlap with other numbers on bar charts)
+                            if (thisChld.innerHTML * 1 == 0) {
+                                thisChld.innerHTML = '';
+                            }
+
+                            // add outline to this point label so it is easily visible on dark color backgrounds (outlines are done through white-shadows)
+                            if (getGlobalSetting('pointLabelsOutline') == 'true') {
+
+                                outlineStyle = 'text-shadow: ';
+                                outlineStyle += '#FFFFFF 0px -1px 0px, ';
+                                outlineStyle += '#FFFFFF 0px 1px 0px, ';
+                                outlineStyle += '#FFFFFF 1px 0px 0px, ';
+                                outlineStyle += '#FFFFFF -1px 1px 0px, ';
+                                outlineStyle += '#FFFFFF -1px -1px 0px, ';
+                                outlineStyle += '#FFFFFF 1px 1px 0px; ';
+                                
+                                thisChld.innerHTML = '<span style="' + outlineStyle + param['pointLabelStyle'] + '">' + thisChld.innerHTML + '</span>';
+                                thisChld.style.textShadow = 'text-shadow: #FFFFFF 0px -1px 0px, #FFFFFF 0px 1px 0px, #FFFFFF 1px 0px 0px, #FFFFFF -1px 1px 0px, #FFFFFF -1px -1px 0px, #FFFFFF 1px 1px 0px;';
+                                
+                            } else {
+                                thisChld.innerHTML = '<span style="' + param['pointLabelStyle'] + '">' + thisChld.innerHTML + '</span>';
+                            }
+
+                            // adjust the label to the a little bit since with the decemal trimmed, it may seem off-centered
+                            var thisLeftNbrValue = String(thisChld.style.left).replace('px', '') * 1;       // remove "px" from string, and conver to number
+                            var thisTopNbrValue = String(thisChld.style.top).replace('px', '') * 1;       // remove "px" from string, and conver to number
+                            thisLeftNbrValue += param['pointLabelAdjustX'];
+                            thisTopNbrValue += param['pointLabelAdjustY'];
+                            if (thisLabelValue >= 100) { thisLeftNbrValue -= 2; }
+                            thisChld.style.left = thisLeftNbrValue + 'px';
+                            thisChld.style.top = thisTopNbrValue + 'px';
+
+                            // force color to black
+                            thisChld.style.color = 'black';
+
+                    }
                 }
         }
         
@@ -13545,44 +13586,50 @@ function removeOverlappingPointLabels(param) {
         var chartOnDOM = document.getElementById(param['uniqueid']);
 
         var pointLabels_info = {};
-    var pointLabels_indexes = [];
-    var thisLabelValue = 0;
-    var d = 0;
-        
+        var pointLabels_indexes = [];
+        var thisLabelValue = 0;
+        var d = 0;
+
         for (var x = 0; x < chartOnDOM.childNodes.length; x++) {
-                
-                var thisChld = chartOnDOM.childNodes[x];
-                if (thisChld.classList[0] == 'jqplot-point-label') {
 
-            var chldIsRemoved = false;
+            var thisChld = chartOnDOM.childNodes[x];
             
-            if (typeof thisChld.isRemoved != 'undefined') {
-                chldIsRemoved = thisChld.isRemoved;
+            // IE support - IE dosnt supply .classList array, just a className string. Manually build this....
+            if (typeof thisChld.classList == 'undefined') {
+                thisChld.classList = String(thisChld.className).split(' ');
             }
+            
+            if (thisChld.classList[0] == 'jqplot-point-label') {
 
-            if (chldIsRemoved == false) {
-                // index this point labels position
+                var chldIsRemoved = false;
 
-                var thisLeftNbrValue = String(thisChld.style.left).replace('px', '') * 1; // remove "px" from string, and conver to number
-                var thisTopNbrValue = String(thisChld.style.top).replace('px', '') * 1; // remove "px" from string, and conver to number
-                thisLabelValue = thisChld.value; // the value property should be given to this element form removeDecFromPointLabels
-
-                var thisIndex = 'left_' + thisLeftNbrValue;
-                if (typeof pointLabels_info[thisIndex] == 'undefined') {
-                    pointLabels_info[thisIndex] = [];
-                    pointLabels_indexes.push(thisIndex);
+                if (typeof thisChld.isRemoved != 'undefined') {
+                    chldIsRemoved = thisChld.isRemoved;
                 }
 
-                var thispLabelInfo = {
+                if (chldIsRemoved == false) {
+                    // index this point labels position
+
+                    var thisLeftNbrValue = String(thisChld.style.left).replace('px', '') * 1; // remove "px" from string, and conver to number
+                    var thisTopNbrValue = String(thisChld.style.top).replace('px', '') * 1; // remove "px" from string, and conver to number
+                    thisLabelValue = thisChld.value; // the value property should be given to this element form removeDecFromPointLabels
+
+                    var thisIndex = 'left_' + thisLeftNbrValue;
+                    if (typeof pointLabels_info[thisIndex] == 'undefined') {
+                        pointLabels_info[thisIndex] = [];
+                        pointLabels_indexes.push(thisIndex);
+                    }
+
+                    var thispLabelInfo = {
                         left: thisLeftNbrValue, 
                         top: thisTopNbrValue, 
                         value: thisLabelValue, 
                         obj: thisChld
                     };
 
-                pointLabels_info[thisIndex].push(thispLabelInfo);
-            }
+                    pointLabels_info[thisIndex].push(thispLabelInfo);
                 }
+            }
         }
         
         // Ensure point labels do not collide with others
@@ -13741,7 +13788,7 @@ function alterChartByGlobals(chartParamObj) {
     if (getGlobalSetting('gridLines') == 'true') {
         chartParamObj.grid.gridLineWidth = 1;
         chartParamObj.grid.borderWidth = 0;
-        delete chartParamObj.grid.gridLineColor;
+        chartParamObj.grid.gridLineColor = undefined;
         chartParamObj.grid.drawGridLines = true;
         chartParamObj.grid.show = true;
     }
