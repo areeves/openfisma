@@ -220,4 +220,18 @@ class SystemTable extends Fisma_Doctrine_Table implements Fisma_Search_Searchabl
         // This class re-uses the ACL ID provider from Organization Table (since the access control is identical)
         return array('organizationId' => 'OrganizationTable::getOrganizationIds');
     }
+
+    /**
+     * Provide ID list for ACL filter
+     * 
+     * @return array
+     */
+    public static function getSystemIds()
+    {
+        $systemIds = CurrentUser::getInstance()
+                     ->getSystemsByPrivilege('organization', 'read')
+                     ->toKeyValueArray('systemId', 'systemId');
+
+        return array_keys($systemIds);
+    }
 }

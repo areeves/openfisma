@@ -140,7 +140,12 @@ Fisma.Search.Panel.prototype = {
                 this.container.appendChild(criterion.container);
                 this.criteria.push(criterion);
             }
-            
+
+            // If only one criterion, disable its "minus" button
+            if (1 == this.criteria.length) {
+                this.criteria[0].setRemoveButtonEnabled(false);
+            }
+
             // Display the advanced search UI and submit the initial query request XHR
             Fisma.Search.toggleAdvancedSearchPanel();
             Fisma.Search.onSetTable(function () {
@@ -173,6 +178,8 @@ Fisma.Search.Panel.prototype = {
         if (1 == this.criteria.length) {
             this.criteria[0].setRemoveButtonEnabled(true);
         }
+
+        if (!this.searchableFields[this.criteria.length]) throw "No field defined for search";
 
         var criteria = new Fisma.Search.Criteria(this, this.searchableFields);
         this.criteria.push(criteria);

@@ -17,14 +17,14 @@
  * @subpackage Value
  * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: Integer.php 17753 2009-08-22 16:09:37Z lars $
+ * @version    $Id$
  */
 
 
 /**
  * Zend_XmlRpc_Value_Integer
  */
-require_once 'Zend/XmlRpc/Value/Integer.php';
+// require_once 'Zend/XmlRpc/Value/Integer.php';
 
 
 /**
@@ -46,7 +46,7 @@ class Zend_XmlRpc_Value_BigInteger extends Zend_XmlRpc_Value_Integer
      */
     public function __construct($value)
     {
-        require_once 'Zend/Crypt/Math/BigInteger.php';
+        // require_once 'Zend/Crypt/Math/BigInteger.php';
         $this->_integer = new Zend_Crypt_Math_BigInteger();
         $this->_value = $this->_integer->init($this->_value);
 
@@ -54,9 +54,9 @@ class Zend_XmlRpc_Value_BigInteger extends Zend_XmlRpc_Value_Integer
     }
 
     /**
-     * Return bigint value object
+     * Return bigint value
      *
-     * @return Zend_Crypt_Math_BigInteger
+     * @return string
      */
     public function getValue()
     {

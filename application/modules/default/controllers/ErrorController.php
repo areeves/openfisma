@@ -52,8 +52,7 @@ class ErrorController extends Zend_Controller_Action
 
         $this->getResponse()->clearBody();
         $content = (string)$errors->exception;
-        $logger = Fisma::getLogInstance(CurrentUser::getInstance());
-        $logger->log($content, Zend_Log::ERR);
+        $this->getInvokeArg('bootstrap')->getResource('Log')->log($content, Zend_Log::ERR);
         $this->view->content = $content;
 
         if ($errors->exception instanceof Fisma_Zend_Exception_InvalidPrivilege) {
@@ -71,11 +70,19 @@ class ErrorController extends Zend_Controller_Action
             $this->render('error404');
         }
 
-            $front = Zend_Controller_Front::getInstance();
-            if ($stack = $front->getPlugin('Zend_Controller_Plugin_ActionStack')) {
-                //clear the action stack to prevent additional exceptions would be throwed
-                while($stack->popStack());
-            }
+        $front = Zend_Controller_Front::getInstance();
+        if ($stack = $front->getPlugin('Zend_Controller_Plugin_ActionStack')) {
+            //clear the action stack to prevent additional exceptions would be throwed
+            while($stack->popStack());
+        }
+
+        //Remove Fisma_Zend_Controller_Action_Helper_ReportContextSwitch to prevent 
+        //additional exception being thrown
+        if ($actionHelperStack = Zend_Controller_Action_HelperBroker::getStack()) {
+            if ($actionHelperStack->offsetExists('ReportContextSwitch')) {
+                $actionHelperStack->offsetUnset('ReportContextSwitch');
+            }    
+        }
     }
 
     /**

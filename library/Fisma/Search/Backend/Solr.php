@@ -197,12 +197,9 @@ class Fisma_Search_Backend_Solr extends Fisma_Search_Backend_Abstract
               ->addField('luceneDocumentId')
               ->addSortField($sortColumnParam, $sortDirectionParam);
 
-        if ($rows && $start) {
+        if (isset($rows) && isset($start)) {
               $query->setStart($start)
                     ->setRows($rows);
-        } else {
-            // Solr will automatically limit to 10 rows if we don't explicitly give it a higher limit
-            $query->setRows(PHP_INT_MAX);
         }
 
         $trimmedKeyword = trim($keyword);
@@ -267,10 +264,12 @@ class Fisma_Search_Backend_Solr extends Fisma_Search_Backend_Abstract
                 }
 
                 foreach ($keywordTokens as $keywordToken) {
-
                     // Don't search for strings in integer fields (Solr emits an error)
-                    if ( !('integer' == $fieldDefinition['type'] && !is_numeric($keywordToken)) ) {
-                        $searchTerms[] = $documentFieldName . ':' . $keywordToken;
+                    $isNumberField = ('integer' == $fieldDefinition['type'] || 'float' == $fieldDefinition['type']);
+                    $canSearch = (is_numeric($keywordToken) || !$isNumberField);
+
+                    if ($canSearch) {
+                        $searchTerms[] = $documentFieldName . ':"' . $keywordToken . '"';
                     }
                 }
             }
@@ -326,12 +325,9 @@ class Fisma_Search_Backend_Solr extends Fisma_Search_Backend_Abstract
               ->addField('luceneDocumentId')
               ->addSortField($sortColumnParam, $sortDirectionParam);
 
-        if ($rows && $start) {
+        if (isset($rows) && isset($start)) {
             $query->setStart($start)
                   ->setRows($rows);
-        } else {
-            // Solr will automatically limit to 10 rows if we don't explicitly give it a higher limit
-            $query->setRows(PHP_INT_MAX);
         }
 
         $filterQuery = 'luceneDocumentType:' . $this->escape($type);
@@ -345,9 +341,13 @@ class Fisma_Search_Backend_Solr extends Fisma_Search_Backend_Abstract
                           . ')';
         }
 
-        // Filter out deleted items, if this model has soft delete
-        if ($table->hasColumn('deleted_at') && !$deleted) {
-            $filterQuery .= ' AND -deleted_at_datetime:[* TO *]';
+        // Handle soft delete
+        if ($table->hasColumn('deleted_at')) {
+            $query->addField('deleted_at_datetime');
+            
+            if (!$deleted) {
+                $filterQuery .= ' AND -deleted_at_datetime:[* TO *]';
+            }
         }
 
         // Enable highlighting
@@ -436,7 +436,11 @@ class Fisma_Search_Backend_Solr extends Fisma_Search_Backend_Abstract
                         throw new Fisma_Search_Exception("Invalid operands to floatBetween criterion.");
                     }
 
-                    $searchTerms[] = "$fieldName:[{$operands[0]} TO {$operands[1]}]";
+                    if ($operands[0] < $operands[1]) {
+                        $searchTerms[] = "$fieldName:[{$operands[0]} TO {$operands[1]}]";
+                    } else {
+                        $searchTerms[] = "$fieldName:[{$operands[1]} TO {$operands[0]}]";
+                    }
                     break;
 
                 case 'floatGreaterThan':
@@ -444,8 +448,7 @@ class Fisma_Search_Backend_Solr extends Fisma_Search_Backend_Abstract
                         throw new Fisma_Search_Exception("Invalid operands to floatGreaterThan criterion.");
                     }
 
-                    $floatValue = (float)$operands[0];
-                    $searchTerms[] = "$fieldName:[5 TO *]";
+                    $searchTerms[] = "$fieldName:[{$operands[0]} TO *]";
                     break;
 
                 case 'floatLessThan':
@@ -459,7 +462,12 @@ class Fisma_Search_Backend_Solr extends Fisma_Search_Backend_Abstract
                 case 'integerBetween':
                     $lowEndIntValue = intval($operands[0]);
                     $highEndIntValue = intval($operands[1]);
-                    $searchTerms[] = "$fieldName:[$lowEndIntValue TO $highEndIntValue]";
+                    
+                    if ($lowEndIntValue < $highEndIntValue) {
+                        $searchTerms[] = "$fieldName:[$lowEndIntValue TO $highEndIntValue]";
+                    } else {
+                        $searchTerms[] = "$fieldName:[$highEndIntValue TO $lowEndIntValue]";
+                    }
                     break;
 
                 case 'integerDoesNotEqual':
@@ -507,7 +515,7 @@ class Fisma_Search_Backend_Solr extends Fisma_Search_Backend_Abstract
 
                         $ids = call_user_func_array($callback, $operands);
 
-                        if ($customTerms === false) {
+                        if ($ids === false) {
                             throw new Fisma_Zend_Exception("Not able to call callback ($callback)");
                         }
 
@@ -614,11 +622,20 @@ class Fisma_Search_Backend_Solr extends Fisma_Search_Backend_Abstract
             
             $doctrineDefinition = $table->getColumnDefinition($table->getColumnName($doctrineFieldName));
 
+            //Some fields are stored in their join table, for example, description field of system is actually
+            //stored in organization table. So, it needs to get doctrine definition from its join table.
+            if (isset($searchFieldDefinition['join']['model']) &&
+                      $searchFieldDefinition['join']['model']) {
+                $joinTable = Doctrine::getTable($searchFieldDefinition['join']['model']);
+                $doctrineDefinition = $joinTable
+                                      ->getColumnDefinition($joinTable->getColumnName($doctrineFieldName));
+            }
+
             $containsHtml = isset($doctrineDefinition['extra']['purify']['html']) &&
                                   $doctrineDefinition['extra']['purify']['html'];
 
             $documentFieldValue = $this->_getValueForColumn($rawValue, $searchFieldDefinition['type'], $containsHtml);
-
+ 
             $document->addField($documentFieldName, $documentFieldValue);
 
             // For sortable text columns, add a separate 'textsort' column (see design document)

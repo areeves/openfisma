@@ -121,10 +121,10 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
      * @throws Fisma_Zend_Exception if the subject is not null or the organization of the finding associated
      * to the subject doesn`t exist
      */
-    protected function saveValue($form, $subject=null)
+    protected function saveValue($form, $finding = null)
     {
-        if (is_null($subject)) {
-            $subject = new $this->_modelName();
+        if (is_null($finding)) {
+            $finding = new $this->_modelName();
         } else {
             throw new Fisma_Zend_Exception('Invalid parameter expecting a Record model');
         }
@@ -135,20 +135,22 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
             unset($values['securityControlId']);
         }
 
-        $subject->merge($values);
+        $finding->merge($values);
         
         $organization = Doctrine::getTable('Organization')->find($values['responsibleOrganizationId']);
 
         if ($organization !== false) {
-            $subject->ResponsibleOrganization = $organization;
+            $finding->ResponsibleOrganization = $organization;
         } else {
             throw new Fisma_Zend_Exception("The user tried to associate a new finding with a"
                                          . " non-existent organization (id={$values['orgSystemId']}).");
         }
-                
-        $subject->save();
 
-        return $subject->id;
+        $finding->CreatedBy = CurrentUser::getInstance();
+
+        $finding->save();
+
+        return $finding->id;
     }
 
     /**
@@ -327,6 +329,11 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
                             array("$orgName (Overdue Items)"), 
                             array_values($organization['all_overdue'])
                         );
+
+                        // Add 2 blank columns at the end of the overdue row (for CLOSED and TOTAL)
+                        $overdueRow[] = 'n/a';
+                        $overdueRow[] = 'n/a';
+
                         $tableData[] = $overdueRow;
                     }
                 } elseif (in_array($organization['id'], $expandedRows)) {
@@ -340,10 +347,16 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
                             array("$orgName (Overdue Items)"), 
                             array_values($organization['single_overdue'])
                         );
+                        
+                        // Add 2 blank columns at the end of the overdue row (for CLOSED and TOTAL)
+                        $overdueRow[] = 'n/a';
+                        $overdueRow[] = 'n/a';
+
                         $tableData[] = $overdueRow;
                     }                    
                 }
             }
+
             $this->view->tableData = $tableData;
         } else {
             // Decide whether the response can be gzipped
@@ -438,7 +451,7 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
         $summary->addSelect("SUM(IF(finding.status = 'CLOSED' $sourceCondition, 1, 0)) closed");
 
         if (isset($source)) {
-            $summary->addSelect("SUM(IF(finding.sourceId = $source, 1, 0)) total");
+            $summary->addSelect("SUM(IF(finding.sourceId = $sourceId, 1, 0)) total");
         } else {
             $summary->addSelect("COUNT(finding.id) total");
         }
@@ -803,7 +816,7 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
                 } else {
                     $message = 'The file upload failed due to a server configuration error.' 
                              . ' Please contact the administrator.';
-                    $logger = Fisma::getLogInstance($this->_me);
+                    $logger = $this->getInvokeArg('bootstrap')->getResource('Log');
                     $logger->log('Failed in move_uploaded_file(). ' . $absFile . "\n" . $file['error'], Zend_Log::ERR);
                     throw new Fisma_Zend_Exception($message);
                 }
@@ -957,6 +970,15 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
     function findingAction() 
     {
         $this->_viewFinding();
+        
+        $finding = $this->view->finding;
+        $organization = $finding->ResponsibleOrganization;
+
+        // For users who can view organization or system URLs, construct that URL
+        $controller = ($organization->orgType == 'system' ? 'system' : 'organization');
+        $idParameter = ($organization->orgType == 'system' ? 'oid' : 'id');
+        $this->view->organizationViewUrl = "/$controller/view/$idParameter/$organization->id";
+
         $this->view->keywords = $this->_request->getParam('keywords');
         $this->_helper->layout->setLayout('ajax');
     }

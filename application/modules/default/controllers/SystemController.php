@@ -48,8 +48,19 @@ class SystemController extends Fisma_Zend_Controller_Action_Object
      */
     public function viewAction()
     {
+        // Either 'id' (system ID) or 'oid' (organization ID) is required
         $id = $this->getRequest()->getParam('id');
-        $organization = Doctrine::getTable('Organization')->findOneBySystemId($id);
+        $organizationId = $this->getRequest()->getParam('oid');
+        
+        if ($id) {
+            $organization = Doctrine::getTable('Organization')->findOneBySystemId($id);            
+        } elseif ($organizationId) {
+            $organization = Doctrine::getTable('Organization')->find($organizationId);            
+            $id = $organization->System->id;
+        } else {
+            throw new Fisma_Zend_Exception("Required parameter 'id' or 'oid' is missing.");
+        }
+
         $this->_acl->requirePrivilegeForObject('read', $organization);
 
         $this->view->organization = $organization;
@@ -63,15 +74,23 @@ class SystemController extends Fisma_Zend_Controller_Action_Object
         $tabView->addTab("FISMA Data", "/system/fisma/id/$id");
         $tabView->addTab("Documentation", "/system/artifacts/id/$id");
 
+        $findingSearchUrl = '/finding/remediation/list/queryType/advanced/organization/textExactMatch/'
+                          . $organization->nickname;
+
         $this->view->showFindingsButton = new Fisma_Yui_Form_Button_Link(
             'showFindings',
             array(
                 'value' => 'Show Findings',
-                'href' => "/finding/remediation/search/responsibleOrganizationId/$id"
+                'href' => $findingSearchUrl
             )
         );
 
         $this->view->tabView = $tabView;
+    }
+
+    public function _isDeletable()
+    {
+        return false;
     }
 
     /**
@@ -191,7 +210,7 @@ class SystemController extends Fisma_Zend_Controller_Action_Object
     public function editAction()
     {
         $id = $this->getRequest()->getParam('id');
-        $organization = Doctrine::getTable('Organization')->findOneBySystemId($id);
+        $organization = Doctrine::getTable('Organization')->find($id);
         $this->_acl->requirePrivilegeForObject('update', $organization);
         $this->_helper->layout()->disableLayout();
 
@@ -231,7 +250,7 @@ class SystemController extends Fisma_Zend_Controller_Action_Object
             $this->view->priorityMessenger($msg, $type);
         }
 
-        $this->_redirect("/system/view/id/$id");
+        $this->_redirect("/system/view/oid/$id");
     }
 
     /**
@@ -274,6 +293,10 @@ class SystemController extends Fisma_Zend_Controller_Action_Object
         $system->Organization->getNode()->insertAsLastChildOf($parentNode);
         $system->Organization->save();
 
+        // Quick hack to force re-indexing of the system, since intially it won't index its organization fields
+        $system->state(Doctrine_Record::STATE_DIRTY);
+        $system->save();
+
         // Add the system to the user's ACL if the flag was set above
         if ($addSystemToUserAcl) {
             $userRoles = CurrentUser::getInstance()->getRolesByPrivilege('organization', 'create');
@@ -287,7 +310,7 @@ class SystemController extends Fisma_Zend_Controller_Action_Object
             CurrentUser::getInstance()->invalidateAcl();
         }
 
-        return $system->Organization->id;
+        return $system->id;
     }
 
     /**
@@ -345,7 +368,7 @@ class SystemController extends Fisma_Zend_Controller_Action_Object
                 throw new Fisma_Zend_Exception_User("You did not specify a file to upload.");
             }
             $file = $_FILES['file'];
-            $destinationPath = Fisma::getPath('systemDocument') . "/$organizationId";
+            $destinationPath = Fisma::getPath('systemDocument') . '/' . $organization->id;
             if (!is_dir($destinationPath)) {
                 mkdir($destinationPath);
             }
@@ -378,7 +401,7 @@ class SystemController extends Fisma_Zend_Controller_Action_Object
                 $response->fail("Internal system error. File not uploaded.");
             }
 
-            Fisma::getLogInstance($this->_me)->err($e->getMessage() . "\n" . $e->getTraceAsString());
+            $this->getInvokeArg('bootstrap')->getResource('log')->err($e->getMessage() . "\n" . $e->getTraceAsString());
         }
 
         $this->view->response = json_encode($response);

@@ -1345,97 +1345,6 @@ function updateTimeField(id) {
  * You should have received a copy of the GNU General Public License
  * along with OpenFISMA.  If not, see {@link http://www.gnu.org/licenses/}.
  *
- * @fileoverview Handle a click on the checkbox tree. Clicking a nested node will select all nodes inside of it,
- *               unless all of the subnodes are already selected, in which case it will deselect all subnodes.
- *               Holding down the option key while clicking disables this behavior.
- *               
- *               The checkbox tree DOM looks like this:
- *               <li><input type="checkbox" nestedLevel="0"><label></li>
- *                 <li><input type="checkbox" nestedLevel="1"><label></li>
- *                  <li><input type="checkbox" nestedLevel="2"><label></li>
- *               etc...
- *
- * @author    Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license   http://www.openfisma.org/content/license
- * @version   $Id$
- */
-
-YAHOO.namespace("fisma.CheckboxTree");
-
-YAHOO.fisma.CheckboxTree.rootNode;
-
-YAHOO.fisma.CheckboxTree.handleClick = function(clickedBox, event) 
-{
-    // If the option key is held down, then skip all of this logic.
-    if (event.altKey) {
-        return;
-    }
-
-    var topListItem = clickedBox.parentNode;
-
-    // If there are no nested checkboxes, then there is nothing to do
-    var nextCheckbox = topListItem.nextSibling.childNodes[0];
-    if (nextCheckbox.getAttribute('nestedLevel') > clickedBox.getAttribute('nestedLevel')) {
-        var minLevel = clickedBox.getAttribute('nestedlevel');
-        var checkboxArray = new Array();
-        var allChildNodesChecked = true;
-
-        // Loop through all of the subnodes and see which ones are already checked
-        var listItem = topListItem.nextSibling;
-        var checkboxItem = listItem.childNodes[0];
-        while (checkboxItem.getAttribute('nestedLevel') > minLevel) {
-            if (!checkboxItem.checked) {
-                allChildNodesChecked = false;
-            }
-            
-            checkboxArray.push(checkboxItem);
-            
-            if (listItem.nextSibling) {
-                listItem = listItem.nextSibling;
-                checkboxItem = listItem.childNodes[0];
-            } else {
-                break;
-            }
-        }
-        
-        // Update the node which the user clicked on
-        if (allChildNodesChecked) {
-            clickedBox.checked = false;
-        } else {
-            clickedBox.checked = true;
-        }
-        
-        // Now iterate through child nodes and update them
-        for (var i in checkboxArray) {
-            var checkbox = checkboxArray[i];
-            
-            if (allChildNodesChecked) {
-                checkbox.checked = false;
-            } else {
-                checkbox.checked = true;
-            }
-        }
-    }
-}
-/**
- * Copyright (c) 2008 Endeavor Systems, Inc.
- *
- * This file is part of OpenFISMA.
- *
- * OpenFISMA is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * OpenFISMA is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with OpenFISMA.  If not, see {@link http://www.gnu.org/licenses/}.
- *
  * @fileoverview When a form containing editable fields is loaded (such as the tabs on the
  *               remediation detail page), this function is used to add the required click
  *               handler to all of the editable fields.
@@ -1474,14 +1383,6 @@ function setupEditFields() {
                  if (eclass == 'date') {
                      var target = document.getElementById(t_name);
                      target.onfocus = function () {showCalendar(t_name, t_name+'_show');};
-                     calendarIcon = document.createElement('img');
-                     calendarIcon.id = t_name + "_show";
-                     calendarIcon.src = "/images/calendar.png";
-                     calendarIcon.alt = "Calendar";
-                     target.parentNode.appendChild(calendarIcon);
-                     YAHOO.util.Event.on(t_name+'_show', "click", function() {
-                        showCalendar(t_name, t_name+'_show');
-                     });
                  }
              } else if( type == 'textarea' ) {
                  var row = target.getAttribute('rows');
@@ -1585,64 +1486,6 @@ if (window.HTMLElement) {
  * You should have received a copy of the GNU General Public License
  * along with OpenFISMA.  If not, see {@link http://www.gnu.org/licenses/}.
  *
- * @fileoverview Helper function for the on-line help feature in OpenFISMA
- *
- * @author    Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license   http://www.openfisma.org/content/license
- * @version   $Id$
- */
-
-var helpPanels = new Array();
-function showHelp(event, helpModule) {
-    if (helpPanels[helpModule]) {
-        helpPanels[helpModule].show();
-    } else {
-        // Create new panel
-        var newPanel = new YAHOO.widget.Panel('helpPanel', {width:"400px"} );
-        newPanel.setHeader("Help");
-        newPanel.setBody("Loading...");
-        newPanel.render(document.body);
-        newPanel.center();
-        newPanel.show();
-        
-        // Load the help content for this module
-        YAHOO.util.Connect.asyncRequest('GET', 
-                                        '/help/help/module/' + helpModule, 
-                                        {
-                                            success: function(o) {
-                                                // Set the content of the panel to the text of the help module
-                                                o.argument.setBody(o.responseText);
-                                                // Re-center the panel (because the content has changed)
-                                                o.argument.center();
-                                            },
-                                            failure: function(o) {alert('Failed to load the help module.');},
-                                            argument: newPanel
-                                        }, 
-                                        null);
-        
-        // Store this panel to be re-used on subsequent calls
-        helpPanels[helpModule] = newPanel;
-    }
-}
-/**
- * Copyright (c) 2008 Endeavor Systems, Inc.
- *
- * This file is part of OpenFISMA.
- *
- * OpenFISMA is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * OpenFISMA is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with OpenFISMA.  If not, see {@link http://www.gnu.org/licenses/}.
- *
  * @fileoverview This function is unsafe because it selects all checkboxes on the page,
  *               regardless of what grouping they belong to.
  *
@@ -1691,43 +1534,6 @@ function elDump(el) {
         props += prop + ' : ' + el[prop] + '\n';
     }
     alert(props);
-}
-/**
- * Copyright (c) 2008 Endeavor Systems, Inc.
- *
- * This file is part of OpenFISMA.
- *
- * OpenFISMA is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * OpenFISMA is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with OpenFISMA.  If not, see {@link http://www.gnu.org/licenses/}.
- *
- * @fileoverview Used to present the user an alert box asking them if they are sure they want to 
- *               delete the item they selected, the entryname should be defined in the form.
- *               If the user selects ok the function returns true, if the user selects cancel the 
- *               function returns false
- *
- * @author    Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
- * @license   http://www.openfisma.org/content/license
- * @version   $Id$
- */
-
-function delok(entryname)
-{
-    var str = "Are you sure that you want to delete this " + entryname + "?";
-    if(confirm(str) == true){
-        return true;
-    }
-    return false;
 }
 //v1.7
 // Flash Player Version Detection
@@ -14661,6 +14467,97 @@ Fisma.Chart = {
     }
 };
 /**
+ * Copyright (c) 2010 Endeavor Systems, Inc.
+ *
+ * This file is part of OpenFISMA.
+ *
+ * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ *
+ * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see
+ * {@link http://www.gnu.org/licenses/}.
+ *
+ * @fileoverview Handle a click on the checkbox tree. Clicking a nested node will select all nodes inside of it,
+ *               unless all of the subnodes are already selected, in which case it will deselect all subnodes.
+ *               Holding down the option key while clicking disables this behavior.
+ *               
+ *               The checkbox tree DOM looks like this:
+ *               <li><input type="checkbox" nestedLevel="0"><label></li>
+ *                 <li><input type="checkbox" nestedLevel="1"><label></li>
+ *                  <li><input type="checkbox" nestedLevel="2"><label></li>
+ *               etc...
+ *
+ * @author    Mark E. Haase <mhaase@endeavorsystems.com>
+ * @copyright (c) Endeavor Systems, Inc. 2010 (http://www.endeavorsystems.com)
+ * @license   http://www.openfisma.org/content/license
+ */
+
+Fisma.CheckboxTree = {
+    /**
+     * Handle a click on the checkbox tree
+     *
+     * @param clickedBox The HTML element which user clicked on
+     * @param event Provided by YUI
+     */
+    handleClick : function(clickedBox, event) {
+        // If the option key is held down, then skip all of this logic.
+        if (event.altKey) {
+            return;
+        }
+
+        var topListItem = clickedBox.parentNode;
+
+        // If there are no nested checkboxes, then there is nothing to do
+        var nextCheckbox = topListItem.nextSibling.childNodes[0];
+        if (nextCheckbox.getAttribute('nestedLevel') > clickedBox.getAttribute('nestedLevel')) {
+            var minLevel = clickedBox.getAttribute('nestedlevel');
+            var checkboxArray = new Array();
+            var allChildNodesChecked = true;
+
+            // Loop through all of the subnodes and see which ones are already checked
+            var listItem = topListItem.nextSibling;
+            var checkboxItem = listItem.childNodes[0];
+            while (checkboxItem.getAttribute('nestedLevel') > minLevel) {
+                if (!checkboxItem.checked) {
+                    allChildNodesChecked = false;
+                }
+                
+                checkboxArray.push(checkboxItem);
+                
+                if (listItem.nextSibling) {
+                    listItem = listItem.nextSibling;
+                    checkboxItem = listItem.childNodes[0];
+                } else {
+                    break;
+                }
+            }
+            
+            // Update the node which the user clicked on
+            if (allChildNodesChecked) {
+                clickedBox.checked = false;
+            } else {
+                clickedBox.checked = true;
+            }
+            
+            // Now iterate through child nodes and update them
+            for (var i in checkboxArray) {
+                var checkbox = checkboxArray[i];
+                
+                if (allChildNodesChecked) {
+                    checkbox.checked = false;
+                } else {
+                    checkbox.checked = true;
+                }
+            }
+        }
+    }
+};
+/**
  * Copyright (c) 2008 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
@@ -16080,9 +15977,12 @@ Fisma.Incident = {
      */
     addIncidentStepAbove : function (element) {
         var rowEl = this.getIncidentStepParentElement(element);
-        var rowElClone = rowEl.cloneNode(true);
+        var textareaId = this.generateTextareaId(rowEl.parentNode);
+        var rowElClone = this.generateIncidentStep(rowEl, textareaId);
         
         rowEl.parentNode.insertBefore(rowElClone, rowEl);
+
+        tinyMCE.execCommand ('mceAddControl', false, textareaId);
         
         this.renumberAllIncidentSteps(rowEl.parentNode);
         
@@ -16091,7 +15991,8 @@ Fisma.Incident = {
     
     addIncidentStepBelow : function (element) {
         var rowEl = this.getIncidentStepParentElement(element);
-        var rowElClone = rowEl.cloneNode(true);
+        var textareaId = this.generateTextareaId(rowEl.parentNode);
+        var rowElClone = this.generateIncidentStep(rowEl, textareaId);
         
         // There is no "insertAfter" method for DOM elements, so this is a little tricky
         if (rowEl.nextSibling) {
@@ -16100,6 +16001,8 @@ Fisma.Incident = {
             rowEl.parentNode.appendChild(rowElClone);
         }
         
+        tinyMCE.execCommand ('mceAddControl', false, textareaId);
+
         this.renumberAllIncidentSteps(rowEl.parentNode);
 
         return false;
@@ -16113,6 +16016,86 @@ Fisma.Incident = {
         this.renumberAllIncidentSteps(rowEl.parentNode);
         
         return false; 
+    },
+
+    /** 
+    * This takes a tr element and an unique id as  parameters, and it generates a new incident step form fields 
+    * including name, description and buttons. And compose newly generated elements to a tr element node.
+    *    
+    * @param tableEl
+    * @param textareaId an unique id for textarea so that tinyMCE can be added.
+    * @return a <tr> element node containing sub form fields.
+    */
+    generateIncidentStep: function (rowEl, textareaId) {
+        //To check the tr node structure, see the render() at class Fisma_Zend_Form_Element_IncidentWorkflowStep
+        //clone tr node without its children
+        var rowElClone = rowEl.cloneNode(false);
+        var tableEl = rowEl.parentNode;
+
+        //create first td node containing "Step " text
+        var newTdElStep = document.createElement('td');
+        newTdElStep.innerHTML = 'Step : ';
+        rowElClone.appendChild(newTdElStep);
+
+        //create second td node containing all the form fields
+        var newTdElForm = document.createElement('td');
+        rowElClone.appendChild(newTdElForm);
+
+        //the last child of rowEl is <td> block containing the subform fields
+        var tdForm = YAHOO.util.Dom.getLastChild(rowEl);
+
+        //The first child of <td> block should be Name field.
+        var nameField = YAHOO.util.Dom.getFirstChild(tdForm);
+        var nameElClone = nameField.cloneNode(true) 
+
+        //The next sibling should be role field  
+        var roleField = YAHOO.util.Dom.getNextSibling(nameField);
+        var roleElClone = roleField.cloneNode(true) 
+
+        newTdElForm.appendChild(nameElClone); 
+        newTdElForm.appendChild(roleElClone); 
+
+        //create p node for Desription and textarea
+        var elP = document.createElement('p');
+        elP.innerHTML = 'Description: ';
+
+        var newTextareaEl = document.createElement('textarea');
+        newTextareaEl.setAttribute('id',textareaId);
+
+        var descField = YAHOO.util.Dom.getNextSibling(roleField);
+        var textareaField = YAHOO.util.Dom.getFirstChild(descField);
+
+        //get original textarea attribute value
+        var textareaRows = YAHOO.util.Dom.getAttribute(textareaField, 'rows');
+        var textareaCols = YAHOO.util.Dom.getAttribute(textareaField, 'cols');
+        var textareaName = YAHOO.util.Dom.getAttribute(textareaField, 'name');
+
+        newTextareaEl.setAttribute('rows',textareaRows);
+        newTextareaEl.setAttribute('cols',textareaCols);
+        newTextareaEl.setAttribute('name',textareaName);
+ 
+        elP.appendChild(newTextareaEl);
+        newTdElForm.appendChild(elP); 
+
+        //get button field of form 
+        var buttonField = YAHOO.util.Dom.getNextSibling(descField);
+        var buttonElClone = buttonField.cloneNode(true);
+        newTdElForm.appendChild(buttonElClone); 
+
+        return rowElClone;
+    },
+
+    /** 
+    * This takes a table element  as  parameters, and it generates an unique Id for textarea 
+    *    
+    * @param tableEl
+    * @return ID.
+    */
+    generateTextareaId: function (element) {
+        var trEls = YAHOO.util.Dom.getElementsByClassName('incidentStep', 'tr', element);
+        var stepNumber = 1 + trEls.length;
+        var textareaId = 'textareaid' + stepNumber;
+        return textareaId;
     }
 };
 /**
@@ -16654,6 +16637,15 @@ Fisma.Search = function() {
          * @param form Reference to the search form
          */
         handleSearchEvent : function (form) {
+
+            // Ensure the search type is simple when advance search is hidden
+            if (document.getElementById('advancedSearch').style.display == 'none') {
+                document.getElementById('searchType').value = 'simple';
+            }
+
+            // The error message of advance search should be hidden before handles a new search
+            document.getElementById('msgbar').style.display = 'none';
+
             var dataTable = Fisma.Search.yuiDataTable;
 
             var onDataTableRefresh = {
@@ -16798,22 +16790,36 @@ Fisma.Search = function() {
 
             var searchType = document.getElementById('searchType').value;
 
+            // Ensure the search type is simple when advance search is hidden
+            if (document.getElementById('advancedSearch').style.display == 'none') {
+                searchType = 'simple';
+            }
+
+            // The error message of advance search should be hidden before handles YUI data
+            document.getElementById('msgbar').style.display = 'none';
+
             var postData = "sort=" + tableState.sortedBy.key +
                            "&dir=" + (tableState.sortedBy.dir == 'yui-dt-asc' ? 'asc' : 'desc') +
                            "&start=" + tableState.pagination.recordOffset +
                            "&count=" + tableState.pagination.rowsPerPage +
                            "&csrf=" + document.getElementById('searchForm').csrf.value;
 
-            if ('simple' == searchType) {
-                postData += "&queryType=simple&keywords=" 
-                          + document.getElementById('keywords').value;
-            } else if ('advanced' == searchType) {
-                var queryData = Fisma.Search.advancedSearchPanel.getQuery();
+            try {
+                if ('simple' == searchType) {
+                    postData += "&queryType=simple&keywords=" 
+                              + document.getElementById('keywords').value;
+                } else if ('advanced' == searchType) {
+                    var queryData = Fisma.Search.advancedSearchPanel.getQuery();
 
-                postData += "&queryType=advanced&query=" 
-                          + YAHOO.lang.JSON.stringify(queryData);
-            } else {
-                throw "Invalid value for search type: " + searchType;
+                    postData += "&queryType=advanced&query=" 
+                              + YAHOO.lang.JSON.stringify(queryData);
+                } else {
+                    throw "Invalid value for search type: " + searchType;
+                }
+            } catch (error) {
+                if ('string' == typeof error) {
+                    message(error, 'warning', true);
+                }
             }
 
             postData += "&showDeleted=" + Fisma.Search.showDeletedRecords;
@@ -16859,6 +16865,9 @@ Fisma.Search = function() {
                 document.getElementById('keywords').style.visibility = 'visible';
                 document.getElementById('searchType').value = 'simple';
 
+                // The error message of advance search should not be displayed
+                // after the advanced search options is hidden
+                document.getElementById('msgbar').style.display = 'none';
             }
         },
 
@@ -17091,7 +17100,29 @@ Fisma.Search = function() {
             urlPieces[urlPieces.length-1] = 'multi-delete';
             
             var multiDeleteUrl = urlPieces.join('/');
-            
+
+            var onDataTableRefresh = {
+                success : function (request, response, payload) {
+                    dataTable.onDataReturnReplaceRows(request, response, payload);
+
+                    // Update YUI's visual state to show sort on first data column
+                    var sortColumnIndex = 0;
+                    var sortColumn;
+                    
+                    do {
+                        sortColumn = dataTable.getColumn(sortColumnIndex);
+                        
+                        sortColumnIndex++;
+                    } while (sortColumn.formatter == Fisma.TableFormat.formatCheckbox);
+
+                    dataTable.set("sortedBy", {key : sortColumn.key, dir : YAHOO.widget.DataTable.CLASS_ASC});
+                    dataTable.get('paginator').setPage(1, true);
+                },
+                failure : dataTable.onDataReturnReplaceRows,
+                scope : dataTable,
+                argument : dataTable.getState()
+            }
+
             // Create a post string containing the IDs of the records to delete and the CSRF token
             var postString = "csrf="
                            + document.getElementById('searchForm').csrf.value
@@ -17113,8 +17144,12 @@ Fisma.Search = function() {
                         }
                         
                         // Refresh search results
-                        var searchForm = document.getElementById('searchForm');
-                        Fisma.Search.handleSearchEvent(searchForm);
+                        dataTable.showTableMessage("Loading...");
+                        var postData = "csrf="
+                           + document.getElementById('searchForm').csrf.value;
+                        var dataSource = dataTable.getDataSource();
+                        dataSource.connMethodPost = true;
+                        dataSource.sendRequest(postData, onDataTableRefresh);
                     },
                     failure : function(o) {
                         var text = 'An error occurred while trying to delete the records.'
@@ -18130,7 +18165,12 @@ Fisma.Search.Panel.prototype = {
                 this.container.appendChild(criterion.container);
                 this.criteria.push(criterion);
             }
-            
+
+            // If only one criterion, disable its "minus" button
+            if (1 == this.criteria.length) {
+                this.criteria[0].setRemoveButtonEnabled(false);
+            }
+
             // Display the advanced search UI and submit the initial query request XHR
             Fisma.Search.toggleAdvancedSearchPanel();
             Fisma.Search.onSetTable(function () {
@@ -18163,6 +18203,8 @@ Fisma.Search.Panel.prototype = {
         if (1 == this.criteria.length) {
             this.criteria[0].setRemoveButtonEnabled(true);
         }
+
+        if (!this.searchableFields[this.criteria.length]) throw "No field defined for search";
 
         var criteria = new Fisma.Search.Criteria(this, this.searchableFields);
         this.criteria.push(criteria);
@@ -18871,7 +18913,7 @@ Fisma.TableFormat = {
     overdueFinding : function (elCell, oRecord, oColumn, oData) {
 
         // Construct overdue finding search url
-        overdueFindingSearchUrl = '/finding/remediation/list/advanced';
+        overdueFindingSearchUrl = '/finding/remediation/list/queryType/advanced';
 
         // Handle organization field
         var organization = oRecord.getData('System');
@@ -18917,6 +18959,17 @@ Fisma.TableFormat = {
             overdueFindingSearchUrl += "/nextDueDate/dateBetween/" + to + "/" + from;
         } else if (from) {
             overdueFindingSearchUrl += "/nextDueDate/dateBefore/" + from;
+        } else {
+            // This is the TOTAL column
+            var yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            var yesterdayString = yesterday.getFullYear() 
+                                + '-' 
+                                + (yesterday.getMonth() + 1) 
+                                + '-' 
+                                + yesterday.getDate();
+
+            overdueFindingSearchUrl += "/nextDueDate/dateBefore/" + yesterdayString;
         }
 
         elCell.innerHTML = "<a href="
@@ -19515,7 +19568,7 @@ Fisma.Vulnerability = {
         rowBlinker.start();
         
         // Update the comment count in the tab UI
-        var commentCountEl = document.getElementById('findingCommentsCount').firstChild;
+        var commentCountEl = document.getElementById('vulnerabilityCommentsCount').firstChild;
         commentCountEl.nodeValue++;
                 
         // Hide YUI dialog

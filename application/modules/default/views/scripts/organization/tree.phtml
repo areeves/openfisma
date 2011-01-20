@@ -30,6 +30,19 @@ YAHOO.util.Event.onDOMReady(function () {
                                         }
                                     }, 
                                     null);
+
+    var treeEl = document.getElementById("orgTree");
+
+    var contextMenuItems = ["View"];
+    var oTreeContextMenu = new YAHOO.widget.ContextMenu(
+        "treeContextMenu",
+        { 
+            trigger: treeEl,
+            itemdata: contextMenuItems,
+            lazyload: true
+        }
+    );
+    oTreeContextMenu.subscribe("click", contextMenuHandler);
 });
 
 // Global reference to the tree view
@@ -45,19 +58,6 @@ function showTree(treeNodes) {
     renderTreeNodes(treeNodes, tree.getRoot(), 0);
     
     tree.draw();
-    
-    treeEl = document.getElementById("orgTree");
-
-    var contextMenuItems = ["View"];    
-    var contextMenu = new YAHOO.widget.ContextMenu( 
-        "contextMenu",  
-        { 
-            trigger: treeEl, 
-            itemdata: contextMenuItems, 
-            lazyload: true                                     
-        }  
-    );
-    contextMenu.subscribe("click", contextMenuHandler);
 }
 
 function contextMenuHandler(event, eventArgs) {
@@ -74,13 +74,17 @@ function contextMenuHandler(event, eventArgs) {
     var model = (type == 'agency' || type == 'bureau' || type == 'organization') 
               ? 'organization'
               : 'system';
+    
+    // The organization controller expects a parameter called "id" while the system controller expects "oid"
+    var idParameter = (type == 'agency' || type == 'bureau' || type == 'organization') 
+                    ? 'id'
+                    : 'oid';
 
     var organizationId = treeMap[parentEl.id]['id'];
 
     // Now check which menu item was selected and redirect
     var menuItem = eventArgs[1];
-    var action = (menuItem.index == 0) ? 'view' : 'edit';
-    var url = '/' + model + '/view/v/' + action + '/id/' + organizationId;
+    var url = '/' + model + '/view/' + idParameter + '/' + organizationId;
     window.location = url;
 }
 

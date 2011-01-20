@@ -110,6 +110,15 @@ Fisma.Search = function() {
          * @param form Reference to the search form
          */
         handleSearchEvent : function (form) {
+
+            // Ensure the search type is simple when advance search is hidden
+            if (document.getElementById('advancedSearch').style.display == 'none') {
+                document.getElementById('searchType').value = 'simple';
+            }
+
+            // The error message of advance search should be hidden before handles a new search
+            document.getElementById('msgbar').style.display = 'none';
+
             var dataTable = Fisma.Search.yuiDataTable;
 
             var onDataTableRefresh = {
@@ -254,22 +263,36 @@ Fisma.Search = function() {
 
             var searchType = document.getElementById('searchType').value;
 
+            // Ensure the search type is simple when advance search is hidden
+            if (document.getElementById('advancedSearch').style.display == 'none') {
+                searchType = 'simple';
+            }
+
+            // The error message of advance search should be hidden before handles YUI data
+            document.getElementById('msgbar').style.display = 'none';
+
             var postData = "sort=" + tableState.sortedBy.key +
                            "&dir=" + (tableState.sortedBy.dir == 'yui-dt-asc' ? 'asc' : 'desc') +
                            "&start=" + tableState.pagination.recordOffset +
                            "&count=" + tableState.pagination.rowsPerPage +
                            "&csrf=" + document.getElementById('searchForm').csrf.value;
 
-            if ('simple' == searchType) {
-                postData += "&queryType=simple&keywords=" 
-                          + document.getElementById('keywords').value;
-            } else if ('advanced' == searchType) {
-                var queryData = Fisma.Search.advancedSearchPanel.getQuery();
+            try {
+                if ('simple' == searchType) {
+                    postData += "&queryType=simple&keywords=" 
+                              + document.getElementById('keywords').value;
+                } else if ('advanced' == searchType) {
+                    var queryData = Fisma.Search.advancedSearchPanel.getQuery();
 
-                postData += "&queryType=advanced&query=" 
-                          + YAHOO.lang.JSON.stringify(queryData);
-            } else {
-                throw "Invalid value for search type: " + searchType;
+                    postData += "&queryType=advanced&query=" 
+                              + YAHOO.lang.JSON.stringify(queryData);
+                } else {
+                    throw "Invalid value for search type: " + searchType;
+                }
+            } catch (error) {
+                if ('string' == typeof error) {
+                    message(error, 'warning', true);
+                }
             }
 
             postData += "&showDeleted=" + Fisma.Search.showDeletedRecords;
@@ -315,6 +338,9 @@ Fisma.Search = function() {
                 document.getElementById('keywords').style.visibility = 'visible';
                 document.getElementById('searchType').value = 'simple';
 
+                // The error message of advance search should not be displayed
+                // after the advanced search options is hidden
+                document.getElementById('msgbar').style.display = 'none';
             }
         },
 
@@ -547,7 +573,29 @@ Fisma.Search = function() {
             urlPieces[urlPieces.length-1] = 'multi-delete';
             
             var multiDeleteUrl = urlPieces.join('/');
-            
+
+            var onDataTableRefresh = {
+                success : function (request, response, payload) {
+                    dataTable.onDataReturnReplaceRows(request, response, payload);
+
+                    // Update YUI's visual state to show sort on first data column
+                    var sortColumnIndex = 0;
+                    var sortColumn;
+                    
+                    do {
+                        sortColumn = dataTable.getColumn(sortColumnIndex);
+                        
+                        sortColumnIndex++;
+                    } while (sortColumn.formatter == Fisma.TableFormat.formatCheckbox);
+
+                    dataTable.set("sortedBy", {key : sortColumn.key, dir : YAHOO.widget.DataTable.CLASS_ASC});
+                    dataTable.get('paginator').setPage(1, true);
+                },
+                failure : dataTable.onDataReturnReplaceRows,
+                scope : dataTable,
+                argument : dataTable.getState()
+            }
+
             // Create a post string containing the IDs of the records to delete and the CSRF token
             var postString = "csrf="
                            + document.getElementById('searchForm').csrf.value
@@ -569,8 +617,12 @@ Fisma.Search = function() {
                         }
                         
                         // Refresh search results
-                        var searchForm = document.getElementById('searchForm');
-                        Fisma.Search.handleSearchEvent(searchForm);
+                        dataTable.showTableMessage("Loading...");
+                        var postData = "csrf="
+                           + document.getElementById('searchForm').csrf.value;
+                        var dataSource = dataTable.getDataSource();
+                        dataSource.connMethodPost = true;
+                        dataSource.sendRequest(postData, onDataTableRefresh);
                     },
                     failure : function(o) {
                         var text = 'An error occurred while trying to delete the records.'
