@@ -59,12 +59,20 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
     {
         // Top-left chart - Finding Forecast
         $chartFindForecast = 
-            new Fisma_Chart
-                (380, 
-                275, 
-                'chartFindForecast', 
+            new Fisma_Chart(380, 275, 'chartFindForecast', 
                 '/finding/dashboard/findingforecast/format/json');
-        $chartFindForecast->addWidget('dayRangesStatChart', 'Day Ranges:', 'text', '0, 15, 30, 60, 90');
+        $chartFindForecast
+            ->addWidget('dayRangesStatChart', 'Day Ranges:', 'text', '0, 15, 30, 60, 90')
+            ->addWidget('forcastThreatLvl',
+                'Finding Type:',
+                'combo',
+                'High, Moderate, and Low',
+                array(
+                    'Totals',
+                    'High, Moderate, and Low',
+                    'High',
+                    'Moderate',
+                    'Low'));
 
         $this->view->chartFindForecast = $chartFindForecast->export();
 
@@ -72,7 +80,17 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         $chartOverdueFinding = 
             new Fisma_Chart(380, 275, 'chartOverdueFinding', '/finding/dashboard/chartoverdue/format/json');
         $chartOverdueFinding
-            ->addWidget('dayRanges', 'Day Ranges:', 'text', '1, 30, 60, 90, 120');
+            ->addWidget('dayRanges', 'Day Ranges:', 'text', '1, 30, 60, 90, 120')
+            ->addWidget('pastThreatLvl',
+                'Finding Type:',
+                'combo',
+                'High, Moderate, and Low',
+                array(
+                    'Totals',
+                    'High, Moderate, and Low',
+                    'High',
+                    'Moderate',
+                    'Low'));
         $this->view->chartOverdueFinding = $chartOverdueFinding->export();
 
         // Mid-left chart - Findings by Worklow Process
@@ -97,7 +115,17 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         $chartNoMit
                 ->setUniqueid('chartNoMit')
                 ->setExternalSource('/finding/dashboard/chartfindnomitstrat/format/json')
-                ->addWidget('dayRangesMitChart', 'Day Ranges:', 'text', '1, 30, 60, 90, 120');
+                ->addWidget('dayRangesMitChart', 'Day Ranges:', 'text', '1, 30, 60, 90, 120')
+                ->addWidget('noMitThreatLvl',
+                    'Finding Type:',
+                    'combo',
+                    'High, Moderate, and Low',
+                    array(
+                        'Totals',
+                        'High, Moderate, and Low',
+                        'High',
+                        'Moderate',
+                        'Low'));
         $this->view->chartNoMit = $chartNoMit->export();
 
         // Bottom-Upper chart - Open Findings By Organization
@@ -407,13 +435,27 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         $dayRanges = str_replace(' ', '', urldecode($this->_request->getParam('dayRanges')));
         $dayRanges = explode(',', $dayRanges);
 
+        $findingType = urldecode($this->_request->getParam('pastThreatLvl'));
+
+        $this->view->query = array();
+
         $thisChart = new Fisma_Chart();
         $thisChart
-            ->setChartType('bar')
+            ->setChartType('stackedbar')
             ->setConcatColumnLabels(false)
             ->setAxisLabelX('Number of Days Past Due')
             ->setAxisLabelY('Number of Findings')
-            ->setColumnLabelAngle(0);
+            ->setColumnLabelAngle(0)
+            ->setThreatLegendVisibility(true)
+            ->setColors(array(
+                "#FF0000",
+                "#FF6600",
+                "#FFC000"))
+            ->setLayerLabels(array(
+                'HIGH',
+                'MODERATE',
+                'LOW'
+            ));
 
         // Get counts in between the day ranges given
         for ($x = 1; $x < count($dayRanges); $x++) {
@@ -423,26 +465,56 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
 
             $q = Doctrine_Query::create();
             $q
-                ->addSelect('SUM(IF(DATEDIFF(NOW(), f.nextduedate) BETWEEN ' .
+                ->addSelect('threatlevel threat, COUNT(f.id)')
+                ->from('Finding f')
+                ->where('DATEDIFF(NOW(), f.nextduedate) BETWEEN ' .
                     $fromDayDiff .
                     ' AND ' .
-                    $toDayDiff .
-                    ', 1, 0)) a')
-                ->from('Finding f')
-                ->where('DATEDIFF(NOW(), f.nextduedate) > 0')
+                    $toDayDiff)
                 ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
-                ->setHydrationMode(Doctrine::HYDRATE_SCALAR);
-
-            $rslt = $q->execute();
-            $rslt = $rslt[0];   // we are only expecting 1 result row
+                ->groupBy('threatlevel')
+                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+            $rslts = $q->execute();
+                
+            // We will get three results, each for a count of High Mod, Low
+            $thisHigh = 0;
+            $thisMod = 0;
+            $thisLow = 0;
+            foreach ($rslts as $thisRslt) {
+                switch ($thisRslt['threat']) {
+                    case "LOW":
+                        $thisLow = $thisRslt['COUNT'];
+                        break;
+                    case "MODERATE":
+                        $thisMod = $thisRslt['COUNT'];
+                        break;
+                    case "HIGH":
+                        $thisHigh = $thisRslt['COUNT'];
+                        break;
+                }
+            }
 
             $thisFromDate = new Zend_Date();
             $thisFromDate = $thisFromDate->addDay($fromDayDiff)->toString('YYY-MM-dd');
             $thisToDate = new Zend_Date();
             $thisToDate = $thisToDate->addDay($toDayDiff)->toString('YYY-MM-dd');
             $thisChart->addColumn($fromDayDiff . '-' . $toDayDiff,
-                $rslt['f_a'],
-                '/finding/remediation/list/queryType/advanced/nextDueDate/dateBetween/'.$thisFromDate.'/'.$thisToDate);
+                array(
+                    $thisHigh,
+                    $thisMod,
+                    $thisLow
+                ),
+                array(
+                    '/finding/remediation/list/queryType/advanced/nextDueDate/dateBetween/'
+                    . $thisFromDate . '/' . $thisToDate .
+                    '/threatLevel/enumIs/HIGH',
+                    '/finding/remediation/list/queryType/advanced/nextDueDate/dateBetween/'
+                    . $thisFromDate . '/' . $thisToDate .
+                    '/threatLevel/enumIs/MODERATE',
+                    '/finding/remediation/list/queryType/advanced/nextDueDate/dateBetween/'
+                    . $thisFromDate . '/' . $thisToDate .
+                    '/threatLevel/enumIs/LOW'
+                ));
 
         }
 
@@ -451,19 +523,86 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
 
         $q = Doctrine_Query::create();
         $q
-            ->addSelect('SUM(IF(DATEDIFF(NOW(), f.nextduedate) >= ' . $fromDayDiff . ', 1, 0)) a')
+            ->addSelect('threatlevel threat, COUNT(f.id)')
             ->from('Finding f')
-            ->where('DATEDIFF(NOW(), f.nextduedate) > 0')
+            ->where('DATEDIFF(NOW(), f.nextduedate) >= ' . $fromDayDiff)
+            ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
+            ->groupBy('threatlevel')
             ->setHydrationMode(Doctrine::HYDRATE_SCALAR);
 
         $rslt = $q->execute();
-        $rslt = $rslt[0];   // we are only expecting 1 result row
+
+        // We will get three results, each for a count of High Mod, Low
+        $thisHigh = 0;
+        $thisMod = 0;
+        $thisLow = 0;
+        foreach ($rslts as $thisRslt) {
+            switch ($thisRslt['f_threat']) {
+                case "LOW":
+                    $thisLow = $thisRslt['f_COUNT'];
+                    break;
+                case "MODERATE":
+                    $thisMod = $thisRslt['f_COUNT'];
+                    break;
+                case "HIGH":
+                    $thisHigh = $thisRslt['f_COUNT'];
+                    break;
+            }
+        }
 
         $thisFromDate = new Zend_Date();
         $thisFromDate = $thisFromDate->addDay($fromDayDiff)->toString('YYY-MM-dd');
+
         $thisChart->addColumn($fromDayDiff . '+',
-            $rslt['f_a'],
-            '/finding/remediation/list/queryType/advanced/nextDueDate/dateAfter/'.$thisFromDate);
+            array(
+                $thisHigh,
+                $thisMod,
+                $thisLow
+            ),
+            array(
+                '/finding/remediation/list/queryType/advanced/nextDueDate/dateAfter/'
+                . $thisFromDate .
+                '/threatLevel/enumIs/HIGH',
+                '/finding/remediation/list/queryType/advanced/nextDueDate/dateAfter/'
+                . $thisFromDate .
+                '/threatLevel/enumIs/MODERATE',
+                '/finding/remediation/list/queryType/advanced/nextDueDate/dateAfter/'
+                . $thisFromDate  .
+                '/threatLevel/enumIs/LOW'
+            ));
+
+        // What should we filter/show on the chart? Totals? Migh,Mod,Low? etc...
+        
+        switch (strtolower($findingType)) {
+            case "totals":
+                // Crunch numbers
+                $thisChart
+                    ->convertFromStackedToRegular()
+                    ->setThreatLegendVisibility(false)
+                    ->setColors(array('#3366FF'));
+                break;
+            case "high, moderate, and low":
+                // $thisChart is already in this form
+                break;
+            case "high":
+                // remove the Low and Moderate columns/layers
+                $thisChart->deleteLayer(2);
+                $thisChart->deleteLayer(1);
+                $thisChart->setColors(array('#FF0000'));
+                break;
+            case "moderate":
+                // remove the Low and High columns/layers
+                $thisChart->deleteLayer(2);
+                $thisChart->deleteLayer(0);
+                $thisChart->setColors(array('#FF6600'));
+                break;
+            case "low":
+                // remove the Moderate and High columns/layers
+                $thisChart->deleteLayer(1);
+                $thisChart->deleteLayer(0);
+                $thisChart->setColors(array('#FFC000'));
+                break;
+        }
 
         $this->view->chart = $thisChart->export('array');
     }
@@ -830,6 +969,8 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         $dayRange = str_replace(' ', '', $dayRange);
         $dayRange = explode(',', $dayRange);
 
+        $threatLvl = $this->_request->getParam('noMitThreatLvl');
+
         $highCount = array();
         $modCount = array();
         $lowCount = array();
@@ -896,6 +1037,38 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             ->setData($chartData)
             ->setAxisLabelsX($chartDataText);
 
+        // Show, hide and filter data on the chart as requested
+        switch (strtolower($threatLvl)) {
+            case "totals":
+                // Crunch numbers
+                $noMitChart
+                    ->convertFromStackedToRegular()
+                    ->setThreatLegendVisibility(false)
+                    ->setColors(array('#3366FF'));
+                break;
+            case "high, moderate, and low":
+                // $noMitChart is already in this form
+                break;
+            case "high":
+                // remove the Low and Moderate columns/layers
+                $noMitChart->deleteLayer(2);
+                $noMitChart->deleteLayer(1);
+                $noMitChart->setColors(array('#FF0000'));
+                break;
+            case "moderate":
+                // remove the Low and High columns/layers
+                $noMitChart->deleteLayer(2);
+                $noMitChart->deleteLayer(0);
+                $noMitChart->setColors(array('#FF6600'));
+                break;
+            case "low":
+                // remove the Moderate and High columns/layers
+                $noMitChart->deleteLayer(1);
+                $noMitChart->deleteLayer(0);
+                $noMitChart->setColors(array('#FFC000'));
+                break;
+        }
+
         // export as array, the context switch will translate it to a JSON responce
         $this->view->chart = $noMitChart->export('array');
     }
@@ -911,6 +1084,8 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         $dayRange = $this->_request->getParam('dayRangesStatChart');
         $dayRange = str_replace(' ', '', $dayRange);
         $dayRange = explode(',', $dayRange);
+
+        $threatLvl = $this->_request->getParam('forcastThreatLvl');
 
         $highCount = array();
         $modCount = array();
@@ -997,6 +1172,38 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                     '/threatLevel/enumIs/LOW'));
 
             $lastToDay = $toDay;
+        }
+
+        // Show, hide and filter chart data as requested
+        switch (strtolower($threatLvl)) {
+            case "totals":
+                // Crunch numbers
+                $thisChart
+                    ->convertFromStackedToRegular()
+                    ->setThreatLegendVisibility(false)
+                    ->setColors(array('#3366FF'));
+                break;
+            case "high, moderate, and low":
+                // $thisChart is already in this form
+                break;
+            case "high":
+                // remove the Low and Moderate columns/layers
+                $thisChart->deleteLayer(2);
+                $thisChart->deleteLayer(1);
+                $thisChart->setColors(array('#FF0000'));
+                break;
+            case "moderate":
+                // remove the Low and High columns/layers
+                $thisChart->deleteLayer(2);
+                $thisChart->deleteLayer(0);
+                $thisChart->setColors(array('#FF6600'));
+                break;
+            case "low":
+                // remove the Moderate and High columns/layers
+                $thisChart->deleteLayer(1);
+                $thisChart->deleteLayer(0);
+                $thisChart->setColors(array('#FFC000'));
+                break;
         }
 
         // export as array, the context switch will translate it to a JSON responce

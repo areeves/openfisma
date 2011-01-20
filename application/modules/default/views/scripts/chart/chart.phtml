@@ -43,7 +43,7 @@
     <div 
         id="<?php echo $this->escape($this->chartId, 'none');?>WidgetSpaceHolder" 
         class="yui-navset" 
-        style="display: none; width: 400px; margin-left: auto; margin-right: auto;"
+        style="display: none; width: 400px; margin-left: auto; margin-right: auto; text-align: left;"
     >
         <ul class="yui-nav">
             <li class="selected">
@@ -69,7 +69,8 @@
                         type="button" value="Hide Settings" 
                         onClick="setChartSettingsVisibility('<?php 
                             echo $this->escape($this->chartId, 'none');
-                            ?>', false);" 
+                            ?>', false);"
+                        id="<?php echo $this->escape($this->chartId, 'none'); ?>BtnMainSet"
                     />
                 </div>
                 
@@ -81,7 +82,7 @@
                     onClick="globalSettingUpdate('<?php echo $this->escape($this->chartId, 'none');?>');" 
                     style="text-align: left; ">
                 <input type="checkbox" id="pointLabels" />
-                    Draw point-labels (numbers on top of bars) <br/>
+                    Draw data labels (numbers on top of bars) <br/>
                 <input type="checkbox" id="pointLabelsOutline" />
                     Outline point-labels* <br/>
                 <input type="checkbox" id="barShadows" />
@@ -104,11 +105,23 @@
                         onClick="setChartSettingsVisibility('<?php 
                             echo $this->escape($this->chartId, 'none'); 
                             ?>', false);"
+                        id="<?php echo $this->escape($this->chartId, 'none'); ?>BtnGlobSet"
                     />
                 </div>
                 
             </div>
         </div>
+        
+        <?php /* JavaScript is nessesarry for YUI buttons */ ?>
+        <script>
+            var thisChartId = "<?php echo $this->escape($this->chartId, 'none'); ?>";
+            var yuiBtnEventObj = { onclick: { fn: hideButtonClick, obj: thisChartId } };
+            var thisBtnGlob = new YAHOO.widget.Button(thisChartId + "BtnGlobSet", yuiBtnEventObj);
+            var thisBtnMain = new YAHOO.widget.Button(thisChartId + "BtnMainSet", yuiBtnEventObj);
+            //thisBtnGlob.on("click", hideButtonClick);
+            //thisBtnMain.on("click", hideButtonClick);
+        </script>
+        
     </div>    
 
     <script type="text/javascript">

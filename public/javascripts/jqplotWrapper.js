@@ -24,7 +24,7 @@
 var globalSettingsDefaults = {
     fadingEnabled:      false,
     barShadows:         false,
-    barShadowDepth:     5,
+    barShadowDepth:     3,
     dropShadows:        false,
     gridLines:          false,
     pointLabels:        false,
@@ -388,8 +388,18 @@ function createJQChart_StackedBar(param)
     }
 
     // Make sure the Y-axis (row labels) are not offset by the formatter string rounding their values...
-    // (make the top most row label divisible by 4)
-    chartCeilingValue = getNextNumberDivisibleBy4(maxSumOfAll);
+    // (make the top most row label divisible by 5)
+    chartCeilingValue = getNextNumberDivisibleBy5(maxSumOfAll);
+    
+    // Force Y-axis row labels to be divisible by 5
+    yAxisTicks = [];
+    yAxisTicks[0] = 0;
+    yAxisTicks[1] = (chartCeilingValue/5) * 1;
+    yAxisTicks[2] = (chartCeilingValue/5) * 2;
+    yAxisTicks[3] = (chartCeilingValue/5) * 3;
+    yAxisTicks[4] = (chartCeilingValue/5) * 4;
+    yAxisTicks[5] = (chartCeilingValue/5) * 5;
+    
 
     $.jqplot.config.enablePlugins = true
 
@@ -411,7 +421,12 @@ function createJQChart_StackedBar(param)
         },
         axesDefaults: {
             tickRenderer: $.jqplot.CanvasAxisTickRenderer,
-            borderWidth: 0
+            borderWidth: 0,
+            labelOptions: {
+                enableFontSupport: true,
+                fontFamily: 'arial, helvetica, clean, sans-serif',
+                fontSize: '12pt'
+            },
         },
         axes: {
             xaxis:{
@@ -419,10 +434,11 @@ function createJQChart_StackedBar(param)
                 labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
                 renderer: $.jqplot.CategoryAxisRenderer,
                 ticks: param['chartDataText'],
-                                tickOptions: {
-                                        angle: param['DataTextAngle'],
-                                        fontSize: '10pt'
-                                }
+                tickOptions: {
+                    angle: param['DataTextAngle'],
+                    fontFamily: 'arial, helvetica, clean, sans-serif',
+                    fontSize: '10pt'
+                }
             },
             yaxis:{
                 label: param['AxisLabelY'],
@@ -430,8 +446,11 @@ function createJQChart_StackedBar(param)
                 min: 0,
                 max: chartCeilingValue,
                 autoscale: true,
+                ticks: yAxisTicks,
                 tickOptions: {
-                    formatString: '%.0f'
+                    formatString: '%.0f',
+                    fontFamily: 'arial, helvetica, clean, sans-serif',
+                    fontSize: '10pt'
                 }
             }
 
@@ -1364,6 +1383,11 @@ function removeOverlappingPointLabels(param) {
         
 }
 
+function hideButtonClick(scope, param, obj)
+{
+    setChartSettingsVisibility(param , false);
+}
+
 function setChartSettingsVisibility(chartId, boolVisible)
 {
     var menuHolderId = chartId + 'WidgetSpaceHolder';
@@ -1512,19 +1536,19 @@ function redrawAllCharts() {
 
 }
 
-function getNextNumberDivisibleBy4(nbr) {
+function getNextNumberDivisibleBy5(nbr) {
 
     nbr = Math.round(nbr);
 
     for (var x = 0; x < 8; x++ ) {
     
-        var dividedBy4 = (nbr / 4) * 1;
+        var dividedBy5 = (nbr / 5) * 1;
 
         // is this a whole number?
-        if (dividedBy4 == Math.round(dividedBy4)) {
+        if (dividedBy5 == Math.round(dividedBy5)) {
             return nbr;
         } else {
-            // currently nbr is not divisible by 4, increment and keep searching
+            // currently nbr is not divisible by 5, increment and keep searching
             nbr++;
         }
     }
