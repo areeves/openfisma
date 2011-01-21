@@ -434,6 +434,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
     {
         $dayRanges = str_replace(' ', '', urldecode($this->_request->getParam('dayRanges')));
         $dayRanges = explode(',', $dayRanges);
+        $dayRanges[] = 365 * 10;    // The last ##+ column
 
         $findingType = urldecode($this->_request->getParam('pastThreatLvl'));
 
@@ -458,24 +459,29 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             ));
 
         // Get counts in between the day ranges given
-        for ($x = 1; $x < count($dayRanges); $x++) {
+        for ($x = 0; $x < count($dayRanges) - 1; $x++) {
 
-            $fromDayDiff = $dayRanges[$x-1];
-            $toDayDiff = $dayRanges[$x] - 1;
+            $fromDayDiff = $dayRanges[$x];
+            $fromDay = new Zend_Date();
+            $fromDay->addDay($fromDayDiff);
+            $fromDayStr = $fromDay->toString('YYY-MM-dd');
+            
+            $toDayDiff = $dayRanges[$x+1] - 1;
+            $toDay = new Zend_Date();
+            $toDay->addDay($toDayDiff);
+            $toDayStr = $toDay->toString('YYY-MM-dd');
 
             $q = Doctrine_Query::create();
             $q
                 ->addSelect('threatlevel threat, COUNT(f.id)')
                 ->from('Finding f')
-                ->where('DATEDIFF(NOW(), f.nextduedate) BETWEEN ' .
-                    $fromDayDiff .
-                    ' AND ' .
-                    $toDayDiff)
+                ->where('f.nextduedate BETWEEN "' . $fromDayStr . '" AND "' . $toDayStr . '"')
                 ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
                 ->groupBy('threatlevel')
                 ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
             $rslts = $q->execute();
-                
+            //$this->view->q = $q->getSqlQuery();
+
             // We will get three results, each for a count of High Mod, Low
             $thisHigh = 0;
             $thisMod = 0;
@@ -498,7 +504,14 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             $thisFromDate = $thisFromDate->addDay($fromDayDiff)->toString('YYY-MM-dd');
             $thisToDate = new Zend_Date();
             $thisToDate = $thisToDate->addDay($toDayDiff)->toString('YYY-MM-dd');
-            $thisChart->addColumn($fromDayDiff . '-' . $toDayDiff,
+            
+            if ($x === count($dayRanges) - 2) {
+                $thisColLabel = $dayRanges[$x] . '+';
+            } else {
+                $thisColLabel = $fromDayDiff . '-' . $toDayDiff;
+            }
+            
+            $thisChart->addColumn($thisColLabel,
                 array(
                     $thisHigh,
                     $thisMod,
@@ -518,58 +531,6 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
 
         }
 
-        // Get the count from the last day range on
-        $fromDayDiff = $dayRanges[count($dayRanges)-1];
-
-        $q = Doctrine_Query::create();
-        $q
-            ->addSelect('threatlevel threat, COUNT(f.id)')
-            ->from('Finding f')
-            ->where('DATEDIFF(NOW(), f.nextduedate) >= ' . $fromDayDiff)
-            ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
-            ->groupBy('threatlevel')
-            ->setHydrationMode(Doctrine::HYDRATE_SCALAR);
-
-        $rslt = $q->execute();
-
-        // We will get three results, each for a count of High Mod, Low
-        $thisHigh = 0;
-        $thisMod = 0;
-        $thisLow = 0;
-        foreach ($rslts as $thisRslt) {
-            switch ($thisRslt['f_threat']) {
-                case "LOW":
-                    $thisLow = $thisRslt['f_COUNT'];
-                    break;
-                case "MODERATE":
-                    $thisMod = $thisRslt['f_COUNT'];
-                    break;
-                case "HIGH":
-                    $thisHigh = $thisRslt['f_COUNT'];
-                    break;
-            }
-        }
-
-        $thisFromDate = new Zend_Date();
-        $thisFromDate = $thisFromDate->addDay($fromDayDiff)->toString('YYY-MM-dd');
-
-        $thisChart->addColumn($fromDayDiff . '+',
-            array(
-                $thisHigh,
-                $thisMod,
-                $thisLow
-            ),
-            array(
-                '/finding/remediation/list/queryType/advanced/nextDueDate/dateAfter/'
-                . $thisFromDate .
-                '/threatLevel/enumIs/HIGH',
-                '/finding/remediation/list/queryType/advanced/nextDueDate/dateAfter/'
-                . $thisFromDate .
-                '/threatLevel/enumIs/MODERATE',
-                '/finding/remediation/list/queryType/advanced/nextDueDate/dateAfter/'
-                . $thisFromDate  .
-                '/threatLevel/enumIs/LOW'
-            ));
 
         // What should we filter/show on the chart? Totals? Migh,Mod,Low? etc...
         
@@ -1113,46 +1074,39 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
 
         for ($x = 0; $x < count($dayRange) - 1; $x++) {
 
-            if ($x === 0) {
-                $fromDay = new Zend_Date();
-            } else {
-                $fromDay = $lastToDay;
-            }
+            $fromDay = new Zend_Date();
+            $fromDay = $fromDay->addDay($dayRange[$x]);
             $fromDayStr = $fromDay->toString('YYY-MM-dd');
 
             $toDay = new Zend_Date();
-            $toDay = $toDay->addDay($dayRange[$x]);
-            $toDayStr = $toDay->addDay(-1)->toString('YYY-MM-dd');
+            $toDay = $toDay->addDay($dayRange[$x+1]-1);
+            $toDayStr = $toDay->toString('YYY-MM-dd');
 
-            // Get the count of High findings
+            // Get the count of High,Mod,Low findings
             $q = Doctrine_Query::create()
-                ->select()
+                ->select('COUNT(f.id), f.threatlevel')
                 ->from('Finding f')
-                ->where('f.countermeasureseffectiveness = "HIGH" AND ' .
-                    '(f.currentecd BETWEEN "' . $fromDayStr . '" AND "' . $toDayStr . '")')
+                ->where('f.currentecd BETWEEN "' . $fromDayStr . '" AND "' . $toDayStr . '"')
                 ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
+                ->groupBy('f.threatlevel')
                 ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
-            $highCount = $q->count();
+            $results = $q->execute();
+            $this->view->rtn = $results;
 
-            // Get the count of Moderate findings
-            $q = Doctrine_Query::create()
-                ->select()
-                ->from('Finding f')
-                ->where('f.countermeasureseffectiveness = "MODERATE" AND ' .
-                    '(f.currentecd BETWEEN "' . $fromDayStr . '" AND "' . $toDayStr . '")')
-                ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
-                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
-            $modCount = $q->count();
-
-            // Get the count of Low findings
-            $q = Doctrine_Query::create()
-                ->select()
-                ->from('Finding f')
-                ->where('f.countermeasureseffectiveness = "LOW" AND ' .
-                    '(f.currentecd BETWEEN "' . $fromDayStr . '" AND "' . $toDayStr . '")')
-                ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
-                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
-            $lowCount = $q->count();
+            $highCount = $modCount = $lowCount = 0;
+            foreach ($results as $thisRslt) {
+                switch ($thisRslt['threatLevel']) {
+                    case 'HIGH':
+                        $highCount = $thisRslt['COUNT'];
+                        break;
+                    case 'MODERATE':
+                        $modCount = $thisRslt['COUNT'];
+                        break;
+                    case 'LOW':
+                        $lowCount = $thisRslt['COUNT'];
+                        break;
+                }
+            }
 
             $thisChart
                 ->addColumn($dayRange[$x] . '-' . ( $dayRange[$x + 1] - 1 ),
@@ -1170,8 +1124,6 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                     '/finding/remediation/list/queryType/advanced' .
                     '/currentEcd/dateBetween/' . $fromDay->toString('YYYY-MM-dd').'/'.$toDay->toString('YYYY-MM-dd') .
                     '/threatLevel/enumIs/LOW'));
-
-            $lastToDay = $toDay;
         }
 
         // Show, hide and filter chart data as requested
