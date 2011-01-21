@@ -166,9 +166,9 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
         }
         
         // left-side chart (bar) - Finding Status chart
-        $extSrcURL = '/finding/dashboard/chartfinding/format/json';                 // the external source of this chart on the FIndings Dashboard
+        $extSrcUrl = '/finding/dashboard/chartfinding/format/json';
 
-        $chartTotalStatus = new Fisma_Chart(380, 275, 'chartTotalStatus', $extSrcURL);
+        $chartTotalStatus = new Fisma_Chart(380, 275, 'chartTotalStatus', $extSrcUrl);
         $chartTotalStatus
             ->addWidget('findingType',
                 'Threat Level:',
@@ -223,22 +223,18 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
             ->setChartType('pie')
             ->setData(array_values($summary))
             ->setAxisLabelsX(array_keys($summary))
-            ->setColors(
-                array(
+            ->setColors(array(
                     '#FFA347',
                     '#75FF75',
                     '#47D147',
                     '#FF2B2B'
-                )
-            )
-            ->setLinks(
-                array(
+                ))
+            ->setLinks(array(
                     '/finding/remediation/list/queryType/advanced/type/enumIs/NONE',
                     '/finding/remediation/list/queryType/advanced/type/enumIs/CAP',
                     '/finding/remediation/list/queryType/advanced/type/enumIs/FP',
                     '/finding/remediation/list/queryType/advanced/type/enumIs/AR'
-                )
-            );
+                ));
         
         // export as array, the context switch will translate it to a JSON responce
         $this->view->chart = $thisChart->export('array');
