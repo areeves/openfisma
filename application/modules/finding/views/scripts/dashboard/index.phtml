@@ -1,9 +1,7 @@
 <div class="column left">
     <div style='text-align: center;'>
         <?php
-            Fisma_Format_Section::startSection('Finding Forecast');
             echo $this->escape($this->chartFindForecast, 'none');
-            Fisma_Format_Section::stopSection();
         ?>
     </div>
 </div>
@@ -11,9 +9,7 @@
 <div class="column right">
     <div style='text-align: center;'>
         <?php
-            Fisma_Format_Section::startSection('Findings Past Due');
             echo $this->escape($this->chartOverdueFinding, 'none');
-            Fisma_Format_Section::stopSection();
         ?>
     </div>
 </div>
@@ -23,9 +19,7 @@
 <div class="column left">
     <div style='text-align: center;'>
         <?php
-            Fisma_Format_Section::startSection('Findings by Workflow Process');
             echo $this->escape($this->chartTotalStatus, 'none');
-            Fisma_Format_Section::stopSection();
         ?>
     </div>
 </div>
@@ -33,16 +27,12 @@
 <div class="column right">
     <div style='text-align: center;'>
         <?php
-            Fisma_Format_Section::startSection('Findings Without Corrective Actions');
             echo $this->escape($this->chartNoMit, 'none');
-            Fisma_Format_Section::stopSection();
         ?>
     </div>
 </div>
 
 <div class="clear"></div>
-
-<?php Fisma_Format_Section::startSection('Open Findings By Organization'); ?>
 
 <div class='dashboardChart'>
     <?php echo $this->escape($this->findingOrgChart, 'none'); ?>
@@ -50,13 +40,7 @@
 
 <div class="clear"></div>
 
-<?php Fisma_Format_Section::stopSection(); ?>
-
-
-<?php Fisma_Format_Section::startSection('Current Security Control Deficiencies'); ?>
-
 <div class='dashboardChart'>
     <?php echo $this->escape($this->controlDeficienciesChart, 'none'); ?>
 </div>
 
-<?php Fisma_Format_Section::stopSection(); ?>

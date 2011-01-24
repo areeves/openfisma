@@ -1,18 +1,35 @@
 
+<?php /* Customized header based on Fisma_Format_Section::startSection */ ?>
+
+<div class="sectionHeader">
+    <span $editableText>
+        <table width="100%">
+            <tr>
+                <td align="left">
+                    <?php echo $this->escape($this->chartParamArr['title'], 'none'); ?>
+                </td>
+                <td align=right>
+                    <a 
+                        href="JavaScript: // Click to show chart options" 
+                        style ="text-decoration: none" 
+                        onClick="setChartSettingsVisibility('<?php 
+                            echo $this->escape($this->chartId, 'none'); 
+                        ?>', 'toggle');">
+                        <span style="font-size: 75%";>
+                            (edit chart)
+                        </span>
+                        <img src="/images/gear.png" width="20" />
+                    </a>
+                </td>
+            </tr>
+        </table>
+    </span>
+</div>
+<div class="section">
+
 <?php /* the div for jqPlot to use (the JavaScript will create canvases in this */ ?>
 
 <div class="yui-navset">
-
-    <table width="100%" style="position: absolute; z-index: 1">
-        <tr>
-            <td align=right>
-                <a href="JavaScript: // Click to show chart options";
-                onClick="setChartSettingsVisibility('<?php echo $this->escape($this->chartId, 'none'); ?>', 'toggle');">
-                    <img src="/images/gear.png" width="35" />
-                </a>
-            </td>
-        </tr>
-    </table>
 
     <div id="<?php echo $this->escape($this->chartId, 'none'); ?>loader" class="loading" style="width: 100%;">
         
@@ -137,3 +154,6 @@
     createJQChart(thisChartObjData);
 </script>
 
+<?php /* Customized container-foot based on Fisma_Format_Section::stopSection */ ?>
+<div class='clear'></div>
+</div>

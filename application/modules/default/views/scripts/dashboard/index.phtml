@@ -88,19 +88,20 @@ if (isset($this->notifications)) {
 <?php 
 if ( !empty( $this->alert['TOTAL'] ) ) { 
 ?>
-    <div class="panel clear">
-        <table width="100%">
-            <tr><td colspan="2"><b>&nbsp;&nbsp;&nbsp;Management Overview </b><br/><br/> </td></tr>
-            <tr>
-                <td align="center">
-                    <?php echo $this->escape($this->chartTotalStatus, 'none'); ?>
-                </td>
-                <td align="center">
-                    <?php echo $this->escape($this->chartTotalType, 'none'); ?>
-                </td>
-            </tr>
-        </table>
+    <b>Management Overview </b><br/>
+
+    <div class="column left">
+        <div style='text-align: center;'>
+            <?php echo $this->escape($this->chartTotalStatus, 'none'); ?>
+        </div>
     </div>
+
+    <div class="column right">
+        <div style='text-align: center;'>
+            <?php echo $this->escape($this->chartTotalType, 'none'); ?>
+        </div>
+    </div>
+    
 <?php 
 } 
 ?>

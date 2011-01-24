@@ -62,6 +62,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             new Fisma_Chart(380, 275, 'chartFindForecast', 
                 '/finding/dashboard/findingforecast/format/json');
         $chartFindForecast
+            ->setTitle('Finding Forecast')
             ->addWidget('dayRangesStatChart', 'Day Ranges:', 'text', '0, 15, 30, 60, 90')
             ->addWidget('forcastThreatLvl',
                 'Finding Type:',
@@ -80,6 +81,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         $chartOverdueFinding = 
             new Fisma_Chart(380, 275, 'chartOverdueFinding', '/finding/dashboard/chartoverdue/format/json');
         $chartOverdueFinding
+            ->setTitle('Findings Past Due')
             ->addWidget('dayRanges', 'Day Ranges:', 'text', '1, 30, 60, 90, 120')
             ->addWidget('pastThreatLvl',
                 'Finding Type:',
@@ -97,6 +99,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         $chartTotalStatus 
             = new Fisma_Chart(420, 275, 'chartTotalStatus', '/finding/dashboard/chartfinding/format/json');
         $chartTotalStatus
+                ->setTitle('Findings by Workflow Process')
                 ->addWidget('findingType',
                     'Finding Type:',
                     'combo',
@@ -113,6 +116,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         // Mid-right chart - Findings Without Corrective Actions
         $chartNoMit = new Fisma_Chart(380, 275);
         $chartNoMit
+                ->setTitle('Findings Without Corrective Actions')
                 ->setUniqueid('chartNoMit')
                 ->setExternalSource('/finding/dashboard/chartfindnomitstrat/format/json')
                 ->addWidget('dayRangesMitChart', 'Day Ranges:', 'text', '1, 30, 60, 90, 120')
@@ -131,6 +135,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         // Bottom-Upper chart - Open Findings By Organization
         $findingOrgChart = new Fisma_Chart(400, 275, 'findingOrgChart');
         $findingOrgChart
+                ->setTitle('Open Findings By Organization')
                 ->setExternalSource('/finding/dashboard/chartfindingbyorgdetail/format/json')
                 ->addWidget('displayBy',
                     'Display By:',
@@ -158,6 +163,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         // Bottom-Bottom chart - Current Security Control Deficiencies
         $controlDeficienciesChart = new Fisma_Chart();
         $controlDeficienciesChart
+                ->setTitle('Current Security Control Deficiencies')
                 ->setUniqueid('chartSecurityControlDeficiencies')
                 ->setWidth(800)
                 ->setHeight(275)

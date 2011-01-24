@@ -170,6 +170,7 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
 
         $chartTotalStatus = new Fisma_Chart(380, 275, 'chartTotalStatus', $extSrcUrl);
         $chartTotalStatus
+            ->setTitle('Finding Status Distribution')
             ->addWidget('findingType',
                 'Threat Level:',
                 'combo',
@@ -185,6 +186,9 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
         
         // right-side chart (pie) - Mit Strategy Distribution chart
         $chartTotalType = new Fisma_Chart(380, 275, 'chartTotalType', '/dashboard/totaltype/format/json');
+        $chartTotalType
+            ->setTitle('Mitigation Strategy Distribution');
+
         $this->view->chartTotalType = $chartTotalType->export();
         
     }
