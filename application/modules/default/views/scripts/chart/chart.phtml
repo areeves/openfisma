@@ -15,10 +15,7 @@
                         onClick="setChartSettingsVisibility('<?php 
                             echo $this->escape($this->chartId, 'none'); 
                         ?>', 'toggle');">
-                        <span style="font-size: 75%";>
-                            (edit chart)
-                        </span>
-                        <img src="/images/gear.png" width="20" />
+                        <img src="/images/gear.png" alt="Click to edit chart options" width="20" />
                     </a>
                 </td>
             </tr>
@@ -101,7 +98,7 @@
                 <input type="checkbox" id="pointLabels" />
                     Draw data labels (numbers on top of bars) <br/>
                 <input type="checkbox" id="pointLabelsOutline" />
-                    Outline point-labels* <br/>
+                    Outline data labels* <br/>
                 <input type="checkbox" id="barShadows" />
                     Draw shadows behind bars <br/>
                 <input type="textbox" id="barShadowDepth" value="3" style="width:10px" />
@@ -124,6 +121,7 @@
                             ?>', false);"
                         id="<?php echo $this->escape($this->chartId, 'none'); ?>BtnGlobSet"
                     />
+                    
                 </div>
                 
             </div>
@@ -141,19 +139,17 @@
 
 <?php /* Customized container-foot based on Fisma_Format_Section::stopSection */ ?>
 <div class='clear'></div>
+
 </div>
-
-<?php /* JavaScript is nessesarry for YUI buttons */ ?>
-<script>
-var thisChartId = "<?php echo $this->escape($this->chartId, 'none'); ?>";
-var yuiBtnEventObj = { onclick: { fn: hideButtonClick, obj: thisChartId } };
-var thisBtnGlob = new YAHOO.widget.Button(thisChartId + "BtnGlobSet", yuiBtnEventObj);
-var thisBtnMain = new YAHOO.widget.Button(thisChartId + "BtnMainSet", yuiBtnEventObj);
-//thisBtnGlob.on("click", hideButtonClick);
-//thisBtnMain.on("click", hideButtonClick);
-</script>
-
+<?php /* JavaScript is nessesarry for YUI widgets */ ?>
 <script type="text/javascript">
-var thisName = '<?php echo $this->escape($this->chartId, 'none');?>WidgetSpaceHolder';
-var tabView = new YAHOO.widget.TabView(thisName);
-</script> 
+    <!-- YUI TabView -->
+    var thisName = '<?php echo $this->escape($this->chartId, 'none');?>WidgetSpaceHolder';
+    var tabView = new YAHOO.widget.TabView(thisName);
+    <!-- YUI buttons -->
+    var thisChartId = "<?php echo $this->escape($this->chartId, 'none'); ?>";
+    var yuiBtnEventObj1 = {onclick: {fn: hideButtonClick, obj:thisChartId } };
+    var yuiBtnEventObj2 = {onclick: {fn: hideButtonClick, obj:thisChartId } };
+    var thisBtnGlob = new YAHOO.widget.Button(thisChartId + "BtnGlobSet", yuiBtnEventObj1);
+    var thisBtnMain = new YAHOO.widget.Button(thisChartId + "BtnMainSet", yuiBtnEventObj2);
+</script>

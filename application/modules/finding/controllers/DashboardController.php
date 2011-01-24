@@ -176,7 +176,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                     'Family',
                     array(
                         'Family',
-                        'Family and Controle Number'));
+                        'Family and Control Number'));
 
         $this->view->controlDeficienciesChart = $controlDeficienciesChart->export();
     }
@@ -938,55 +938,6 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
 
         $threatLvl = $this->_request->getParam('noMitThreatLvl');
 
-        $highCount = array();
-        $modCount = array();
-        $lowCount = array();
-        $chartDataText = array();
-
-        for ($x = 1; $x < count($dayRange); $x++) {
-
-            $fromDay = $dayRange[$x-1];
-            $toDay = $dayRange[$x] - 1;
-
-            // Get the count of High findings
-            $q = Doctrine_Query::create()
-                ->select()
-                ->from('Finding f')
-                ->where('f.threatlevel = "LOW" AND ' .
-                    '(f.status="NEW" OR f.status="DRAFT") AND ' .
-                    '(DATEDIFF(NOW(), f.createdts) BETWEEN "' . $fromDay . '" AND "' . $toDay . '")')
-                ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
-                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
-            $highCount[] = $q->count();
-
-            // Get the count of Moderate findings
-            $q = Doctrine_Query::create()
-                ->select()
-                ->from('Finding f')
-                ->where('f.threatlevel = "MODERATE" AND ' .
-                    '(f.status="NEW" OR f.status="DRAFT") AND ' .
-                    '(DATEDIFF(NOW(), f.createdts) BETWEEN "' . $fromDay . '" AND "' . $toDay . '")')
-                ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
-                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
-            $modCount[] = $q->count();
-
-            // Get the count of Low findings
-            $q = Doctrine_Query::create()
-                ->select()
-                ->from('Finding f')
-                ->where('f.threatlevel = "HIGH" AND ' .
-                    '(f.status="NEW" OR f.status="DRAFT") AND ' .
-                    '(DATEDIFF(NOW(), f.createdts) BETWEEN "' . $fromDay . '" AND "' . $toDay . '")')
-                ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
-                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
-            $lowCount[] = $q->count();
-
-            $chartDataText[] = $fromDay . '-' . $toDay;
-
-        }
-
-        $chartData = array($highCount, $modCount, $lowCount);
-
         $noMitChart = new Fisma_Chart();
         $noMitChart
             ->setAxisLabelX('Number of Days Without Mitigation Strategy')
@@ -1000,9 +951,62 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                     "#FFC000"
                 ))
             ->setConcatColumnLabels(false)
-            ->setLayerLabels(array('High', 'Moderate', 'Low'))
-            ->setData($chartData)
-            ->setAxisLabelsX($chartDataText);
+            ->setLayerLabels(array('High', 'Moderate', 'Low'));
+
+        for ($x = 0; $x < count($dayRange) - 1; $x++) {
+
+            $fromDay = $dayRange[$x];
+            $toDay = $dayRange[$x+1];
+            
+            if ($x === count($dayRange) - 2) {
+                $thisColumnLabel = $fromDay . '-' . $toDay;
+            } else {
+                $toDay--;
+                $thisColumnLabel = $fromDay . '-' . $toDay;
+            }
+
+            // Get the count of High findings
+            $q = Doctrine_Query::create()
+                ->select()
+                ->from('Finding f')
+                ->where('f.threatlevel = "LOW" AND ' .
+                    '(f.status="NEW" OR f.status="DRAFT") AND ' .
+                    '(DATEDIFF(NOW(), f.createdts) BETWEEN "' . $fromDay . '" AND "' . $toDay . '")')
+                ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
+                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+            $highCount = $q->count();
+
+            // Get the count of Moderate findings
+            $q = Doctrine_Query::create()
+                ->select()
+                ->from('Finding f')
+                ->where('f.threatlevel = "MODERATE" AND ' .
+                    '(f.status="NEW" OR f.status="DRAFT") AND ' .
+                    '(DATEDIFF(NOW(), f.createdts) BETWEEN "' . $fromDay . '" AND "' . $toDay . '")')
+                ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
+                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+            $modCount = $q->count();
+
+            // Get the count of Low findings
+            $q = Doctrine_Query::create()
+                ->select()
+                ->from('Finding f')
+                ->where('f.threatlevel = "HIGH" AND ' .
+                    '(f.status="NEW" OR f.status="DRAFT") AND ' .
+                    '(DATEDIFF(NOW(), f.createdts) BETWEEN "' . $fromDay . '" AND "' . $toDay . '")')
+                ->whereIn('f.responsibleOrganizationId ', $this->_myOrgSystemIds)
+                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+            $lowCount = $q->count();
+            
+            $noMitChart->addColumn(
+                $thisColumnLabel,
+                array(
+                    $highCount,
+                    $modCount,
+                    $lowCount
+                ));
+
+        }
 
         // Show, hide and filter data on the chart as requested
         switch (strtolower($threatLvl)) {
@@ -1051,7 +1055,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         $dayRange = $this->_request->getParam('dayRangesStatChart');
         $dayRange = str_replace(' ', '', $dayRange);
         $dayRange = explode(',', $dayRange);
-
+        
         $threatLvl = $this->_request->getParam('forcastThreatLvl');
 
         $highCount = array();
@@ -1085,7 +1089,15 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             $fromDayStr = $fromDay->toString('YYY-MM-dd');
 
             $toDay = new Zend_Date();
-            $toDay = $toDay->addDay($dayRange[$x+1]-1);
+            $toDay = $toDay->addDay($dayRange[$x+1]);
+            
+            if ($x === count($dayRange) - 2) {
+                $thisColumnLabel = $dayRange[$x] . '-' . $dayRange[$x + 1];
+            } else {
+                $toDay->addDay(-1);
+                $thisColumnLabel = $dayRange[$x] . '-' . ( $dayRange[$x + 1] - 1 );
+            }
+            
             $toDayStr = $toDay->toString('YYY-MM-dd');
 
             // Get the count of High,Mod,Low findings
@@ -1115,7 +1127,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             }
 
             $thisChart
-                ->addColumn($dayRange[$x] . '-' . ( $dayRange[$x + 1] - 1 ),
+                ->addColumn($thisColumnLabel,
                 array(
                     $highCount,
                     $modCount,
