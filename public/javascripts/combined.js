@@ -12547,7 +12547,8 @@ function createJQChart_StackedBar(param)
             labelOptions: {
                 enableFontSupport: true,
                 fontFamily: 'arial, helvetica, clean, sans-serif',
-                fontSize: '12pt'
+                fontSize: '12pt',
+                textColor: '#555555'
             },
         },
         axes: {
@@ -12559,7 +12560,8 @@ function createJQChart_StackedBar(param)
                 tickOptions: {
                     angle: param['DataTextAngle'],
                     fontFamily: 'arial, helvetica, clean, sans-serif',
-                    fontSize: '10pt'
+                    fontSize: '10pt',
+                    textColor: '#555555'
                 }
             },
             yaxis:{
@@ -12572,7 +12574,8 @@ function createJQChart_StackedBar(param)
                 tickOptions: {
                     formatString: '%.0f',
                     fontFamily: 'arial, helvetica, clean, sans-serif',
-                    fontSize: '10pt'
+                    fontSize: '10pt',
+                    textColor: '#555555'
                 }
             }
 
@@ -12693,7 +12696,7 @@ function createChartThreatLegend(param)
                 tLegWidth = param['threatLegendWidth'];
             }
 
-            var injectHTML = '<table style="font-size: 12px" width="' + tLegWidth + '">  <tr>    <td style="text-align: center;" width="40%">Threat Level</td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FF0000" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;High</td>      </tr>    </table>    </td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FF6600" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;Moderate&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>      </tr>    </table>    </td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FFC000" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;Low</td>      </tr>    </table>    </td>  </tr></table>';
+            var injectHTML = '<table style="font-size: 12px; color: #555555;" width="' + tLegWidth + '">  <tr>    <td style="text-align: center;" width="40%">Threat Level</td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FF0000" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;High</td>      </tr>    </table>    </td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FF6600" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;Moderate&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>      </tr>    </table>    </td>    <td width="20%">    <table>      <tr>        <td bgcolor="#FFC000" width="1px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>        <td>&nbsp;Low</td>      </tr>    </table>    </td>  </tr></table>';
             var thisChartId = param['uniqueid'];
             var topLegendOnDOM = document.getElementById(thisChartId + 'toplegend');
 
