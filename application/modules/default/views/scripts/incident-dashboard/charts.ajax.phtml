@@ -1,13 +1,7 @@
 <div class="column left">
     <div style='text-align: center;'>
         <?php
-        Fisma_Format_Section::startSection('Incident History');
-
-        echo $this->escape($this->statusChart, 'none');
-        ?>
-
-        <?php
-        Fisma_Format_Section::stopSection();
+            echo $this->escape($this->statusChart, 'none');
         ?>
     </div>
 </div>
@@ -15,11 +9,7 @@
 <div class="column right">
     <div style='text-align: center;'>
         <?php
-        Fisma_Format_Section::startSection('Incident Categories');
-
-        echo $this->escape($this->categoryChart, 'none');
-        
-        Fisma_Format_Section::stopSection();
+            echo $this->escape($this->categoryChart, 'none');
         ?>
     </div>
 </div>
@@ -29,9 +19,7 @@
 <div>
     <div style='text-align: center;'>
         <?php
-        Fisma_Format_Section::startSection('Reported Incidents By Bureau');
-        echo $this->escape($this->bureauChart, 'none');
-        Fisma_Format_Section::stopSection();
+            echo $this->escape($this->bureauChart, 'none');
         ?>
     </div>
 </div>

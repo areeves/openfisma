@@ -64,18 +64,18 @@
     >
         <ul class="yui-nav">
             <li class="selected">
-                <a href="#tab1">
+                <a href="#tab1" onClick="showSetingMode(true);">
                     <em>Chart Parameters</em>
                 </a>
             </li>
             <li>
-                <a href="#tab1">
+                <a href="#tab1" onClick="showSetingMode(false);">
                     <em>Global Settings</em>
                 </a>
             </li>
-        </ul>            
+        </ul>
         <div class="yui-content">
-            <div id="tab1">
+            <div id="tab1" >
             
                 <div id="<?php echo $this->escape($this->chartId, 'none');?>WidgetSpace">
                     <!-- char params and widgets placed here by JavaScript -->
@@ -129,22 +129,7 @@
             </div>
         </div>
         
-        <?php /* JavaScript is nessesarry for YUI buttons */ ?>
-        <script>
-            var thisChartId = "<?php echo $this->escape($this->chartId, 'none'); ?>";
-            var yuiBtnEventObj = { onclick: { fn: hideButtonClick, obj: thisChartId } };
-            var thisBtnGlob = new YAHOO.widget.Button(thisChartId + "BtnGlobSet", yuiBtnEventObj);
-            var thisBtnMain = new YAHOO.widget.Button(thisChartId + "BtnMainSet", yuiBtnEventObj);
-            //thisBtnGlob.on("click", hideButtonClick);
-            //thisBtnMain.on("click", hideButtonClick);
-        </script>
-        
     </div>    
-
-    <script type="text/javascript">
-        var thisName = <?php echo $this->escape($this->chartId, 'none');?>WidgetSpaceHolder;
-        var tabView = new YAHOO.widget.TabView(thisName);
-    </script> 
     
 </div>
 
@@ -157,3 +142,18 @@
 <?php /* Customized container-foot based on Fisma_Format_Section::stopSection */ ?>
 <div class='clear'></div>
 </div>
+
+<?php /* JavaScript is nessesarry for YUI buttons */ ?>
+<script>
+var thisChartId = "<?php echo $this->escape($this->chartId, 'none'); ?>";
+var yuiBtnEventObj = { onclick: { fn: hideButtonClick, obj: thisChartId } };
+var thisBtnGlob = new YAHOO.widget.Button(thisChartId + "BtnGlobSet", yuiBtnEventObj);
+var thisBtnMain = new YAHOO.widget.Button(thisChartId + "BtnMainSet", yuiBtnEventObj);
+//thisBtnGlob.on("click", hideButtonClick);
+//thisBtnMain.on("click", hideButtonClick);
+</script>
+
+<script type="text/javascript">
+var thisName = '<?php echo $this->escape($this->chartId, 'none');?>WidgetSpaceHolder';
+var tabView = new YAHOO.widget.TabView(thisName);
+</script> 

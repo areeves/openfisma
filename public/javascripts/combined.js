@@ -13391,6 +13391,7 @@ function removeDecFromPointLabels(param)
                             thisLeftNbrValue += param['pointLabelAdjustX'];
                             thisTopNbrValue += param['pointLabelAdjustY'];
                             if (thisLabelValue >= 100) { thisLeftNbrValue -= 2; }
+                            if (thisLabelValue >= 1000) { thisLeftNbrValue -= 3; }
                             thisChld.style.left = thisLeftNbrValue + 'px';
                             thisChld.style.top = thisTopNbrValue + 'px';
 
@@ -13580,6 +13581,25 @@ function globalSettingRefreashUI(param)
             }
         }
     }
+}
+
+function showSetingMode(showBasic) {
+    if (showBasic == true) {
+        var showThese = document.getElementsByName('chartSettingsBasic')
+        var hideThese = document.getElementsByName('chartSettingsGlobal')
+    } else {
+        var hideThese = document.getElementsByName('chartSettingsBasic')
+        var showThese = document.getElementsByName('chartSettingsGlobal')
+    }
+    
+    for (var x = 0; x < hideThese.length; x++) {
+        hideThese[x].style.display = 'none';
+    }
+    
+    for (var x = 0; x < hideThese.length; x++) {
+            showThese[x].style.display = '';
+        }
+    
 }
 
 function getGlobalSetting(settingName) {
