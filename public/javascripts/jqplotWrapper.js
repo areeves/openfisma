@@ -109,7 +109,7 @@ function createJQChart(param)
         myDataSource.responseType = YAHOO.util.DataSource.TYPE_JSON;
         myDataSource.responseSchema = {resultsList: "chart"};
 
-        var callBackFunct = new Function ("requestNumber", "value", "exception", "createJQChart_asynchReturn(requestNumber, value, exception, " + JSON.stringify(param) + ");");
+        var callBackFunct = new Function ("requestNumber", "value", "exception", "createJQChart_asynchReturn(requestNumber, value, exception, " + YAHOO.lang.JSON.stringify(param) + ");");
 
         var callback1 = {
             success : callBackFunct,
@@ -353,7 +353,7 @@ function createChartJQPie(param)
     plot1 = $.jqplot(param['uniqueid'], [dataSet], jPlotParamObj);
 
     // create an event handeling function that calls chartClickEvent while preserving the parm object
-    var EvntHandler = new Function ("ev", "seriesIndex", "pointIndex", "data", "var thisChartParamObj = " + JSON.stringify(param) + "; chartClickEvent(ev, seriesIndex, pointIndex, data, thisChartParamObj);" );
+    var EvntHandler = new Function ("ev", "seriesIndex", "pointIndex", "data", "var thisChartParamObj = " + YAHOO.lang.JSON.stringify(param) + "; chartClickEvent(ev, seriesIndex, pointIndex, data, thisChartParamObj);" );
     
     // use the created function as the click-event-handeler
     $('#' + param['uniqueid']).bind('jqplotDataClick', EvntHandler);
@@ -499,7 +499,7 @@ function createJQChart_StackedBar(param)
     plot1 = $.jqplot(param['uniqueid'], param['chartData'], jPlotParamObj);
 
     
-    var EvntHandler = new Function ("ev", "seriesIndex", "pointIndex", "data", "var thisChartParamObj = " + JSON.stringify(param) + "; chartClickEvent(ev, seriesIndex, pointIndex, data, thisChartParamObj);" );
+    var EvntHandler = new Function ("ev", "seriesIndex", "pointIndex", "data", "var thisChartParamObj = " + YAHOO.lang.JSON.stringify(param) + "; chartClickEvent(ev, seriesIndex, pointIndex, data, thisChartParamObj);" );
     $('#' + param['uniqueid']).bind('jqplotDataClick', EvntHandler);
 
     removeDecFromPointLabels(param);
@@ -813,7 +813,7 @@ function applyChartWidgets(param) {
             switch(thisWidget['type']) {
                 case 'combo':
 
-                    addHTML += '<select id="' + thisWidget['uniqueid'] + '" onChange="widgetEvent(' + JSON.stringify(param).replace(/"/g, "'") + ');">';
+                    addHTML += '<select id="' + thisWidget['uniqueid'] + '" onChange="widgetEvent(' + YAHOO.lang.JSON.stringify(param).replace(/"/g, "'") + ');">';
                                         // " // ( comment double quote to fix syntax highlight errors with /"/g on previus line )
 
                     for (var y = 0; y < thisWidget['options'].length; y++) {
@@ -826,7 +826,7 @@ function applyChartWidgets(param) {
 
                 case 'text':
     
-                    addHTML += '<input onKeyDown="if(event.keyCode==13){widgetEvent(' + JSON.stringify(param).replace(/"/g, "'") + ');};" type="textbox" id="' + thisWidget['uniqueid'] + '" />';
+                    addHTML += '<input onKeyDown="if(event.keyCode==13){widgetEvent(' + YAHOO.lang.JSON.stringify(param).replace(/"/g, "'") + ');};" type="textbox" id="' + thisWidget['uniqueid'] + '" />';
                                         // " // ( comment double quote to fix syntax highlight errors with /"/g on previus line )
                     break;
 
@@ -959,7 +959,7 @@ function widgetEvent(param) {
     param['chartDataText'] = undefined;
 
     // re-create chart entirly
-    document.getElementById(param['uniqueid'] + 'holder').finnishFadeCallback = new Function ("makeElementVisible('" + param['uniqueid'] + "loader'); createJQChart(" + JSON.stringify(param) + "); this.finnishFadeCallback = '';");
+    document.getElementById(param['uniqueid'] + 'holder').finnishFadeCallback = new Function ("makeElementVisible('" + param['uniqueid'] + "loader'); createJQChart(" + YAHOO.lang.JSON.stringify(param) + "); this.finnishFadeCallback = '';");
     fadeOut(param['uniqueid'] + 'holder', 300);
 
 }
