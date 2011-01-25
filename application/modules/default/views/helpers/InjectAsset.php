@@ -77,6 +77,7 @@ class View_Helper_InjectAsset
                                       '/javascripts/Fisma/Vulnerability.js',
                                       '/javascripts/AC_RunActiveContent.js',
                                       '/javascripts/jquery-min.js',
+                                      '/javascripts/json2.js',
                                       '/javascripts/jquery142min.js',
                                       '/javascripts/jquery-ui-181custom_min.js',
                                       '/javascripts/jquery_jqplot.js',

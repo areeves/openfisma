@@ -427,7 +427,7 @@ function createJQChart_StackedBar(param)
                 fontFamily: 'arial, helvetica, clean, sans-serif',
                 fontSize: '12pt',
                 textColor: '#555555'
-            },
+            }
         },
         axes: {
             xaxis:{
