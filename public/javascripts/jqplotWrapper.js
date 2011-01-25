@@ -344,6 +344,9 @@ function createChartJQPie(param)
     
     jPlotParamObj.seriesDefaults.renderer.prototype.startAngle = 0;
 
+    // bug killer (for IE7) - state the height for the container div for emulated excanvas
+    $("[id="+param['uniqueid']+"]").css('height', param['height']);
+
     // merge any jqPlot direct param-arguments into jPlotParamObj from param
     jPlotParamObj = jQuery.extend(true, jPlotParamObj, param);
 
@@ -483,6 +486,9 @@ function createJQChart_StackedBar(param)
     if (isIE) {
         jPlotParamObj.grid.background = '#FFFFFF';
     }
+    
+    // bug killer (for IE7) - state the height for the container div for emulated excanvas
+    $("[id="+param['uniqueid']+"]").css('height', param['height']);
     
     // merge any jqPlot direct param-arguments into jPlotParamObj from param
     jPlotParamObj = jQuery.extend(true, jPlotParamObj, param);
