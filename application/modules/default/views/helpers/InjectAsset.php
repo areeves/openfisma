@@ -126,7 +126,7 @@ class View_Helper_InjectAsset
      * @param string $type Type of asset
      * @param boolean $combo Whether the asset is a combo package or not
      * @param string $media Media settings for CSS files
-     * @param string $conditional Conditional settings for CSS files
+     * @param string $conditional Conditional settings for CSS/JS files
      * @access public
      * @return void
      */
@@ -163,7 +163,9 @@ class View_Helper_InjectAsset
         switch ($type) {
             case 'js':
                 foreach ($assets as $asset) {
-                    $this->view->headScript()->appendFile($asset);
+                    $this->view->headScript()->appendFile(
+                        $asset, 'text/javascript', array('conditional' => $conditional)
+                    );
                 }
 
                 break;
