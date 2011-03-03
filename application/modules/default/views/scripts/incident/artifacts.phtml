@@ -32,7 +32,10 @@ Fisma_Format_Section::startSection('Artifacts');
                     <?php echo $this->escape($artifact['fileSize']); ?>
                 </td>
                 <td>
-                    <?php echo $this->escape($this->userInfo($artifact['User']['username']), 'none'); ?>
+                    <?php
+                        $username = !empty($artifact['User']['username']) ? $artifact['User']['username'] : '';
+                        echo $this->escape($this->userInfo($username), 'none');
+                    ?>
                 </td>
                 <td>
                     <?php echo $this->escape($artifact['createdTs']); ?>

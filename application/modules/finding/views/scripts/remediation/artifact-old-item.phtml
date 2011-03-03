@@ -15,7 +15,8 @@ echo $this->partial('remediation/artifact-header.phtml', array('artifact' => $th
         $completedEvaluations[] = $findingEvaluation->Evaluation->id;
 
         $user = $findingEvaluation->User;
-        $fullName = $user->nameFirst . ' ' . $user->nameLast;
+        $fullName = isset($user) ? $user->nameFirst . ' ' . $user->nameLast : '';
+        $username = isset($user) ? $user->username : '';
         
         $decision = $findingEvaluation->decision;
         $spanClass = strtolower($decision);
@@ -26,7 +27,7 @@ echo $this->partial('remediation/artifact-header.phtml', array('artifact' => $th
                 
                 <span class="<?php echo $this->escape($spanClass)?>">
                     <b><?php echo $this->escape($decision)?></b>
-                    <?php echo $this->escape($this->userInfo($fullName, $user->username), 'none'); ?> 
+                    <?php echo $this->escape($this->userInfo($fullName, $username), 'none'); ?> 
                     at <?php echo $this->escape($findingEvaluation->createdTs)?>
                 </span>
             </p>

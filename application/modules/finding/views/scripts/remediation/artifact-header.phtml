@@ -9,9 +9,10 @@
 
     <?php 
         $user = $this->artifact->User;
-        $fullName = $user->nameFirst . ' ' . $user->nameLast;
+        $fullName = isset($user) ? $user->nameFirst . ' ' . $user->nameLast : '';
+        $username = isset($user) ? $user->username : '';
         
-        echo $this->escape($this->userInfo($fullName, $user->username), 'none');
+        echo $this->escape($this->userInfo($fullName, $username), 'none');
     ?> 
     on 
     <?php echo $this->escape($this->artifact->createdTs); ?>
