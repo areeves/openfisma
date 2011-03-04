@@ -7358,7 +7358,25 @@ Fisma.TableFormat = {
 
             elCell.appendChild(checkbox);
         }        
+    },
+
+    /**
+     * A formatter simulates Fisma_String::textToHtml() which Convert plain text into a similar HTML representation
+     *
+     * @param elCell Reference to a container inside the <td> element
+     * @param oRecord Reference to the YUI row object
+     * @param oColumn Reference to the YUI column object
+     * @param oData The data stored in this cell
+     */
+    formatTextToHtml : function(el, oRecord, oColumn, oData) {
+
+        // Replace consecutive newlines with </p><p> and single newlines with <br>
+        var trimoData = $P.trim(oData);
+        el.innerHTML = '<p>' 
+                     + trimoData.replace(/\n\n/g, "</p><p>").replace(/\n/g, "<br>") 
+                     + '</p>';
     }
+
 };
 /**
  * Copyright (c) 2008 Endeavor Systems, Inc.

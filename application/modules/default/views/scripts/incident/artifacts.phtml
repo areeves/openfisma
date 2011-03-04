@@ -61,7 +61,7 @@ YAHOO.util.Event.onContentReady('artifacts', function() {
         {key:'size', label:'Size', sortable:true},
         {key:'uploadedBy', label:'Uploaded By', formatter:'html', sortable:true},
         {key:'uploadDate', label:'Upload Date', sortable:true},
-        {key:'comment', label:'Comment', sortable:false}        
+        {key:'comment', label:'Comment', sortable:false, formatter:Fisma.TableFormat.formatTextToHtml}
     ];
 
     this.myDataSource = new YAHOO.util.DataSource(YAHOO.util.Dom.get("artifactsTable"));

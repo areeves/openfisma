@@ -42,7 +42,7 @@ YAHOO.util.Event.onContentReady('comments', function() {
     var myColumnDefs = [
         {key:'timestamp', label:'Timestamp', sortable:true},
         {key:'username', label:'User', formatter:'html', sortable:true},
-        {key:'comment', label:'Comment', sortable:false}
+        {key:'comment', label:'Comment', sortable:false, formatter:Fisma.TableFormat.formatTextToHtml}
     ];
 
     var myDataSource = new YAHOO.util.DataSource(YAHOO.util.Dom.get("commentsTable"));
