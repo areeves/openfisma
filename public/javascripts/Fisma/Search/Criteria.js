@@ -112,6 +112,13 @@ Fisma.Search.Criteria.prototype = {
 
         this.container.className = "searchCriteria";
 
+        // IE7 will display floated elements on the next line, not the current line, unless those floated elements
+        // are inserted before the unfloated content on current line.
+        this.buttonsContainer = document.createElement('span');
+        this.buttonsContainer.className = "searchQueryButtons";
+        this.renderButtons(this.buttonsContainer);
+        this.container.appendChild(this.buttonsContainer);
+
         this.queryFieldContainer = document.createElement('span');
         this.renderQueryField(this.queryFieldContainer, fieldName);
         this.container.appendChild(this.queryFieldContainer);
@@ -123,11 +130,6 @@ Fisma.Search.Criteria.prototype = {
         this.queryInputContainer = document.createElement('span');
         this.renderQueryInput(this.queryInputContainer, operands);
         this.container.appendChild(this.queryInputContainer);
-
-        this.buttonsContainer = document.createElement('span');
-        this.buttonsContainer.className = "searchQueryButtons";
-        this.renderButtons(this.buttonsContainer);
-        this.container.appendChild(this.buttonsContainer);
 
         var clearDiv = document.createElement('div');
 
