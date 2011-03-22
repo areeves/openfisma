@@ -359,8 +359,9 @@ Fisma.Search = function() {
          *
          * @param container The HTML element to render into
          * @param searchOptions The options defined in Fisma_Search_Searchable interface
+         * @param columnVisibility Initial visibility of table columns
          */
-        initializeSearchColumnsPanel : function (container, searchOptions) {
+        initializeSearchColumnsPanel : function (container, searchOptions, columnVisibility) {
 
             // Set up the cookie used for tracking which columns are visible
             var modelName = document.getElementById('modelName').value,
@@ -377,7 +378,7 @@ Fisma.Search = function() {
                     continue;
                 }
 
-                var checked = prefs.getColumnVisibility(columnName, searchOption.initiallyVisible);
+                var checked = prefs.getColumnVisibility(columnName, columnVisibility[columnName]);
 
                 var columnToggleButton = new YAHOO.widget.Button({
                     type : "checkbox",
