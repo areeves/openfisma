@@ -221,6 +221,10 @@ Fisma.TableFormat = {
         var organization = oRecord.getData('System');
 
         if (organization) {
+        
+            // Since organization may be html-encoded, decode the html before (url)-escaping it
+            organization = $P.html_entity_decode(organization);
+            
             overdueFindingSearchUrl += "/organization/textExactMatch/" + escape(organization);
         }
 
@@ -292,11 +296,11 @@ Fisma.TableFormat = {
      * @param oData The data stored in this cell
      */
     completeDocTypePercentage : function (elCell, oRecord, oColumn, oData) {
-        elCell.innerHTML = oData;
+        percentage = parseInt(oData);
 
-        percentage = parseInt(oData.replace(/%/g, ''));
+        if (oData != null) {
+            elCell.innerHTML = oData + "%";
 
-        if (percentage != null) {
             if (percentage >= 95 && percentage <= 100) {
                 Fisma.TableFormat.green(elCell.parentNode);
             } else if (percentage >= 80 && percentage < 95) {
@@ -354,23 +358,6 @@ Fisma.TableFormat = {
 
             elCell.appendChild(checkbox);
         }        
-    },
-
-    /**
-     * A formatter simulates Fisma_String::textToHtml() which Convert plain text into a similar HTML representation
-     *
-     * @param elCell Reference to a container inside the <td> element
-     * @param oRecord Reference to the YUI row object
-     * @param oColumn Reference to the YUI column object
-     * @param oData The data stored in this cell
-     */
-    formatTextToHtml : function(el, oRecord, oColumn, oData) {
-
-        // Replace consecutive newlines with </p><p> and single newlines with <br>
-        var trimoData = $P.trim(oData);
-        el.innerHTML = '<p>' 
-                     + trimoData.replace(/\n\n/g, "</p><p>").replace(/\n/g, "<br>") 
-                     + '</p>';
     }
 
 };
