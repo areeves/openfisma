@@ -1,6 +1,4 @@
-<script type="text/javascript" src="/javascripts/account.js"></script>
 <?php 
-
 echo $this->escape(
     $this->searchBox(
         $this->toolbarButtons, 
@@ -11,11 +9,13 @@ echo $this->escape(
     'none'
 );
 
-$operation = "[<a href='{$this->viewLink}'>View</a>]";
+$operation = "[<a href='{$this->links['View']}'>View</a>]";
 
 if ($this->acl()->hasPrivilegeForObject('read', $this->subject)) {
     $operation .= "&nbsp;&nbsp;[<a href='{$this->auditLogLink}'>Audit Log</a>]";
 }
+
+$operation .= "&nbsp;&nbsp;[<a href='{$this->escape($this->commentLink)}'>Comments</a>]";
 
 Fisma_Format_Section::startSection("User Account Information $operation"); ?>
 
@@ -35,7 +35,7 @@ if (!empty($this->requirements)) {
 ?>
 
 <div class="form_box">
-    <form method="post" action="/User/edit/id/<?php echo $this->escape($this->id); ?>">
+    <form name='userForm' method="post" action="/User/edit/id/<?php echo $this->escape($this->id); ?>">
     <?php 
         echo $this->escape($this->form, 'none');
         echo $this->escape($this->tabView, 'none');

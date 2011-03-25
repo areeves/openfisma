@@ -114,6 +114,10 @@ class UserController extends Fisma_Zend_Controller_Action_Object
                 $subject->lockAccount(User::LOCK_TYPE_MANUAL);
                 unset($values['locked']);
                 unset($values['lockTs']);
+
+                if (isset($values['comment'])) {
+                    $subject->getComments()->addComment(trim($values['comment']));
+                }
             } elseif (!$values['locked'] && $subject->locked) {
                 $subject->unlockAccount();
                 unset($values['locked']);
@@ -410,7 +414,7 @@ class UserController extends Fisma_Zend_Controller_Action_Object
 
         foreach ($user[0]['Roles'] as $role) {
             $tabView->addTab(
-                $role['nickname'], 
+                $this->view->escape($role['nickname']), 
                 "/User/get-organization-subform/user/{$id}/role/{$role['id']}/readOnly/1", 
                 $role['id'],
                 'false'
@@ -434,6 +438,8 @@ class UserController extends Fisma_Zend_Controller_Action_Object
         if ($this->_acl->hasPrivilegeForObject('read', $subject)) {
             $links['Audit Log'] = "/user/log/id/{$subject->id}";
         }
+        
+        $links['Comments'] = "/user/comments/id/{$subject->id}";
         
         $links = array_merge($links, parent::getViewLinks($subject));
 
@@ -538,7 +544,7 @@ class UserController extends Fisma_Zend_Controller_Action_Object
         if (isset($user[0]['Roles'])) {
             foreach ($user[0]['Roles'] as $role) {
                 $tabView->addTab(
-                    $role['nickname'], 
+                    $this->view->escape($role['nickname']), 
                     "/User/get-organization-subform/user/{$id}/role/{$role['id']}/readOnly/0", 
                     $role['id'],
                     'true' 
@@ -553,6 +559,7 @@ class UserController extends Fisma_Zend_Controller_Action_Object
             ->execute();
 
         $this->view->auditLogLink = "/user/log/id/$id";
+        $this->view->commentLink = "/user/comments/id/$id";
         $this->view->tabView = $tabView;
         $this->view->roles = Zend_Json::encode($roles);
 
@@ -644,7 +651,9 @@ class UserController extends Fisma_Zend_Controller_Action_Object
     public function checkAccountAction()
     {
         $this->_acl->requirePrivilegeForClass('read', 'User');
-        
+
+        $accountInfo = array();
+
         $data = LdapConfig::getConfig();
         $account = $this->_request->getParam('account');
         $msg = '';
@@ -689,5 +698,25 @@ class UserController extends Fisma_Zend_Controller_Action_Object
 
         echo Zend_Json::encode(array('msg' => $msg, 'type' => $type, 'accountInfo' => $accountInfo));
         $this->_helper->viewRenderer->setNoRender();
+    }
+
+    /**
+     * Displays the user comment interface
+     *
+     * @return void
+     */
+    function commentsAction() 
+    {
+        $id = $this->_request->getParam('id');
+        $user = Doctrine::getTable('User')->find($id);
+        if (!$user) {
+            throw new Fisma_Zend_Exception("Invalid User ID");
+        }
+
+        $comments = $user->getComments()->fetch(Doctrine::HYDRATE_ARRAY);
+
+        $this->view->username = $user->username;
+        $this->view->viewLink = "/user/view/id/$id";
+        $this->view->comments = $comments;
     }
 }
