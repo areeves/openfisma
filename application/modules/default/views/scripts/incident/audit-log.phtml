@@ -25,7 +25,7 @@ YAHOO.util.Event.onContentReady('incidentAuditLog', function() {
     var myColumnDefs = [
         {key:'timestamp', label:'Timestamp', sortable:true},
         {key:'user', label:'User', formatter:'html', sortable:true},
-        {key:'message', label:'Message', sortable:false}        
+        {key:'message', label:'Message', sortable:false, formatter:Fisma.TableFormat.formatHtml}        
     ];
 
     this.myDataSource = new YAHOO.util.DataSource(YAHOO.util.Dom.get("incidentAuditLogTable"));
