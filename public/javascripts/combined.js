@@ -2478,21 +2478,25 @@ Fisma.Chart = {
 
             // YAHOO.util.DataSource puts its JSON responce within value['results'][0]
             if (value.results[0]) {
-
                 chartParamsObj = Fisma.Chart.mergeExtrnIntoParamObjectByInheritance(chartParamsObj, value);
-
             } else {
+                Fisma.Chart.showMsgOnEmptyChart(chartParamsObj);
                 throw 'Error - Chart creation failed due to data source error at ' + chartParamsObj.lastURLpull;
             }
 
+            // validate that chart plotting data (numeric information) was returned
             if (typeof chartParamsObj.chartData === 'undefined') {
+                Fisma.Chart.showMsgOnEmptyChart(chartParamsObj);
                 throw 'Chart Error - The remote data source for chart "' + chartParamsObj.uniqueid + '" located at ' + chartParamsObj.lastURLpull + ' did not return data to plot on a chart';
+            } else if (chartParamsObj.chartData.length === 0) {
+                Fisma.Chart.showMsgOnEmptyChart(chartParamsObj);
             }
 
             // call the Fisma.Chart.createJQChart() with the chartParamsObj-object initally given to Fisma.Chart.createJQChart() and the merged responce object
             return Fisma.Chart.createJQChart(chartParamsObj);
 
         } else {
+            Fisma.Chart.showMsgOnEmptyChart(chartParamsObj);
             throw 'Error - Chart creation failed due to data source error at ' + chartParamsObj.lastURLpull;
         }
     },
@@ -9397,6 +9401,69 @@ Fisma.User = {
             },
             null
         );
+    },
+
+    /**
+     * Show the comment panel
+     * 
+     * @return void
+     */
+    showCommentPanel : function () {
+        var lockedElement = YAHOO.util.Dom.get('locked');
+
+        // Only show panel in locked status
+        if (lockedElement === null || parseInt(lockedElement.value) === 0) {
+            YAHOO.util.Dom.getAncestorByTagName('save-button', 'form').submit();
+            return false;
+        }
+
+        // Create a panel
+        var content = document.createElement('div');
+        var p = document.createElement('p');
+        var contentTitle = document.createTextNode('Comments (OPTIONAL):');
+        p.appendChild(contentTitle);
+        content.appendChild(p);
+
+        // Add comment textarea to panel
+        var commentTextArea = document.createElement('textarea');
+        commentTextArea.id = 'commentTextarea';
+        commentTextArea.name = 'commentTextarea';
+        commentTextArea.rows = 5;
+        commentTextArea.cols = 60;
+        content.appendChild(commentTextArea);
+
+        // Add line spacing to panel
+        var lineSpacingDiv = document.createElement('div');
+        lineSpacingDiv.style.height = '10px';
+        content.appendChild(lineSpacingDiv);
+
+        // Add submmit button to panel
+        var continueButton = document.createElement('input');
+        continueButton.type = 'button';
+        continueButton.id = 'continueButton';
+        continueButton.value = 'continue';
+        content.appendChild(continueButton);
+
+        Fisma.HtmlPanel.showPanel('Add Comment', content.innerHTML);
+
+        YAHOO.util.Dom.get('continueButton').onclick = Fisma.User.submitUserForm;
+    },
+
+    /*
+     * Submit user form after assign comment value to comment element
+     */
+    submitUserForm : function () {
+        
+        // Set the innerHTML property for IE.
+        if  (YAHOO.env.ua.ie) {
+            var commentElement = YAHOO.util.Dom.get('commentTextarea').innerHTML;
+        } else {
+            var commentElement = YAHOO.util.Dom.get('commentTextarea').value;
+        }
+
+        var form = YAHOO.util.Dom.getAncestorByTagName('save-button', 'form');
+        YAHOO.util.Dom.get('comment').value = commentElement;
+        form.submit();
     }
 };
 /**
@@ -9596,7 +9663,7 @@ Fisma.Vulnerability = {
         yuiPanel.hide();
         yuiPanel.destroy();
     }
-}
+};
 /**
  * Title: jqPlot Charts
  * 
