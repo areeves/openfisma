@@ -6178,7 +6178,7 @@ Fisma.Ldap = {
             // Add event listener
             var fn = function(ev, obj) {
                 Event.stopEvent(ev);
-                var url = obj.controller + "/view/id/" + obj.textField.value;
+                var url = obj.controller + "/view/id/" + $P.intval(obj.textField.value);
                 window.location = url;
             };
             param.textField = textField;
