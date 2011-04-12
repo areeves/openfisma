@@ -43,7 +43,7 @@
      */
     FS._initStorageEngine = function() {
         if (YAHOO.lang.isNull(FS._storageEngine)) {
-            var engineConf = {swfURL: "/lib/2.8.2/build/swfstore/swfstore.swf", containerID: "swfstoreContainer"};
+            var engineConf = {swfURL: "/swfstore.swf", containerID: "swfstoreContainer"};
             FS._storageEngine = YAHOO.util.StorageManager.get(
                 YAHOO.util.StorageEngineSWF.ENGINE_NAME,
                 //null, // no preferred engine
