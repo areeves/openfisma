@@ -1,0 +1,4 @@
+<url-policy>
+    <allow-access-from url="oflocal" /> 
+</url-policy>
+
