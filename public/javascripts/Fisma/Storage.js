@@ -31,7 +31,9 @@
      */
     var FS = function(namespace) {
         this.namespace = namespace;
-        FS._initStorageEngine();
+        $(document).ready(function() {
+            FS._initStorageEngine();
+        });
     };
 
     /**
@@ -72,7 +74,7 @@
      * @static
      */
     FS.onReady = function(fn, obj, scope) {
-        YAHOO.util.Event.onContentReady('swfstoreContainer', function() {
+        $(document).ready(function() {
             FS._initStorageEngine();
             if (!(FS._storageEngine.isReady || (FS._storageEngine._swf && YAHOO.util.StorageManager.LOCATION_SESSION === FS_storageEngine._location))) {
                 FS._storageEngine.subscribe(FS._storageEngine.CE_READY, fn, obj, scope);
@@ -116,7 +118,9 @@
          * @protected
          */
         _get: function(key) {
-            return YAHOO.lang.JSON.parse(FS._storageEngine.getItem(this.namespace + ":" + key));
+            var value = FS._storageEngine.getItem(this.namespace + ":" + key);
+
+            return YAHOO.lang.isNull(value) ? null : YAHOO.lang.JSON.parse(value);
         },
         /**
          * Internal convenience method for encoding values.
