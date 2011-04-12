@@ -31,9 +31,7 @@
      */
     var FS = function(namespace) {
         this.namespace = namespace;
-        $(document).ready(function() {
-            FS._initStorageEngine();
-        });
+        FS._initStorageEngine();
     };
 
     /**
@@ -74,7 +72,7 @@
      * @static
      */
     FS.onReady = function(fn, obj, scope) {
-        $(document).ready(function() {
+        YAHOO.util.Event.onContentReady('swfstoreContainer', function() {
             FS._initStorageEngine();
             if (!(FS._storageEngine.isReady || (FS._storageEngine._swf && YAHOO.util.StorageManager.LOCATION_SESSION === FS_storageEngine._location))) {
                 FS._storageEngine.subscribe(FS._storageEngine.CE_READY, fn, obj, scope);
