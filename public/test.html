@@ -1,0 +1,357 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+
+
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<title>Advanced Storage Example</title>
+
+<style type="text/css">
+/*margin and padding on body element
+  can introduce errors in determining
+  element position and are not recommended;
+  we turn them off as a foundation for YUI
+  CSS treatments. */
+body {
+	margin:0;
+	padding:0;
+}
+</style>
+
+<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.8.2r1/build/fonts/fonts-min.css" />
+<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.8.2r1/build/button/assets/skins/sam/button.css" />
+<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.8.2r1/build/datatable/assets/skins/sam/datatable.css" />
+<script type="text/javascript" src="/lib/2.8.2/build/yahoo/yahoo-debug.js"></script>
+<script type="text/javascript" src="/lib/2.8.2/build/dom/dom-debug.js"></script>
+<script type="text/javascript" src="/lib/2.8.2/build/event/event-debug.js"></script>
+<script type="text/javascript" src="/lib/2.8.2/build/logger/logger-debug.js"></script>
+<script type="text/javascript" src="/lib/2.8.2/build/element/element-debug.js"></script>
+<script type="text/javascript" src="/lib/2.8.2/build/cookie/cookie-debug.js"></script>
+<script type="text/javascript" src="/lib/2.8.2/build/swf/swf-debug.js"></script>
+<script type="text/javascript" src="/lib/2.8.2/build/swfstore/swfstore-debug.js"></script>
+<script type="text/javascript" src="/lib/2.8.2/build/button/button-debug.js"></script>
+<script type="text/javascript" src="/lib/2.8.2/build/datasource/datasource-debug.js"></script>
+<script type="text/javascript" src="/lib/2.8.2/build/datatable/datatable-debug.js"></script>
+<script type="text/javascript" src="/lib/2.8.2/build/storage/storage-debug.js"></script>
+
+
+<!--begin custom header content for this example-->
+<style type="text/css">
+#controls label  
+{
+	clear: left;
+	float: left;
+	width: 7em; 
+} 
+
+</style>
+
+<!--end custom header content for this example-->
+
+</head>
+
+<body class="yui-skin-sam">
+
+
+<h1>Advanced Storage Example</h1>
+
+<div class="exampleIntro">
+	<p>This example shows how to get, set, and remove items from storage using the <a href="http://developer.yahoo.com/yui/storage/">YUI Storage Utility</a> and how to display the current storage contents in a <a href="http://developer.yahoo.com/yui/datatable/">DataTable</a>.</p>
+			
+</div>
+
+<!--BEGIN SOURCE CODE FOR EXAMPLE =============================== -->
+
+<!--Input Controls-->
+
+<div id="controls"> 
+<label for="nameField">Storage name:</label> 
+
+<input id="nameField" type="text" value=""/>
+<input id="save-button" name="save-button" type="Button" value="Save" /> <input id="remove-button" name="remove-button" type="Button" value="Remove" />
+     
+<br/>
+ 
+<label for="valueField">Text to store:</label>
+<textarea cols="30" id="valueField" rows="5"></textarea>
+<br/>   <br/>
+    
+    <fieldset id="checkboxOptions">
+        <legend>Additional Options:</legend>
+        <div id="engineGroup" class="inline">
+            <input id="html5-button" name="html5-button" type="radio" value="Use HTML5" checked="checked" /> 
+            <input id="gears-button" name="gears-button" type="radio" value="Use Gears"/> 
+      <input id="swf-button" name="swf-button" type="radio" value="Use SWF"/>
+        <input id="session-button" name="session-button" type="Button" value="Use Session"/>  
+      <input id="purge-button" name="purge-button" type="Button" value="Purge All Local Data" />
+        </div>
+  </fieldset>
+
+<br/><br/>
+
+
+<div id="datatableContainer"></div> 
+</div>
+
+<!--Always include gears_init.js when you want to support Google Gears: -->
+<script type="text/javascript" src="../storage/assets/gears_init.js"></script>
+
+<!--Local Scripts-->
+<script type="text/javascript" >
+    /**
+     * Pointer to the Storage instance
+     */
+    var storage;
+        
+    YAHOO.util.StorageEngineSWF.SWFURL = 'swfstore.swf';
+
+    /**
+     * Pointer to the DataTable instance
+     */
+    var datatable; 
+
+    var saveButton;
+    var purgeButton;
+    var removeButton;
+    
+    var gearsCheckbox, engineRadio;
+
+    /**
+     * Initialization scripts
+     */ 
+     function initialize() {
+        // evaluate and create the Storage instance
+        var engineBtn = engineRadio.get("checkedButton");
+        var engineType = engineBtn.get("value");
+        var useSession = sessionCheckbox.get("checked");
+        var location;
+
+        location = YAHOO.util.StorageManager[useSession ? 'LOCATION_SESSION' : 'LOCATION_LOCAL'];
+        storage = YAHOO.util.StorageManager.get(engineType, location, {force: false});
+
+        //storage.unsubscribe(storage.CE_CHANGE, onChange);
+        storage.subscribe(storage.CE_CHANGE, onChange);
+        
+        if (storage.isReady || (storage._swf && YAHOO.util.StorageManager.LOCATION_SESSION === location)) {
+            load();
+        } else {
+            saveButton.set("disabled", true); 
+            purgeButton.set("disabled", true);  
+            removeButton.set("disabled", true); 
+            
+            engineRadio.set("disabled", true);
+        
+            storage.subscribe(storage.CE_READY, onContentReady);
+        }
+    }
+    
+    /**
+     * This gets called once Storage is initialized and ready to be used. 
+     * We disabled the buttons previously, so once they're usable we'll enable them here.
+     */ 
+    function onContentReady(event) {
+        saveButton.set("disabled", false); 
+        purgeButton.set("disabled", false);  
+        removeButton.set("disabled", false);
+        
+        engineRadio.set('disabled', false);
+        engineRadio._buttons[0].set("disabled", ! YAHOO.util.StorageEngineHTML5.isAvailable()); 
+        engineRadio._buttons[1].set("disabled", ! YAHOO.util.StorageEngineGears.isAvailable()); 
+        engineRadio._buttons[2].set("disabled", ! YAHOO.util.StorageEngineSWF.isAvailable());
+        
+        sessionCheckbox.set("disabled", false);
+
+        storage.unsubscribe(storage.CE_READY, onContentReady);
+
+        load();
+    }
+
+    /**
+     * Clear out all data
+     */     
+    function purge() {
+        storage.clear();
+        datatable.deleteRows(0, datatable.getRecordSet().getLength());
+    }
+    
+    /**
+     * Called when a save is successful
+     */     
+    function onChange(event) {
+        if (event.type === YAHOO.util.StorageEvent.TYPE_ADD_ITEM || event.type === YAHOO.util.StorageEvent.TYPE_UPDATE_ITEM)
+        {
+            var newobj = {name: event.key, value: event.newValue};
+
+            var len = datatable.getRecordSet().getLength();
+        
+            //loop through current records and see if this has been added before
+            for (var i = 0; i < len; i++ )
+            {
+                var rec = datatable.getRecord(i);
+                var data = rec.getData();
+                
+                //if it's been added already, update it
+                if (data.name == event.key)
+                {
+                    datatable.updateRow(i, newobj);
+                    return;
+                }
+            }
+    
+            //if it's not been added, add it
+            datatable.addRow(newobj);
+        }
+
+        //removed
+        else if (event.type === YAHOO.util.StorageEvent.TYPE_REMOVE_ITEM)
+        {
+
+            var len = datatable.getRecordSet().getLength();
+        
+            //loop through current records and see if this has been added before
+            for (var i = 0; i < len; i++ )
+            {
+                var rec = datatable.getRecord(i);
+                var data = rec.getData();
+                
+                //if it's been added already, update it
+                if (data.name == event.key)
+                {
+                    datatable.deleteRow(i);
+                    return;
+                }
+            }
+        }       
+    }
+
+    
+    /**
+     * Called when something bad happens
+     */         
+    function onError(event) {
+        alert("Event " + event.message);
+    }
+
+    
+    /**
+     * Gets the data from Storage when the page loads
+     */         
+    function load() {
+ 
+      var len = storage.length;
+      
+        var arr = [];
+
+        // clear the existing datatable
+        if (datatable)
+        {
+            datatable.deleteRows(0, datatable.getRecordSet().getLength());
+        }
+          
+        for (var i = 0, key, newobj; i < len; i++)
+        {
+            key = storage.key(i);
+            newobj = { name:key, value: storage.getItem(key) };
+            arr.push(newobj);
+            if (datatable) {datatable.addRow(newobj);}
+        }
+        
+        // only initialize the datatable once
+        if (! datatable)
+        {
+            var datasource = new YAHOO.util.LocalDataSource(arr); 
+
+            datasource.responseSchema = {fields : ["name", "value"]};
+        
+            var configs = 
+            {   
+                scrollable: true
+            }
+            
+            var columns = 
+            [
+                {key:"name", label:"Storage Name (Key)"},
+                {key:"value", label:"Text Stored"}
+            ];
+                
+            datatable = new YAHOO.widget.DataTable("datatableContainer", columns, datasource, configs);
+        }
+    }
+    
+    /**
+     * Save the data locally
+     */ 
+    function save() {
+        storage.setItem(YAHOO.util.Dom.get('nameField').value, YAHOO.util.Dom.get('valueField').value);
+    }
+
+    /**
+     * Remove an item from storage
+     */ 
+    function remove() {
+        var key = YAHOO.util.Dom.get('nameField').value;
+        storage.removeItem(key);
+    }
+
+/**
+ * Called when the buttons are ready to be initialized
+ */ 
+    function onButtonsReady() {
+    saveButton = new YAHOO.widget.Button("save-button");
+        purgeButton = new YAHOO.widget.Button("purge-button");
+        removeButton = new YAHOO.widget.Button("remove-button");
+        
+        engineRadio = new YAHOO.widget.ButtonGroup("engineGroup");
+        sessionCheckbox = new YAHOO.widget.Button("session-button", {type:"checkbox",value:"0",checked:false});
+        
+        engineRadio._buttons[0].set("value", YAHOO.util.StorageEngineHTML5.ENGINE_NAME); 
+        engineRadio._buttons[1].set("value", YAHOO.util.StorageEngineGears.ENGINE_NAME); 
+        engineRadio._buttons[2].set("value", YAHOO.util.StorageEngineSWF.ENGINE_NAME); 
+
+        saveButton.on("click", save); 
+        purgeButton.on("click", purge); 
+        removeButton.on("click", remove);
+        sessionCheckbox.on("checkedChange", initialize);
+        engineRadio.on("checkedButtonChange", initialize);
+        
+        //initialize
+        initialize();
+        
+        YAHOO.util.Dom.get('nameField').focus()
+    }
+
+    YAHOO.util.Event.onContentReady("controls", onButtonsReady);
+
+</script>
+
+<!--END SOURCE CODE FOR EXAMPLE =============================== -->
+
+
+<!--MyBlogLog instrumentation-->
+<script type="text/javascript" src="http://track2.mybloglog.com/js/jsserv.php?mblID=2007020704011645"></script>
+
+</body>
+</html>
+
+<script type="text/javascript"src="http://l.yimg.com/d/lib/rt/rto1_78.js"></script><script>var rt_page="2012403767:FRTMA"; varrt_ip="70.174.182.91";if ("function" == typeof(rt_AddVar) ){ rt_AddVar("ys", escape("F24C9345")); rt_AddVar("cr", escape("ui1/RXdZN82"));rt_AddVar("sg", escape("/SIG=11ogmg1tr74blnbh6kcfd5&b=3&s=p9/1302563600/70.174.182.91/F24C9345")); rt_AddVar("yd", escape("3072018112"));}</script><noscript><img src="http://rtb.pclick.yahoo.com/images/nojs.gif?p=2012403767:FRTMA"></noscript><!-- SpaceID=2012403767 loc=FSRVY noad -->
+<script language=javascript>
+if(window.yzq_d==null)window.yzq_d=new Object();
+window.yzq_d['mFBCdUwNPHc-']='&U=12ddr15me%2fN%3dmFBCdUwNPHc-%2fC%3d-1%2fD%3dFSRVY%2fB%3d-1%2fV%3d0';
+</script><noscript><img width=1 height=1 alt="" src="http://us.bc.yahoo.com/b?P=MktuAEWTTNJyLrdcTUY9pSHxRq62W02jixAAB3sz&T=182qq3ih9%2fX%3d1302563600%2fE%3d2012403767%2fR%3ddev_net%2fK%3d5%2fV%3d2.1%2fW%3dH%2fY%3dYAHOO%2fF%3d1147972349%2fH%3dc2VydmVJZD0iTWt0dUFFV1RUTkp5THJkY1RVWTlwU0h4UnE2MlcwMmppeEFBQjNzeiIgc2l0ZUlkPSI0NDY1NTUxIiB0U3RtcD0iMTMwMjU2MzYwMDQ5NTI3MSIg%2fQ%3d-1%2fS%3d1%2fJ%3dF24C9345&U=12ddr15me%2fN%3dmFBCdUwNPHc-%2fC%3d-1%2fD%3dFSRVY%2fB%3d-1%2fV%3d0"></noscript><script language=javascript>
+if(window.yzq_d==null)window.yzq_d=new Object();
+window.yzq_d['llBCdUwNPHc-']='&U=13ejb6lk2%2fN%3dllBCdUwNPHc-%2fC%3d289534.9603437.10326224.9298098%2fD%3dFOOT%2fB%3d4123617%2fV%3d1';
+</script><noscript><img width=1 height=1 alt="" src="http://us.bc.yahoo.com/b?P=MktuAEWTTNJyLrdcTUY9pSHxRq62W02jixAAB3sz&T=180ghuthk%2fX%3d1302563600%2fE%3d2012403767%2fR%3ddev_net%2fK%3d5%2fV%3d2.1%2fW%3dH%2fY%3dYAHOO%2fF%3d45575754%2fH%3dc2VydmVJZD0iTWt0dUFFV1RUTkp5THJkY1RVWTlwU0h4UnE2MlcwMmppeEFBQjNzeiIgc2l0ZUlkPSI0NDY1NTUxIiB0U3RtcD0iMTMwMjU2MzYwMDQ5NTI3MSIg%2fQ%3d-1%2fS%3d1%2fJ%3dF24C9345&U=13ejb6lk2%2fN%3dllBCdUwNPHc-%2fC%3d289534.9603437.10326224.9298098%2fD%3dFOOT%2fB%3d4123617%2fV%3d1"></noscript>
+<!-- VER-3.0.178857 -->
+<script language=javascript>
+if(window.yzq_p==null)document.write("<scr"+"ipt language=javascript src=http://l.yimg.com/d/lib/bc/bc_2.0.5.js></scr"+"ipt>");
+</script><script language=javascript>
+if(window.yzq_p)yzq_p('P=MktuAEWTTNJyLrdcTUY9pSHxRq62W02jixAAB3sz&T=17tchs8mh%2fX%3d1302563600%2fE%3d2012403767%2fR%3ddev_net%2fK%3d5%2fV%3d1.1%2fW%3dJ%2fY%3dYAHOO%2fF%3d2347497397%2fH%3dc2VydmVJZD0iTWt0dUFFV1RUTkp5THJkY1RVWTlwU0h4UnE2MlcwMmppeEFBQjNzeiIgc2l0ZUlkPSI0NDY1NTUxIiB0U3RtcD0iMTMwMjU2MzYwMDQ5NTI3MSIg%2fS%3d1%2fJ%3dF24C9345');
+if(window.yzq_s)yzq_s();
+</script><noscript><img width=1 height=1 alt="" src="http://us.bc.yahoo.com/b?P=MktuAEWTTNJyLrdcTUY9pSHxRq62W02jixAAB3sz&T=1829742hn%2fX%3d1302563600%2fE%3d2012403767%2fR%3ddev_net%2fK%3d5%2fV%3d3.1%2fW%3dJ%2fY%3dYAHOO%2fF%3d3053763386%2fH%3dc2VydmVJZD0iTWt0dUFFV1RUTkp5THJkY1RVWTlwU0h4UnE2MlcwMmppeEFBQjNzeiIgc2l0ZUlkPSI0NDY1NTUxIiB0U3RtcD0iMTMwMjU2MzYwMDQ5NTI3MSIg%2fQ%3d-1%2fS%3d1%2fJ%3dF24C9345"></noscript><script language=javascript>
+if(window.xzq_p==null)document.write("<scr"+"ipt language=javascript src='http://e.yimg.com/ii/yabcs.js'></scr"+"ipt>");
+</script><script language=javascript>
+if(window.xzq_svr)xzq_svr('http://csc.beap.ad.yieldmanager.net/');
+if(window.xzq_p)xzq_p('i?bv=1.0.0&bs=(128io38tq(gid$MktuAEWTTNJyLrdcTUY9pSHxRq62W02jixAAB3sz,st$1302563600495271,v$1.0))&t=J-D');
+if(window.xzq_s)xzq_s();
+</script><noscript><img width=1 height=1 alt="" src="http://csc.beap.ad.yieldmanager.net/i?bv=1.0.0&bs=(128io38tq(gid$MktuAEWTTNJyLrdcTUY9pSHxRq62W02jixAAB3sz,st$1302563600495271,v$1.0))&t=J-D"></noscript>
+<!-- p3.ydn.re1.yahoo.com compressed/chunked Mon Apr 11 16:13:20 PDT 2011 -->
