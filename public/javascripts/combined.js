@@ -1723,10 +1723,11 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
      *
      * @method _initStorageEngine
      * @protected
+     * @static
      */
     FS._initStorageEngine = function() {
         if (YAHOO.lang.isNull(FS._storageEngine)) {
-            var engineConf = {swfURL: "/lib/2.8.2/build/swfstore/swfstore.swf", containerID: "swfstoreContainer"};
+            var engineConf = {swfURL: "/swfstore.swf", containerID: "swfstoreContainer"};
             FS._storageEngine = YAHOO.util.StorageManager.get(
                 null, // no preferred engine
                 YAHOO.util.StorageManager.LOCATION_SESSION,
@@ -1756,7 +1757,7 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
     FS.onReady = function(fn, obj, scope) {
         YAHOO.util.Event.onContentReady('swfstoreContainer', function() {
             FS._initStorageEngine();
-            if (!FS._storageEngine.isReady) {
+            if (!(FS._storageEngine.isReady || (FS._storageEngine._swf && YAHOO.util.StorageManager.LOCATION_SESSION === FS_storageEngine._location))) {
                 FS._storageEngine.subscribe(FS._storageEngine.CE_READY, fn, obj, scope);
             } else {
                 var s = scope === true ? obj : scope;
@@ -1798,7 +1799,9 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
          * @protected
          */
         _get: function(key) {
-            return YAHOO.lang.JSON.parse(FS._storageEngine.getItem(this.namespace + ":" + key));
+            var value = FS._storageEngine.getItem(this.namespace + ":" + key);
+
+            return YAHOO.lang.isNull(value) ? null : YAHOO.lang.JSON.parse(value);
         },
         /**
          * Internal convenience method for encoding values.
