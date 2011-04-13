@@ -710,12 +710,17 @@ Fisma.Chart = {
             }
         }
 
+        // bail on blank link
+        if (theLink === '') {
+            return;
+        }
+
         // unescape
         theLink = unescape(theLink);
 
         // Does the link contain a variable?
         if (theLink !== false) {
-            theLink = String(theLink).replace('#ColumnLabel#', paramObj.chartDataText[pointIndex]);
+            theLink = String(theLink).replace('#ColumnLabel#', encodeURIComponent(paramObj.chartDataText[pointIndex]));
         }
 
         if (paramObj.linksdebug === true) {
@@ -1627,7 +1632,7 @@ Fisma.Chart = {
                         deltaY = deltaY * deltaY;
                         var d = Math.sqrt(deltaX + deltaY);
                         
-                        if (d < 15 && d !== 0) {
+                        if (d < 17 && d !== 0 && !isNaN(checkAgainst.value) && !isNaN(thisPointLabel.value)) {
 
                             // remove whichever label has the lower number
 

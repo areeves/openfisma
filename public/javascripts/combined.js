@@ -3253,12 +3253,17 @@ Fisma.Chart = {
             }
         }
 
+        // bail on blank link
+        if (theLink === '') {
+            return;
+        }
+
         // unescape
         theLink = unescape(theLink);
 
         // Does the link contain a variable?
         if (theLink !== false) {
-            theLink = String(theLink).replace('#ColumnLabel#', paramObj.chartDataText[pointIndex]);
+            theLink = String(theLink).replace('#ColumnLabel#', encodeURIComponent(paramObj.chartDataText[pointIndex]));
         }
 
         if (paramObj.linksdebug === true) {
@@ -4170,7 +4175,7 @@ Fisma.Chart = {
                         deltaY = deltaY * deltaY;
                         var d = Math.sqrt(deltaX + deltaY);
                         
-                        if (d < 15 && d !== 0) {
+                        if (d < 17 && d !== 0 && !isNaN(checkAgainst.value) && !isNaN(thisPointLabel.value)) {
 
                             // remove whichever label has the lower number
 
@@ -5562,36 +5567,36 @@ Fisma.FindingSummary = function() {
                 var nowStr = now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate();
 
                 if ('ontime' == ontime) {
-                    onTimeString = '/nextDueDate/dateAfter/' + nowStr;
+                    onTimeString = '/nextDueDate/dateAfter/' + encodeURIComponent(nowStr);
                 } else {
-                    onTimeString = '/nextDueDate/dateBefore/' + nowStr;
+                    onTimeString = '/nextDueDate/dateBefore/' + encodeURIComponent(nowStr);
                 }
             }
 
             // Include any status
             var statusString = '';
             if (status !== '' && status !=='TOTAL') {
-                statusString = '/denormalizedStatus/textExactMatch/' + escape(status);
+                statusString = '/denormalizedStatus/textExactMatch/' + encodeURIComponent(status);
             }
 
             // Include any filters
             var filterType = '';
             if (!YAHOO.lang.isNull(this.filterType) && this.filterType !== '') {
-                filterType = '/type/enumIs/' + this.filterType;
+                filterType = '/type/enumIs/' + encodeURIComponent(this.filterType);
             }
 
             var filterSource = '';
             if (!YAHOO.lang.isNull(this.filterSource) && this.filterSource !== '') {
-                filterSource = '/source/textExactMatch/' + this.filterSource;
+                filterSource = '/source/textExactMatch/' + encodeURIComponent(this.filterSource);
             }
 
             // Render the link
-            var uri = '/finding/remediation/list/queryType/advanced' + onTimeString + statusString + filterType + filterSource;
+            var uri = '/finding/remediation/list?q=' + onTimeString + statusString + filterType + filterSource;
 
             if (expanded) {
-                uri += '/organization/textExactMatch/' + orgName;
+                uri += '/organization/textExactMatch/' + encodeURIComponent(orgName);
             } else {
-                uri += '/organization/organizationSubtree/' + orgName;
+                uri += '/organization/organizationSubtree/' + encodeURIComponent(orgName);
             }
 
             return uri;            
@@ -5795,7 +5800,7 @@ Fisma.Highlighter = function() {
             }
         }
     };
-};
+}();
 /**
  * Copyright (c) 2008 Endeavor Systems, Inc.
  *
@@ -5821,7 +5826,6 @@ Fisma.Highlighter = function() {
  * @license   http://www.openfisma.org/content/license
  * @version   $Id$
  */
-
 Fisma.HtmlPanel = function() {
     return {
         /**
@@ -6621,12 +6625,7 @@ Fisma.Remediation = {
         Fisma.HtmlPanel.showPanel('Evidence Approval', content.innerHTML);
         document.getElementById('dialog_continue').onclick = function (){
             var form2 = formname;
-            var comment;
-            if  (document.all) { // IE
-                comment = document.getElementById('dialog_comment').innerHTML;
-            } else {// firefox
-                comment = document.getElementById('dialog_comment').value;
-            }
+            var comment = document.getElementById('dialog_comment').value;
             form2.elements['comment'].value = comment;
             form2.elements['decision'].value = 'APPROVED';
             var submitMsa = document.createElement('input');
@@ -6673,12 +6672,7 @@ Fisma.Remediation = {
         Fisma.HtmlPanel.showPanel('Evidence Denial', content.innerHTML);
         document.getElementById('dialog_continue').onclick = function (){
             var form2 = formname;
-            var comment;
-            if  (document.all) { // IE
-                comment = document.getElementById('dialog_comment').innerHTML;
-            } else {// firefox
-                comment = document.getElementById('dialog_comment').value;
-            }
+            var comment = document.getElementById('dialog_comment').value;
             if (comment.match(/^\s*$/)) {
                 alert('Comments are required in order to deny.');
                 return;
@@ -6731,12 +6725,7 @@ Fisma.Remediation = {
         Fisma.HtmlPanel.showPanel('Mitigation Strategy Approval', content.innerHTML);
         document.getElementById('dialog_continue').onclick = function (){
             var form2 = formname;
-            var comment;
-            if  (document.all) { // IE
-                comment = document.getElementById('dialog_comment').innerHTML;
-            } else {// firefox
-                comment = document.getElementById('dialog_comment').value;
-            }
+            var comment = document.getElementById('dialog_comment').value;
             form2.elements['comment'].value = comment;
             form2.elements['decision'].value = 'APPROVED';
             var submitMsa = document.createElement('input');
@@ -6784,12 +6773,7 @@ Fisma.Remediation = {
         Fisma.HtmlPanel.showPanel('Mitigation Strategy Denial', content.innerHTML);
         document.getElementById('dialog_continue').onclick = function (){
             var form2 = formname;
-            var comment;
-            if  (document.all) { // IE
-                comment = document.getElementById('dialog_comment').innerHTML;
-            } else {// firefox
-                comment = document.getElementById('dialog_comment').value;
-            }
+            var comment = document.getElementById('dialog_comment').value;
             if (comment.match(/^\s*$/)) {
                 alert('Comments are required in order to submit.');
                 return;
@@ -8276,9 +8260,8 @@ Fisma.Search.CriteriaRenderer = function () {
  * Constructor
  * 
  * @param advancedSearchOptions Contains searchable fields and pre-defined filters
- * @param pathname The URL path, used to generate default search filters
  */
-Fisma.Search.Panel = function (advancedSearchOptions, pathname) {
+Fisma.Search.Panel = function (advancedSearchOptions) {
     var index;
     var searchableFields = advancedSearchOptions;
 
@@ -8310,27 +8293,27 @@ Fisma.Search.Panel = function (advancedSearchOptions, pathname) {
         }
     }
 
-    // A pathname can contain default query criteria if it contains the keyword 'advanced'
+    // If default search criteria is included as a URL parameter, parse that out here.
     this.defaultQueryTokens = null;
-    
-    if (pathname) {
-        var pathTokens = pathname.split('/');
 
-        for (index in pathTokens) {
-            var pathToken = pathTokens[index];
+    var urlParamString = document.location.search.substring(1); // strip the leading "?" character
+    var urlParams = urlParamString.split('&');
 
-            // If the 'advanced' token is found (and has more tokens after it), then save the 
-            // rest of the tokens into the object
-            var start = parseInt(index, 10);
+    for (var i in urlParams) {
+        var urlParam = urlParams[i];
+        var keyValuePair = urlParam.split("=");
 
-            if ('advanced' == pathToken && pathTokens.length > (start + 1)) {
-                
-                pathTokens.splice(0, start + 1);
-                
-                this.defaultQueryTokens = pathTokens;
-                
-                break;
+        // Looking for a parameter called "q"
+        if ("q" == keyValuePair[0]) {
+            var criteriaString = keyValuePair[1];
+            this.defaultQueryTokens = criteriaString.split("/");
+
+            // Remove first element if it's empty
+            if (this.defaultQueryTokens[0] == '') {
+                this.defaultQueryTokens.splice(0, 1);
             }
+
+            break;
         }
     }
 };
@@ -9080,7 +9063,7 @@ Fisma.TabView.Roles = function() {
             });
         }
     };
-};
+}();
 /**
  * Copyright (c) 2008 Endeavor Systems, Inc.
  *
@@ -9298,7 +9281,7 @@ Fisma.TableFormat = {
     overdueFinding : function (elCell, oRecord, oColumn, oData) {
 
         // Construct overdue finding search url
-        overdueFindingSearchUrl = '/finding/remediation/list/queryType/advanced';
+        overdueFindingSearchUrl = '/finding/remediation/list?q=';
 
         // Handle organization field
         var organization = oRecord.getData('System');
@@ -9308,7 +9291,7 @@ Fisma.TableFormat = {
             // Since organization may be html-encoded, decode the html before (url)-escaping it
             organization = $P.html_entity_decode(organization);
             
-            overdueFindingSearchUrl += "/organization/textExactMatch/" + escape(organization);
+            overdueFindingSearchUrl += "/organization/textExactMatch/" + encodeURIComponent(organization);
         }
 
         // Handle status field
@@ -9316,14 +9299,14 @@ Fisma.TableFormat = {
 
         if (status) {
             status = PHP_JS().html_entity_decode(status);
-            overdueFindingSearchUrl += "/denormalizedStatus/textExactMatch/" + escape(status);
+            overdueFindingSearchUrl += "/denormalizedStatus/textExactMatch/" + encodeURIComponent(status);
         }
 
         // Handle source field
         var parameters = oColumn.formatterParameters;
 
         if (parameters.source) {
-            overdueFindingSearchUrl += "/source/textExactMatch/" + escape(parameters.source);
+            overdueFindingSearchUrl += "/source/textExactMatch/" + encodeURIComponent(parameters.source);
         }
 
         // Handle date fields
@@ -9346,9 +9329,12 @@ Fisma.TableFormat = {
         }
 
         if (from && to) {
-            overdueFindingSearchUrl += "/nextDueDate/dateBetween/" + to + "/" + from;
+            overdueFindingSearchUrl += "/nextDueDate/dateBetween/" 
+                                     + encodeURIComponent(to) 
+                                     + "/" 
+                                     + encodeURIComponent(from);
         } else if (from) {
-            overdueFindingSearchUrl += "/nextDueDate/dateBefore/" + from;
+            overdueFindingSearchUrl += "/nextDueDate/dateBefore/" + encodeURIComponent(from);
         } else {
             // This is the TOTAL column
             var yesterday = new Date();
@@ -9359,14 +9345,10 @@ Fisma.TableFormat = {
             yesterdayString += '-';
             yesterdayString += yesterday.getDate();
 
-            overdueFindingSearchUrl += "/nextDueDate/dateBefore/" + yesterdayString;
+            overdueFindingSearchUrl += "/nextDueDate/dateBefore/" + encodeURIComponent(yesterdayString);
         }
 
-        elCell.innerHTML = "<a href=";
-        elCell.innerHTML += overdueFindingSearchUrl;
-        elCell.innerHTML += ">";
-        elCell.innerHTML += oData;
-        elCell.innerHTML += "</a>";
+        elCell.innerHTML = '<a href="' + overdueFindingSearchUrl + '">' + oData + "</a>";
     },
 
     /**
@@ -9789,8 +9771,8 @@ Fisma.User = {
 
         // Add comment textarea to panel
         var commentTextArea = document.createElement('textarea');
-        commentTextArea.id = 'commentTextarea';
-        commentTextArea.name = 'commentTextarea';
+        commentTextArea.id = 'commentTextArea';
+        commentTextArea.name = 'commentTextArea';
         commentTextArea.rows = 5;
         commentTextArea.cols = 60;
         content.appendChild(commentTextArea);
@@ -9817,18 +9799,11 @@ Fisma.User = {
      * Submit user form after assign comment value to comment element
      */
     submitUserForm : function () {
-        
-        var commentElement;
-        
-        // Set the innerHTML property for IE.
-        if  (YAHOO.env.ua.ie) {
-            commentElement = YAHOO.util.Dom.get('commentTextarea').innerHTML;
-        } else {
-            commentElement = YAHOO.util.Dom.get('commentTextarea').value;
-        }
 
-        var form = YAHOO.util.Dom.getAncestorByTagName('save-button', 'form');
+        // Get commentTextArea value from panel and assign its value to comment element
+        var commentElement = YAHOO.util.Dom.get('commentTextArea').value;
         YAHOO.util.Dom.get('comment').value = commentElement;
+        var form = YAHOO.util.Dom.getAncestorByTagName('save-button', 'form');
         form.submit();
     }
 };
