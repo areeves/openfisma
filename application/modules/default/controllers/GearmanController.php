@@ -33,9 +33,9 @@ class GearmanController extends Fisma_Zend_Controller_Action_Object
     public function testAction()
     {
         $client = new Fisma_Gearman_Client;
-        $values['id'] = $client->setup();
+        $values['id'] = $client->setup('test');
         $client->doBackground('test', serialize($values));
-        $this->_request->redirect('/gearman/list');
+        $this->_redirect('/gearman/list');
     }
 
     public function tasksAction()
@@ -45,17 +45,17 @@ class GearmanController extends Fisma_Zend_Controller_Action_Object
 
         foreach ($items as $item)
         {
-            $values['id'] = $client->setup();
+            $values['id'] = $client->setup('test');
             $values['data'] = $item;
             $client->addTaskBackground('test', serialize($values));
         }
         $client->runTasks();
-        $this->_request->redirect('/gearman/list');
+        $this->_redirect('/gearman/list');
     }
 
     public function statusAction()
     {
-        $this->_request->redirect('/gearman/list');
+        $this->_redirect('/gearman/list');
     }
 
     public function jobstatusAction()
@@ -71,15 +71,29 @@ class GearmanController extends Fisma_Zend_Controller_Action_Object
 
     public function virusAction()
     {
-        $gearmanClient = new Fisma_Gearman_Client();
-        $values['id'] = $gearmanClient->getId();
-        $values['uploadedFile'] = '/Users/cjs/projects/openfisma/openfisma/data/uploads/scanreports/Nessus_20110411-154603.xml';
-        $jobId = $gearmanClient->doBackground('virus', serialize($values));
+        $uploadForm = Fisma_Zend_Form_Manager::loadForm('virusscan');
+        $uploadForm = Fisma_Zend_Form_Manager::prepareForm($uploadForm);
+        $uploadForm->setAttrib('enctype', 'multipart/form-data');
+        $uploadForm->selectFile->setDestination(Fisma::getPath('data') . '/uploads/virusscan');
+        $this->view->assign('uploadForm', $uploadForm);
+        $postValues = $this->_request->getPost();
+        if ($postValues) {
+            if ($uploadForm->isValid($postValues) && $fileReceived = $uploadForm->selectFile->receive()) {
+                $filePath = $uploadForm->selectFile->getTransferAdapter()->getFileName('selectFile');
+                $values = $uploadForm->getValues();
+                $values['filepath'] = $filePath;
+                $gearmanClient = new Fisma_Gearman_Client;
+                $values['id'] = $gearmanClient->setup('antivirus');;
+                $values['userid'] = $this->_me->id;
+                $gearmanClient->doBackground('virus', serialize($values));
+                $this->_redirect('/gearman/list');
+
+            }
+        }
     }
 
     public function indexAction()
     {
-        $this->_request->redirect('/gearman/list');
     }
 
     public function scanAction()
@@ -117,7 +131,7 @@ class GearmanController extends Fisma_Zend_Controller_Action_Object
                 $values = $uploadForm->getValues();
                 $values['filepath'] = $filePath;
                 $gearmanClient = new Fisma_Gearman_Client;
-                $values['id'] = $gearmanClient->getId();
+                $values['id'] = $gearmanClient->setup('scan');
                 $values['userid'] = $this->_me->id;
                 $gearmanClient->doBackground('scan', serialize($values));
                 $this->_redirect('/gearman/list');
