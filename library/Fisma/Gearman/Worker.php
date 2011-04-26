@@ -27,11 +27,30 @@
 
 class Fisma_Gearman_Worker extends GearmanWorker
 {
-    protected $_functionName;
-    protected $_servers;
-    protected $_errors;
-    protected $_messages;
+    /**
+     * @var array Error messages
+     */
+    protected $_errors = array();
+
+    /**
+     * Messages to be passed back to the application
+     *
+     * @var array
+     */
+    protected $_messages = array();
+
+    /**
+     * Gearman model
+     *
+     * @var object
+     */
     protected $_gearmanTable;
+
+    /**
+     * Name of the current worker
+     *
+     * @var string
+     */
     protected $_workerName;
 
     /**
@@ -45,7 +64,7 @@ class Fisma_Gearman_Worker extends GearmanWorker
     }
 
     /**
-     * @param integer $id  Gearman table ID passed from the client
+     * @param integer $id Gearman table ID passed from the client
      * @param string $handle GearmanJob jobhandle
      * @return void
      */
@@ -81,9 +100,14 @@ class Fisma_Gearman_Worker extends GearmanWorker
             case 'finished':
                 $this->_gearmanTable->finishedTs = Fisma::now();
                 $this->_gearmanTable->status = 'finished';
+                $this->_gearmanTable->messages = json_encode($this->getMessages());
+                $this->_gearmanTable->errors = json_encode($this->getErrors());
                 break;
             case 'failed':
+                $this->_gearmanTable->finishedTs = Fisma::now();
                 $this->_gearmanTable->status = 'failed';
+                $this->_gearmanTable->messages = json_encode($this->getMessages());
+                $this->_gearmanTable->errors = json_encode($this->getErrors());
                 break;
             default:
                 throw new Fisma_Zend_Exception('Invalid status');
@@ -109,6 +133,28 @@ class Fisma_Gearman_Worker extends GearmanWorker
         return $this->_workerName;
     }
 
+    public function addMessage($message)
+    {
+        array_push($this->_messages, $message);
+    }
+
+    /**
+     * @return string
+     */
+    public function getMessages()
+    {
+        return $this->_messages;
+    }
+
+    /**
+     * @param  $error
+     * @return void
+     */
+    public function addError($error)
+    {
+        array_push($this->_errors, $error);
+    }
+
     /**
      * @return string
      */
@@ -126,7 +172,8 @@ class Fisma_Gearman_Worker extends GearmanWorker
         while ($this->work())  {
             if ($this->returnCode() != GEARMAN_SUCCESS)
             {
-                $this->_errors = $this->returnCode() . ': ' . $this->getErrno() . ': ' . $this->error();
+                $error = $this->returnCode() . ': ' . $this->getErrno() . ': ' . $this->error();
+                $this->addError($error);
                 break;
             }
         }

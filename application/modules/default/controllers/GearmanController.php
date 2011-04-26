@@ -87,7 +87,6 @@ class GearmanController extends Fisma_Zend_Controller_Action_Object
                 $values['userid'] = $this->_me->id;
                 $gearmanClient->doBackground('virus', serialize($values));
                 $this->_redirect('/gearman/list');
-
             }
         }
     }
@@ -135,14 +134,6 @@ class GearmanController extends Fisma_Zend_Controller_Action_Object
                 $values['userid'] = $this->_me->id;
                 $gearmanClient->doBackground('scan', serialize($values));
                 $this->_redirect('/gearman/list');
-            }
-        }
-    }
-}
-/*                    $this->view->priorityMessenger($message, 'notice');
-                } catch (Fisma_Zend_Exception_InvalidFileFormat $e) {
-                    $this->view->priorityMessenger($e->getMessage(), 'warning');
-                }
             } else {
                 $errorString = Fisma_Zend_Form_Manager::getErrors($uploadForm);
 
@@ -154,5 +145,8 @@ class GearmanController extends Fisma_Zend_Controller_Action_Object
                 $this->view->priorityMessenger("Scan upload failed:<br>$errorString", 'warning');
             }
             // This is a hack to make the submit button work with YUI:
-            /** @yui */ //$uploadForm->upload->setValue('Upload');
-            //$this->render(); // Not sure why this view doesn't auto-render?? It doesn't render when the POST is set.
+            /** @yui */ $uploadForm->upload->setValue('Upload');
+            $this->render(); // Not sure why this view doesn't auto-render?? It doesn't render when the POST is set.
+        }
+    }
+}

@@ -62,43 +62,44 @@ class ScanWorker extends Fisma_Gearman_Worker
         echo "FilePath: $filePath\n";
         $job->sendStatus('1', '3');
 
-        $plugin = Fisma_Inject_Factory::create(NULL, $values);
-        // get original file name
-        $originalName = pathinfo(basename($filePath), PATHINFO_FILENAME);
-        // get current time and set to a format like '20090504_112202'
-        $dateTime = Zend_Date::now()->toString(Fisma_Date::FORMAT_FILENAME_DATETIMESTAMP);
-        // define new file name
-        $newName = str_replace($originalName, $originalName . '_' . $dateTime, basename($filePath));
-        // organize upload data
-        $upload = new Upload();
-        $upload->userId = $userId;
-        $upload->fileName = $newName;
-        $upload->save();
-        $job->sendStatus('2','3');
-        // parse the file
-        $plugin->parse($upload->id);
-        // rename the file by ts
-        rename($filePath, dirname($filePath) . '/' . $newName);
+        try {
+            $plugin = Fisma_Inject_Factory::create(NULL, $values);
+            // get original file name
+            $originalName = pathinfo(basename($filePath), PATHINFO_FILENAME);
+            // get current time and set to a format like '20090504_112202'
+            $dateTime = Zend_Date::now()->toString(Fisma_Date::FORMAT_FILENAME_DATETIMESTAMP);
+            // define new file name
+            $newName = str_replace($originalName, $originalName . '_' . $dateTime, basename($filePath));
+            // organize upload data
+            $upload = new Upload();
+            $upload->userId = $userId;
+            $upload->fileName = $newName;
+            $upload->save();
+            $job->sendStatus('2','3');
+            // parse the file
+            $plugin->parse($upload->id);
+            // rename the file by ts
+            rename($filePath, dirname($filePath) . '/' . $newName);
 
-        $createdWord = ($plugin->created > 1 || $plugin->created === 0)
-                ?  ' vulnerabilities were' : ' vulnerability was' ;
-        $reopenedWord = ($plugin->reopened > 1 || $plugin->reopened  === 0)
-                ? ' vulnerabilities were' : ' vulnerability was' ;
-        $suppressedWord = ($plugin->suppressed > 1 || $plugin->suppressed === 0)
-                ? ' vulnerabilities were' : ' vulnerability was' ;
+            $createdWord = ($plugin->created > 1 || $plugin->created === 0)
+                    ?  ' vulnerabilities were' : ' vulnerability was' ;
+            $reopenedWord = ($plugin->reopened > 1 || $plugin->reopened  === 0)
+                    ? ' vulnerabilities were' : ' vulnerability was' ;
+            $suppressedWord = ($plugin->suppressed > 1 || $plugin->suppressed === 0)
+                    ? ' vulnerabilities were' : ' vulnerability was' ;
 
-        $this->_messages = 'Your scan report was successfully uploaded.<br>'
-                           . $plugin->created . $createdWord . ' created.<br>'
-                           . $plugin->reopened . $reopenedWord . ' reopened.<br>'
-                           . $plugin->suppressed . $suppressedWord . ' suppressed.';
-        echo "Finished processing: $filePath";
-        $job->sendStatus('3','3');
-        $this->setStatus('finished');
+            $messages = 'Your scan report was successfully uploaded.<br>'
+                        . $plugin->created . $createdWord . ' created.<br>'
+                        . $plugin->reopened . $reopenedWord . ' reopened.<br>'
+                        . $plugin->suppressed . $suppressedWord . ' suppressed.';
+            $this->addMessage($messages);
+
+            echo "Finished processing: $filePath";
+            $job->sendStatus('3','3');
+            $this->setStatus('finished');
+        } catch (Fisma_Zend_Exception_InvalidFileFormat $e) {
+            $this->addError($e->getMessage());
+            $this->setStatus('failed');
+        }
     }
-
-    // Error message
-    //$this->view->priorityMessenger("Scan upload failed:<br>$errorString", 'warning');
-    // This is a hack to make the submit button work with YUI:
-    /** @yui */ //$uploadForm->upload->setValue('Upload');
-
 }

@@ -26,6 +26,12 @@ Gearman:
             values: [pending, running, failed, finished]
             comment: Job status
 
+        messages:
+            type: string
+
+        errors:
+            type: string
+
         progress:
             type: integer
 

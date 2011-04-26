@@ -81,6 +81,18 @@ class GearmanTable extends Fisma_Doctrine_Table implements Fisma_Search_Searchab
                 'sortable' => true,
                 'type' => 'text'
             ),
+            'messages' => array(
+                'initiallyVisible' => true,
+                'label' => 'Messages',
+                'sortable' => true,
+                'type' => 'text'
+            ),
+            'errors' => array(
+                'initiallyVisible' => true,
+                'label' => 'Errors',
+                'sortable' => true,
+                'type' => 'text'
+            ),
             'progress' => array(
                 'initiallyVisible' => true,
                 'label' => 'Progress',
