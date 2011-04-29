@@ -50,7 +50,7 @@ class VirusWorker extends Fisma_Gearman_Worker
         $uploadedFile = $values['uploadedFile'];
         $this->setup($id, $jobHandle);
 
-        $job->sendStatus(1, 2);
+        $this->setProgress('10');
         echo "Job handle: " . $job->handle() . "\n";
         echo "Workload size " . $job->workloadSize() . "\n";
         echo "File: " . $uploadedFile;
@@ -63,13 +63,13 @@ class VirusWorker extends Fisma_Gearman_Worker
 
         if ($avReturnCode) {
             //Virus discovered
-            $gearman->success = '0';
+            $this->setSuccess('0');
         } else {
             //No virus discovered
-            $gearman->success = '1';
+            $this->setSuccess('1');
         }
 
-        $job->sendStatus(2, 2);
+        $this->setProgress('100');
         $this->setStatus('finished');
     }
 }

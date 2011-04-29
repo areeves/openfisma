@@ -42,7 +42,7 @@ class TestWorker extends Fisma_Gearman_Worker
         $id = $values['id'];
         $data = $values['data'];
         if (!$data) {
-            $data = "blah";
+            $data = "test";
         }
         echo "Id: $id\n";
         echo "Job handle: " . $job->handle() . "\n";
@@ -53,11 +53,12 @@ class TestWorker extends Fisma_Gearman_Worker
         echo "Workload:" . $job->workload() . "\n";
         echo strrev($data) . "\n";;
         foreach (range(1,10) as $number) {
-            $job->sendStatus($number, 10);
+            $this->setProgress($number . '0');
             echo "$number / 10\n";
             sleep(1);
         }
         echo "Finished\n";
+        $this->setSuccess('1');
         $this->setStatus('finished');
     }
 }

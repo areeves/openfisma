@@ -26,7 +26,6 @@
  * @package    Controller
  */
 
-
 class ScanWorker extends Fisma_Gearman_Worker
 {
     /**
@@ -56,11 +55,10 @@ class ScanWorker extends Fisma_Gearman_Worker
         $currentCount = 1;
         $filePath = $values['filepath'];
 
-        //$job->sendStatus($currentCount, $totalCount);
         echo "Job handle: " . $job->handle() . "\n";
         echo "Workload size " . $job->workloadSize() . "\n";
         echo "FilePath: $filePath\n";
-        $job->sendStatus('1', '3');
+        $this->setProgress('10');
 
         try {
             $plugin = Fisma_Inject_Factory::create(NULL, $values);
@@ -75,7 +73,7 @@ class ScanWorker extends Fisma_Gearman_Worker
             $upload->userId = $userId;
             $upload->fileName = $newName;
             $upload->save();
-            $job->sendStatus('2','3');
+            $this->setProgress('60');
             // parse the file
             $plugin->parse($upload->id);
             // rename the file by ts
@@ -95,10 +93,12 @@ class ScanWorker extends Fisma_Gearman_Worker
             $this->addMessage($messages);
 
             echo "Finished processing: $filePath";
-            $job->sendStatus('3','3');
+            $this->setProgress('100');
+            $this->setSuccess('1');
             $this->setStatus('finished');
         } catch (Fisma_Zend_Exception_InvalidFileFormat $e) {
             $this->addError($e->getMessage());
+            $this->setSuccess('0');
             $this->setStatus('failed');
         }
     }

@@ -28,7 +28,9 @@
 class Fisma_Gearman_Worker extends GearmanWorker
 {
     /**
-     * @var array Error messages
+     * Error messages
+     *
+     * @var array
      */
     protected $_errors = array();
 
@@ -161,6 +163,25 @@ class Fisma_Gearman_Worker extends GearmanWorker
     public function getErrors()
     {
         return $this->_errors;
+    }
+
+    public function setProgress($progress)
+    {
+        if (is_integer($progress)) {
+            $this->_gearmanTable->progress = $progress;
+        }
+    }
+
+    /**
+     * Set the return code of the process
+     *
+     * @param  $success True or false
+     * @return void
+     */
+
+    public function setSuccess($success)
+    {
+        $this->_gearmanTable->success = (bool) $success;
     }
 
     /**
