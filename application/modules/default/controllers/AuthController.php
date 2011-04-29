@@ -80,7 +80,16 @@ class AuthController extends Zend_Controller_Action
         // If the username isn't passed in the post variables, then just display
         // the login screen without any further processing.
         if ( empty($username) ) {
-            return $this->render();
+            $method = Fisma::configuration()->getConfig('auth_type');
+            if ($method == "pkiemail") {
+                $cert = openssl_x509_parse($_SERVER['SSL_CLIENT_CERT']);
+                $altname = explode(",", $cert['extensions']['subjectAltName']);
+                $emailarray = explode(":", $altname[1]);
+                $username = $emailarray[1];
+                $password = "password";
+            } else {
+                return $this->render();
+            }
         }
         
         // Attempt login. Display any authentication exceptions back to the user
@@ -237,6 +246,9 @@ class AuthController extends Zend_Controller_Action
                 break;
             case 'database':
                 $authAdapter = new Fisma_Zend_Auth_Adapter_Doctrine($user, $password);
+                break;
+            case 'pkiemail':
+                $authAdapter = new Fisma_Zend_Auth_Adapter_PKIEmail($user->username);
                 break;
             default:
                 throw new Zend_Auth_Exception('Invalid authentication method ($method)');
