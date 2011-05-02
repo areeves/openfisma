@@ -47,7 +47,7 @@ class VirusWorker extends Fisma_Gearman_Worker
         $values = unserialize($job->workload());
         $id = $values['id'];
         $jobHandle = $job->handle();
-        $uploadedFile = $values['uploadedFile'];
+        $uploadedFile = $values['filepath'];
         $this->setup($id, $jobHandle);
 
         $this->setProgress('10');

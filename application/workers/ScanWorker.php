@@ -35,7 +35,7 @@ class ScanWorker extends Fisma_Gearman_Worker
     {
         parent::__construct();
         $this->addFunction('scan', array($this, 'scanFunction'));
-        $this->setWorkerName('injection');
+        $this->setWorkerName('scan');
     }
 
     /**

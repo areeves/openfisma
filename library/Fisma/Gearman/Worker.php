@@ -167,8 +167,9 @@ class Fisma_Gearman_Worker extends GearmanWorker
 
     public function setProgress($progress)
     {
-        if (is_integer($progress)) {
+        if (is_numeric($progress)) {
             $this->_gearmanTable->progress = $progress;
+            $this->_gearmanTable->save();
         }
     }
 
