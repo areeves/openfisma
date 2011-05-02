@@ -1,0 +1,39 @@
+Gearman:
+    columns:
+        createdTs:
+            type: timestamp
+
+        startedTs:
+            type: timestamp
+
+        finishedTs:
+            type: timestamp
+
+        jobHandle:
+            type: string
+            comment: Job ID
+
+        worker:
+            type: string
+            comment: Name of the worker
+
+        userId:
+            type: integer
+            comment: userId
+
+        status:
+            type: enum
+            values: [pending, running, failed, finished]
+            comment: Job status
+
+        messages:
+            type: string
+
+        errors:
+            type: string
+
+        progress:
+            type: integer
+
+        success:
+            type: integer
