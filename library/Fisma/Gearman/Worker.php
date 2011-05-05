@@ -56,6 +56,25 @@ class Fisma_Gearman_Worker extends GearmanWorker
     protected $_workerName;
 
     /**
+     * ID of the database row the Worker should be using
+     *
+     * @var integer
+     */
+    protected $_id;
+
+    /**
+     * @var
+     */
+    protected $_workload;
+
+    /**
+     * Current job handle identifier
+     *
+     * @var string JobHandle identifer
+     */
+    protected $_jobHandle;
+
+    /**
      * Constructor
      */
     public function  __construct()
@@ -70,14 +89,18 @@ class Fisma_Gearman_Worker extends GearmanWorker
      * @param string $handle GearmanJob jobhandle
      * @return void
      */
-    protected function setup($id, $handle)
+    protected function setup($job)
     {
-        $gearmanTable = Doctrine::getTable('Gearman')->find($id);
+        $workload = unserialize($job->workload());
+        $this->_id = $workload['id'];
+        $this->_jobHandle = $job->handle();
+        $this->_workload = $workload['data'];
+        $gearmanTable = Doctrine::getTable('Gearman')->find($this->_id);
         if (!$gearmanTable) {
             throw new Fisma_Zend_Exception("Invalid Gearman ID");
         }
         $gearmanTable->worker = $this->getWorkerName();
-        $gearmanTable->jobHandle = $handle;
+        $gearmanTable->jobHandle = $this->_jobHandle;
         $gearmanTable->save();
         $this->_gearmanTable = $gearmanTable;
         $this->setStatus('running');
@@ -119,7 +142,9 @@ class Fisma_Gearman_Worker extends GearmanWorker
     }
 
     /**
-     * @param string $name Set worker name
+     * Set the worker name
+     *
+     * @param string $name Worker name
      * @return void
      */
     public function setWorkerName($name)
@@ -128,6 +153,8 @@ class Fisma_Gearman_Worker extends GearmanWorker
     }
 
     /**
+     * Get worker name
+     *
      * @return string Get worker name
      */
     public function getWorkerName()
@@ -141,6 +168,8 @@ class Fisma_Gearman_Worker extends GearmanWorker
     }
 
     /**
+     * Retrieve messages
+     *
      * @return string
      */
     public function getMessages()
@@ -149,7 +178,9 @@ class Fisma_Gearman_Worker extends GearmanWorker
     }
 
     /**
-     * @param  $error
+     * Add error messages
+     *
+     * @param string $error
      * @return void
      */
     public function addError($error)
@@ -158,6 +189,8 @@ class Fisma_Gearman_Worker extends GearmanWorker
     }
 
     /**
+     * Retrieve error messages
+     *
      * @return string
      */
     public function getErrors()
@@ -165,6 +198,12 @@ class Fisma_Gearman_Worker extends GearmanWorker
         return $this->_errors;
     }
 
+    /**
+     * Set progress value (usually between 1 and 100)
+     *
+     * @param integer $progress Progress value
+     * @return void
+     */
     public function setProgress($progress)
     {
         if (is_numeric($progress)) {
@@ -179,7 +218,6 @@ class Fisma_Gearman_Worker extends GearmanWorker
      * @param  $success True or false
      * @return void
      */
-
     public function setSuccess($success)
     {
         $this->_gearmanTable->success = (bool) $success;
@@ -187,6 +225,7 @@ class Fisma_Gearman_Worker extends GearmanWorker
 
     /**
      * Worker run loop
+     *
      * @return void
      */
     public function run()

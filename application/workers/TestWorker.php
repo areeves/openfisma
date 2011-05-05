@@ -37,17 +37,15 @@ class TestWorker extends Fisma_Gearman_Worker
 
     public function testFunction($job)
     {
-        $values = unserialize($job->workload());
-        $jobHandle = $job->handle();
-        $id = $values['id'];
-        $data = $values['data'];
+        $this->setup($job);
+        $data = $this->_workload;
         if (!$data) {
             $data = "test";
         }
         echo "Id: $id\n";
         echo "Job handle: " . $job->handle() . "\n";
         echo "Date: $data\n";
-        $this->setup($id, $jobHandle);
+
         $this->setStatus('running');
         echo "Workload size " . $job->workloadSize() . "\n";
         echo "Workload:" . $job->workload() . "\n";

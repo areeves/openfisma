@@ -50,4 +50,18 @@ class Fisma_Gearman_Client extends GearmanClient
         $gearman->save();
         return $gearman->id;
     }
+
+    public function doBackground($task, $data)
+    {
+        $data['id'] = $this->setup($task);
+        $data['data'] = $data;
+        parent::doBackground($task, serialize($data));
+    }
+
+    public function addBackgroundTask($task, $data)
+    {
+        $data['id'] = $this->setup($task);
+        $data['data'] = $data;
+        parent::addBackgroundTask($task, serialize($data));
+    }
 }

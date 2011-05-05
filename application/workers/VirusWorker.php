@@ -34,7 +34,7 @@ class VirusWorker extends Fisma_Gearman_Worker
     public function __construct()
     {
         parent::__construct();
-        $this->addFunction("virus", array($this, 'virusFunction'));
+        $this->addFunction("antivirus", array($this, 'antivirusFunction'));
         $this->setWorkerName('antivirus');
     }
 
@@ -42,22 +42,20 @@ class VirusWorker extends Fisma_Gearman_Worker
      * @param  $job  GearmanJob object passed by Gearman
      * @return void
      */
-    public function virusFunction($job)
+    public function antivirusFunction($job)
     {
-        $values = unserialize($job->workload());
-        $id = $values['id'];
-        $jobHandle = $job->handle();
+        echo "made it here";
+        $this->setup($job);
+        $values = $this->_workload;
         $uploadedFile = $values['filepath'];
-        $this->setup($id, $jobHandle);
 
-        $this->setProgress('10');
         echo "Job handle: " . $job->handle() . "\n";
         echo "Workload size " . $job->workloadSize() . "\n";
         echo "File: " . $uploadedFile;
 
+        $this->setProgress('10');
         $config = Fisma::$appConf['gearman'];
         $clamscan = $config['antivirus']['clamscan'];
-
         $command = $clamscan . ' --stdout --no-summary ' . escapeshellcmd($uploadedFile);
         exec($command, $avOutput, $avReturnCode);
 

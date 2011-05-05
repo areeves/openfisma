@@ -44,17 +44,11 @@ class ScanWorker extends Fisma_Gearman_Worker
      */
     public function scanFunction($job)
     {
-        $values = unserialize($job->workload());
-        $id = $values['id'];
-        unset($values['id']);
+        $this->setup($job);
+        $values = $this->_workload;
         $userId = $values['userid'];
         unset($values['userid']);
-        $jobHandle = $job->handle();
-        $this->setup($id, $jobHandle);
-        $totalCount = count($params);
-        $currentCount = 1;
         $filePath = $values['filepath'];
-
         echo "Job handle: " . $job->handle() . "\n";
         echo "Workload size " . $job->workloadSize() . "\n";
         echo "FilePath: $filePath\n";

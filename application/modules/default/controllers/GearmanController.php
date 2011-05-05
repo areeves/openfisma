@@ -32,9 +32,9 @@ class GearmanController extends Fisma_Zend_Controller_Action_Object
 
     public function testAction()
     {
+        $values = 'test';
         $client = new Fisma_Gearman_Client;
-        $values['id'] = $client->setup('test');
-        $client->doBackground('test', serialize($values));
+        $client->doBackground('test', $values);
         $this->_redirect('/gearman/list');
     }
 
@@ -45,9 +45,7 @@ class GearmanController extends Fisma_Zend_Controller_Action_Object
 
         foreach ($items as $item)
         {
-            $values['id'] = $client->setup('test');
-            $values['data'] = $item;
-            $client->addTaskBackground('test', serialize($values));
+            $client->addTaskBackground('test', $item);
         }
         $client->runTasks();
         $this->_redirect('/gearman/list');
@@ -83,9 +81,7 @@ class GearmanController extends Fisma_Zend_Controller_Action_Object
                 $values = $uploadForm->getValues();
                 $values['filepath'] = $filePath;
                 $gearmanClient = new Fisma_Gearman_Client;
-                $values['id'] = $gearmanClient->setup('antivirus');;
-                $values['userid'] = $this->_me->id;
-                $gearmanClient->doBackground('virus', serialize($values));
+                $gearmanClient->doBackground('antivirus', $values);
                 $this->_redirect('/gearman/list');
             }
         }
@@ -130,9 +126,7 @@ class GearmanController extends Fisma_Zend_Controller_Action_Object
                 $values = $uploadForm->getValues();
                 $values['filepath'] = $filePath;
                 $gearmanClient = new Fisma_Gearman_Client;
-                $values['id'] = $gearmanClient->setup('scan');
-                $values['userid'] = $this->_me->id;
-                $gearmanClient->doBackground('scan', serialize($values));
+                $gearmajClient->doBackground('scan', $values);
                 $this->_redirect('/gearman/list');
             } else {
                 $errorString = Fisma_Zend_Form_Manager::getErrors($uploadForm);

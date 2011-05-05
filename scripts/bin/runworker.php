@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 /**
- * Copyright (c) 2010 Endeavor Systems, Inc.
+ * Copyright (c) 2011 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
  *
