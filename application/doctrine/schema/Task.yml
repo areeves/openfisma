@@ -49,4 +49,6 @@ Task:
             created:
                 name: createdTs
                 type: timestamp
+            updated:
+                disabled: true
 

@@ -14,6 +14,7 @@ class Task extends BaseTask
 {
     public function setUp()
     {
+        parent::setUp();
         $this->hasMutator('status', 'setStatus');
     }
     /**
