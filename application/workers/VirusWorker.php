@@ -44,7 +44,6 @@ class VirusWorker extends Fisma_Gearman_Worker
      */
     public function antivirusFunction($job)
     {
-        echo "made it here";
         $this->setup($job);
         $values = $this->_workload;
         $uploadedFile = $values['filepath'];

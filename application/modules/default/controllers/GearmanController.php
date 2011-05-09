@@ -28,7 +28,7 @@
 class GearmanController extends Fisma_Zend_Controller_Action_Object
 {
 
-    protected $_modelName = 'Gearman';
+    protected $_modelName = 'Task';
 
     public function testAction()
     {

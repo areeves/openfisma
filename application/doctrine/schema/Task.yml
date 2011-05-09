@@ -1,7 +1,6 @@
-Gearman:
+Task:
     columns:
-        createdTs:
-            type: timestamp
+        createdTs: timestamp
 
         startedTs:
             type: timestamp
@@ -25,6 +24,7 @@ Gearman:
             type: enum
             values: [pending, running, failed, finished]
             comment: Job status
+            default: pending
 
         messages:
             type: string
@@ -36,4 +36,17 @@ Gearman:
             type: integer
 
         success:
-            type: integer
+            type: boolean
+
+    relations:
+        User:
+            class: User
+            local: userId
+            foreign: id
+
+    actAs:
+        Timestampable:
+            created:
+                name: createdTs
+                type: timestamp
+

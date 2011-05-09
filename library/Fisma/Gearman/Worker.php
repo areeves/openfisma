@@ -42,23 +42,23 @@ class Fisma_Gearman_Worker extends GearmanWorker
     protected $_messages = array();
 
     /**
-     * Gearman model
+     * Task model
      *
-     * @var object
+     * @var object Task model that we will be working with
      */
-    protected $_gearmanTable;
+    protected $_task;
 
     /**
      * Name of the current worker
      *
-     * @var string
+     * @var string Name of the worker
      */
     protected $_workerName;
 
     /**
      * ID of the database row the Worker should be using
      *
-     * @var integer
+     * @var integer Current Task model ID
      */
     protected $_id;
 
@@ -85,7 +85,7 @@ class Fisma_Gearman_Worker extends GearmanWorker
     }
 
     /**
-     * @param integer $id Gearman table ID passed from the client
+     * @param integer $id Task ID passed from the client
      * @param string $handle GearmanJob jobhandle
      * @return void
      */
@@ -95,50 +95,31 @@ class Fisma_Gearman_Worker extends GearmanWorker
         $this->_id = $workload['id'];
         $this->_jobHandle = $job->handle();
         $this->_workload = $workload['data'];
-        $gearmanTable = Doctrine::getTable('Gearman')->find($this->_id);
-        if (!$gearmanTable) {
-            throw new Fisma_Zend_Exception("Invalid Gearman ID");
+        $task = Doctrine::getTable('Task')->find($this->_id);
+        if (!$task) {
+            throw new Fisma_Zend_Exception("Invalid task ID");
         }
-        $gearmanTable->worker = $this->getWorkerName();
-        $gearmanTable->jobHandle = $this->_jobHandle;
-        $gearmanTable->save();
-        $this->_gearmanTable = $gearmanTable;
+        $task->worker = $this->getWorkerName();
+        $task->jobHandle = $this->_jobHandle;
+        $task->save();
+        $this->_task = $task;
         $this->setStatus('running');
     }
 
     /**
-     * Set the current status of the worker in the Gearman Table
+     * Set the current status of the worker in the Task model
      * @throws Fisma_Zend_Exception
      * @param  string $status Set the status condition
      * @return void
      */
     public function setStatus($status)
     {
-        switch (strtolower($status)) {
-            case 'pending':
-                $this->_gearmanTable->status = 'pending';
-                break;
-            case 'running':
-                $this->_gearmanTable->startedTs = Fisma::now();
-                $this->_gearmanTable->status = 'running';
-                break;
-            case 'finished':
-                $this->_gearmanTable->finishedTs = Fisma::now();
-                $this->_gearmanTable->status = 'finished';
-                $this->_gearmanTable->messages = json_encode($this->getMessages());
-                $this->_gearmanTable->errors = json_encode($this->getErrors());
-                break;
-            case 'failed':
-                $this->_gearmanTable->finishedTs = Fisma::now();
-                $this->_gearmanTable->status = 'failed';
-                $this->_gearmanTable->messages = json_encode($this->getMessages());
-                $this->_gearmanTable->errors = json_encode($this->getErrors());
-                break;
-            default:
-                throw new Fisma_Zend_Exception('Invalid status');
-                break;
+        $this->_task->status = $status;
+        if ($status === 'finished' || $status === 'failed') {
+            $this->_task->messages = json_encode($this->getMessages());
+            $this->_task->errors = json_encode($this->getErrors());
         }
-        $this->_gearmanTable->save();
+        $this->_task->save();
     }
 
     /**
@@ -207,8 +188,8 @@ class Fisma_Gearman_Worker extends GearmanWorker
     public function setProgress($progress)
     {
         if (is_numeric($progress)) {
-            $this->_gearmanTable->progress = $progress;
-            $this->_gearmanTable->save();
+            $this->_task->progress = $progress;
+            $this->_task->save();
         }
     }
 
@@ -220,7 +201,7 @@ class Fisma_Gearman_Worker extends GearmanWorker
      */
     public function setSuccess($success)
     {
-        $this->_gearmanTable->success = (bool) $success;
+        $this->_task->success = (bool) $success;
     }
 
     /**

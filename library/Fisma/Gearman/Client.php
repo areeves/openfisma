@@ -43,12 +43,10 @@ class Fisma_Gearman_Client extends GearmanClient
      */
     public function setup()
     {
-        $gearman = new Gearman();
-        $gearman->createdTs = Fisma::now();
-        $gearman->userId = CurrentUser::getInstance()->id;
-        $gearman->status = 'pending';
-        $gearman->save();
-        return $gearman->id;
+        $task = new Task();
+        $task->userId = CurrentUser::getInstance()->id;
+        $task->save();
+        return $task->id;
     }
 
     public function doBackground($task, $data)
