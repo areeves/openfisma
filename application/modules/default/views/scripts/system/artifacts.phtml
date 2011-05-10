@@ -22,7 +22,7 @@ Fisma_Format_Section::startSection('System Documentation');
                 <?php echo $this->escape($document->version)?>
             </td>
             <td>
-                <?php echo $this->escape($document->description)?>
+                <?php echo $this->escape($this->textToHtml($this->escape($document->description)), 'none'); ?>
             </td>
             <td>
                 <?php echo $this->escape($this->userInfo($document->User->username), 'none'); ?>
@@ -39,9 +39,6 @@ Fisma_Format_Section::startSection('System Documentation');
     <?php
         }
     ?>
-
-    </table>
-</div>
 <?php
 Fisma_Format_Section::stopSection();
 ?>
@@ -52,10 +49,10 @@ YAHOO.util.Event.onContentReady('systemDocumentArtifacts', function() {
         {key:'fileName', label:'File Name', sortable:true},
         {key:'size', label:'Size', sortable:false},
         {key:'version', label:'Version', sortable:false},
-        {key:'description', label:'Version Notes', sortable:false, formatter:Fisma.TableFormat.formatTextToHtml},
+        {key:'description', label:'Version Notes', sortable:false},
         {key:'username', label:'Last Modified By User', sortable:true},
-        {key:'update_at', label:'Last Modified Date', sortable:false},
-        {key:'id', label:'View History', sortable:false}
+        {key:'update_at', label:'Last Modified Date', sortable:true},
+        {key:'id', label:'View History', sortable:true}
     ];
 
     this.myDataSource = new YAHOO.util.DataSource(YAHOO.util.Dom.get("systemDocumentArtifactTable"));
@@ -72,7 +69,7 @@ YAHOO.util.Event.onContentReady('systemDocumentArtifacts', function() {
         ]
     };
 
-    this.myDataTable = new YAHOO.widget.DataTable("systemDocumentArtifacts", myColumnDefs, this.myDataSource, {});
+    var myDataTable = new YAHOO.widget.DataTable("systemDocumentArtifacts", myColumnDefs, this.myDataSource, {});
 });
-
 </script>
+

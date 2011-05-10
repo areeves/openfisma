@@ -757,7 +757,7 @@ tinyMCE.init({
 	mode : "textareas",
 	cleanup : false,
 	element_format : "html",
-	plugins : "spellchecker, searchreplace, insertdatetime, print, fullscreen",
+	plugins : "paste, spellchecker, searchreplace, insertdatetime, print, fullscreen",
 	plugin_insertdate_dateFormat : "%Y-%m-%d",
 	plugin_insertdate_timeFormat : "%H:%M:%S",
 	browsers : "msie,gecko,safari,opera",
@@ -807,13 +807,6 @@ tinyMCE.init({
  * @todo      Start migrating functionality out of this file. 
  *            Eventually this file needs to be removed 
  */
-
-// Required for AC_RunActiveContent
-// @TODO Move into own file
-
-var requiredMajorVersion = 9;
-var requiredMinorVersion = 0;
-var requiredRevision = 45;
 
 var Fisma = {};
 
@@ -1129,7 +1122,7 @@ function switchYear(step){
     var oYear = document.getElementById('gen_shortcut');
     var year = oYear.getAttribute('year');
     year = Number(year) + Number(step);
-	oYear.setAttribute('year', year);
+    oYear.setAttribute('year', year);
     var url = oYear.getAttribute('url') + year + '/';
     var tmp = YAHOO.util.Selector.query('#gen_shortcut span:nth-child(1)');
     tmp[0].innerHTML = year;
@@ -1509,6 +1502,14 @@ function selectAllUnsafe() {
     }
 }
 
+function selectAllByName(event, config) {
+    $('input:checkbox[name="' + config.name + '"]').attr("checked","checked");
+}
+
+function selectNoneByName(event, config) {
+    $('input:checkbox[name="' + config.name + '"]').attr("checked","unchecked");
+}
+
 function selectAll() {
     alert("Not implemented");
 }
@@ -1534,298 +1535,6 @@ function elDump(el) {
         props += prop + ' : ' + el[prop] + '\n';
     }
     alert(props);
-}
-//v1.7
-// Flash Player Version Detection
-// Detect Client Browser type
-// Copyright 2005-2007 Adobe Systems Incorporated.  All rights reserved.
-var isIE  = (navigator.appVersion.indexOf("MSIE") != -1) ? true : false;
-var isWin = (navigator.appVersion.toLowerCase().indexOf("win") != -1) ? true : false;
-var isOpera = (navigator.userAgent.indexOf("Opera") != -1) ? true : false;
-
-function ControlVersion()
-{
-	var version;
-	var axo;
-	var e;
-
-	// NOTE : new ActiveXObject(strFoo) throws an exception if strFoo isn't in the registry
-
-	try {
-		// version will be set for 7.X or greater players
-		axo = new ActiveXObject("ShockwaveFlash.ShockwaveFlash.7");
-		version = axo.GetVariable("$version");
-	} catch (e) {
-	}
-
-	if (!version)
-	{
-		try {
-			// version will be set for 6.X players only
-			axo = new ActiveXObject("ShockwaveFlash.ShockwaveFlash.6");
-			
-			// installed player is some revision of 6.0
-			// GetVariable("$version") crashes for versions 6.0.22 through 6.0.29,
-			// so we have to be careful. 
-			
-			// default to the first public version
-			version = "WIN 6,0,21,0";
-
-			// throws if AllowScripAccess does not exist (introduced in 6.0r47)		
-			axo.AllowScriptAccess = "always";
-
-			// safe to call for 6.0r47 or greater
-			version = axo.GetVariable("$version");
-
-		} catch (e) {
-		}
-	}
-
-	if (!version)
-	{
-		try {
-			// version will be set for 4.X or 5.X player
-			axo = new ActiveXObject("ShockwaveFlash.ShockwaveFlash.3");
-			version = axo.GetVariable("$version");
-		} catch (e) {
-		}
-	}
-
-	if (!version)
-	{
-		try {
-			// version will be set for 3.X player
-			axo = new ActiveXObject("ShockwaveFlash.ShockwaveFlash.3");
-			version = "WIN 3,0,18,0";
-		} catch (e) {
-		}
-	}
-
-	if (!version)
-	{
-		try {
-			// version will be set for 2.X player
-			axo = new ActiveXObject("ShockwaveFlash.ShockwaveFlash");
-			version = "WIN 2,0,0,11";
-		} catch (e) {
-			version = -1;
-		}
-	}
-	
-	return version;
-}
-
-// JavaScript helper required to detect Flash Player PlugIn version information
-function GetSwfVer(){
-	// NS/Opera version >= 3 check for Flash plugin in plugin array
-	var flashVer = -1;
-	
-	if (navigator.plugins != null && navigator.plugins.length > 0) {
-		if (navigator.plugins["Shockwave Flash 2.0"] || navigator.plugins["Shockwave Flash"]) {
-			var swVer2 = navigator.plugins["Shockwave Flash 2.0"] ? " 2.0" : "";
-			var flashDescription = navigator.plugins["Shockwave Flash" + swVer2].description;
-			var descArray = flashDescription.split(" ");
-			var tempArrayMajor = descArray[2].split(".");			
-			var versionMajor = tempArrayMajor[0];
-			var versionMinor = tempArrayMajor[1];
-			var versionRevision = descArray[3];
-			if (versionRevision == "") {
-				versionRevision = descArray[4];
-			}
-			if (versionRevision[0] == "d") {
-				versionRevision = versionRevision.substring(1);
-			} else if (versionRevision[0] == "r") {
-				versionRevision = versionRevision.substring(1);
-				if (versionRevision.indexOf("d") > 0) {
-					versionRevision = versionRevision.substring(0, versionRevision.indexOf("d"));
-				}
-			}
-			var flashVer = versionMajor + "." + versionMinor + "." + versionRevision;
-		}
-	}
-	// MSN/WebTV 2.6 supports Flash 4
-	else if (navigator.userAgent.toLowerCase().indexOf("webtv/2.6") != -1) flashVer = 4;
-	// WebTV 2.5 supports Flash 3
-	else if (navigator.userAgent.toLowerCase().indexOf("webtv/2.5") != -1) flashVer = 3;
-	// older WebTV supports Flash 2
-	else if (navigator.userAgent.toLowerCase().indexOf("webtv") != -1) flashVer = 2;
-	else if ( isIE && isWin && !isOpera ) {
-		flashVer = ControlVersion();
-	}	
-	return flashVer;
-}
-
-// When called with reqMajorVer, reqMinorVer, reqRevision returns true if that version or greater is available
-function DetectFlashVer(reqMajorVer, reqMinorVer, reqRevision)
-{
-	versionStr = GetSwfVer();
-	if (versionStr == -1 ) {
-		return false;
-	} else if (versionStr != 0) {
-		if(isIE && isWin && !isOpera) {
-			// Given "WIN 2,0,0,11"
-			tempArray         = versionStr.split(" "); 	// ["WIN", "2,0,0,11"]
-			tempString        = tempArray[1];			// "2,0,0,11"
-			versionArray      = tempString.split(",");	// ['2', '0', '0', '11']
-		} else {
-			versionArray      = versionStr.split(".");
-		}
-		var versionMajor      = versionArray[0];
-		var versionMinor      = versionArray[1];
-		var versionRevision   = versionArray[2];
-
-        	// is the major.revision >= requested major.revision AND the minor version >= requested minor
-		if (versionMajor > parseFloat(reqMajorVer)) {
-			return true;
-		} else if (versionMajor == parseFloat(reqMajorVer)) {
-			if (versionMinor > parseFloat(reqMinorVer))
-				return true;
-			else if (versionMinor == parseFloat(reqMinorVer)) {
-				if (versionRevision >= parseFloat(reqRevision))
-					return true;
-			}
-		}
-		return false;
-	}
-}
-
-function AC_AddExtension(src, ext)
-{
-  if (src.indexOf('?') != -1)
-    return src.replace(/\?/, ext+'?'); 
-  else
-    return src + ext;
-}
-
-function AC_Generateobj(objAttrs, params, embedAttrs) 
-{ 
-  var str = '';
-  if (isIE && isWin && !isOpera)
-  {
-    str += '<object ';
-    for (var i in objAttrs)
-    {
-      str += i + '="' + objAttrs[i] + '" ';
-    }
-    str += '>';
-    for (var i in params)
-    {
-      str += '<param name="' + i + '" value="' + params[i] + '" /> ';
-    }
-    str += '</object>';
-  }
-  else
-  {
-    str += '<embed ';
-    for (var i in embedAttrs)
-    {
-      str += i + '="' + embedAttrs[i] + '" ';
-    }
-    str += '> </embed>';
-  }
-
-  return str;
-}
-
-function AC_FL_RunContent(){
-  var ret = 
-    AC_GetArgs
-    (  arguments, ".swf", "movie", "clsid:d27cdb6e-ae6d-11cf-96b8-444553540000"
-     , "application/x-shockwave-flash"
-    );
-  return AC_Generateobj(ret.objAttrs, ret.params, ret.embedAttrs);
-}
-
-function AC_SW_RunContent(){
-  var ret = 
-    AC_GetArgs
-    (  arguments, ".dcr", "src", "clsid:166B1BCA-3F9C-11CF-8075-444553540000"
-     , null
-    );
-  return AC_Generateobj(ret.objAttrs, ret.params, ret.embedAttrs);
-}
-
-function AC_GetArgs(args, ext, srcParamName, classid, mimeType){
-  var ret = new Object();
-  ret.embedAttrs = new Object();
-  ret.params = new Object();
-  ret.objAttrs = new Object();
-  for (var i=0; i < args.length; i=i+2){
-    var currArg = args[i].toLowerCase();    
-
-    switch (currArg){	
-      case "classid":
-        break;
-      case "pluginspage":
-        ret.embedAttrs[args[i]] = args[i+1];
-        break;
-      case "src":
-      case "movie":	
-        args[i+1] = AC_AddExtension(args[i+1], ext);
-        ret.embedAttrs["src"] = args[i+1];
-        ret.params[srcParamName] = args[i+1];
-        break;
-      case "onafterupdate":
-      case "onbeforeupdate":
-      case "onblur":
-      case "oncellchange":
-      case "onclick":
-      case "ondblclick":
-      case "ondrag":
-      case "ondragend":
-      case "ondragenter":
-      case "ondragleave":
-      case "ondragover":
-      case "ondrop":
-      case "onfinish":
-      case "onfocus":
-      case "onhelp":
-      case "onmousedown":
-      case "onmouseup":
-      case "onmouseover":
-      case "onmousemove":
-      case "onmouseout":
-      case "onkeypress":
-      case "onkeydown":
-      case "onkeyup":
-      case "onload":
-      case "onlosecapture":
-      case "onpropertychange":
-      case "onreadystatechange":
-      case "onrowsdelete":
-      case "onrowenter":
-      case "onrowexit":
-      case "onrowsinserted":
-      case "onstart":
-      case "onscroll":
-      case "onbeforeeditfocus":
-      case "onactivate":
-      case "onbeforedeactivate":
-      case "ondeactivate":
-      case "type":
-      case "codebase":
-      case "id":
-        ret.objAttrs[args[i]] = args[i+1];
-        break;
-      case "width":
-      case "height":
-      case "align":
-      case "vspace": 
-      case "hspace":
-      case "class":
-      case "title":
-      case "accesskey":
-      case "name":
-      case "tabindex":
-        ret.embedAttrs[args[i]] = ret.objAttrs[args[i]] = args[i+1];
-        break;
-      default:
-        ret.embedAttrs[args[i]] = ret.params[args[i]] = args[i+1];
-    }
-  }
-  ret.objAttrs["classid"] = classid;
-  if (mimeType) ret.embedAttrs["type"] = mimeType;
-  return ret;
 }
 /*!
  * jQuery JavaScript Library v1.4.2
@@ -1981,7 +1690,153 @@ d,e);d={top:b.top-e.top+j,left:b.left-e.left+i};"using"in b?b.using.call(a,d):f.
 f.top,left:d.left-f.left}},offsetParent:function(){return this.map(function(){for(var a=this.offsetParent||s.body;a&&!/^body|html$/i.test(a.nodeName)&&c.css(a,"position")==="static";)a=a.offsetParent;return a})}});c.each(["Left","Top"],function(a,b){var d="scroll"+b;c.fn[d]=function(f){var e=this[0],j;if(!e)return null;if(f!==w)return this.each(function(){if(j=wa(this))j.scrollTo(!a?f:c(j).scrollLeft(),a?f:c(j).scrollTop());else this[d]=f});else return(j=wa(e))?"pageXOffset"in j?j[a?"pageYOffset":
 "pageXOffset"]:c.support.boxModel&&j.document.documentElement[d]||j.document.body[d]:e[d]}});c.each(["Height","Width"],function(a,b){var d=b.toLowerCase();c.fn["inner"+b]=function(){return this[0]?c.css(this[0],d,false,"padding"):null};c.fn["outer"+b]=function(f){return this[0]?c.css(this[0],d,false,f?"margin":"border"):null};c.fn[d]=function(f){var e=this[0];if(!e)return f==null?null:this;if(c.isFunction(f))return this.each(function(j){var i=c(this);i[d](f.call(this,j,i[d]()))});return"scrollTo"in
 e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["client"+b]||e.document.body["client"+b]:e.nodeType===9?Math.max(e.documentElement["client"+b],e.body["scroll"+b],e.documentElement["scroll"+b],e.body["offset"+b],e.documentElement["offset"+b]):f===w?c.css(e,d):this.css(d,typeof f==="string"?f:f+"px")}});A.jQuery=A.$=c})(window);
-Fisma.AttachArtifacts={sampleInterval:1000,apcId:null,yuiProgressBar:null,pollingTimeoutId:null,lastAsyncRequest:null,pollingEnabled:false,config:null,yuiPanel:null,showPanel:function(d,b){Fisma.AttachArtifacts.config=b;var a=new YAHOO.widget.Panel("panel",{modal:true,close:true});a.setHeader("Upload Artifact");a.setBody("Loading...");a.render(document.body);a.center();a.show();a.hideEvent.subscribe(function(){Fisma.AttachArtifacts.cancelPanel.call(Fisma.AttachArtifacts)});Fisma.AttachArtifacts.yuiPanel=a;var c="/artifact/upload-form";if(b.form){c+="/form/"+encodeURIComponent(b.form)}YAHOO.util.Connect.asyncRequest("GET",c,{success:function(e){e.argument.setBody(e.responseText);e.argument.center()},failure:function(e){e.argument.setBody("The content for this panel could not be loaded.");e.argument.center()},argument:a},null)},trackUploadProgress:function(){var f=document.getElementById("fileUpload");if(""==f.value){alert("Please select a file.");return false}var g=document.getElementById("uploadButton");g.disabled=true;var e=this;var c=document.getElementById("progress_key");if(c){this.apcId=c.value;var h=document.getElementById("progressBarContainer");var a=parseInt(YAHOO.util.Dom.getStyle(h,"width"));var d=parseInt(YAHOO.util.Dom.getStyle(h,"height"));YAHOO.util.Dom.removeClass(h,"attachArtifactsProgressBar");while(h.hasChildNodes()){h.removeChild(h.firstChild)}var i=new YAHOO.widget.ProgressBar();i.set("width",a);i.set("height",d);i.set("ariaTextTemplate","Upload is {value}% complete");i.set("anim",true);var b=i.get("anim");b.duration=2;b.method=YAHOO.util.Easing.easeNone;i.render("progressBarContainer");YAHOO.util.Dom.addClass(h,"attachArtifactsProgressBar");this.yuiProgressBar=i;this.pollingEnabled=true;setTimeout(function(){e.getProgress.call(e)},this.sampleInterval)}document.getElementById("progressBarContainer").style.display="block";document.getElementById("progressTextContainer").style.display="block";setTimeout(function(){e.postForm.call(e)},0);return false},postForm:function(){var a=this;var b="/"+encodeURIComponent(this.config.server.controller)+"/"+encodeURIComponent(this.config.server.action)+"/id/"+encodeURIComponent(this.config.id)+"/format/json";YAHOO.util.Connect.setForm("uploadArtifactForm",true);YAHOO.util.Connect.asyncRequest("POST",b,{upload:function(c){a.handleUploadComplete.call(a,c)},failure:function(c){alert("Document upload failed.")}},null)},getProgress:function(){var a=this;if(this.pollingEnabled){this.lastAsyncRequest=YAHOO.util.Connect.asyncRequest("GET","/artifact/upload-progress/format/json/id/"+this.apcId,{success:function(d){try{var c=YAHOO.lang.JSON.parse(d.responseText)}catch(g){if(g instanceof SyntaxError){c=new Object();c.progress=false}else{throw g}}if(!c.progress){a.yuiProgressBar.destroy();a.yuiProgressBar=null;a.pollingEnabled=false;var i=document.getElementById("progressBarContainer");YAHOO.util.Dom.addClass(i,"attachArtifactsProgressBar");var b=document.createElement("img");b.src="/images/loading_bar.gif";i.appendChild(b);a.pollingTimeoutId=null;return}var f=Math.round((c.progress.current/c.progress.total)*100);a.yuiProgressBar.set("value",f);var h=document.getElementById("progressTextContainer").firstChild;h.nodeValue=f+"%";a.pollingTimeoutId=setTimeout(function(){a.getProgress.call(a)},a.sampleInterval)}},null)}},handleUploadComplete:function(d){try{var c=YAHOO.lang.JSON.parse(d.responseText)}catch(g){if(g instanceof SyntaxError){c=new Object();c.success=false;c.message="Invalid response from server."}else{throw g}}this.pollingEnabled=false;clearTimeout(this.pollingTimeoutId);YAHOO.util.Connect.abort(this.lastAsyncRequest);if(this.yuiProgressBar){this.yuiProgressBar.get("anim").duration=0.5;this.yuiProgressBar.set("value",100)}var h=document.getElementById("progressTextContainer").firstChild;h.nodeValue="Verifying file.";if(!c.success){alert("Upload Failed: "+c.message);h.nodeValue="Uploading...";document.getElementById("progressBarContainer").style.display="none";document.getElementById("progressTextContainer").style.display="none";var b=document.getElementById("uploadButton");b.disabled=false;return}var f=Fisma[this.config.callback.object];if(typeof f!="Undefined"){var a=f[this.config.callback.method];if(typeof a=="function"){a.call(f,this.yuiPanel)}}},cancelPanel:function(){if(this.pollingEnabled){this.pollingEnabled=false;clearTimeout(this.pollingTimeoutId)}if(this.lastAsyncRequest){YAHOO.util.Connect.abort(this.lastAsyncRequest)}}};/**
+/**
+ * Copyright (c) 2011 Endeavor Systems, Inc.
+ *
+ * This file is part of OpenFISMA.
+ *
+ * OpenFISMA is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * OpenFISMA is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with OpenFISMA.  If not, see {@link http://www.gnu.org/licenses/}.
+ *
+ * @author    Andrew Reeves <andrew.reeves@endeavorsystems.com>
+ * @copyright (c) Endeavor Systems, Inc. 2011 {@link http://www.endeavorsystems.com}
+ * @license   http://www.openfisma.org/content/license
+ */
+
+(function() {
+    /**
+     * Provides basic session-level storage of data.
+     * @namespace Fisma
+     * @class Storage
+     * @constructor
+     * @param namespace {String} The data namespace.
+     */
+    var FS = function(namespace) {
+        this.namespace = namespace;
+        FS._initStorageEngine();
+    };
+
+    /**
+     * Helper to ensure the storage engine is initialized
+     *
+     * @method _initStorageEngine
+     * @protected
+     * @static
+     */
+    FS._initStorageEngine = function() {
+        if (YAHOO.lang.isNull(FS._storageEngine)) {
+            var engineConf = {swfURL: "/swfstore.swf", containerID: "swfstoreContainer"};
+            FS._storageEngine = YAHOO.util.StorageManager.get(
+                null, // no preferred engine
+                YAHOO.util.StorageManager.LOCATION_SESSION,
+                {engine: engineConf});
+        }
+    };
+
+    /**
+     * Underlying storage engine.
+     *
+     * @property Storage._storageEngine
+     * @type Object
+     * @private
+     * @static
+     */
+    FS._storageEngine = null;
+
+    /**
+     * Clear all storage space.
+     *
+     * @method clear
+     * @static
+     */
+    FS.clear = function() {
+        FS._initStorageEngine();
+        FS._storageEngine.clear();
+    };
+
+    /**
+     * Register a callback for when the storage engine is ready.
+     *
+     * @method Storage.onReady
+     * @param fn {Function} Callback function.
+     * @param obj {Object} Object passed to callback.
+     * @param scope {Object|Boolean} Object to use for callback scope, true to use obj as scope.
+     * @static
+     */
+    FS.onReady = function(fn, obj, scope) {
+        YAHOO.util.Event.onContentReady('swfstoreContainer', function() {
+            FS._initStorageEngine();
+            var engine = FS._storageEngine;
+            var locationSession = YAHOO.util.StorageManager.LOCATION_SESSION === engine._location;
+            // check readiness (this is how the YAHOO examples do it)
+            if (!(engine.isReady || (engine._swf && locationSession))) {
+                engine.subscribe(engine.CE_READY, fn, obj, scope);
+            } else {
+                var s = new YAHOO.util.Subscriber(fn, obj, scope);
+                s.fn.call(s.getScope(window), s.obj);
+            }
+        });
+    };
+    FS.prototype = {
+        /**
+         * Get value for key
+         *
+         * @method Storage.get
+         * @param key {String}
+         * @return {String|Array|Object}
+         */
+        get: function(key) {
+            return this._get(key);
+        },
+        /**
+         * Set value for key
+         *
+         * @method Storage.set
+         * @param key {String}
+         * @param value {String|Array|Object}
+         */
+        set: function(key, value) {
+            this._set(key, value);
+        },
+
+        /**
+         * Internal convenience method for decoding values.
+         *
+         * @method Storage._get
+         * @param key {String}
+         * @return {String|Array|Object}
+         * @protected
+         */
+        _get: function(key) {
+            var value = FS._storageEngine.getItem(this.namespace + ":" + key);
+
+            return YAHOO.lang.isNull(value) ? null : YAHOO.lang.JSON.parse(value);
+        },
+        /**
+         * Internal convenience method for encoding values.
+         *
+         * @method Storage._set
+         * @param key {String}
+         * @param value {String|Array|Object}
+         * @protected
+         */
+        _set: function(key, value) {
+            FS._storageEngine.setItem(this.namespace + ":" + key, YAHOO.lang.JSON.stringify(value));
+        }
+    };
+    Fisma.Storage = FS;
+})();
+Fisma.AttachArtifacts={sampleInterval:1000,apcId:null,yuiProgressBar:null,pollingTimeoutId:null,lastAsyncRequest:null,pollingEnabled:false,config:null,yuiPanel:null,showPanel:function(d,b){Fisma.AttachArtifacts.config=b;var a=new YAHOO.widget.Panel("panel",{modal:true,close:true});a.setHeader("Upload Artifact");a.setBody("Loading...");a.render(document.body);a.center();a.show();a.hideEvent.subscribe(function(){Fisma.AttachArtifacts.cancelPanel.call(Fisma.AttachArtifacts)});Fisma.AttachArtifacts.yuiPanel=a;var c="/artifact/upload-form";if(b.form){c+="/form/"+encodeURIComponent(b.form)}YAHOO.util.Connect.asyncRequest("GET",c,{success:function(e){e.argument.setBody(e.responseText);e.argument.center()},failure:function(e){e.argument.setBody("The content for this panel could not be loaded.");e.argument.center()},argument:a},null)},trackUploadProgress:function(){var f=document.getElementById("fileUpload");if(""===f.value){alert("Please select a file.");return false}var g=document.getElementById("uploadButton");g.disabled=true;var e=this;var c=document.getElementById("progress_key");if(c){this.apcId=c.value;var h=document.getElementById("progressBarContainer");var a=parseInt(YAHOO.util.Dom.getStyle(h,"width"),10);var d=parseInt(YAHOO.util.Dom.getStyle(h,"height"),10);YAHOO.util.Dom.removeClass(h,"attachArtifactsProgressBar");while(h.hasChildNodes()){h.removeChild(h.firstChild)}var i=new YAHOO.widget.ProgressBar();i.set("width",a);i.set("height",d);i.set("ariaTextTemplate","Upload is {value}% complete");i.set("anim",true);var b=i.get("anim");b.duration=2;b.method=YAHOO.util.Easing.easeNone;i.render("progressBarContainer");YAHOO.util.Dom.addClass(h,"attachArtifactsProgressBar");this.yuiProgressBar=i;this.pollingEnabled=true;setTimeout(function(){e.getProgress.call(e)},this.sampleInterval)}document.getElementById("progressBarContainer").style.display="block";document.getElementById("progressTextContainer").style.display="block";setTimeout(function(){e.postForm.call(e)},0);return false},postForm:function(){var a=this;var b="/";b+=encodeURIComponent(this.config.server.controller);b+="/";b+=encodeURIComponent(this.config.server.action);b+="/id/";b+=encodeURIComponent(this.config.id);b+="/format/json";YAHOO.util.Connect.setForm("uploadArtifactForm",true);YAHOO.util.Connect.asyncRequest("POST",b,{upload:function(c){a.handleUploadComplete.call(a,c)},failure:function(c){alert("Document upload failed.")}},null)},getProgress:function(){var a=this;if(this.pollingEnabled){this.lastAsyncRequest=YAHOO.util.Connect.asyncRequest("GET","/artifact/upload-progress/format/json/id/"+this.apcId,{success:function(d){try{var c=YAHOO.lang.JSON.parse(d.responseText)}catch(g){if(g instanceof SyntaxError){c=new Object();c.progress=false}else{throw g}}if(!c.progress){a.yuiProgressBar.destroy();a.yuiProgressBar=null;a.pollingEnabled=false;var i=document.getElementById("progressBarContainer");YAHOO.util.Dom.addClass(i,"attachArtifactsProgressBar");var b=document.createElement("img");b.src="/images/loading_bar.gif";i.appendChild(b);a.pollingTimeoutId=null;return}var f=Math.round((c.progress.current/c.progress.total)*100);a.yuiProgressBar.set("value",f);var h=document.getElementById("progressTextContainer").firstChild;h.nodeValue=f+"%";a.pollingTimeoutId=setTimeout(function(){a.getProgress.call(a)},a.sampleInterval)}},null)}},handleUploadComplete:function(d){try{var c=YAHOO.lang.JSON.parse(d.responseText)}catch(g){if(g instanceof SyntaxError){c=new Object();c.success=false;c.message="Invalid response from server."}else{throw g}}this.pollingEnabled=false;clearTimeout(this.pollingTimeoutId);YAHOO.util.Connect.abort(this.lastAsyncRequest);if(this.yuiProgressBar){this.yuiProgressBar.get("anim").duration=0.5;this.yuiProgressBar.set("value",100)}var h=document.getElementById("progressTextContainer").firstChild;h.nodeValue="Verifying file.";if(!c.success){alert("Upload Failed: "+c.message);h.nodeValue="Uploading...";document.getElementById("progressBarContainer").style.display="none";document.getElementById("progressTextContainer").style.display="none";var b=document.getElementById("uploadButton");b.disabled=false;return}var f=Fisma[this.config.callback.object];if(typeof f!="Undefined"){var a=f[this.config.callback.method];if(typeof a=="function"){a.call(f,this.yuiPanel)}}},cancelPanel:function(){if(this.pollingEnabled){this.pollingEnabled=false;clearTimeout(this.pollingTimeoutId)}if(this.lastAsyncRequest){YAHOO.util.Connect.abort(this.lastAsyncRequest)}}};/**
  * Copyright (c) 2008 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
@@ -2107,8 +1962,7 @@ Fisma.AttachArtifacts = {
                 
                 argument: newPanel
             }, 
-            null
-        );
+            null);
     },
     
     /**
@@ -2121,7 +1975,7 @@ Fisma.AttachArtifacts = {
         // Verify that a file is selected
         var fileUploadEl = document.getElementById('fileUpload');
 
-        if ("" == fileUploadEl.value) {
+        if ("" === fileUploadEl.value) {
             alert("Please select a file.");
             
             return false;
@@ -2146,8 +2000,8 @@ Fisma.AttachArtifacts = {
             // Remove the inderminate progress bar
             var progressBarContainer = document.getElementById('progressBarContainer');
 
-            var progressBarWidth = parseInt(YAHOO.util.Dom.getStyle(progressBarContainer, 'width'));
-            var progressBarHeight = parseInt(YAHOO.util.Dom.getStyle(progressBarContainer, 'height'));
+            var progressBarWidth = parseInt(YAHOO.util.Dom.getStyle(progressBarContainer, 'width'), 10);
+            var progressBarHeight = parseInt(YAHOO.util.Dom.getStyle(progressBarContainer, 'height'), 10);
 
             YAHOO.util.Dom.removeClass(progressBarContainer, 'attachArtifactsProgressBar');
 
@@ -2164,7 +2018,7 @@ Fisma.AttachArtifacts = {
             yuiProgressBar.set('ariaTextTemplate', 'Upload is {value}% complete');
 
             yuiProgressBar.set('anim', true);
-            var animation = yuiProgressBar.get('anim')
+            var animation = yuiProgressBar.get('anim');
             animation.duration = 2;
             animation.method = YAHOO.util.Easing.easeNone;
             
@@ -2182,8 +2036,7 @@ Fisma.AttachArtifacts = {
                 function () {
                     that.getProgress.call(that);
                 },
-                this.sampleInterval
-            );
+                this.sampleInterval);
         }
 
         // Display the progress bar
@@ -2198,8 +2051,7 @@ Fisma.AttachArtifacts = {
             function () {
                 that.postForm.call(that);
             },
-            0
-        );
+            0);
         
         return false;
     },
@@ -2216,13 +2068,13 @@ Fisma.AttachArtifacts = {
 
         var that = this;
         
-        var postUrl = "/"
-                    + encodeURIComponent(this.config.server.controller)
-                    + "/"
-                    + encodeURIComponent(this.config.server.action)
-                    + "/id/"
-                    + encodeURIComponent(this.config.id)
-                    + "/format/json";
+        var postUrl = "/";
+        postUrl += encodeURIComponent(this.config.server.controller);
+        postUrl += "/";
+        postUrl += encodeURIComponent(this.config.server.action);
+        postUrl += "/id/";
+        postUrl += encodeURIComponent(this.config.id);
+        postUrl += "/format/json";
 
         YAHOO.util.Connect.setForm('uploadArtifactForm', true);
         YAHOO.util.Connect.asyncRequest(
@@ -2237,8 +2089,7 @@ Fisma.AttachArtifacts = {
                     alert('Document upload failed.');
                 }
             }, 
-            null
-        );
+            null);
     },
     
     /**
@@ -2306,12 +2157,10 @@ Fisma.AttachArtifacts = {
                             function () {
                                 that.getProgress.call(that);
                             }, 
-                            that.sampleInterval
-                        );
+                            that.sampleInterval);
                     }
                 }, 
-                null
-            );
+                null);
         }
     },
     
@@ -2330,7 +2179,7 @@ Fisma.AttachArtifacts = {
                 // Handle a JSON syntax error by constructing a fake response object
                 responseStatus = new Object();
                 responseStatus.success = false;
-                responseStatus.message = "Invalid response from server."
+                responseStatus.message = "Invalid response from server.";
             } else {
                 throw e;
             }
@@ -2343,7 +2192,7 @@ Fisma.AttachArtifacts = {
         
         // Update progress to 100%
         if (this.yuiProgressBar) {
-            this.yuiProgressBar.get('anim').duration = .5;
+            this.yuiProgressBar.get('anim').duration = 0.5;
             this.yuiProgressBar.set('value', 100);
         }
         var progressTextEl = document.getElementById('progressTextContainer').firstChild;
@@ -2402,7 +2251,7 @@ Fisma.AttachArtifacts = {
         }
     }
 };
-Fisma.AutoComplete=function(){return{requestCount:0,resultsPopulated:false,init:function(b,f,e){var d=new YAHOO.widget.DS_XHR(e.xhr,e.schema);d.responseType=YAHOO.widget.DS_XHR.TYPE_JSON;d.maxCacheEntries=500;d.queryMatchContains=true;var c=new YAHOO.widget.AutoComplete(e.fieldId,e.containerId,d);c.maxResultsDisplayed=20;c.forceSelection=true;var a=document.getElementById(e.containerId+"Spinner");c.dataRequestEvent.subscribe(function(){a.style.visibility="visible";Fisma.AutoComplete.requestCount++});c.dataReturnEvent.subscribe(function(){Fisma.AutoComplete.requestCount--;if(0==Fisma.AutoComplete.requestCount){a.style.visibility="hidden"}});c.getInputEl().onclick=function(){if(Fisma.AutoComplete.resultsPopulated){c.expandContainer()}};c.containerPopulateEvent.subscribe(function(){Fisma.AutoComplete.resultsPopulated=true});c.generateRequest=function(g){return e.queryPrepend+g};c.formatResult=function(h,j,g){var i=(g)?g:"";i=PHP_JS().htmlspecialchars(i);return i};c.itemSelectEvent.subscribe(Fisma.AutoComplete.subscribe,{hiddenFieldId:e.hiddenFieldId,callback:e.callback})},subscribe:function(e,d,c){document.getElementById(c.hiddenFieldId).value=d[2][1]["id"];try{var b=Fisma.Util.getObjectFromName(c.callback);if("function"==typeof b){b()}}catch(a){}}}}();/**
+Fisma.AutoComplete=function(){return{requestCount:0,resultsPopulated:false,init:function(b,f,e){var d=new YAHOO.widget.DS_XHR(e.xhr,e.schema);d.responseType=YAHOO.widget.DS_XHR.TYPE_JSON;d.maxCacheEntries=500;d.queryMatchContains=true;var c=new YAHOO.widget.AutoComplete(e.fieldId,e.containerId,d);c.maxResultsDisplayed=20;c.forceSelection=true;var a=document.getElementById(e.containerId+"Spinner");c.dataRequestEvent.subscribe(function(){a.style.visibility="visible";Fisma.AutoComplete.requestCount++});c.dataReturnEvent.subscribe(function(){Fisma.AutoComplete.requestCount--;if(0===Fisma.AutoComplete.requestCount){a.style.visibility="hidden"}});c.getInputEl().onclick=function(){if(Fisma.AutoComplete.resultsPopulated){c.expandContainer()}};c.containerPopulateEvent.subscribe(function(){Fisma.AutoComplete.resultsPopulated=true});c.generateRequest=function(g){return e.queryPrepend+g};c.formatResult=function(h,j,g){var i=(g)?g:"";i=PHP_JS().htmlspecialchars(i);return i};c.itemSelectEvent.subscribe(Fisma.AutoComplete.subscribe,{hiddenFieldId:e.hiddenFieldId,callback:e.callback})},subscribe:function(e,d,c){document.getElementById(c.hiddenFieldId).value=d[2][1]["id"];$("#"+c.hiddenFieldId).trigger("change");try{var b=Fisma.Util.getObjectFromName(c.callback);if("function"==typeof b){b()}}catch(a){}}}}();/**
  * Copyright (c) 2008 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
@@ -2479,7 +2328,7 @@ Fisma.AutoComplete = function() {
             ac.dataReturnEvent.subscribe(function () {
                 Fisma.AutoComplete.requestCount--;
                 
-                if (0 == Fisma.AutoComplete.requestCount) {
+                if (0 === Fisma.AutoComplete.requestCount) {
                     spinnerImage.style.visibility = "hidden";
                 }
             });
@@ -2544,7 +2393,7 @@ Fisma.AutoComplete = function() {
          */
         subscribe : function(sType, aArgs, params) {
             document.getElementById(params.hiddenFieldId).value = aArgs[2][1]['id'];
-
+            $('#' + params.hiddenFieldId).trigger('change');
             // If a valid callback is specified, then call it
             try {
                 var callbackFunction = Fisma.Util.getObjectFromName(params.callback);
@@ -2611,7 +2460,7 @@ Fisma.Blinker = function (interval, cycles, onFunction, offFunction) {
  */
 Fisma.Blinker.prototype.start = function () {
     this.cycle();
-}
+};
 
 /**
  * The state transition method
@@ -2635,10 +2484,9 @@ Fisma.Blinker.prototype.cycle = function () {
             function () {
                 that.cycle.call(that);
             },
-            this.interval
-        );
+            this.interval);
     }
-}
+};
 Fisma.Calendar=function(){return{addCalendarPopupToTextField:function(d){var b=document.createElement("div");b.style.position="absolute";b.style.zIndex=99;d.parentNode.appendChild(b);var c=YAHOO.util.Dom.getRegion(d);var f=[c.left,c.bottom+5];YAHOO.util.Dom.setXY(b,f);var e=new YAHOO.widget.Calendar(b,{close:true});e.hide();setTimeout(function(){e.render()},0);d.onfocus=function(){e.show()};var a=function(k,h,m){var j=h[0][0];var i=j[0],l=""+j[1],g=""+j[2];if(1==l.length){l="0"+l}if(1==g.length){g="0"+g}d.value=i+"-"+l+"-"+g;e.hide()};e.selectEvent.subscribe(a,e,true)}}}();/**
  * Copyright (c) 2010 Endeavor Systems, Inc.
  *
@@ -2689,7 +2537,7 @@ Fisma.Calendar = function () {
             // Fix bug: the calendar needs to be rendered AFTER the current event dispatch returns
             setTimeout(function () {calendar.render();}, 0);
 
-            textEl.onfocus = function () {calendar.show()};
+            textEl.onfocus = function () { calendar.show(); };
 
             var handleSelect = function (type, args, obj) {
                 var dateParts = args[0][0]; 
@@ -2706,14 +2554,14 @@ Fisma.Calendar = function () {
                 textEl.value = year + '-' + month + '-' + day;
 
                 calendar.hide();
-            }
+            };
 
             calendar.selectEvent.subscribe(handleSelect, calendar, true);            
         }
     };
 }();
-Fisma.Chart={handleLink:function(b){var c=b.match(/%s/);if(c.length!=arguments.length-1){throw"Expected "+c.length+" arguments but found "+(arguments.length-1)}var a;for(a=1;a<arguments.length;a++){b=b.replace("%s",escape(arguments[a]))}location.href=b}};/**
- * Copyright (c) 2008 Endeavor Systems, Inc.
+Fisma.Chart={CHART_CREATE_SUCCESS:1,CHART_CREATE_FAILURE:2,CHART_CREATE_EXTERNAL:3,globalSettingsDefaults:{fadingEnabled:false,barShadows:false,barShadowDepth:3,dropShadows:false,gridLines:false,pointLabels:false,pointLabelsOutline:false,showDataTable:false},chartsOnDOM:{},isIE:(window.ActiveXObject)?true:false,createJQChart_asynchReturn:function(a,c,b){if(c){if(c.results[0]){b=Fisma.Chart.mergeExtrnIntoParamObjectByInheritance(b,c)}else{Fisma.Chart.showMsgOnEmptyChart(b);throw"Error - Chart creation failed due to data source error at "+b.lastURLpull}if(typeof b.chartData==="undefined"){Fisma.Chart.showMsgOnEmptyChart(b);throw'Chart Error - The remote data source for chart "'+b.uniqueid+'" located at '+b.lastURLpull+" did not return data to plot on a chart"}else{if(b.chartData.length===0){Fisma.Chart.showMsgOnEmptyChart(b)}}return Fisma.Chart.createJQChart(b)}else{Fisma.Chart.showMsgOnEmptyChart(b);throw"Error - Chart creation failed due to data source error at "+b.lastURLpull}},createJQChart:function(e){var d={concatXLabel:false,nobackground:true,drawGridLines:false,pointLabelStyle:"color: black; font-size: 12pt; font-weight: bold",pointLabelAdjustX:-3,pointLabelAdjustY:-7,AxisLabelX:"",AxisLabelY:"",DataTextAngle:-30};e=jQuery.extend(true,d,e);if(document.getElementById(e.uniqueid)===false){throw"createJQChart Error - The target div/uniqueid does not exists"+e.uniqueid}Fisma.Chart.setChartWidthAttribs(e);Fisma.Chart.makeElementVisible(e.uniqueid+"loader");if(e.externalSource){document.getElementById(e.uniqueid).innerHTML="Loading chart data...";var c=e.externalSource;if(!e.oldExternalSource){e.oldExternalSource=e.externalSource}e.externalSource=undefined;e=Fisma.Chart.buildExternalSourceParams(e);c+=String(e.externalSourceParams).replace(/ /g,"%20");e.lastURLpull=c;var f=new YAHOO.util.DataSource(c);f.responseType=YAHOO.util.DataSource.TYPE_JSON;f.responseSchema={resultsList:"chart"};var b={success:Fisma.Chart.createJQChart_asynchReturn,failure:Fisma.Chart.createJQChart_asynchReturn,argument:e};f.sendRequest("",b);return Fisma.Chart.CHART_CREATE_EXTERNAL}document.getElementById(e.uniqueid).innerHTML="";document.getElementById(e.uniqueid).className="";document.getElementById(e.uniqueid+"toplegend").innerHTML="";if(typeof e.barMargin!=="undefined"){e=jQuery.extend(true,e,{seriesDefaults:{rendererOptions:{barMargin:e.barMargin}}});e.barMargin=undefined}if(typeof e.legendLocation!=="undefined"){e=jQuery.extend(true,e,{legend:{location:e.legendLocation}});e.legendLocation=undefined}if(typeof e.legendRowCount!=="undefined"){e=jQuery.extend(true,e,{legend:{rendererOptions:{numberRows:e.legendRowCount}}});e.legendRowCount=undefined}e.chartData=Fisma.Chart.forceIntegerArray(e.chartData);document.getElementById(e.uniqueid+"holder").style.display="";Fisma.Chart.makeElementInvisible(e.uniqueid+"holder");document.getElementById(e.uniqueid+"loader").style.position="absolute";document.getElementById(e.uniqueid+"loader").finnishFadeCallback=new Function("Fisma.Chart.fadeIn('"+e.uniqueid+"holder', 500);");Fisma.Chart.fadeOut(e.uniqueid+"loader",500);Fisma.Chart.setChartWidthAttribs(e);Fisma.Chart.chartsOnDOM[e.uniqueid]=jQuery.extend(true,{},e);var a=Fisma.Chart.CHART_CREATE_FAILURE;if(!Fisma.Chart.chartIsEmpty(e)){switch(e.chartType){case"stackedbar":e.varyBarColor=false;if(typeof e.showlegend==="undefined"){e.showlegend=true}a=Fisma.Chart.createChartStackedBar(e);break;case"bar":if(typeof e.chartData[0]==="object"){e.varyBarColor=false;e.showlegend=true}else{e.chartData=[e.chartData];e.links=[e.links];e.varyBarColor=true;e.showlegend=false}e.stackSeries=false;a=Fisma.Chart.createChartStackedBar(e);break;case"line":a=Fisma.Chart.createChartStackedLine(e);break;case"stackedline":a=Fisma.Chart.createChartStackedLine(e);break;case"pie":e.links=[e.links];a=Fisma.Chart.createChartPie(e);break;default:throw"createJQChart Error - chartType is invalid ("+e.chartType+")"}}Fisma.Chart.removeOverlappingPointLabels(e);Fisma.Chart.applyChartBackground(e);Fisma.Chart.applyChartWidgets(e);Fisma.Chart.createChartThreatLegend(e);Fisma.Chart.applyChartBorders(e);Fisma.Chart.globalSettingRefreshUi(e);Fisma.Chart.showMsgOnEmptyChart(e);Fisma.Chart.getTableFromChartData(e);return a},mergeExtrnIntoParamObjectByInheritance:function(c,a){var b={};if(a.results[0].inheritCtl){if(a.results[0].inheritCtl==="minimal"){b=a.results[0];b.width=c.width;b.height=c.height;b.uniqueid=c.uniqueid;b.externalSource=c.externalSource;b.oldExternalSource=c.oldExternalSource;b.widgets=c.widgets}else{if(a.results[0].inheritCtl==="none"){b=a.results[0]}else{throw"Error - Unknown chart inheritance mode"}}}else{b=jQuery.extend(true,c,a.results[0],true)}return b},createChartPie:function(e){var b=0;var d=[];usedLabelsPie=e.chartDataText;for(b=0;b<e.chartData.length;b++){e.chartDataText[b]+=" ("+e.chartData[b]+")";d[d.length]=[e.chartDataText[b],e.chartData[b]]}var a={title:e.title,seriesColors:e.colors,grid:{drawBorder:false,drawGridlines:false,shadow:false},axes:{xaxis:{tickOptions:{angle:e.DataTextAngle,fontSize:"10pt",formatString:"%.0f"}},yaxis:{tickOptions:{formatString:"%.0f"}}},seriesDefaults:{renderer:$.jqplot.PieRenderer,rendererOptions:{sliceMargin:0,showDataLabels:true,shadowAlpha:0.15,shadowOffset:0,lineLabels:true,lineLabelsLineColor:"#777",diameter:e.height*0.55}},legend:{location:"s",show:false,rendererOptions:{numberRows:1}}};a.seriesDefaults.renderer.prototype.startAngle=0;$("[id="+e.uniqueid+"]").css("height",e.height);a=jQuery.extend(true,a,e);plot1=$.jqplot(e.uniqueid,[d],a);var c=new Function("ev","seriesIndex","pointIndex","data","var thisChartParamObj = "+YAHOO.lang.JSON.stringify(e)+"; Fisma.Chart.chartClickEvent(ev, seriesIndex, pointIndex, data, thisChartParamObj);");$("#"+e.uniqueid).bind("jqplotDataClick",c);return Fisma.Chart.CHART_CREATE_SUCCESS},createChartStackedBar:function(i){var g=0;var e=0;var d=0;var f=0;var c=0;for(g=0;g<i.chartDataText.length;g++){d=0;for(e=0;e<i.chartData.length;e++){d+=i.chartData[e][g]}if(d>f){f=d}if(i.concatXLabel===true){i.chartDataText[g]+=" ("+d+")"}}var b=[];if(i.chartLayerText){for(g=0;g<i.chartLayerText.length;g++){b[g]={label:i.chartLayerText[g]}}}c=Math.ceil(f/5)*5;yAxisTicks=[];yAxisTicks[0]=0;yAxisTicks[1]=(c/5);yAxisTicks[2]=(c/5)*2;yAxisTicks[3]=(c/5)*3;yAxisTicks[4]=(c/5)*4;yAxisTicks[5]=(c/5)*5;$.jqplot.config.enablePlugins=true;var a={title:i.title,seriesColors:i.colors,stackSeries:true,series:b,seriesDefaults:{renderer:$.jqplot.BarRenderer,rendererOptions:{barWidth:35,showDataLabels:true,varyBarColor:i.varyBarColor,shadowAlpha:0.15,shadowOffset:0},pointLabels:{show:false,location:"s",hideZeros:true}},axesDefaults:{tickRenderer:$.jqplot.CanvasAxisTickRenderer,borderWidth:0,labelOptions:{enableFontSupport:true,fontFamily:"arial, helvetica, clean, sans-serif",fontSize:"12pt",textColor:"#555555"}},axes:{xaxis:{label:i.AxisLabelX,labelRenderer:$.jqplot.CanvasAxisLabelRenderer,renderer:$.jqplot.CategoryAxisRenderer,ticks:i.chartDataText,tickOptions:{angle:i.DataTextAngle,fontFamily:"arial, helvetica, clean, sans-serif",fontSize:"10pt",textColor:"#555555"}},yaxis:{label:i.AxisLabelY,labelRenderer:$.jqplot.CanvasAxisLabelRenderer,min:0,max:c,autoscale:true,ticks:yAxisTicks,tickOptions:{formatString:"%.0f",fontFamily:"arial, helvetica, clean, sans-serif",fontSize:"10pt",textColor:"#555555"}}},highlighter:{show:false},grid:{gridLineWidth:0,shadow:false,borderWidth:1,gridLineColor:"#FFFFFF",background:"transparent",drawGridLines:i.drawGridLines,show:i.drawGridLines},legend:{show:i.showlegend,rendererOptions:{numberRows:1},location:"nw"}};if(Fisma.Chart.isIE){a.grid.background="#FFFFFF"}$("[id="+i.uniqueid+"]").css("height",i.height);a=jQuery.extend(true,a,i);a=Fisma.Chart.alterChartByGlobals(a);plot1=$.jqplot(i.uniqueid,i.chartData,a);var h=new Function("ev","seriesIndex","pointIndex","data","var thisChartParamObj = "+YAHOO.lang.JSON.stringify(i)+"; Fisma.Chart.chartClickEvent(ev, seriesIndex, pointIndex, data, thisChartParamObj);");$("#"+i.uniqueid).bind("jqplotDataClick",h);Fisma.Chart.removeDecFromPointLabels(i);return Fisma.Chart.CHART_CREATE_SUCCESS},createChartStackedLine:function(c){var a=0;var d=0;var b=0;for(a=0;a<c.chartDataText.length;a++){b=0;for(d=0;d<["chartData"].length;d++){b+=["chartData"][d][a]}c.chartDataText[a]+=" ("+b+")"}plot1=$.jqplot(c.uniqueid,c.chartData,{title:c.title,seriesColors:["#F4FA58","#FAAC58","#FA5858"],series:[{label:"Open Findings",lineWidth:4,markerOptions:{style:"square"}},{label:"Closed Findings",lineWidth:4,markerOptions:{style:"square"}},{lineWidth:4,markerOptions:{style:"square"}}],seriesDefaults:{fill:false,showMarker:true,showLine:true},axes:{xaxis:{renderer:$.jqplot.CategoryAxisRenderer,ticks:c.chartDataText},yaxis:{min:0}},highlighter:{show:false},legend:{show:true,rendererOptions:{numberRows:1},location:"nw"}});return Fisma.Chart.CHART_CREATE_SUCCESS},createChartThreatLegend:function(i){if(i.showThreatLegend&&!Fisma.Chart.chartIsEmpty(i)){if(i.showThreatLegend===true){var c="100%";if(i.threatLegendWidth){c=i.threatLegendWidth}var g;var d=document.createElement("table");d.style.fontSize="12px";d.style.color="#555555";d.width=c;var b=document.createElement("tbody");var h=document.createElement("tr");g=document.createElement("td");g.style.textAlign="center";g.style.fontWeight="bold";g.width="40%";var a=document.createTextNode("Threat Level");g.appendChild(a);h.appendChild(g);g=document.createElement("td");g.width="20%";g.appendChild(Fisma.Chart.createThreatLegendSingleColor("FF0000","High"));h.appendChild(g);g=document.createElement("td");g.width="20%";g.appendChild(Fisma.Chart.createThreatLegendSingleColor("FF6600","Moderate"));h.appendChild(g);g=document.createElement("td");g.width="20%";g.appendChild(Fisma.Chart.createThreatLegendSingleColor("FFC000","Low"));h.appendChild(g);b.appendChild(h);d.appendChild(b);var f=i.uniqueid;var e=document.getElementById(f+"toplegend");e.appendChild(d)}}},createThreatLegendSingleColor:function(c,d){var g=document.createElement("table");var f=document.createElement("tbody");var b=document.createElement("tr");var e;e=document.createElement("td");e.style.backgroundColor="#"+c;e.width="15px";b.appendChild(e);e=document.createElement("td");e.width="3px";b.appendChild(e);e=document.createElement("td");e.style.fontSize="12px";var a=document.createTextNode("   "+d);e.appendChild(a);b.appendChild(e);f.appendChild(b);g.appendChild(f);return g},chartClickEvent:function(d,a,c,e,b){var g=false;if(b.links){if(typeof b.links==="string"){g=b.links}else{if(b.links[a]){if(typeof b.links[a]==="object"){g=b.links[a][c]}else{g=b.links[a]}}}}if(g===""){return}g=escape(g);g=g.replace("%3F","?");g=g.replace("%3D","=");if(g!==false){g=String(g).replace("#ColumnLabel#",encodeURIComponent(b.chartDataText[c]))}if(b.linksdebug===true){var f="You clicked on layer "+a+", in column "+c+", which has the data of "+e[1]+"\n";f+="The link information for this element should be stored as a string in chartParamData['links'], or as a string in chartParamData['links']["+a+"]["+c+"]\n";if(g!==false){f+="The link with this element is "+g}alert(f)}else{if(g!==false&&g!=="false"&&String(g)!=="null"){document.location=g}}},forceIntegerArray:function(b){var a=0;for(a=0;a<b.length;a++){if(typeof b[a]==="object"){b[a]=Fisma.Chart.forceIntegerArray(b[a])}else{b[a]=parseInt(b[a],10)}}return b},applyChartBorders:function(g){var a=0;if(typeof g.borders==="undefined"){if(g.chartType==="bar"||g.chartType==="stackedbar"){g.borders="BL"}else{return}}var i=document.getElementById(g.uniqueid);var d=i.childNodes;for(a=d.length-1;a>0;a--){if(typeof d[a].nodeName!=="undefined"){if(String(d[a].nodeName).toLowerCase()==="canvas"&&d[a].className==="jqplot-series-shadowCanvas"){var f=d[a];var c=f.getContext("2d");var e=d[a].height;var b=d[a].width;c.strokeStyle="#777777";c.lineWidth=3;c.beginPath();if(g.borders.indexOf("L")!==-1){c.moveTo(0,0);c.lineTo(0,e);c.stroke()}if(g.borders.indexOf("B")!==-1){c.moveTo(0,e);c.lineTo(b,e);c.stroke()}if(g.borders.indexOf("R")!==-1){c.moveTo(b,0);c.lineTo(b,e);c.stroke()}if(g.borders.indexOf("T")!==-1){c.moveTo(0,0);c.lineTo(b,0);c.stroke()}return}}}},applyChartBackground:function(e){var g=document.getElementById(e.uniqueid);if(e.nobackground){if(e.nobackground===true){return}}if(e.background){if(e.background.nobackground){if(e.background.nobackground===true){return}}}var b="/images/logoShark.png";if(e.background){if(e.background.URL){b=e.background.URL}}var d='<img height="100%" src="'+b+'" style="opacity:0.15;filter:alpha(opacity=15);opacity:0.15" />';if(e.background){if(e.background.overrideHTML){b=e.background.overrideHTML}}var a;var h;if(e.chartType==="pie"){a=g.childNodes[3];h=g.childNodes[4]}else{a=g.childNodes[6];h=g.childNodes[5]}var f=a.style;injectedBackgroundImg=document.createElement("span");injectedBackgroundImg.setAttribute("align","center");injectedBackgroundImg.setAttribute("style","position: absolute; left: "+f.left+"; top: "+f.top+"; width: "+a.width+"px; height: "+a.height+"px;");var c=g.insertBefore(injectedBackgroundImg,h);c.innerHTML=d},applyChartWidgets:function(d){var a=0;var f=0;var e=document.getElementById(d.uniqueid+"WidgetSpace");if(typeof d.widgets==="undefined"){e.innerHTML="<br/><i>There are no parameters for this chart.</i><br/><br/>";return}else{if(d.widgets.length===0){e.innerHTML="<br/><i>There are no parameters for this chart.</i><br/><br/>";return}}if(d.widgets){var b="";for(a=0;a<d.widgets.length;a++){var c=d.widgets[a];if(!c.uniqueid){c.uniqueid=d.uniqueid+"_widget"+a;d.widgets[a].uniqueid=c.uniqueid}b+="<tr><td nowrap align=left>"+c.label+' </td><td><td nowrap width="10"></td><td width="99%" align=left>';switch(c.type){case"combo":b+='<select id="'+c.uniqueid+'" onChange="Fisma.Chart.widgetEvent('+YAHOO.lang.JSON.stringify(d).replace(/"/g,"'")+');">';for(f=0;f<c.options.length;f++){b+='<option value="'+c.options[f]+'">'+c.options[f]+"</option><br/>"}b+="</select>";break;case"text":b+='<input onKeyDown="if(event.keyCode==13){Fisma.Chart.widgetEvent('+YAHOO.lang.JSON.stringify(d).replace(/"/g,"'")+');};" type="textbox" id="'+c.uniqueid+'" />';break;default:throw"Error - Widget "+a+"'s type ("+c.type+") is not a known widget type"}b+="</td></tr>"}e.innerHTML="<table>"+b+"</table>"}Fisma.Chart.applyChartWidgetSettings(d)},applyChartWidgetSettings:function(e){var a=0;if(e.widgets){for(a=0;a<e.widgets.length;a++){var c=e.widgets[a];var d=document.getElementById(c.uniqueid);if(c.forcevalue){d.value=c.forcevalue;d.text=c.forcevalue}else{var b=YAHOO.util.Cookie.get(e.uniqueid+"_"+c.uniqueid);if(b!==null){b=b.replace(/%20/g," ");d.value=b;d.text=b}else{if(c.defaultvalue){d.value=c.defaultvalue;d.text=c.defaultvalue}}}}}},buildExternalSourceParams:function(g){var c=0;var b="";g.externalSourceParams="";if(g.widgets){for(c=0;c<g.widgets.length;c++){var f=g.widgets[c];var a=f.uniqueid;var e=document.getElementById(a);if(e){b=e.value}else{var d=YAHOO.util.Cookie.get(g.uniqueid+"_"+f.uniqueid);if(d!==null){b=d}else{if(f.defaultvalue){b=f.defaultvalue}}}g.externalSourceParams+="/"+a+"/"+b}}return g},widgetEvent:function(d){var c=0;if(d.widgets){for(c=0;c<d.widgets.length;c++){var b=d.widgets[c].uniqueid;var a=document.getElementById(b).value;YAHOO.util.Cookie.set(d.uniqueid+"_"+b,a,{path:"/"})}}d=Fisma.Chart.buildExternalSourceParams(d);d.externalSource=d.oldExternalSource;d.oldExternalSource=undefined;d.chartData=undefined;d.chartDataText=undefined;document.getElementById(d.uniqueid+"holder").finnishFadeCallback=new Function("Fisma.Chart.makeElementVisible('"+d.uniqueid+"loader'); Fisma.Chart.createJQChart("+YAHOO.lang.JSON.stringify(d)+"); Fisma.Chart.finnishFadeCallback = '';");Fisma.Chart.fadeOut(d.uniqueid+"holder",300)},makeElementVisible:function(a){var b=document.getElementById(a);b.style.opacity="1";b.style.filter="alpha(opacity = '100')"},makeElementInvisible:function(a){var b=document.getElementById(a);b.style.opacity="0";b.style.filter="alpha(opacity = '0')"},fadeIn:function(a,d){var c=document.getElementById(a);if(c===null){return}var b=Fisma.Chart.getGlobalSetting("fadingEnabled");if(b==="false"){Fisma.Chart.makeElementVisible(a);if(c.finnishFadeCallback){c.finnishFadeCallback();c.finnishFadeCallback=undefined}return}if(typeof c.isFadingNow!=="undefined"){if(c.isFadingNow===true){return}}c.isFadingNow=true;c.FadeState=null;c.FadeTimeLeft=undefined;Fisma.Chart.makeElementInvisible(a);c.style.opacity="0";c.style.filter="alpha(opacity = '0')";Fisma.Chart.fade(a,d)},fadeOut:function(a,d){var c=document.getElementById(a);if(c===null){return}var b=Fisma.Chart.getGlobalSetting("fadingEnabled");if(b==="false"){Fisma.Chart.makeElementInvisible(a);if(c.finnishFadeCallback){c.finnishFadeCallback();c.finnishFadeCallback=undefined}return}if(typeof c.isFadingNow!=="undefined"){if(c.isFadingNow===true){return}}c.isFadingNow=true;c.FadeState=null;c.FadeTimeLeft=undefined;Fisma.Chart.makeElementVisible(a);c.style.opacity="1";c.style.filter="alpha(opacity = '100')";Fisma.Chart.fade(a,d)},fade:function(a,c){var b=document.getElementById(a);if(b===null){return}if(b.FadeState===null){if(b.style.opacity===null||b.style.opacity===""||b.style.opacity==="1"){b.FadeState=2}else{b.FadeState=-2}}if(b.FadeState===1||b.FadeState===-1){b.FadeState=b.FadeState===1?-1:1;b.FadeTimeLeft=c-b.FadeTimeLeft}else{b.FadeState=b.FadeState===2?-1:1;b.FadeTimeLeft=c;setTimeout("Fisma.Chart.animateFade("+new Date().getTime()+",'"+a+"',"+c+")",33)}},animateFade:function(d,a,f){var b=new Date().getTime();var g=b-d;var c=document.getElementById(a);if(c.FadeTimeLeft<=g){if(c.FadeState===1){c.style.filter="alpha(opacity = 100)";c.style.opacity="1"}else{c.style.filter="alpha(opacity = 0)";c.style.opacity="0"}c.isFadingNow=false;c.FadeState=c.FadeState===1?2:-2;if(c.finnishFadeCallback){c.finnishFadeCallback();c.finnishFadeCallback=""}return}c.FadeTimeLeft-=g;var e=c.FadeTimeLeft/f;if(c.FadeState===1){e=1-e}c.style.opacity=e;c.style.filter='alpha(opacity = "'+(e*100)+'")';setTimeout("Fisma.Chart.animateFade("+b+",'"+a+"',"+f+")",33)},setChartWidthAttribs:function(d){var b=false;var a;if(d.chartData){if(d.chartType==="bar"||d.chartType==="stackedbar"){var c;if(d.chartType==="stackedbar"){if(typeof d.chartData[0]==="undefined"){return}else{c=d.chartData[0].length}}else{if(d.chartType==="bar"){c=d.chartData.length}}a=(c*10)+(c*35)+40;if(d.width<a){b=true}}}if(typeof d.autoWidth!=="undefined"){if(d.autoWidth===true){b=true}}if(b===true){document.getElementById(d.uniqueid+"loader").style.width="100%";document.getElementById(d.uniqueid+"holder").style.width="100%";document.getElementById(d.uniqueid+"holder").style.overflow="auto";document.getElementById(d.uniqueid).style.width=a+"px";document.getElementById(d.uniqueid+"toplegend").style.width=a+"px";if(d.align==="center"){document.getElementById(d.uniqueid).style.marginLeft="auto";document.getElementById(d.uniqueid).style.marginRight="auto";document.getElementById(d.uniqueid+"toplegend").style.marginLeft="auto";document.getElementById(d.uniqueid+"toplegend").style.marginRight="auto"}}else{document.getElementById(d.uniqueid+"loader").style.width="100%";document.getElementById(d.uniqueid+"holder").style.width=d.width+"px";document.getElementById(d.uniqueid+"holder").style.overflow="";document.getElementById(d.uniqueid).style.width=d.width+"px";document.getElementById(d.uniqueid+"toplegend").width=d.width+"px"}},getTableFromChartData:function(b){if(Fisma.Chart.chartIsEmpty(b)){return}var a=document.getElementById(b.uniqueid+"table");a.innerHTML="";if(Fisma.Chart.getGlobalSetting("showDataTable")==="true"){if(b.chartType==="pie"){Fisma.Chart.getTableFromChartPieChart(b,a)}else{Fisma.Chart.getTableFromBarChart(b,a)}a.style.display="";document.getElementById(b.uniqueid).innerHTML="";document.getElementById(b.uniqueid).style.width=0;document.getElementById(b.uniqueid).style.height=0;document.getElementById(b.uniqueid+"toplegend").style.display="none"}else{a.style.display="none"}},getTableFromChartPieChart:function(e,d){var g=document.createElement("table");var f=document.createElement("tbody");var b=0;var a;var c;var h;h=document.createElement("tr");for(b=0;b<e.chartDataText.length;b++){a=document.createElement("th");c=document.createTextNode(e.chartDataText[b]);a.setAttribute("style","font-style: bold;");a.appendChild(c);h.appendChild(a)}f.appendChild(h);h=document.createElement("tr");for(b=0;b<e.chartData.length;b++){a=document.createElement("td");c=document.createTextNode(e.chartData[b]);a.appendChild(c);h.appendChild(a)}f.appendChild(h);g.appendChild(f);g.setAttribute("border","1");g.setAttribute("width","100%");d.appendChild(g)},getTableFromBarChart:function(i,a){var f=0;var d=0;var g;var j;var b=document.createElement("table");var c=document.createElement("tbody");var h=document.createElement("tr");if(typeof i.chartLayerText!=="undefined"){g=document.createElement("td");j=document.createTextNode(" ");g.appendChild(j);h.appendChild(g)}for(f=0;f<i.chartDataText.length;f++){g=document.createElement("th");j=document.createTextNode(i.chartDataText[f]);g.setAttribute("style","font-style: bold;");g.appendChild(j);h.appendChild(g)}c.appendChild(h);for(f=0;f<i.chartData.length;f++){var e=i.chartData[f];h=document.createElement("tr");if(typeof i.chartLayerText!=="undefined"){g=document.createElement("th");j=document.createTextNode(i.chartLayerText[f]);g.setAttribute("style","font-style: bold;");g.appendChild(j);h.appendChild(g)}if(typeof(e)==="object"){for(d=0;d<e.length;d++){g=document.createElement("td");j=document.createTextNode(e[d]);g.setAttribute("style","font-style: bold;");g.appendChild(j);h.appendChild(g)}}else{g=document.createElement("td");j=document.createTextNode(e);g.appendChild(j);h.appendChild(g)}c.appendChild(h)}b.appendChild(c);b.setAttribute("border","1");b.setAttribute("width","100%");a.appendChild(b)},removeDecFromPointLabels:function(g){var f="";var b=document.getElementById(g.uniqueid);var a=0;for(a=0;a<b.childNodes.length;a++){var e=b.childNodes[a];if(typeof e.classList==="undefined"){e.classList=String(e.className).split(" ")}if(e.classList){if(e.classList[0]==="jqplot-point-label"){thisLabelValue=parseInt(e.innerHTML,10);e.innerHTML=thisLabelValue;e.value=thisLabelValue;if(parseInt(e.innerHTML,10)===0||isNaN(thisLabelValue)){e.innerHTML=""}if(Fisma.Chart.getGlobalSetting("pointLabelsOutline")==="true"){f="text-shadow: ";f+="#FFFFFF 0px -1px 0px, ";f+="#FFFFFF 0px 1px 0px, ";f+="#FFFFFF 1px 0px 0px, ";f+="#FFFFFF -1px 1px 0px, ";f+="#FFFFFF -1px -1px 0px, ";f+="#FFFFFF 1px 1px 0px; ";e.innerHTML='<span style="'+f+g.pointLabelStyle+'">'+e.innerHTML+"</span>";e.style.textShadow="text-shadow: #FFFFFF 0px -1px 0px, #FFFFFF 0px 1px 0px, #FFFFFF 1px 0px 0px, #FFFFFF -1px 1px 0px, #FFFFFF -1px -1px 0px, #FFFFFF 1px 1px 0px;"}else{e.innerHTML='<span style="'+g.pointLabelStyle+'">'+e.innerHTML+"</span>"}var d=parseInt(String(e.style.left).replace("px",""),10);var c=parseInt(String(e.style.top).replace("px",""),10);d+=g.pointLabelAdjustX;c+=g.pointLabelAdjustY;if(thisLabelValue>=100){d-=2}if(thisLabelValue>=1000){d-=3}e.style.left=d+"px";e.style.top=c+"px";e.style.color="black"}}}},removeOverlappingPointLabels:function(l){if(l.chartType!=="stackedbar"&&l.chartType!=="stackedline"){return}var m=document.getElementById(l.uniqueid);var b=[];var c;var e;var f;var i=0;var h=0;var g=0;for(i=0;i<m.childNodes.length;i++){var k=m.childNodes[i];if(typeof k.classList==="undefined"){k.classList=String(k.className).split(" ")}if(k.classList[0]==="jqplot-point-label"){var j=false;if(typeof k.isRemoved!=="undefined"){j=k.isRemoved}if(j===false){c=parseInt(String(k.style.left).replace("px",""),10);e=parseInt(String(k.style.top).replace("px",""),10);f=k.value;var a={left:c,top:e,value:f,obj:k};b.push(a)}}}$.each(b,function(n,d){$.each(b,function(r,q){var p=(d.left-q.left);p=p*p;var o=(d.top-q.top);o=o*o;var s=Math.sqrt(p+o);if(s<17&&s!==0&&!isNaN(q.value)&&!isNaN(d.value)){if(q.value<d.value){q.obj.innerHTML="";q.obj.isRemoved=true}else{d.obj.innerHTML="";d.obj.isRemoved=true}Fisma.Chart.removeOverlappingPointLabels(l);return}})})},hideButtonClick:function(a,b,c){Fisma.Chart.setChartSettingsVisibility(b,false)},setChartSettingsVisibility:function(d,c){var a=d+"WidgetSpaceHolder";var b=document.getElementById(a);if(c==="toggle"){if(b.style.display==="none"){c=true}else{c=false}}if(c===true){b.style.display=""}else{b.style.display="none"}},globalSettingUpdate:function(f,c){var b=document.getElementById(c+"GlobSettings");var e=b.childNodes;var a=0;for(a=0;a<e.length;a++){var d=e[a];if(d.nodeName==="INPUT"){if(d.type==="checkbox"){Fisma.Chart.setGlobalSetting(d.id,d.checked)}else{Fisma.Chart.setGlobalSetting(d.id,d.value)}}}Fisma.Chart.redrawAllCharts()},globalSettingRefreshUi:function(e){var b=document.getElementById(e.uniqueid+"GlobSettings");var d=b.childNodes;var a=0;for(a=0;a<d.length;a++){var c=d[a];if(c.nodeName==="INPUT"){if(c.type==="checkbox"){c.checked=(Fisma.Chart.getGlobalSetting(c.id)==="true")?true:false}else{c.value=Fisma.Chart.getGlobalSetting(c.id);c.text=c.value}}}},showSetingMode:function(c){var b=0;var a;var d;if(c===true){d=document.getElementsByName("chartSettingsBasic");a=document.getElementsByName("chartSettingsGlobal")}else{a=document.getElementsByName("chartSettingsBasic");d=document.getElementsByName("chartSettingsGlobal")}for(b=0;b<a.length;b++){a[b].style.display="none"}for(b=0;b<a.length;b++){d[b].style.display=""}},getGlobalSetting:function(b){var a=YAHOO.util.Cookie.get("chartGlobSetting_"+b);if(a!==null){return a}else{if(typeof Fisma.Chart.globalSettingsDefaults[b]==="undefined"){throw"You have referenced a global setting ("+b+"), but have not defined a default value for it! Please defined a def-value in the object called globalSettingsDefaults that is located within the global scope of jqplotWrapper.js"}else{return String(Fisma.Chart.globalSettingsDefaults[b])}}},setGlobalSetting:function(a,b){YAHOO.util.Cookie.set("chartGlobSetting_"+a,b,{path:"/"})},alterChartByGlobals:function(a){if(Fisma.Chart.getGlobalSetting("barShadows")==="true"){a.seriesDefaults.rendererOptions.shadowDepth=3;a.seriesDefaults.rendererOptions.shadowOffset=3}if(Fisma.Chart.getGlobalSetting("barShadowDepth")!=="no-setting"&&Fisma.Chart.getGlobalSetting("barShadows")==="true"){a.seriesDefaults.rendererOptions.shadowDepth=Fisma.Chart.getGlobalSetting("barShadowDepth");a.seriesDefaults.rendererOptions.shadowOffset=Fisma.Chart.getGlobalSetting("barShadowDepth")}if(Fisma.Chart.getGlobalSetting("gridLines")==="true"){a.grid.gridLineWidth=1;a.grid.borderWidth=0;a.grid.gridLineColor=undefined;a.grid.drawGridLines=true;a.grid.show=true}if(Fisma.Chart.getGlobalSetting("dropShadows")!=="false"){a.grid.shadow=true}if(Fisma.Chart.getGlobalSetting("pointLabels")==="true"){a.seriesDefaults.pointLabels.show=true}return a},redrawAllCharts:function(c){var a;var b;for(b in Fisma.Chart.chartsOnDOM){a=Fisma.Chart.chartsOnDOM[b];Fisma.Chart.showChartLoadingMsg(a)}if(Fisma.Chart.isIE===true){if(c!==true||c===null){setTimeout("Fisma.Chart.redrawAllCharts(true);",300);return}}for(b in Fisma.Chart.chartsOnDOM){a=Fisma.Chart.chartsOnDOM[b];Fisma.Chart.createJQChart(a);Fisma.Chart.globalSettingRefreshUi(a)}},showChartLoadingMsg:function(d){document.getElementById(d.uniqueid+"toplegend").innerHTML="";Fisma.Chart.makeElementVisible(d.uniqueid+"loader");var b=document.getElementById(d.uniqueid);var a=document.createTextNode("\n\n\n\nLoading chart data...");var c=document.createElement("p");c.align="center";c.appendChild(a);b.innerHTML="";b.appendChild(document.createElement("br"));b.appendChild(document.createElement("br"));b.appendChild(document.createElement("br"));b.appendChild(document.createElement("br"));b.appendChild(c)},showMsgOnEmptyChart:function(d){if(Fisma.Chart.chartIsEmpty(d)){var e=document.getElementById(d.uniqueid);var f=e.childNodes[1];var b=document.createElement("div");b.height="100%";b.style.align="center";b.style.position="absolute";b.style.width=d.width+"px";b.style.height="100%";b.style.textAlign="center";b.style.verticalAlign="middle";var a=document.createTextNode("No data to plot.");b.appendChild(a);e.appendChild(b);var c=document.getElementById(d.uniqueid+"table");c.style.display="none"}},chartIsEmpty:function(c){var b=true;var a=0;var d=0;for(a in c.chartData){if(typeof c.chartData[a]==="object"){for(d in c.chartData[a]){if(parseInt(c.chartData[a][d],10)>0){b=false}}}else{if(parseInt(c.chartData[a],10)>0){b=false}}}return b}};/**
+ * Copyright (c) 2011 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
  *
@@ -2730,47 +2578,1980 @@ Fisma.Chart={handleLink:function(b){var c=b.match(/%s/);if(c.length!=arguments.l
  *
  * @fileoverview Client-side behavior related to the Finding module
  *
- * @author    Mark E. Haase <mhaase@endeavorsystems.com>
- * @copyright (c) Endeavor Systems, Inc. 2010 (http://www.endeavorsystems.com)
+ * @author    Dale Frey <dale.frey@endeavorsystems.com>
+ * @copyright (c) Endeavor Systems, Inc. 2011 (http://www.endeavorsystems.com)
  * @license   http://www.openfisma.org/content/license
- * @version   $Id: AttachArtifacts.js 3188 2010-04-08 19:35:38Z mhaase $
  */
 
 Fisma.Chart = {
 
+    // Constants
+    CHART_CREATE_SUCCESS: 1,
+    CHART_CREATE_FAILURE: 2,
+    CHART_CREATE_EXTERNAL: 3,
+
+    // Defaults for global chart settings definition:
+    globalSettingsDefaults:{
+        fadingEnabled:      false,
+        barShadows:         false,
+        barShadowDepth:     3,
+        dropShadows:        false,
+        gridLines:          false,
+        pointLabels:        false,
+        pointLabelsOutline: false,
+        showDataTable: false
+    },
+
+    // Remember all chart paramiter objects which are drawn on the DOM within global var chartsOnDom
+    chartsOnDOM:{},
+
+    // Is this client-browser Internet Explorer?
+    isIE: (window.ActiveXObject) ? true : false,
+    
+    
     /**
-     * A generic handler for link events in an XML/SWF chart that will interpolate query parameters into a specified
-     * URL and then redirect the user to that URL.
+     * When an external source is needed, this function should handel the returned JSON request
+     * The chartParamsObj object that went into Fisma.Chart.createJQChart(obj) would be the chartParamsObj here, and
+     * the "value" parameter should be the returned JSON request.
+     * the chartParamsObj and value objects are merged togeather based in inheritance mode and 
+     * returns the return value of Fisma.Chart.createJQChart(), or false on external source failure.
      *
-     * This function takes a variable argument list. The first argument is the URL. The URL can contain '%s' tokens
-     * which will be interpolated one-by-one with the remaining arguments.
-     *
-     * Example: handleLink('/param1/%s/param2/%s?q=%s', 'A', 'B', 'C') would redirect the user to the URL
-     * /param1/A/param2/B?q=C
-     *
-     * @param baseUrl A [trusted] URL with a sprintf style '%s' in it that represents the request parameter
-     * @param variable arguments
+     * @return integer
      */
-    handleLink : function (baseUrl) {
+    createJQChart_asynchReturn : function (requestNumber, value, chartParamsObj)
+    {
+        // If anything (json) was returned at all...
+        if (value) {
 
-        // Sanity check: number of argument place holders in URL equals number of arguments to this function
-        var placeHolders = baseUrl.match(/%s/);
-        
-        if (placeHolders.length != arguments.length - 1) {
-            throw "Expected " + placeHolders.length + " arguments but found " + (arguments.length - 1);
+            // YAHOO.util.DataSource puts its JSON responce within value['results'][0]
+            if (value.results[0]) {
+                chartParamsObj = Fisma.Chart.mergeExtrnIntoParamObjectByInheritance(chartParamsObj, value);
+            } else {
+                Fisma.Chart.showMsgOnEmptyChart(chartParamsObj);
+                throw 'Error - Chart creation failed due to data source error at ' + chartParamsObj.lastURLpull;
+            }
+
+            // validate that chart plotting data (numeric information) was returned
+            if (typeof chartParamsObj.chartData === 'undefined') {
+                Fisma.Chart.showMsgOnEmptyChart(chartParamsObj);
+                throw 'Chart Error - The remote data source for chart "' + chartParamsObj.uniqueid + '" located at ' + chartParamsObj.lastURLpull + ' did not return data to plot on a chart';
+            } else if (chartParamsObj.chartData.length === 0) {
+                Fisma.Chart.showMsgOnEmptyChart(chartParamsObj);
+            }
+
+            // call the Fisma.Chart.createJQChart() with the chartParamsObj-object initally given to Fisma.Chart.createJQChart() and the merged responce object
+            return Fisma.Chart.createJQChart(chartParamsObj);
+
+        } else {
+            Fisma.Chart.showMsgOnEmptyChart(chartParamsObj);
+            throw 'Error - Chart creation failed due to data source error at ' + chartParamsObj.lastURLpull;
+        }
+    },
+
+    /**
+     * Creates a chart within a div by the name of chartParamsObj.uniqueid.
+     * All paramiters needed to create the chart are expected to be within the chartParamsObj object.
+     * This function may return before the actual creation of a chart if there is an external source.
+     *
+     * @return boolean
+     */
+    createJQChart : function (chartParamsObj)
+    {
+
+        // load in default values for paramiters, and replace it with any given params
+        var defaultParams = {
+            concatXLabel: false,
+            nobackground: true,
+            drawGridLines: false,
+            pointLabelStyle: 'color: black; font-size: 12pt; font-weight: bold',
+            pointLabelAdjustX: -3,
+            pointLabelAdjustY: -7,
+            AxisLabelX: '',
+            AxisLabelY: '',
+            DataTextAngle: -30
+        };
+        chartParamsObj = jQuery.extend(true, defaultParams, chartParamsObj);
+
+        // param validation
+        if (document.getElementById(chartParamsObj.uniqueid) === false) {
+            throw 'createJQChart Error - The target div/uniqueid does not exists' + chartParamsObj.uniqueid;
         }
 
-        // Loop over the variable length arguments (skipping the first argument, which is baseUrl)
-        var argumentIndex;
+        // set chart width to chartParamsObj.width
+        Fisma.Chart.setChartWidthAttribs(chartParamsObj);
 
-        for (argumentIndex = 1; argumentIndex < arguments.length; argumentIndex++) {
-            baseUrl = baseUrl.replace('%s', escape(arguments[argumentIndex]));
+        // Ensure the load spinner is visible
+        Fisma.Chart.makeElementVisible(chartParamsObj.uniqueid + 'loader');
+
+        // is the data being loaded from an external source? (Or is it all in the chartParamsObj obj?)
+        if (chartParamsObj.externalSource) {
+
+            /*
+             * If it is being loaded from an external source
+             *   setup a json request
+             *   have the json request return to createJQChart_asynchReturn
+             *   exit this function as createJQChart_asynchReturn will call this function again with the same chartParamsObj object with chartParamsObj.externalSource taken out
+            */
+
+            document.getElementById(chartParamsObj.uniqueid).innerHTML = 'Loading chart data...';
+
+            // note externalSource, and remove/relocate it from its place in chartParamsObj[] so it dosnt retain and cause us to loop 
+            var externalSource = chartParamsObj.externalSource;
+            if (!chartParamsObj.oldExternalSource) {
+                chartParamsObj.oldExternalSource = chartParamsObj.externalSource;
+            }
+            chartParamsObj.externalSource = undefined;
+
+            // Send data from widgets to external data source if needed7 (will load from cookies and defaults if widgets are not drawn yet)
+            chartParamsObj = Fisma.Chart.buildExternalSourceParams(chartParamsObj);
+            externalSource += String(chartParamsObj.externalSourceParams).replace(/ /g,'%20');
+            chartParamsObj.lastURLpull = externalSource;
+
+            var myDataSource = new YAHOO.util.DataSource(externalSource);
+            myDataSource.responseType = YAHOO.util.DataSource.TYPE_JSON;
+            myDataSource.responseSchema = {resultsList: "chart"};
+
+            var callback1 = {
+                success : Fisma.Chart.createJQChart_asynchReturn,
+                failure : Fisma.Chart.createJQChart_asynchReturn,
+                argument: chartParamsObj
+            };
+            myDataSource.sendRequest("", callback1);
+
+            return Fisma.Chart.CHART_CREATE_EXTERNAL;
         }
+
+        // clear the chart area
+        document.getElementById(chartParamsObj.uniqueid).innerHTML = '';
+        document.getElementById(chartParamsObj.uniqueid).className = '';
+        document.getElementById(chartParamsObj.uniqueid + 'toplegend').innerHTML = '';
+
+        // handel aliases and short-cut vars
+        if (typeof chartParamsObj.barMargin !== 'undefined') {
+            chartParamsObj = jQuery.extend(true, chartParamsObj, {'seriesDefaults': {'rendererOptions': {'barMargin': chartParamsObj.barMargin}}});
+            chartParamsObj.barMargin = undefined;
+        }
+        if (typeof chartParamsObj.legendLocation !== 'undefined') {
+            chartParamsObj = jQuery.extend(true, chartParamsObj, {'legend': {'location': chartParamsObj.legendLocation }});
+            chartParamsObj.legendLocation = undefined;
+        }
+        if (typeof chartParamsObj.legendRowCount !== 'undefined') {
+            chartParamsObj = jQuery.extend(true, chartParamsObj, {'legend': {'rendererOptions': {'numberRows': chartParamsObj.legendRowCount}}});
+            chartParamsObj.legendRowCount = undefined;
+        }
+
+        // make sure the numbers to be plotted in chartParamsObj.chartData are infact numbers and not an array of strings of numbers
+        chartParamsObj.chartData = Fisma.Chart.forceIntegerArray(chartParamsObj.chartData);
+
+        // hide the loading spinner and show the canvas target
+        document.getElementById(chartParamsObj.uniqueid + 'holder').style.display = '';
+        Fisma.Chart.makeElementInvisible(chartParamsObj.uniqueid + 'holder');
+        document.getElementById(chartParamsObj.uniqueid + 'loader').style.position = 'absolute';
+        document.getElementById(chartParamsObj.uniqueid + 'loader').finnishFadeCallback = new Function ("Fisma.Chart.fadeIn('" + chartParamsObj.uniqueid + "holder', 500);");
+        Fisma.Chart.fadeOut(chartParamsObj.uniqueid + 'loader', 500);
+
+        // now that we have the chartParamsObj.chartData, do we need to make the chart larger and scrollable?
+        Fisma.Chart.setChartWidthAttribs(chartParamsObj);
+
+        // Store this charts paramiter object into the global variable chartsOnDOM, so it can be redrawn
+        // This must be done before the next switch block that translates some data within the chartParamsObj object for jqPlot
+        Fisma.Chart.chartsOnDOM[chartParamsObj.uniqueid] = jQuery.extend(true, {}, chartParamsObj);
+
+        // call the correct function based on chartType, or state there will be no chart created
+        var rtn = Fisma.Chart.CHART_CREATE_FAILURE;
+        if (!Fisma.Chart.chartIsEmpty(chartParamsObj)) {
+
+            switch(chartParamsObj.chartType)
+            {
+                case 'stackedbar':
+                    chartParamsObj.varyBarColor = false;
+                                if (typeof chartParamsObj.showlegend === 'undefined') { chartParamsObj.showlegend = true; }
+                    rtn = Fisma.Chart.createChartStackedBar(chartParamsObj);
+                    break;
+                case 'bar':
+
+                    // Is this a simple-bar chart (not-stacked-bar) with multiple series?
+                    if (typeof chartParamsObj.chartData[0] === 'object') {
+
+                        // the chartData is already a multi dimensional array, and the chartType is bar, not stacked bar. So we assume it is a simple-bar chart with multi series
+                        // thus we will leave the chartData array as is (as opposed to forcing it to a 2 dim array, and claming it to be a stacked bar chart with no other layers of bars (a lazy but functional of creating a regular bar charts from the stacked-bar chart renderer)
+
+                        chartParamsObj.varyBarColor = false;
+                        chartParamsObj.showlegend = true;
+
+                    } else {
+                        chartParamsObj.chartData = [chartParamsObj.chartData];  // force to 2 dimensional array
+                        chartParamsObj.links = [chartParamsObj.links];
+                        chartParamsObj.varyBarColor = true;
+                        chartParamsObj.showlegend = false;
+                    }
+
+                    chartParamsObj.stackSeries = false;
+                    rtn = Fisma.Chart.createChartStackedBar(chartParamsObj);
+                    break;
+
+                case 'line':
+                    rtn = Fisma.Chart.createChartStackedLine(chartParamsObj);
+                    break;
+                case 'stackedline':
+                    rtn = Fisma.Chart.createChartStackedLine(chartParamsObj);
+                    break;
+                case 'pie':
+                    chartParamsObj.links = [chartParamsObj.links];
+                    rtn = Fisma.Chart.createChartPie(chartParamsObj);
+                    break;
+                default:
+                    throw 'createJQChart Error - chartType is invalid (' + chartParamsObj.chartType + ')';
+            }
+        }
+
+        // chart tweeking external to the jqPlot library
+        Fisma.Chart.removeOverlappingPointLabels(chartParamsObj);
+        Fisma.Chart.applyChartBackground(chartParamsObj);
+        Fisma.Chart.applyChartWidgets(chartParamsObj);
+        Fisma.Chart.createChartThreatLegend(chartParamsObj);
+        Fisma.Chart.applyChartBorders(chartParamsObj);
+        Fisma.Chart.globalSettingRefreshUi(chartParamsObj);
+        Fisma.Chart.showMsgOnEmptyChart(chartParamsObj);
+        Fisma.Chart.getTableFromChartData(chartParamsObj);
+
+        return rtn;
+    },
+
+    /**
+     * Takes a chartParamsObj and merges content of 
+     * externResponse-object into it based in the inheritance mode
+     * set in externResponse.
+     * Expects: A (chart-)object generated from Fisma_Chart->export('array')
+     *
+     * @param object
+     * @return void
+     * 
+    */
+    mergeExtrnIntoParamObjectByInheritance : function (chartParamsObj, externResponse)
+    {
+        var joinedParam = {};
+
+        // Is there an inheritance mode? 
+        if (externResponse.results[0].inheritCtl) {
+            if (externResponse.results[0].inheritCtl === 'minimal') {
+                // Inheritance mode set to minimal, retain certain attribs and merge
+                joinedParam = externResponse.results[0];
+                joinedParam.width = chartParamsObj.width;
+                joinedParam.height = chartParamsObj.height;
+                joinedParam.uniqueid = chartParamsObj.uniqueid;
+                joinedParam.externalSource = chartParamsObj.externalSource;
+                joinedParam.oldExternalSource = chartParamsObj.oldExternalSource;
+                joinedParam.widgets = chartParamsObj.widgets;
+            } else if (externResponse.results[0].inheritCtl === 'none') {
+                // Inheritance mode set to none, replace the joinedParam object
+                joinedParam = externResponse.results[0];
+            } else {
+                throw 'Error - Unknown chart inheritance mode';
+            }
+        } else {
+            // No inheritance mode, by default, merge everything
+            joinedParam = jQuery.extend(true, chartParamsObj, externResponse.results[0],true);
+        }
+
+        return joinedParam;
+    },
+
+     /**
+      * Fires the jqPlot library, and creates a pie chart
+      * based on input chart object
+      *
+      * Expects: A (chart-)object generated from Fisma_Chart->export('array')
+      *
+      * @param object
+      * @return void
+     */
+    createChartPie : function (chartParamsObj)
+    {
+        var x = 0;
+        var dataSet = [];
+        usedLabelsPie = chartParamsObj.chartDataText;
+
+        for (x = 0; x < chartParamsObj.chartData.length; x++) {
+            chartParamsObj.chartDataText[x] += ' (' + chartParamsObj.chartData[x]  + ')';
+            dataSet[dataSet.length] = [chartParamsObj.chartDataText[x], chartParamsObj.chartData[x]];
+        }
+
+        var jPlotParamObj = {
+            title: chartParamsObj.title,
+            seriesColors: chartParamsObj.colors,
+            grid: {
+                drawBorder: false,
+                drawGridlines: false,
+                shadow: false
+            },
+            axes: {
+                xaxis:{
+                    tickOptions: {
+                        angle: chartParamsObj.DataTextAngle,
+                        fontSize: '10pt',
+                        formatString: '%.0f'
+                    }
+                },
+                yaxis:{
+                    tickOptions: {
+                        formatString: '%.0f'
+                    }
+                }
+
+            },
+            seriesDefaults:{
+                renderer:$.jqplot.PieRenderer,
+                rendererOptions: {
+                    sliceMargin: 0,
+                    showDataLabels: true,
+                    shadowAlpha: 0.15,
+                    shadowOffset: 0,
+                    lineLabels: true,
+                    lineLabelsLineColor: '#777',
+                    diameter: chartParamsObj.height * 0.55
+                }
+            },
+            legend: {
+                location: 's',
+                show: false,
+                rendererOptions: {
+                    numberRows: 1
+                }
+            }
+        };
+
+        jPlotParamObj.seriesDefaults.renderer.prototype.startAngle = 0;
+
+        // bug killer (for IE7) - state the height for the container div for emulated excanvas
+        $("[id="+chartParamsObj.uniqueid+"]").css('height', chartParamsObj.height);
+
+        // merge any jqPlot direct chartParamsObj-arguments into jPlotParamObj from chartParamsObj
+        jPlotParamObj = jQuery.extend(true, jPlotParamObj, chartParamsObj);
+
+        plot1 = $.jqplot(chartParamsObj.uniqueid, [dataSet], jPlotParamObj);
+
+        // create an event handeling function that calls chartClickEvent while preserving the parm object
+        var EvntHandler = new Function ("ev", "seriesIndex", "pointIndex", "data", "var thisChartParamObj = " + YAHOO.lang.JSON.stringify(chartParamsObj) + "; Fisma.Chart.chartClickEvent(ev, seriesIndex, pointIndex, data, thisChartParamObj);" );
+
+        // use the created function as the click-event-handeler
+        $('#' + chartParamsObj.uniqueid).bind('jqplotDataClick', EvntHandler);
+
+        return Fisma.Chart.CHART_CREATE_SUCCESS;
+    },
+
+     /**
+      * Fires the jqPlot library, and creates a stacked
+      * bar chart based on input chart object
+      *
+      * Expects: A (chart-)object generated from Fisma_Chart->export('array')
+      *
+      * @param object
+      * @return CHART_CREATE_SUCCESS|CHART_CREATE_FAILURE|CHART_CREATE_EXTERNAL
+     */
+    createChartStackedBar : function (chartParamsObj)
+    {
+        var x = 0; var y = 0;
+        var thisSum = 0;
+        var maxSumOfAll = 0;
+        var chartCeilingValue = 0;
+
+        for (x = 0; x < chartParamsObj.chartDataText.length; x++) {
+
+            thisSum = 0;
+
+            for (y = 0; y < chartParamsObj.chartData.length; y++) {
+                thisSum += chartParamsObj.chartData[y][x];
+            }
+
+            if (thisSum > maxSumOfAll) { maxSumOfAll = thisSum; }
+
+            if (chartParamsObj.concatXLabel === true) {
+                chartParamsObj.chartDataText[x] += ' (' + thisSum  + ')';
+            }
+        }
+
+        var seriesParam = [];
+        if (chartParamsObj.chartLayerText) {
+            for (x = 0; x < chartParamsObj.chartLayerText.length; x++) {
+                seriesParam[x] = {label: chartParamsObj.chartLayerText[x]};
+            }
+        }
+
+        // Make sure the Y-axis (row labels) are not offset by the formatter string rounding their values...
+        // (make the top most row label divisible by 5)
+        chartCeilingValue = Math.ceil(maxSumOfAll / 5) * 5;
+
+        // Force Y-axis row labels to be divisible by 5
+        yAxisTicks = [];
+        yAxisTicks[0] = 0;
+        yAxisTicks[1] = (chartCeilingValue/5);
+        yAxisTicks[2] = (chartCeilingValue/5) * 2;
+        yAxisTicks[3] = (chartCeilingValue/5) * 3;
+        yAxisTicks[4] = (chartCeilingValue/5) * 4;
+        yAxisTicks[5] = (chartCeilingValue/5) * 5;
+
+        $.jqplot.config.enablePlugins = true;
+
+        var jPlotParamObj = {
+            title: chartParamsObj.title,
+            seriesColors: chartParamsObj.colors,
+            stackSeries: true,
+            series: seriesParam,
+            seriesDefaults:{
+                renderer: $.jqplot.BarRenderer,
+                rendererOptions:{
+                    barWidth: 35,
+                    showDataLabels: true,
+                    varyBarColor: chartParamsObj.varyBarColor,
+                    shadowAlpha: 0.15,
+                    shadowOffset: 0
+                },
+                pointLabels:{
+                    show: false,
+                    location: 's',
+                    hideZeros: true
+                }
+            },
+            axesDefaults: {
+                tickRenderer: $.jqplot.CanvasAxisTickRenderer,
+                borderWidth: 0,
+                labelOptions: {
+                    enableFontSupport: true,
+                    fontFamily: 'arial, helvetica, clean, sans-serif',
+                    fontSize: '12pt',
+                    textColor: '#555555'
+                }
+            },
+            axes: {
+                xaxis:{
+                    label: chartParamsObj.AxisLabelX,
+                    labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+                    renderer: $.jqplot.CategoryAxisRenderer,
+                    ticks: chartParamsObj.chartDataText,
+                    tickOptions: {
+                        angle: chartParamsObj.DataTextAngle,
+                        fontFamily: 'arial, helvetica, clean, sans-serif',
+                        fontSize: '10pt',
+                        textColor: '#555555'
+                    }
+                },
+                yaxis:{
+                    label: chartParamsObj.AxisLabelY,
+                    labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+                    min: 0,
+                    max: chartCeilingValue,
+                    autoscale: true,
+                    ticks: yAxisTicks,
+                    tickOptions: {
+                        formatString: '%.0f',
+                        fontFamily: 'arial, helvetica, clean, sans-serif',
+                        fontSize: '10pt',
+                        textColor: '#555555'
+                    }
+                }
+
+            },
+            highlighter: { 
+                show: false 
+                },
+            grid: {
+                gridLineWidth: 0,
+                shadow: false,
+                borderWidth: 1,
+                gridLineColor: '#FFFFFF',
+                background: 'transparent',
+                drawGridLines: chartParamsObj.drawGridLines,
+                show: chartParamsObj.drawGridLines
+                },
+            legend: {
+                        show: chartParamsObj.showlegend,
+                        rendererOptions: {
+                            numberRows: 1
+                        },
+                        location: 'nw'
+                    }
+        };
+
+        // bug killer - The canvas object for IE does not understand what transparency is...
+        if (Fisma.Chart.isIE) {
+            jPlotParamObj.grid.background = '#FFFFFF';
+        }
+
+        // bug killer (for IE7) - state the height for the container div for emulated excanvas
+        $("[id="+chartParamsObj.uniqueid+"]").css('height', chartParamsObj.height);
+
+        // merge any jqPlot direct chartParamsObj-arguments into jPlotParamObj from chartParamsObj
+        jPlotParamObj = jQuery.extend(true, jPlotParamObj, chartParamsObj);
+
+        // override any jqPlot direct chartParamsObj-arguments based on globals setting from cookies (set by user)
+        jPlotParamObj = Fisma.Chart.alterChartByGlobals(jPlotParamObj);
+
+        plot1 = $.jqplot(chartParamsObj.uniqueid, chartParamsObj.chartData, jPlotParamObj);
+
+
+        var EvntHandler = new Function ("ev", "seriesIndex", "pointIndex", "data", "var thisChartParamObj = " + YAHOO.lang.JSON.stringify(chartParamsObj) + "; Fisma.Chart.chartClickEvent(ev, seriesIndex, pointIndex, data, thisChartParamObj);" );
+        $('#' + chartParamsObj.uniqueid).bind('jqplotDataClick', EvntHandler);
+
+        Fisma.Chart.removeDecFromPointLabels(chartParamsObj);
+
+        return Fisma.Chart.CHART_CREATE_SUCCESS;
+    },
+
+     /**
+      * Fires the jqPlot library, and creates a stacked
+      * line chart based on input chart object
+      *
+      * Expects: A (chart-)object generated from Fisma_Chart->export('array')
+      *
+      * @param object
+      * @return CHART_CREATE_SUCCESS|CHART_CREATE_FAILURE|CHART_CREATE_EXTERNAL
+     */
+    createChartStackedLine : function (chartParamsObj)
+    {
+        var x = 0; var y = 0;
+        var thisSum = 0;
+
+        for (x = 0; x < chartParamsObj.chartDataText.length; x++) {
+            thisSum = 0;
+
+            for (y = 0; y < ['chartData'].length; y++) {
+                thisSum += ['chartData'][y][x];
+            }
+
+            chartParamsObj.chartDataText[x] += ' (' + thisSum  + ')';
+        }
+
+        plot1 = $.jqplot(chartParamsObj.uniqueid, chartParamsObj.chartData, {
+            title: chartParamsObj.title,
+            seriesColors: ["#F4FA58", "#FAAC58","#FA5858"],
+            series: [{label: 'Open Findings', lineWidth:4, markerOptions:{style:'square'}}, {label: 'Closed Findings', lineWidth:4, markerOptions:{style:'square'}}, {lineWidth:4, markerOptions:{style:'square'}}],
+            seriesDefaults:{
+                fill:false,
+                showMarker: true,
+                showLine: true
+            },
+            axes: {
+                xaxis:{
+                    renderer:$.jqplot.CategoryAxisRenderer,
+                    ticks:chartParamsObj.chartDataText
+                },
+                yaxis:{
+                    min: 0
+                }
+            },
+            highlighter: { show: false },
+            legend: {
+                        show: true,
+                        rendererOptions: {
+                            numberRows: 1
+                        },
+                        location: 'nw'
+                    }
+        });
+
+        return Fisma.Chart.CHART_CREATE_SUCCESS;
+    },
+
+    /**
+     * Creates the red-orange-yellow threat-legend that shows above charts
+     * The generated HTML code should go into the div with the id of the
+     * chart's uniqueId + "toplegend"
+     *
+     * @return boolean/integer
+     */
+    createChartThreatLegend : function (chartParamsObj)
+    {
+        if (chartParamsObj.showThreatLegend && !Fisma.Chart.chartIsEmpty(chartParamsObj)) {
+            if (chartParamsObj.showThreatLegend === true) {
+
+                // Is a width given for the width of the legend? OR should we assume 100%?
+                var threatLegendWidth = '100%';
+                if (chartParamsObj.threatLegendWidth) {
+                    threatLegendWidth = chartParamsObj.threatLegendWidth;
+                }
+
+                var cell;
+
+                // Tabel to hold all colored boxes and labels
+                var threatTable = document.createElement("table");
+                threatTable.style.fontSize = '12px';
+                threatTable.style.color = '#555555';
+                threatTable.width = threatLegendWidth;
+                var tblBody = document.createElement("tbody");
+                var row = document.createElement("tr");
+
+                cell = document.createElement("td");
+                cell.style.textAlign = 'center';
+                cell.style.fontWeight = 'bold';
+                cell.width = '40%';
+                var textLabel = document.createTextNode('Threat Level');
+                cell.appendChild(textLabel);
+                row.appendChild(cell);
+
+                // Red block and "High"
+                cell = document.createElement("td");
+                cell.width = '20%';
+                cell.appendChild(Fisma.Chart.createThreatLegendSingleColor('FF0000', 'High'));
+                row.appendChild(cell);
+
+                // Orange block and "Moderate"
+                cell = document.createElement("td");
+                cell.width = '20%';
+                cell.appendChild(Fisma.Chart.createThreatLegendSingleColor('FF6600', 'Moderate'));
+                row.appendChild(cell);
+
+                // Yellow block and "Low"
+                cell = document.createElement("td");
+                cell.width = '20%';
+                cell.appendChild(Fisma.Chart.createThreatLegendSingleColor('FFC000', 'Low'));
+                row.appendChild(cell);
+
+                // close and post table on DOM
+                tblBody.appendChild(row);
+                threatTable.appendChild(tblBody);
+                var thisChartId = chartParamsObj.uniqueid;
+                var topLegendOnDOM = document.getElementById(thisChartId + 'toplegend');
+                topLegendOnDOM.appendChild(threatTable);
+            }
+        }        
+    },
+
+    /**
+     * Creates a single color (i.e. red/orange/yellow) tabels to be added 
+     * into the threat-legend that shows above charts
+     *
+     * @return table
+     */
+    createThreatLegendSingleColor : function (blockColor, textLabel) {
+
+        var colorBlockTbl = document.createElement("table");
+        var colorBody = document.createElement("tbody");
+        var colorRow = document.createElement("tr");
+
+        var colorCell;
+
+        // Create the colored box
+        colorCell = document.createElement("td");
+        colorCell.style.backgroundColor= '#' + blockColor;
+        colorCell.width = '15px';
+        colorRow.appendChild(colorCell);
+
+        // Forced space between colored box and label
+        colorCell = document.createElement("td");
+        colorCell.width = '3px';
+        colorRow.appendChild(colorCell);
+
+        // Apply label
+        colorCell = document.createElement("td");
+        colorCell.style.fontSize = '12px';
+        var textLabelObj = document.createTextNode('   ' + textLabel);
+        colorCell.appendChild(textLabelObj);
+        colorRow.appendChild(colorCell);
+
+        colorBody.appendChild(colorRow);
+        colorBlockTbl.appendChild(colorBody);
+        return colorBlockTbl;    
+    },
+
+    chartClickEvent : function (ev, seriesIndex, pointIndex, data, paramObj)
+    {
+
+        var theLink = false;
+        if (paramObj.links) {
+            if (typeof paramObj.links === 'string') {
+                theLink = paramObj.links;
+            } else {
+                if (paramObj.links[seriesIndex]) {
+                    if (typeof paramObj.links[seriesIndex] === "object") {
+                        theLink = paramObj.links[seriesIndex][pointIndex];
+                    } else {
+                        theLink = paramObj.links[seriesIndex];
+                    }
+                }
+            }
+        }
+
+        // bail on blank link
+        if (theLink === '') {
+            return;
+        }
+
+        // Escape, and then unescape all ? and = characters
+        theLink = escape(theLink);
+        theLink = theLink.replace('%3F', '?');
+        theLink = theLink.replace('%3D', '=');
+
+        // Does the link contain a variable?
+        if (theLink !== false) {
+            theLink = String(theLink).replace('#ColumnLabel#', encodeURIComponent(paramObj.chartDataText[pointIndex]));
+        }
+
+        if (paramObj.linksdebug === true) {
+            var msg = "You clicked on layer " + seriesIndex + ", in column " + pointIndex + ", which has the data of " + data[1] + "\n";
+            msg += "The link information for this element should be stored as a string in chartParamData['links'], or as a string in chartParamData['links'][" + seriesIndex + "][" + pointIndex + "]\n";
+            if (theLink !== false) { msg += "The link with this element is " + theLink; }
+            alert(msg);
+        } else {
+
+            // We are not in link-debug mode, navigate if there is a link
+            if (theLink !== false && theLink !== 'false' && String(theLink) !== 'null') {
+                document.location = theLink;
+            }
+
+        }
+    },
+
+    /**
+     * Converts an array from strings to integers, for example;
+     * ["1", 2, "3", 4] would become [1, 2, 3, 4]
+     * This is a bug killer for external source plotting data as
+     * the jqPlot lib expects integers, and JSON may not always 
+     * be encoded that way
+     *
+     * @return array
+     */
+    forceIntegerArray : function (inptArray)
+    {
+        var x = 0;
+        for (x = 0; x < inptArray.length; x++) {
+            if (typeof inptArray[x] === 'object') {
+                inptArray[x] = Fisma.Chart.forceIntegerArray(inptArray[x]);
+            } else {
+                inptArray[x] = parseInt(inptArray[x], 10);    // make sure this is an int, and not a string of a number
+            }
+        }
+
+        return inptArray;
+    },
+
+    /**
+     * Manually draws borders onto the shadow canvas
+     * This function is nessesary as jqPlot's API does not allow 
+     * you to choose which borders are drawn and which are not.
+     * If "L" exists within chartParamsObj.borders, the left border is
+     * drawn, if "R" does (too), then the right is drawn and so on.
+     *
+     * @return void
+     */
+    applyChartBorders : function (chartParamsObj)
+    {
+        var x = 0;
+
+        // What borders should be drawn? (L = left, B = bottom, R = right, T = top)
+        if (typeof chartParamsObj.borders === 'undefined') {
+            if (chartParamsObj.chartType === 'bar' || chartParamsObj.chartType === 'stackedbar') {
+                // default for bar and stacked bar charts are bottom-left (BL)
+                chartParamsObj.borders = 'BL';
+            } else {
+                // assume no default for other chart types
+                return;
+            }
+        }
+
+        // Get the area of our containing divs
+        var targDiv = document.getElementById(chartParamsObj.uniqueid);
+        var children = targDiv.childNodes;
+
+        for (x = children.length - 1; x > 0; x--) {
+            // search for a canvs
+            if (typeof children[x].nodeName !== 'undefined') {
+
+                // search for a canvas that is the shadow canvas
+                if (String(children[x].nodeName).toLowerCase() === 'canvas' && children[x].className === 'jqplot-series-shadowCanvas') {
+
+                    // this is the canvas we want to draw on
+                    var targCanv = children[x];
+                    var context = targCanv.getContext('2d');
+
+                    var h = children[x].height;
+                    var w = children[x].width;
+
+                    context.strokeStyle = '#777777';
+                    context.lineWidth = 3;
+                    context.beginPath();
+
+                    // Draw left border?
+                    if (chartParamsObj.borders.indexOf('L') !== -1) {
+                        context.moveTo(0,0);
+                        context.lineTo(0, h);
+                        context.stroke();
+                    }               
+
+                    // Draw bottom border?
+                    if (chartParamsObj.borders.indexOf('B') !== -1) {
+                        context.moveTo(0, h);
+                        context.lineTo(w, h);
+                        context.stroke();
+                    }
+
+                    // Draw right border?
+                    if (chartParamsObj.borders.indexOf('R') !== -1) {
+                        context.moveTo(w, 0);
+                        context.lineTo(w, h);
+                        context.stroke();
+                    }
+
+                    // Draw top border?
+                    if (chartParamsObj.borders.indexOf('T') !== -1) {
+                        context.moveTo(0, 0);
+                        context.lineTo(w, 0);
+                        context.stroke();
+                    }
+
+                    return;
+                }
+            }
+        }
+    },
+
+    applyChartBackground : function (chartParamsObj)
+    {
+
+        var targDiv = document.getElementById(chartParamsObj.uniqueid);
+
+        // Dont display a background? Defined in either nobackground or background.nobackground
+        if (chartParamsObj.nobackground) {
+            if (chartParamsObj.nobackground === true) { return; }
+        }
+        if (chartParamsObj.background) {
+            if (chartParamsObj.background.nobackground) {
+                if (chartParamsObj.background.nobackground === true) {
+                    return;
+                }
+            }
+        }
+
+        // What is the HTML we should inject?
+        var backURL = '/images/logoShark.png'; // default location
+        if (chartParamsObj.background) {
+            if (chartParamsObj.background.URL) {
+                backURL = chartParamsObj.background.URL;
+            }
+        }
+        var injectHTML = '<img height="100%" src="' + backURL + '" style="opacity:0.15;filter:alpha(opacity=15);opacity:0.15" />';
+
+        // But wait, is there an override issued for the HTML of the background to inject?
+        if (chartParamsObj.background) {
+            if (chartParamsObj.background.overrideHTML) {
+                backURL = chartParamsObj.background.overrideHTML;
+            }
+        }
+
+        // Where do we inject the background in the DOM? (different for differnt chart rederers)
+        var cpy;
+        var insertBeforeChild;
+        if (chartParamsObj.chartType === 'pie') {
+            cpy = targDiv.childNodes[3];
+            insertBeforeChild = targDiv.childNodes[4];
+        } else {    
+            cpy = targDiv.childNodes[6];
+            insertBeforeChild = targDiv.childNodes[5];
+        }
+
+        var cpyStyl = cpy.style;
+
+        injectedBackgroundImg = document.createElement('span');
+        injectedBackgroundImg.setAttribute('align', 'center');
+        injectedBackgroundImg.setAttribute('style' , 'position: absolute; left: ' + cpyStyl.left + '; top: ' + cpyStyl.top + '; width: ' + cpy.width + 'px; height: ' + cpy.height + 'px;');
+
+        var inserted = targDiv.insertBefore(injectedBackgroundImg, insertBeforeChild);
+        inserted.innerHTML = injectHTML;
+    },
+
+    /**
+     * Creates the chart widgets/options (regular options, not global-settings).
+     * The generated HTML for these "widgets" as placed in a div by the id of the
+     * chart's uniqueId + "WidgetSpace"
+     *
+     * @return void
+     */
+    applyChartWidgets : function (chartParamsObj)
+    {
+        var x = 0;
+        var y = 0;
+
+        var wigSpace = document.getElementById(chartParamsObj.uniqueid + 'WidgetSpace');
+
+        // Are there widgets for this chart?
+        if (typeof chartParamsObj.widgets === 'undefined') {
+            wigSpace.innerHTML = '<br/><i>There are no parameters for this chart.</i><br/><br/>';
+            return;
+        } else if (chartParamsObj.widgets.length === 0) {
+            wigSpace.innerHTML = '<br/><i>There are no parameters for this chart.</i><br/><br/>';
+            return;
+        }
+
+        if (chartParamsObj.widgets) {
+
+            var addHTML = '';
+
+            for (x = 0; x < chartParamsObj.widgets.length; x++) {
+
+                var thisWidget = chartParamsObj.widgets[x];
+
+                // create a widget id if one is not explicitly given
+                if (!thisWidget.uniqueid) {
+                    thisWidget.uniqueid = chartParamsObj.uniqueid + '_widget' + x;
+                    chartParamsObj.widgets[x].uniqueid = thisWidget.uniqueid;
+                }
+
+                // print the label text to be displayed to the left of the widget if one is given
+                addHTML += '<tr><td nowrap align=left>' + thisWidget.label + ' </td><td><td nowrap width="10"></td><td width="99%" align=left>';
+
+                switch(thisWidget.type) {
+                    case 'combo':
+
+                        addHTML += '<select id="' + thisWidget.uniqueid + '" onChange="Fisma.Chart.widgetEvent(' + YAHOO.lang.JSON.stringify(chartParamsObj).replace(/"/g, "'") + ');">';
+                                            // " // ( comment double quote to fix syntax highlight errors with /"/g on previus line )
+
+                        for (y = 0; y < thisWidget.options.length; y++) {
+                            addHTML += '<option value="' + thisWidget.options[y] + '">' + thisWidget.options[y] + '</option><br/>';
+                        }
+
+                        addHTML += '</select>';
+
+                        break;
+
+                    case 'text':
+
+                        addHTML += '<input onKeyDown="if(event.keyCode==13){Fisma.Chart.widgetEvent(' + YAHOO.lang.JSON.stringify(chartParamsObj).replace(/"/g, "'") + ');};" type="textbox" id="' + thisWidget.uniqueid + '" />';
+                                            // " // ( comment double quote to fix syntax highlight errors with /"/g on previus line )
+                        break;
+
+                    default:
+                        throw 'Error - Widget ' + x + "'s type (" + thisWidget.type + ') is not a known widget type';
+                }
+
+
+                addHTML += '</td></tr>';
+
+            }
+
+            // add this widget HTML to the DOM
+            wigSpace.innerHTML = '<table>' + addHTML + '</table>';
+
+        }
+
+        Fisma.Chart.applyChartWidgetSettings(chartParamsObj);
+    },
+
+    /**
+     * Looks at chartParamsObj["widget"], or for every chart-options/widget, loads the
+     * values for this opt/widget into the user-interface object for this option.
+     * This value may be loaded froma saved cookie, fallback to a default, or
+     * be foreced to a certain value every time if the PHP wrapper demands it.
+     *
+     * @return void
+     */
+    applyChartWidgetSettings : function (chartParamsObj)
+    {
+        var x = 0;
+
+        if (chartParamsObj.widgets) {
+
+            for (x = 0; x < chartParamsObj.widgets.length; x++) {
+
+                var thisWidget = chartParamsObj.widgets[x];
+
+                // load the value for widgets
+                var thisWigInDOM = document.getElementById(thisWidget.uniqueid);
+                if (thisWidget.forcevalue) {
+                    // this widget value is forced to a certain value upon every load/reload
+                    thisWigInDOM.value = thisWidget.forcevalue;
+                    thisWigInDOM.text = thisWidget.forcevalue;
+                } else {
+                    var thisWigCookieValue = YAHOO.util.Cookie.get(chartParamsObj.uniqueid + '_' + thisWidget.uniqueid);
+                    if (thisWigCookieValue !== null) {
+                        // the value has been coosen in the past and is stored as a cookie
+                        thisWigCookieValue = thisWigCookieValue.replace(/%20/g, ' ');
+                        thisWigInDOM.value = thisWigCookieValue;
+                        thisWigInDOM.text = thisWigCookieValue;
+                    } else {
+                        // no saved value/cookie. Is there a default given in the chartParamsObj object
+                        if (thisWidget.defaultvalue) {
+                            thisWigInDOM.value = thisWidget.defaultvalue;
+                            thisWigInDOM.text = thisWidget.defaultvalue;
+                        }
+                    }
+                }
+            }
+        }
+    },
+
+    /**
+     * When an external source is queried (JSON query), all chart parameters/options/widgets
+     * are placed into the query URL. This function builds the trailing query to be appended
+     * to the static external source URL.
+     * Returns the chartParamsObj object given to this function with chartParamsObj.externalSourceParams altered.
+     *
+     * @return Array
+     */
+    buildExternalSourceParams : function (chartParamsObj)
+    {
+
+        // build arguments to send to the remote data source
+
+        var x = 0;
+        var thisWidgetValue = '';
+        chartParamsObj.externalSourceParams = '';
+
+        if (chartParamsObj.widgets) {
+            for (x = 0; x < chartParamsObj.widgets.length; x++) {
+
+                var thisWidget = chartParamsObj.widgets[x];
+                var thisWidgetName = thisWidget.uniqueid;
+                var thisWidgetOnDOM = document.getElementById(thisWidgetName);
+
+                // is this widget actully on the DOM? Or should we load the cookie?         
+                if (thisWidgetOnDOM) {
+                    // widget is on the DOM
+                    thisWidgetValue = thisWidgetOnDOM.value;
+                } else {
+                    // not on DOM, is there a cookie?
+                    var thisWigCookieValue = YAHOO.util.Cookie.get(chartParamsObj.uniqueid + '_' + thisWidget.uniqueid);
+                    if (thisWigCookieValue !== null) {
+                        // there is a cookie value, us it
+                        thisWidgetValue = thisWigCookieValue;
+                    } else {
+                        // there is no cookie, is there a default value?
+                        if (thisWidget.defaultvalue) {
+                            thisWidgetValue = thisWidget.defaultvalue;
+                        }
+                    }
+                }
+
+                chartParamsObj.externalSourceParams += '/' + thisWidgetName + '/' + thisWidgetValue;
+            }
+        }
+
+        return chartParamsObj;
+    },
+
+     /**
+      * Event handeler for when a user changes combo-boxes or textboxes 
+      * of chart settings.
+      *
+      * Expects: A (chart-)object generated from Fisma_Chart->export('array')
+      *
+      * @param object
+      * @return void
+     */
+    widgetEvent : function (chartParamsObj)
+    {
+        var x = 0;
+
+        // first, save the widget values (as cookies) so they can be retained later when the widgets get redrawn
+        if (chartParamsObj.widgets) {
+            for (x = 0; x < chartParamsObj.widgets.length; x++) {
+                var thisWidgetName = chartParamsObj.widgets[x].uniqueid;
+                var thisWidgetValue = document.getElementById(thisWidgetName).value;
+                YAHOO.util.Cookie.set(chartParamsObj.uniqueid + '_' + thisWidgetName, thisWidgetValue, {path: "/"});
+            }
+        }
+
+        // build arguments to send to the remote data source
+        chartParamsObj = Fisma.Chart.buildExternalSourceParams(chartParamsObj);
+
+        // restore externalSource so a json request is fired when calling createJQPChart
+        chartParamsObj.externalSource = chartParamsObj.oldExternalSource;
+        chartParamsObj.oldExternalSource = undefined;
+
+        chartParamsObj.chartData = undefined;
+        chartParamsObj.chartDataText = undefined;
+
+        // re-create chart entirly
+        document.getElementById(chartParamsObj.uniqueid + 'holder').finnishFadeCallback = new Function ("Fisma.Chart.makeElementVisible('" + chartParamsObj.uniqueid + "loader'); Fisma.Chart.createJQChart(" + YAHOO.lang.JSON.stringify(chartParamsObj) + "); Fisma.Chart.finnishFadeCallback = '';");
+        Fisma.Chart.fadeOut(chartParamsObj.uniqueid + 'holder', 300);
+    },
+
+    makeElementVisible : function (eleId)
+    {
+        var ele = document.getElementById(eleId);
+        ele.style.opacity = '1';
+        ele.style.filter = "alpha(opacity = '100')";
+    },
+
+    makeElementInvisible : function (eleId)
+    {
+        var ele = document.getElementById(eleId);
+        ele.style.opacity = '0';
+        ele.style.filter = "alpha(opacity = '0')";
+    },
+
+    fadeIn : function (eid, TimeToFade)
+    {
+
+        var element = document.getElementById(eid);
+        if (element === null) {
+            return;
+        }
+
+        var fadingEnabled = Fisma.Chart.getGlobalSetting('fadingEnabled');
+        if (fadingEnabled === 'false') {
+            Fisma.Chart.makeElementVisible(eid);
+            if (element.finnishFadeCallback) {
+                element.finnishFadeCallback();
+                element.finnishFadeCallback = undefined;
+            }
+            return;
+        }
+
+        if (typeof element.isFadingNow !== 'undefined') {
+            if (element.isFadingNow === true) {
+                return;
+            }
+        }
+        element.isFadingNow = true;
+
+        element.FadeState = null;
+        element.FadeTimeLeft = undefined;
+
+        Fisma.Chart.makeElementInvisible(eid);
+        element.style.opacity = '0';
+        element.style.filter = "alpha(opacity = '0')";
+
+        Fisma.Chart.fade(eid, TimeToFade);
+    },
+
+    fadeOut : function (eid, TimeToFade)
+    {
+
+        var element = document.getElementById(eid);
+        if (element === null) { return; }
+
+        var fadingEnabled = Fisma.Chart.getGlobalSetting('fadingEnabled');
+        if (fadingEnabled === 'false') {
+            Fisma.Chart.makeElementInvisible(eid);
+            if (element.finnishFadeCallback) {
+                element.finnishFadeCallback();
+                element.finnishFadeCallback = undefined;
+            }
+            return;
+        }
+
+        if (typeof element.isFadingNow !== 'undefined') {
+            if (element.isFadingNow === true) {
+                return;
+            }
+        }
+        element.isFadingNow = true;
+
+        element.FadeState = null;
+        element.FadeTimeLeft = undefined;
+
+        Fisma.Chart.makeElementVisible(eid);
+        element.style.opacity = '1';
+        element.style.filter = "alpha(opacity = '100')";
+
+        Fisma.Chart.fade(eid, TimeToFade);
+    },
+
+    fade : function (eid, TimeToFade)
+    {
+
+        var element = document.getElementById(eid);
+        if (element === null) { return; }
+
+        //  element.style = '';
+
+        if(element.FadeState === null)
+        {
+            if(element.style.opacity === null || element.style.opacity === '' || element.style.opacity === '1')
+            {
+                element.FadeState = 2;
+            } else {
+                element.FadeState = -2;
+            }
+        }
+
+        if (element.FadeState === 1 || element.FadeState === -1) {
+            element.FadeState = element.FadeState === 1 ? -1 : 1;
+            element.FadeTimeLeft = TimeToFade - element.FadeTimeLeft;
+        } else {
+            element.FadeState = element.FadeState === 2 ? -1 : 1;
+            element.FadeTimeLeft = TimeToFade;
+            setTimeout("Fisma.Chart.animateFade(" + new Date().getTime() + ",'" + eid + "'," + TimeToFade + ")", 33);
+        }  
+    },
+
+    animateFade : function (lastTick, eid, TimeToFade)
+    {  
+        var curTick = new Date().getTime();
+        var elapsedTicks = curTick - lastTick;
+
+        var element = document.getElementById(eid);
+
+        if(element.FadeTimeLeft <= elapsedTicks)
+        {
+            if (element.FadeState === 1) {
+                element.style.filter = 'alpha(opacity = 100)';
+                element.style.opacity = '1';
+            } else {
+                element.style.filter = 'alpha(opacity = 0)';
+                element.style.opacity = '0';
+            }
+            element.isFadingNow = false;
+            element.FadeState = element.FadeState === 1 ? 2 : -2;
+
+            if (element.finnishFadeCallback) {
+                element.finnishFadeCallback();
+                element.finnishFadeCallback = '';
+            }
+            return;
+        }
+
+        element.FadeTimeLeft -= elapsedTicks;
+        var newOpVal = element.FadeTimeLeft/TimeToFade;
+        if(element.FadeState === 1) {
+            newOpVal = 1 - newOpVal;
+        }
+
+        element.style.opacity = newOpVal;
+        element.style.filter = 'alpha(opacity = "' + (newOpVal*100) + '")';
+
+        setTimeout("Fisma.Chart.animateFade(" + curTick + ",'" + eid + "'," + TimeToFade + ")", 33);
+    },
+
+    /**
+     * This function controles how width and scrolling is handeled with the chart's canvase's
+     * parent div. If autoWidth (or in PHP Fisma_Chart->widthAuto(true);) is set, the parent
+     * div will always be scrollable. If not, it may still be automatically set scrollable if
+     * the with in chartParamsObj.width is less than the minimum with required by the chart (calculated
+     * in this function).
+     *
+     * NOTE: This function does not actully look at the DOM. It assumes the author to used
+     *       Fisma_Chart->setWidth() knew what he was doing and set it correctly.
+     *       The static width given to charts is considered a minimum width.
+     *
+     * @return void
+     */
+    setChartWidthAttribs : function (chartParamsObj)
+    {
+
+        var makeScrollable = false;
+        var minSpaceRequired;
+
+        // Determin if we need to make this chart scrollable...
+        // Do we really have the chart data to plot?
+        if (chartParamsObj.chartData) {
+            // Is this a bar chart?
+            if (chartParamsObj.chartType === 'bar' || chartParamsObj.chartType === 'stackedbar') {
+
+                // How many bars does it have?
+                var barCount;
+                if (chartParamsObj.chartType === 'stackedbar') {
+                    if (typeof chartParamsObj.chartData[0] === 'undefined') {
+                        return;
+                    } else {
+                        barCount = chartParamsObj.chartData[0].length;
+                    }
+                } else if (chartParamsObj.chartType === 'bar') {
+                    barCount = chartParamsObj.chartData.length;
+                }
+
+                // Assuming each bar margin is 10px, And each bar has a minimum width of 35px, how much space is needed total (minimum).
+                minSpaceRequired = (barCount * 10) + (barCount * 35) + 40;
+
+                // Do we not have enough space for a non-scrolling chart?
+                if (chartParamsObj.width < minSpaceRequired) {
+
+                    // We need to make this chart scrollable
+                    makeScrollable = true;
+                }
+            }
+        }
+
+        // Is auto-width enabeled? (set width to 100% and make scrollable)
+        if (typeof chartParamsObj.autoWidth !== 'undefined') {
+            if (chartParamsObj.autoWidth === true) {
+                makeScrollable = true;
+            }
+        }
+
+        if (makeScrollable === true) {
+
+            document.getElementById(chartParamsObj.uniqueid + 'loader').style.width = '100%';
+            document.getElementById(chartParamsObj.uniqueid + 'holder').style.width = '100%';
+            document.getElementById(chartParamsObj.uniqueid + 'holder').style.overflow = 'auto';
+            document.getElementById(chartParamsObj.uniqueid).style.width = minSpaceRequired + 'px';
+            document.getElementById(chartParamsObj.uniqueid  + 'toplegend').style.width = minSpaceRequired + 'px';
+
+            // handel alignment
+            if (chartParamsObj.align === 'center') {
+                document.getElementById(chartParamsObj.uniqueid).style.marginLeft = 'auto';
+                document.getElementById(chartParamsObj.uniqueid).style.marginRight = 'auto';
+                document.getElementById(chartParamsObj.uniqueid + 'toplegend').style.marginLeft = 'auto';
+                document.getElementById(chartParamsObj.uniqueid + 'toplegend').style.marginRight = 'auto';
+            }
+
+        } else {
+
+            document.getElementById(chartParamsObj.uniqueid + 'loader').style.width = '100%';
+            document.getElementById(chartParamsObj.uniqueid + 'holder').style.width = chartParamsObj.width + 'px';
+            document.getElementById(chartParamsObj.uniqueid + 'holder').style.overflow = '';
+            document.getElementById(chartParamsObj.uniqueid).style.width = chartParamsObj.width + 'px';
+            document.getElementById(chartParamsObj.uniqueid + 'toplegend').width = chartParamsObj.width + 'px';
+        }
+
+    },
+
+    /**
+     * Builds a table based on the data to plot on the chart for screen readers.
+     * The generated HTML should generally be placed in a div by the Id of the
+     * chart's uniqueId + "table"
+     *
+     * @param object
+     * @return String
+     */
+    getTableFromChartData : function (chartParamsObj)
+    {
+        if (Fisma.Chart.chartIsEmpty(chartParamsObj)) {
+            return;
+        }
+
+        var dataTableObj = document.getElementById(chartParamsObj.uniqueid + 'table');
+        dataTableObj.innerHTML = '';
+
+        if (Fisma.Chart.getGlobalSetting('showDataTable') === 'true') {
+
+            if (chartParamsObj.chartType === 'pie') {
+                Fisma.Chart.getTableFromChartPieChart(chartParamsObj, dataTableObj);
+            } else {
+                Fisma.Chart.getTableFromBarChart(chartParamsObj, dataTableObj);
+            }
+
+            // Show the table generated based on chart data
+            dataTableObj.style.display = '';
+            // Hide, erase, and collapse the container of the chart divs
+            document.getElementById(chartParamsObj.uniqueid).innerHTML = '';
+            document.getElementById(chartParamsObj.uniqueid).style.width = 0;
+            document.getElementById(chartParamsObj.uniqueid).style.height = 0;
+            // Ensure the threat-level-legend is hidden
+            document.getElementById(chartParamsObj.uniqueid + 'toplegend').style.display = 'none';
+
+        } else {
+            dataTableObj.style.display = 'none';
+        }
+    },
+
+    getTableFromChartPieChart : function (chartParamsObj, dataTableObj)
+    {
+        var tbl     = document.createElement("table");
+        var tblBody = document.createElement("tbody");
+
+        var x = 0;
+        var cell;
+        var cellText;
+        var row;
+
+        // row of slice-labels
+        row = document.createElement("tr");
+        for (x = 0; x < chartParamsObj.chartDataText.length; x++) {
+            cell = document.createElement("th");
+            cellText = document.createTextNode(chartParamsObj.chartDataText[x]);
+            cell.setAttribute("style", "font-style: bold;");
+            cell.appendChild(cellText);
+            row.appendChild(cell);
+        }
+        tblBody.appendChild(row);
+
+        // row of data
+        row = document.createElement("tr");
+        for (x = 0; x < chartParamsObj.chartData.length; x++) {
+            cell = document.createElement("td");
+            cellText = document.createTextNode(chartParamsObj.chartData[x]);
+            cell.appendChild(cellText);
+            row.appendChild(cell);
+        }
+        tblBody.appendChild(row);
+
+        tbl.appendChild(tblBody);
+        tbl.setAttribute("border", "1");
+        tbl.setAttribute("width", "100%");
+
+        dataTableObj.appendChild(tbl);
+    },
+
+    getTableFromBarChart : function (chartParamsObj, dataTableObj)
+    {
+        var x = 0;
+        var y = 0;
+        var cell;
+        var cellText;
+
+        var tbl     = document.createElement("table");
+        var tblBody = document.createElement("tbody");
+        var row = document.createElement("tr");
+
+        // add a column for layer names if this is a stacked chart
+        if (typeof chartParamsObj.chartLayerText !== 'undefined') {
+            cell = document.createElement("td");
+            cellText = document.createTextNode(" ");
+            cell.appendChild(cellText);
+            row.appendChild(cell);
+        }
+
+        for (x = 0; x < chartParamsObj.chartDataText.length; x++) {
+            cell = document.createElement("th");
+            cellText = document.createTextNode(chartParamsObj.chartDataText[x]);
+            cell.setAttribute("style", "font-style: bold;");
+            cell.appendChild(cellText);
+            row.appendChild(cell);
+        }
+        tblBody.appendChild(row);
+
+        for (x = 0; x < chartParamsObj.chartData.length; x++) {
+
+            var thisEle = chartParamsObj.chartData[x];
+            row = document.createElement("tr");
+
+            // each layer label
+            if (typeof chartParamsObj.chartLayerText !== 'undefined') {
+                cell = document.createElement("th");
+                cellText = document.createTextNode(chartParamsObj.chartLayerText[x]);
+                cell.setAttribute("style", "font-style: bold;");
+                cell.appendChild(cellText);
+                row.appendChild(cell);
+            }
+
+            if (typeof(thisEle) === 'object') {
+
+                for (y = 0; y < thisEle.length; y++) {
+                    cell = document.createElement("td");
+                    cellText = document.createTextNode(thisEle[y]);
+                    cell.setAttribute("style", "font-style: bold;");
+                    cell.appendChild(cellText);
+                    row.appendChild(cell);
+                }
+
+            } else {
+
+                cell = document.createElement("td");
+                cellText = document.createTextNode(thisEle);
+                cell.appendChild(cellText);
+                row.appendChild(cell);
+            }
+
+            tblBody.appendChild(row);
+
+        }
+
+        tbl.appendChild(tblBody);
+        tbl.setAttribute("border", "1");
+        tbl.setAttribute("width", "100%");
+
+        dataTableObj.appendChild(tbl);
+    },
+
+    /**
+     * Removes decimals from point labels, along with some other minor maintenance
+     * - removes data/point-labels that are 0s
+     * - Applies outlines if the globalSettings is set so
+     * - forces color to black, and bolds the font
+     *
+     * Expects: A (chart-)object generated from Fisma_Chart->export('array')
+     *
+     * @param object
+     * @return void
+     */
+    removeDecFromPointLabels : function (chartParamsObj)
+    {
+            var outlineStyle = '';
+            var chartOnDOM = document.getElementById(chartParamsObj.uniqueid);
+
+            var x = 0;
+            for (x = 0; x < chartOnDOM.childNodes.length; x++) {
+
+                    var thisChld = chartOnDOM.childNodes[x];
+
+                    // IE Support - IE does not support .classList, manually make this
+                    if (typeof thisChld.classList === 'undefined') {
+                        thisChld.classList = String(thisChld.className).split(' ');
+                    }
+
+                    if (thisChld.classList) {
+                        if (thisChld.classList[0] === 'jqplot-point-label') {
+
+                                // convert this from a string to a number to a string again (removes decimal if its needless)
+                                thisLabelValue = parseInt(thisChld.innerHTML, 10);
+                                thisChld.innerHTML = thisLabelValue;
+                                thisChld.value = thisLabelValue;
+
+                                // if this number is 0, hide it (0s overlap with other numbers on bar charts)
+                                if (parseInt(thisChld.innerHTML, 10) === 0 || isNaN(thisLabelValue)) {
+                                    thisChld.innerHTML = '';
+                                }
+
+                                // add outline to this point label so it is easily visible on dark color backgrounds (outlines are done through white-shadows)
+                                if (Fisma.Chart.getGlobalSetting('pointLabelsOutline') === 'true') {
+
+                                    outlineStyle = 'text-shadow: ';
+                                    outlineStyle += '#FFFFFF 0px -1px 0px, ';
+                                    outlineStyle += '#FFFFFF 0px 1px 0px, ';
+                                    outlineStyle += '#FFFFFF 1px 0px 0px, ';
+                                    outlineStyle += '#FFFFFF -1px 1px 0px, ';
+                                    outlineStyle += '#FFFFFF -1px -1px 0px, ';
+                                    outlineStyle += '#FFFFFF 1px 1px 0px; ';
+
+                                    thisChld.innerHTML = '<span style="' + outlineStyle + chartParamsObj.pointLabelStyle + '">' + thisChld.innerHTML + '</span>';
+                                    thisChld.style.textShadow = 'text-shadow: #FFFFFF 0px -1px 0px, #FFFFFF 0px 1px 0px, #FFFFFF 1px 0px 0px, #FFFFFF -1px 1px 0px, #FFFFFF -1px -1px 0px, #FFFFFF 1px 1px 0px;';
+
+                                } else {
+                                    thisChld.innerHTML = '<span style="' + chartParamsObj.pointLabelStyle + '">' + thisChld.innerHTML + '</span>';
+                                }
+
+                                // adjust the label to the a little bit since with the decemal trimmed, it may seem off-centered
+                                var thisLeftNbrValue = parseInt(String(thisChld.style.left).replace('px', ''), 10);       // remove "px" from string, and conver to number
+                                var thisTopNbrValue = parseInt(String(thisChld.style.top).replace('px', ''), 10);       // remove "px" from string, and conver to number
+                                thisLeftNbrValue += chartParamsObj.pointLabelAdjustX;
+                                thisTopNbrValue += chartParamsObj.pointLabelAdjustY;
+                                if (thisLabelValue >= 100) { thisLeftNbrValue -= 2; }
+                                if (thisLabelValue >= 1000) { thisLeftNbrValue -= 3; }
+                                thisChld.style.left = thisLeftNbrValue + 'px';
+                                thisChld.style.top = thisTopNbrValue + 'px';
+
+                                // force color to black
+                                thisChld.style.color = 'black';
+
+                        }
+                    }
+            }
+    },
+
+    removeOverlappingPointLabels : function (chartParamsObj)
+    {
+
+            // This function will deal with removing point labels that collie with eachother
+            // There is no need for this unless this is a stacked-bar or stacked-line chart
+            if (chartParamsObj.chartType !== 'stackedbar' && chartParamsObj.chartType !== 'stackedline') {
+                return;
+            }
+
+            var chartOnDOM = document.getElementById(chartParamsObj.uniqueid);
+
+            var pointLabels_info = [];  //array of objects {left, top, value, obj}, one for each data label
+                            
+            var pointLabelLeft;     // the x-offset of the data label
+            var pointLabelTop;      // the y=offset of the data label
+            var pointLabelValue;    // the numerical value the data label displays (casted as an integer)
+
+            var x = 0;
+            var y = 0;
+            var d = 0;
+
+            for (x = 0; x < chartOnDOM.childNodes.length; x++) {
+
+                var thisChld = chartOnDOM.childNodes[x];
+
+                // IE support - IE dosnt supply .classList array, just a className string. Manually build Fisma.Chart....
+                if (typeof thisChld.classList === 'undefined') {
+                    thisChld.classList = String(thisChld.className).split(' ');
+                }
+
+                if (thisChld.classList[0] === 'jqplot-point-label') {
+
+                    var chldIsRemoved = false;
+
+                    if (typeof thisChld.isRemoved !== 'undefined') {
+                        chldIsRemoved = thisChld.isRemoved;
+                    }
+
+                    if (chldIsRemoved === false) {
+                        // index this point labels position
+
+                        // remove "px" from string, and conver to number
+                        pointLabelLeft = parseInt(String(thisChld.style.left).replace('px', ''), 10);
+                        pointLabelTop = parseInt(String(thisChld.style.top).replace('px', ''), 10);
+                        pointLabelValue = thisChld.value; // the value property should be given to this element form removeDecFromPointLabels
+
+                        var thispLabelInfo = {
+                            left: pointLabelLeft, 
+                            top: pointLabelTop, 
+                            value: pointLabelValue, 
+                            obj: thisChld
+                        };
+
+                        pointLabels_info.push(thispLabelInfo);
+                    }
+                }
+            }
+
+            // Ensure point labels do not collide with others
+                $.each(pointLabels_info, function(index, thisPointLabel) {
+
+                    /* now determin the distance between this point label, and all
+                       point labels within this column. pointLabels_info[]
+                       holds all point labels within this column. */
+
+                    $.each(pointLabels_info, function(index, checkAgainst) {
+
+                        // get the distance from thisPointLabel to checkAgainst point label
+                        var deltaX = (thisPointLabel.left - checkAgainst.left);
+                        deltaX = deltaX * deltaX;
+                        var deltaY = (thisPointLabel.top - checkAgainst.top);
+                        deltaY = deltaY * deltaY;
+                        var d = Math.sqrt(deltaX + deltaY);
+                        
+                        if (d < 17 && d !== 0 && !isNaN(checkAgainst.value) && !isNaN(thisPointLabel.value)) {
+
+                            // remove whichever label has the lower number
+
+                            if (checkAgainst.value < thisPointLabel.value) {
+                                checkAgainst.obj.innerHTML = '';
+                                checkAgainst.obj.isRemoved = true;
+                            } else {
+                                thisPointLabel.obj.innerHTML = '';
+                                thisPointLabel.obj.isRemoved = true;
+                            }
+
+                            // We jave just removed a point label, so this function will need to be run again
+                            // as the labels will need to be reindexed.
+
+                            Fisma.Chart.removeOverlappingPointLabels(chartParamsObj);
+                            return;
+                        }
+                    });
+                });
+    },
+
+    hideButtonClick : function (scope, chartParamsObj, obj)
+    {
+        Fisma.Chart.setChartSettingsVisibility(chartParamsObj , false);
+    },
+
+    /**
+     * Controles if the YUI-tab-view of the settings for a given drawn chart on the DOM
+     * is visible or not.
+     *
+     * Expects: A (chart-)object generated from Fisma_Chart->export('array')
+     *
+     * @param object
+     * @return void
+     */
+    setChartSettingsVisibility : function (chartId, boolVisible)
+    {
+        var menuHolderId = chartId + 'WidgetSpaceHolder';
+        var menuObj = document.getElementById(menuHolderId);
+
+        if (boolVisible === 'toggle') {
+            if (menuObj.style.display === 'none') {
+                boolVisible = true;
+            } else {
+                boolVisible = false;
+            }
+        }
+
+        if (boolVisible === true) {
+            menuObj.style.display = '';
+        } else {
+            menuObj.style.display = 'none';
+        }
+    },
+
+    /**
+     * Will take values from checkboxes/textboxes within the Global Settings tab of
+     * a chart and save each settings into cookies, and then trigger Fisma.Chart.redrawAllCharts()
+     *
+     * @return void
+     */
+    globalSettingUpdate : function (mouseEvent, chartUniqueId)
+    {
+        // get this chart's GlobSettings menue
+        var settingsMenue = document.getElementById(chartUniqueId + 'GlobSettings');
+
+        // get all elements of this chart's GlobSettings menue
+        var settingOpts = settingsMenue.childNodes;
+
+        var x = 0;
+        for (x = 0; x < settingOpts.length; x++) {
+            var thisOpt = settingOpts[x];
+            if (thisOpt.nodeName === 'INPUT') {
+                if (thisOpt.type === 'checkbox') {
+                    Fisma.Chart.setGlobalSetting(thisOpt.id, thisOpt.checked);
+                } else {
+                    Fisma.Chart.setGlobalSetting(thisOpt.id, thisOpt.value);
+                }
+            }
+        }
+
+        Fisma.Chart.redrawAllCharts();
+    },
+
+    /**
+     * Will update checkboxes/textboxes within the Global Settings tab of
+     * the chart to be equal to the current cookie state for each setting 
+     * or the default stored in globalSettingsDefaults.
+     *
+     * Expects: A (chart-)object generated from Fisma_Chart->export('array')
+     *
+     * @param object
+     * @return void
+     */
+    globalSettingRefreshUi : function (chartParamsObj)
+    {
+        /*
+            Every input-element (setting UI) has an id equal to the cookie name 
+            to which its value is stored. So wee we have to do is look for a
+            cookie based on the id for each input element
+        */
+
+        // get this chart's GlobSettings menue
+        var settingsMenue = document.getElementById(chartParamsObj.uniqueid + 'GlobSettings');
+
+        // get all elements of this chart's GlobSettings menue
+        var settingOpts = settingsMenue.childNodes;
+
+        var x = 0;
+        for (x = 0; x < settingOpts.length; x++) {
+            var thisOpt = settingOpts[x];
+            if (thisOpt.nodeName === 'INPUT') {
+
+                // By this line (and in this block), we know we have found an input element on this GlobSettings menue
+
+                if (thisOpt.type === 'checkbox') {
+                    thisOpt.checked = (Fisma.Chart.getGlobalSetting(thisOpt.id) ==='true') ? true : false;
+                } else {
+                    thisOpt.value = Fisma.Chart.getGlobalSetting(thisOpt.id);
+                    thisOpt.text = thisOpt.value;
+                }
+            }
+        }
+    },
+
+    showSetingMode : function (showBasic)
+    {
+        var x = 0;
+        var hideThese;
+        var showThese;
+
+        if (showBasic === true) {
+            showThese = document.getElementsByName('chartSettingsBasic');
+            hideThese = document.getElementsByName('chartSettingsGlobal');
+        } else {
+            hideThese = document.getElementsByName('chartSettingsBasic');
+            showThese = document.getElementsByName('chartSettingsGlobal');
+        }
+
+        for (x = 0; x < hideThese.length; x++) {
+            hideThese[x].style.display = 'none';
+        }
+
+        for (x = 0; x < hideThese.length; x++) {
+                showThese[x].style.display = '';
+        }
+    },
+
+    getGlobalSetting : function (settingName)
+    {
+
+        var rtnValue = YAHOO.util.Cookie.get('chartGlobSetting_' + settingName);
+
+        if (rtnValue !== null) {
+            return rtnValue;
+        } else {
+
+            if (typeof Fisma.Chart.globalSettingsDefaults[settingName] === 'undefined') {
+                throw 'You have referenced a global setting (' + settingName + '), but have not defined a default value for it! Please defined a def-value in the object called globalSettingsDefaults that is located within the global scope of jqplotWrapper.js';
+            } else {
+                return String(Fisma.Chart.globalSettingsDefaults[settingName]);
+            }
+        }
+    },
+
+    setGlobalSetting : function (settingName, newValue)
+    {
+        YAHOO.util.Cookie.set('chartGlobSetting_' + settingName, newValue, {path: "/"});
+    },
+
+    /**
+     * Will alter the input chart object based on 
+     * settings(cookies) or defaults stored in globalSettingsDefaults.
+     *
+     * Expects: A (chart) object generated from Fisma_Chart->export('array')
+     * Returns: The given object, which may or may not have alterations
+     *
+     * @param object
+     * @return object
+     */
+    alterChartByGlobals : function (chartParamObj)
+    {
+
+        // Show bar shadows?
+        if (Fisma.Chart.getGlobalSetting('barShadows') === 'true') {
+            chartParamObj.seriesDefaults.rendererOptions.shadowDepth = 3;
+            chartParamObj.seriesDefaults.rendererOptions.shadowOffset = 3;
+        }
+
+        // Depth of bar shadows?
+        if (Fisma.Chart.getGlobalSetting('barShadowDepth') !== 'no-setting' && Fisma.Chart.getGlobalSetting('barShadows') === 'true') {
+            chartParamObj.seriesDefaults.rendererOptions.shadowDepth = Fisma.Chart.getGlobalSetting('barShadowDepth');
+            chartParamObj.seriesDefaults.rendererOptions.shadowOffset = Fisma.Chart.getGlobalSetting('barShadowDepth');
+        }
+
+        // grid-lines?
+        if (Fisma.Chart.getGlobalSetting('gridLines') === 'true') {
+            chartParamObj.grid.gridLineWidth = 1;
+            chartParamObj.grid.borderWidth = 0;
+            chartParamObj.grid.gridLineColor = undefined;
+            chartParamObj.grid.drawGridLines = true;
+            chartParamObj.grid.show = true;
+        }
+
+        // grid-lines?
+        if (Fisma.Chart.getGlobalSetting('dropShadows') !== 'false') {
+            chartParamObj.grid.shadow = true;
+        }   
+
+        // point labels?
+        if (Fisma.Chart.getGlobalSetting('pointLabels') === 'true') {
+            chartParamObj.seriesDefaults.pointLabels.show = true;
+        }
+
+        // point labels outline?
+            /* no alterations to the chartParamObject needs to be done here, this is handeled by Fisma.Chart.removeDecFromPointLabels() */  
+
+
+        return chartParamObj;
+    },
+
+
+    /**
+     * Redraws all charts and refreashes all options dialogs associated.
+     *
+     * If using IE, will post a loading message, and re-call this function
+     * again with doRedrawNow=true based on a timer
+     *
+     * The reason for the use of the timer is to ensure the browser repaints
+     * its content area, and the loading message is actully shown 
+     * (and yes, this is nessesary).
+     */
+    redrawAllCharts : function (doRedrawNow)
+    {
+        var thisParamObj;
+        var uniqueid;
         
-        location.href = baseUrl;
+        // First, show a loading message showing that the chart is loading
+        for (uniqueid in Fisma.Chart.chartsOnDOM) {
+            thisParamObj = Fisma.Chart.chartsOnDOM[uniqueid];    
+            Fisma.Chart.showChartLoadingMsg(thisParamObj);
+        }
+
+        // If we are running in IE, continue to redraw charts after a brief pause to ensure IE has repainted the screen
+        if (Fisma.Chart.isIE === true) {
+            if (doRedrawNow !== true || doRedrawNow === null) { 
+                setTimeout("Fisma.Chart.redrawAllCharts(true);", 300);
+                return;
+            }
+        }
+
+        // Now redraw and refreash charts and chart options
+        for (uniqueid in Fisma.Chart.chartsOnDOM) {
+
+            thisParamObj = Fisma.Chart.chartsOnDOM[uniqueid];
+
+            // redraw chart
+            Fisma.Chart.createJQChart(thisParamObj);
+
+            // refreash Global Settings UI
+            Fisma.Chart.globalSettingRefreshUi(thisParamObj);
+        }
+
+    },
+
+    showChartLoadingMsg : function (chartParamsObj)
+    {
+        // Ensure the threat-level-legend is hidden
+        document.getElementById(chartParamsObj['uniqueid'] + 'toplegend').innerHTML = ''; //.style.display = 'none';
+
+        // Show spinner
+        Fisma.Chart.makeElementVisible(chartParamsObj['uniqueid'] + 'loader');
+
+        // Create text "Loading" message
+        var chartContainer = document.getElementById(chartParamsObj['uniqueid']);
+        var loadChartDataMsg = document.createTextNode("\n\n\n\nLoading chart data...");
+        var pTag = document.createElement('p');
+        pTag.align = 'center';
+        pTag.appendChild(loadChartDataMsg);
+
+        // Show text "Loading" message
+        chartContainer.innerHTML = '';      // clear the current chart container div
+        chartContainer.appendChild(document.createElement('br'));
+        chartContainer.appendChild(document.createElement('br'));
+        chartContainer.appendChild(document.createElement('br'));
+        chartContainer.appendChild(document.createElement('br'));
+        chartContainer.appendChild(pTag);
+    },
+
+    /**
+     * Will insert a "No data to plot" message when there is no 
+     * data to plot, or all plot data are 0s
+     *
+     * Expects: A (chart) object generated from Fisma_Chart->export('array')
+     * @param object
+     * @return void
+     */
+    showMsgOnEmptyChart : function (chartParamsObj)
+    {
+        if (Fisma.Chart.chartIsEmpty(chartParamsObj)) {
+            var targDiv = document.getElementById(chartParamsObj.uniqueid);
+
+            // Place message on DOM
+            var insertBeforeChild = targDiv.childNodes[1];
+            var msgOnDom = document.createElement('div');
+            msgOnDom.height = '100%';
+            msgOnDom.style.align = 'center';
+            msgOnDom.style.position = 'absolute';
+            msgOnDom.style.width = chartParamsObj.width + 'px';
+            msgOnDom.style.height = '100%';
+            msgOnDom.style.textAlign = 'center';
+            msgOnDom.style.verticalAlign = 'middle';
+            var textMsgOnDom = document.createTextNode('No data to plot.');
+            msgOnDom.appendChild(textMsgOnDom);
+            targDiv.appendChild(msgOnDom);
+
+            // Make sure screen-reader-table is not showing
+            var dataTableObj = document.getElementById(chartParamsObj.uniqueid + 'table');
+            dataTableObj.style.display = 'none';
+        }
+    },
+
+    /**
+     * Returns true if there is no data to 
+     * plot, or if all plot data are 0s
+     *
+     * Expects: A (chart) object generated from Fisma_Chart->export('array')
+     * @param object
+     * @return boolean
+     */
+    chartIsEmpty : function (chartParamsObj)
+    {
+        var isChartEmpty = true;
+        var x = 0; var y = 0;
+
+        for (x in chartParamsObj.chartData) {
+
+            if (typeof chartParamsObj.chartData[x] === 'object') {
+
+                for (y in chartParamsObj.chartData[x]) {
+                    if (parseInt(chartParamsObj.chartData[x][y], 10) > 0) {
+                        isChartEmpty = false;
+                    }
+                }
+
+            } else {
+                if (parseInt(chartParamsObj.chartData[x], 10) > 0) {
+                    isChartEmpty = false;
+                }
+            }
+
+        }
+
+        return isChartEmpty;
     }
+
 };
-Fisma.CheckboxTree={handleClick:function(j,c){if(c.altKey){return}var g=j.parentNode;var k=g.nextSibling.childNodes[0];if(k.getAttribute("nestedLevel")>j.getAttribute("nestedLevel")){var a=j.getAttribute("nestedlevel");var d=new Array();var l=true;var b=g.nextSibling;var h=b.childNodes[0];while(h.getAttribute("nestedLevel")>a){if(!h.checked){l=false}d.push(h);if(b.nextSibling){b=b.nextSibling;h=b.childNodes[0]}else{break}}if(l){j.checked=false}else{j.checked=true}for(var e in d){var f=d[e];if(l){f.checked=false}else{f.checked=true}}}}};/**
+Fisma.CheckboxTree={handleClick:function(j,c){if(c.altKey){return}var g=j.parentNode;if(g.nextSibling===null){return}var k=g.nextSibling.childNodes[0];if(k.getAttribute("nestedLevel")>j.getAttribute("nestedLevel")){var a=j.getAttribute("nestedlevel");var d=new Array();var l=true;var b=g.nextSibling;var h=b.childNodes[0];while(h.getAttribute("nestedLevel")>a){if(!h.checked){l=false}d.push(h);if(b.nextSibling){b=b.nextSibling;h=b.childNodes[0]}else{break}}if(l){j.checked=false}else{j.checked=true}for(var e in d){var f=d[e];if(l){f.checked=false}else{f.checked=true}}}}};/**
  * Copyright (c) 2010 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
@@ -2815,6 +4596,10 @@ Fisma.CheckboxTree = {
         }
 
         var topListItem = clickedBox.parentNode;
+
+        if (topListItem.nextSibling === null) {
+            return;
+        }
 
         // If there are no nested checkboxes, then there is nothing to do
         var nextCheckbox = topListItem.nextSibling.childNodes[0];
@@ -2946,8 +4731,7 @@ Fisma.Commentable = {
 
                  argument: newPanel
              }, 
-             null
-         );
+             null);
          
          // Prevent form submission
          return false;
@@ -2963,11 +4747,7 @@ Fisma.Commentable = {
       */
      postComment : function() {
          
-         var postUrl = "/comment/add/id/"
-                     + encodeURIComponent(Fisma.Commentable.config.id)
-                     + "/type/"
-                     + encodeURIComponent(Fisma.Commentable.config.type)
-                     + "/format/json";
+         var postUrl = "/comment/add/id/" + encodeURIComponent(Fisma.Commentable.config.id) + "/type/" + encodeURIComponent(Fisma.Commentable.config.type) + "/format/json";
 
          YAHOO.util.Connect.setForm('addCommentForm');
          Fisma.Commentable.asyncRequest = YAHOO.util.Connect.asyncRequest(
@@ -2982,8 +4762,7 @@ Fisma.Commentable = {
                      alert('Document upload failed.');
                  }
              }, 
-             null
-         );
+             null);
                   
          // Prevent form submission
          return false;
@@ -3007,7 +4786,7 @@ Fisma.Commentable = {
                  // Handle a JSON syntax error by constructing a fake response object
                  responseStatus = new Object();
                  responseStatus.success = false;
-                 responseStatus.message = "Invalid response from server."
+                 responseStatus.message = "Invalid response from server.";
              } else {
                  throw e;
              }
@@ -3052,7 +4831,7 @@ Fisma.Commentable = {
          }
      }
 };
-Fisma.Email=function(){return{panelElement:null,showRecipientDialog:function(){if(Fisma.Email.panelElement!=null&&Fisma.Email.panelElement instanceof YAHOO.widget.Panel){Fisma.Email.panelElement.removeMask();Fisma.Email.panelElement.destroy();Fisma.Email.panelElement=null}var c=document.createElement("div");var f=document.createElement("p");var b=document.createTextNode("* Target E-mail Address:");f.appendChild(b);c.appendChild(f);var d=document.createElement("input");d.id="testEmailRecipient";d.name="recipient";c.appendChild(d);var e=document.createElement("div");e.style.height="10px";c.appendChild(e);var a=document.createElement("input");a.type="button";a.id="dialogRecipientSendBtn";a.style.marginLeft="10px";a.value="Send";c.appendChild(a);Fisma.Email.panelElement=Fisma.HtmlPanel.showPanel("Test E-mail Configuration",c.innerHTML);document.getElementById("dialogRecipientSendBtn").onclick=Fisma.Email.sendTestEmail},sendTestEmail:function(){if(document.getElementById("testEmailRecipient").value==""){alert("Recipient is required.");document.getElementById("testEmailRecipient").focus();return false}var c=document.getElementById("testEmailRecipient").value;var b=document.getElementById("email_config");b.elements.recipient.value=c;var a=document.getElementById("sendTestEmail");spinner=new Fisma.Spinner(a.parentNode);spinner.show();YAHOO.util.Connect.setForm(b);YAHOO.util.Connect.asyncRequest("POST","/config/test-email-config/format/json",{success:function(e){var d=YAHOO.lang.JSON.parse(e.responseText);message(d.msg,d.type,true);spinner.hide()},failure:function(d){alert("Failed to send test mail: "+d.statusText);spinner.hide()}},null);if(Fisma.Email.panelElement!=null&&Fisma.Email.panelElement instanceof YAHOO.widget.Panel){Fisma.Email.panelElement.removeMask();Fisma.Email.panelElement.destroy();Fisma.Email.panelElement=null}}}}();/**
+Fisma.Email=function(){return{panelElement:null,showRecipientDialog:function(){YAHOO.util.Dom.get("msgbar").style.display="none";if(Fisma.Email.panelElement!==null&&Fisma.Email.panelElement instanceof YAHOO.widget.Panel){Fisma.Email.panelElement.removeMask();Fisma.Email.panelElement.destroy();Fisma.Email.panelElement=null}var c=document.createElement("div");var g=document.createElement("p");var b=document.createTextNode("* Target E-mail Address:");g.appendChild(b);c.appendChild(g);var e=document.createElement("input");e.id="testEmailRecipient";e.name="recipient";c.appendChild(e);var f=document.createElement("div");f.style.height="10px";c.appendChild(f);var a=document.createElement("input");a.type="button";a.id="dialogRecipientSendBtn";a.style.marginLeft="10px";a.value="Send";c.appendChild(a);var d={width:"260px",modal:false};Fisma.Email.panelElement=Fisma.HtmlPanel.showPanel("Test E-mail Configuration",c.innerHTML,null,d);document.getElementById("dialogRecipientSendBtn").onclick=Fisma.Email.sendTestEmail},sendTestEmail:function(){if(document.getElementById("testEmailRecipient").value===""){alert("Recipient is required.");document.getElementById("testEmailRecipient").focus();return false}var c=document.getElementById("testEmailRecipient").value;var b=document.getElementById("email_config");b.elements.recipient.value=c;var a=document.getElementById("sendTestEmail");spinner=new Fisma.Spinner(a.parentNode);spinner.show();YAHOO.util.Connect.setForm(b);YAHOO.util.Connect.asyncRequest("POST","/config/test-email-config/format/json",{success:function(e){var d=YAHOO.lang.JSON.parse(e.responseText);message(d.msg,d.type,true);spinner.hide()},failure:function(d){alert("Failed to send test mail: "+d.statusText);spinner.hide()}},null);if(Fisma.Email.panelElement!==null&&Fisma.Email.panelElement instanceof YAHOO.widget.Panel){Fisma.Email.panelElement.hide();Fisma.Email.panelElement.destroy();Fisma.Email.panelElement=null}return true}}}();/**
  * Copyright (c) 2008 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
@@ -3092,8 +4871,11 @@ Fisma.Email = function() {
          */
         showRecipientDialog : function() {
 
+            // The error message should be hidden before handles test email
+            YAHOO.util.Dom.get('msgbar').style.display = 'none';
+
             // Remove used old panel if necessary
-            if (Fisma.Email.panelElement != null && Fisma.Email.panelElement instanceof YAHOO.widget.Panel) {
+            if (Fisma.Email.panelElement !== null && Fisma.Email.panelElement instanceof YAHOO.widget.Panel) {
                 Fisma.Email.panelElement.removeMask();
                 Fisma.Email.panelElement.destroy();
                 Fisma.Email.panelElement = null;
@@ -3126,8 +4908,17 @@ Fisma.Email = function() {
             content.appendChild(sendBtn);
     
             // Load panel
-            Fisma.Email.panelElement = Fisma.HtmlPanel.showPanel('Test E-mail Configuration', content.innerHTML);
-    
+            var panelConfig = {
+                    width : "260px",
+                    modal : false
+                };
+            Fisma.Email.panelElement = Fisma.HtmlPanel.showPanel(
+                'Test E-mail Configuration',
+                content.innerHTML,
+                null,
+                panelConfig
+            );
+
             // Set onclick handler to handle dialog_recipient
             document.getElementById('dialogRecipientSendBtn').onclick = Fisma.Email.sendTestEmail;
         },
@@ -3137,7 +4928,7 @@ Fisma.Email = function() {
          */
         sendTestEmail : function() {
             
-            if (document.getElementById('testEmailRecipient').value == '') {
+            if (document.getElementById('testEmailRecipient').value === '') {
                 /** @todo english */
                 alert("Recipient is required.");
                 document.getElementById('testEmailRecipient').focus();
@@ -3170,11 +4961,13 @@ Fisma.Email = function() {
             }, null);
     
             // Remove used panel
-            if (Fisma.Email.panelElement != null && Fisma.Email.panelElement instanceof YAHOO.widget.Panel) {
-                Fisma.Email.panelElement.removeMask();
+            if (Fisma.Email.panelElement !== null && Fisma.Email.panelElement instanceof YAHOO.widget.Panel) {
+                Fisma.Email.panelElement.hide();
                 Fisma.Email.panelElement.destroy();
                 Fisma.Email.panelElement = null;
             }
+            
+            return true;
         }
     };
 }();
@@ -3322,8 +5115,8 @@ Fisma.Finding = {
             }
         );
     }
-}
-Fisma.FindingSummary=function(){return{treeRoot:null,filterType:null,filterSource:null,defaultDisplayLevel:2,render:function(h,j,t){if(t){this.treeRoot=j}var p=document.getElementById(h);for(var f in j){var l=j[f];var a=p.insertRow(p.rows.length);a.id=l.nickname+"_ontime";var e=p.insertRow(p.rows.length);e.id=l.nickname+"_overdue";var b=a.insertCell(0);l.expanded=(l.level<this.defaultDisplayLevel-1);var o=l.expanded?l.single_ontime:l.all_ontime;var k=l.expanded?l.single_overdue:l.all_overdue;l.hasOverdue=this.hasOverdue(k);var q=document.createElement("img");q.className="control";q.id=l.nickname+"Img";var g=document.createElement("a");g.appendChild(q);var n=l.children.length>0;if(n){g.nickname=l.nickname;g.findingSummary=this;g.onclick=function(){this.findingSummary.toggleNode(this.nickname);return false};q.src="/images/"+(l.expanded?"minus.png":"plus.png")}else{q.src="/images/leaf_node.png"}var d=document.createElement("div");d.className="treeTable"+l.level+(n?" link":"");d.appendChild(g);var s=document.createElement("img");s.className="icon";s.src="/images/"+l.orgType+".png";g.appendChild(s);g.appendChild(document.createTextNode(l.label));g.appendChild(document.createElement("br"));g.appendChild(document.createTextNode(l.orgTypeLabel));b.appendChild(d);var m=1;for(var r in o){count=o[r];cell=a.insertCell(m++);if(r=="CLOSED"||r=="TOTAL"){cell.className="noDueDate"}else{cell.className="onTime"}this.updateCellCount(cell,count,l.nickname,r,"ontime",l.expanded)}for(var r in k){count=k[r];cell=e.insertCell(e.childNodes.length);cell.className="overdue";this.updateCellCount(cell,count,l.nickname,r,"overdue",l.expanded)}a.style.display="none";e.style.display="none";if(l.level<this.defaultDisplayLevel){a.style.display="";if(l.hasOverdue){a.childNodes[0].rowSpan="2";a.childNodes[a.childNodes.length-2].rowSpan="2";a.childNodes[a.childNodes.length-1].rowSpan="2";e.style.display=""}}if(l.children.length>0){this.render(h,l.children)}}},toggleNode:function(a){node=this.findNode(a,this.treeRoot);if(node.expanded){this.collapseNode(node,true);this.hideSubtree(node.children)}else{this.expandNode(node);this.showSubtree(node.children,false)}},expandNode:function(f,b){f.ontime=f.single_ontime;f.overdue=f.single_overdue;f.hasOverdue=this.hasOverdue(f.overdue);var a=document.getElementById(f.nickname+"_ontime");var d=1;for(c in f.ontime){count=f.ontime[c];this.updateCellCount(a.childNodes[d],count,f.nickname,c,"ontime",true);d++}var e=document.getElementById(f.nickname+"_overdue");if(f.hasOverdue){var d=0;for(c in f.overdue){count=f.overdue[c];this.updateCellCount(e.childNodes[d],count,f.nickname,c,"overdue",true);d++}}else{a.childNodes[0].rowSpan="1";a.childNodes[a.childNodes.length-2].rowSpan="1";a.childNodes[a.childNodes.length-1].rowSpan="1";e.style.display="none"}if(f.children.length>0){document.getElementById(f.nickname+"Img").src="/images/minus.png"}f.expanded=true;if(b&&f.children.length>0){this.showSubtree(f.children,false);for(var g in f.children){this.expandNode(f.children[g],true)}}},collapseNode:function(f,b){f.ontime=f.all_ontime;f.overdue=f.all_overdue;f.hasOverdue=this.hasOverdue(f.overdue);var a=document.getElementById(f.nickname+"_ontime");var d=1;for(c in f.ontime){count=f.ontime[c];this.updateCellCount(a.childNodes[d],count,f.nickname,c,"ontime",false);d++}var e=document.getElementById(f.nickname+"_overdue");if(b&&f.hasOverdue){a.childNodes[0].rowSpan="2";a.childNodes[a.childNodes.length-2].rowSpan="2";a.childNodes[a.childNodes.length-1].rowSpan="2";e.style.display="";var d=0;for(c in f.all_overdue){count=f.all_overdue[c];this.updateCellCount(e.childNodes[d],count,f.nickname,c,"overdue",false);d++}}if(f.children.length>0){this.hideSubtree(f.children)}document.getElementById(f.nickname+"Img").src="/images/plus.png";f.expanded=false},hideSubtree:function(a){for(nodeId in a){node=a[nodeId];ontimeRow=document.getElementById(node.nickname+"_ontime");ontimeRow.style.display="none";overdueRow=document.getElementById(node.nickname+"_overdue");overdueRow.style.display="none";if(node.children.length>0){this.collapseNode(node,false);this.hideSubtree(node.children)}}},showSubtree:function(b,a){for(nodeId in b){node=b[nodeId];if(a&&node.children.length>0){this.expandNode(node);this.showSubtree(node.children,true)}ontimeRow=document.getElementById(node.nickname+"_ontime");ontimeRow.style.display="";overdueRow=document.getElementById(node.nickname+"_overdue");if(node.hasOverdue){ontimeRow.childNodes[0].rowSpan="2";ontimeRow.childNodes[ontimeRow.childNodes.length-2].rowSpan="2";ontimeRow.childNodes[ontimeRow.childNodes.length-1].rowSpan="2";overdueRow.style.display=""}}},collapseAll:function(){for(nodeId in this.treeRoot){node=this.treeRoot[nodeId];this.collapseNode(node,true);this.hideSubtree(node.children)}},expandAll:function(){for(nodeId in this.treeRoot){node=this.treeRoot[nodeId];this.expandNode(node,true)}},findNode:function(e,b){for(var d in b){node=b[d];if(node.nickname==e){return node}else{if(node.children.length>0){var a=this.findNode(e,node.children);if(a!=false){return a}}}}return false},hasOverdue:function(b){for(var a in b){if(b[a]>0){return true}}return false},updateCellCount:function(a,g,f,b,h,d){if(!a.hasChildNodes()){if(g>0){var e=document.createElement("a");e.href=this.makeLink(f,b,h,d);e.appendChild(document.createTextNode(g));a.appendChild(e)}else{a.appendChild(document.createTextNode("-"))}}else{if(a.firstChild.hasChildNodes()){if(g>0){a.firstChild.firstChild.nodeValue=g;a.firstChild.href=this.makeLink(f,b,h,d)}else{a.removeChild(a.firstChild);a.appendChild(document.createTextNode("-"))}}else{if(g>0){a.removeChild(a.firstChild);var e=document.createElement("a");e.href=this.makeLink(f,b,h,d);e.appendChild(document.createTextNode(g));a.appendChild(e)}else{a.firstChild.nodeValue="-"}}}},makeLink:function(j,g,k,i){var f="";if(!(g=="CLOSED"||g=="TOTAL")){var b=new Date();var l=b.getFullYear()+"-"+(b.getMonth()+1)+"-"+b.getDate();if("ontime"==k){f="/nextDueDate/dateAfter/"+l}else{f="/nextDueDate/dateBefore/"+l}}var h="";if(g!=""&&g!="TOTAL"){h="/denormalizedStatus/textExactMatch/"+escape(g)}var a="";if(!YAHOO.lang.isNull(this.filterType)&&this.filterType!=""){a="/type/enumIs/"+this.filterType}var d="";if(!YAHOO.lang.isNull(this.filterSource)&&this.filterSource!=""){d="/source/textExactMatch/"+this.filterSource}var e="/finding/remediation/list/queryType/advanced"+f+h+a+d;if(i){e+="/organization/textExactMatch/"+j}else{e+="/organization/organizationSubtree/"+j}return e},exportTable:function(b){var a="/finding/remediation/summary-data/format/"+b+this.listExpandedNodes(this.treeRoot,"");document.location=a},listExpandedNodes:function(b,a){for(var e in b){var d=b[e];if(d.expanded){a+="/e/"+d.id;a=this.listExpandedNodes(d.children,a)}else{a+="/c/"+d.id}}return a}}};/**
+};
+Fisma.FindingSummary=function(){return{treeRoot:null,filterType:null,filterSource:null,defaultDisplayLevel:2,render:function(h,j,t){if(t){this.treeRoot=j}var p=document.getElementById(h);for(var f in j){var r;var l=j[f];var a=p.insertRow(p.rows.length);a.id=l.nickname+"_ontime";var e=p.insertRow(p.rows.length);e.id=l.nickname+"_overdue";var b=a.insertCell(0);l.expanded=(l.level<this.defaultDisplayLevel-1);var o=l.expanded?l.single_ontime:l.all_ontime;var k=l.expanded?l.single_overdue:l.all_overdue;l.hasOverdue=this.hasOverdue(k);var q=document.createElement("img");q.className="control";q.id=l.nickname+"Img";var g=document.createElement("a");g.appendChild(q);var n=l.children.length>0;if(n){g.nickname=l.nickname;g.findingSummary=this;g.onclick=function(){this.findingSummary.toggleNode(this.nickname);return false};q.src="/images/"+(l.expanded?"minus.png":"plus.png")}else{q.src="/images/leaf_node.png"}var d=document.createElement("div");d.className="treeTable"+l.level+(n?" link":"");d.appendChild(g);var s=document.createElement("img");s.className="icon";s.src="/images/"+l.orgType+".png";g.appendChild(s);g.appendChild(document.createTextNode(l.label));g.appendChild(document.createElement("br"));g.appendChild(document.createTextNode(l.orgTypeLabel));b.appendChild(d);var m=1;for(r in o){count=o[r];cell=a.insertCell(m);if(r=="CLOSED"||r=="TOTAL"){cell.className="noDueDate"}else{cell.className="onTime"}this.updateCellCount(cell,count,l.nickname,r,"ontime",l.expanded);m+=1}for(r in k){count=k[r];cell=e.insertCell(e.childNodes.length);cell.className="overdue";this.updateCellCount(cell,count,l.nickname,r,"overdue",l.expanded)}a.style.display="none";e.style.display="none";if(l.level<this.defaultDisplayLevel){a.style.display="";if(l.hasOverdue){a.childNodes[0].rowSpan="2";a.childNodes[a.childNodes.length-2].rowSpan="2";a.childNodes[a.childNodes.length-1].rowSpan="2";e.style.display=""}}if(l.children.length>0){this.render(h,l.children)}}},toggleNode:function(a){node=this.findNode(a,this.treeRoot);if(node.expanded){this.collapseNode(node,true);this.hideSubtree(node.children)}else{this.expandNode(node);this.showSubtree(node.children,false)}},expandNode:function(f,b){f.ontime=f.single_ontime;f.overdue=f.single_overdue;f.hasOverdue=this.hasOverdue(f.overdue);var a=document.getElementById(f.nickname+"_ontime");var d=1;for(c in f.ontime){count=f.ontime[c];this.updateCellCount(a.childNodes[d],count,f.nickname,c,"ontime",true);d++}var e=document.getElementById(f.nickname+"_overdue");if(f.hasOverdue){d=0;for(c in f.overdue){count=f.overdue[c];this.updateCellCount(e.childNodes[d],count,f.nickname,c,"overdue",true);d++}}else{a.childNodes[0].rowSpan="1";a.childNodes[a.childNodes.length-2].rowSpan="1";a.childNodes[a.childNodes.length-1].rowSpan="1";e.style.display="none"}if(f.children.length>0){document.getElementById(f.nickname+"Img").src="/images/minus.png"}f.expanded=true;if(b&&f.children.length>0){this.showSubtree(f.children,false);for(var g in f.children){this.expandNode(f.children[g],true)}}},collapseNode:function(f,b){f.ontime=f.all_ontime;f.overdue=f.all_overdue;f.hasOverdue=this.hasOverdue(f.overdue);var a=document.getElementById(f.nickname+"_ontime");var d=1;for(c in f.ontime){count=f.ontime[c];this.updateCellCount(a.childNodes[d],count,f.nickname,c,"ontime",false);d++}var e=document.getElementById(f.nickname+"_overdue");if(b&&f.hasOverdue){a.childNodes[0].rowSpan="2";a.childNodes[a.childNodes.length-2].rowSpan="2";a.childNodes[a.childNodes.length-1].rowSpan="2";e.style.display="";d=0;for(c in f.all_overdue){count=f.all_overdue[c];this.updateCellCount(e.childNodes[d],count,f.nickname,c,"overdue",false);d++}}if(f.children.length>0){this.hideSubtree(f.children)}document.getElementById(f.nickname+"Img").src="/images/plus.png";f.expanded=false},hideSubtree:function(a){for(nodeId in a){node=a[nodeId];ontimeRow=document.getElementById(node.nickname+"_ontime");ontimeRow.style.display="none";overdueRow=document.getElementById(node.nickname+"_overdue");overdueRow.style.display="none";if(node.children.length>0){this.collapseNode(node,false);this.hideSubtree(node.children)}}},showSubtree:function(b,a){for(nodeId in b){node=b[nodeId];if(a&&node.children.length>0){this.expandNode(node);this.showSubtree(node.children,true)}ontimeRow=document.getElementById(node.nickname+"_ontime");ontimeRow.style.display="";overdueRow=document.getElementById(node.nickname+"_overdue");if(node.hasOverdue){ontimeRow.childNodes[0].rowSpan="2";ontimeRow.childNodes[ontimeRow.childNodes.length-2].rowSpan="2";ontimeRow.childNodes[ontimeRow.childNodes.length-1].rowSpan="2";overdueRow.style.display=""}}},collapseAll:function(){for(nodeId in this.treeRoot){node=this.treeRoot[nodeId];this.collapseNode(node,true);this.hideSubtree(node.children)}},expandAll:function(){for(nodeId in this.treeRoot){node=this.treeRoot[nodeId];this.expandNode(node,true)}},findNode:function(e,b){for(var d in b){node=b[d];if(node.nickname===e){return node}else{if(node.children.length>0){var a=this.findNode(e,node.children);if(a!==false){return a}}}}return false},hasOverdue:function(b){for(var a in b){if(b[a]>0){return true}}return false},updateCellCount:function(a,g,f,b,h,d){var e;if(!a.hasChildNodes()){if(g>0){e=document.createElement("a");e.href=this.makeLink(f,b,h,d);e.appendChild(document.createTextNode(g));a.appendChild(e)}else{a.appendChild(document.createTextNode("-"))}}else{if(a.firstChild.hasChildNodes()){if(g>0){a.firstChild.firstChild.nodeValue=g;a.firstChild.href=this.makeLink(f,b,h,d)}else{a.removeChild(a.firstChild);a.appendChild(document.createTextNode("-"))}}else{if(g>0){a.removeChild(a.firstChild);e=document.createElement("a");e.href=this.makeLink(f,b,h,d);e.appendChild(document.createTextNode(g));a.appendChild(e)}else{a.firstChild.nodeValue="-"}}}},makeLink:function(j,g,k,i){var f="";if(!(g=="CLOSED"||g=="TOTAL")){var b=new Date();var l=b.getFullYear()+"-"+(b.getMonth()+1)+"-"+b.getDate();if("ontime"==k){f="/nextDueDate/dateAfter/"+encodeURIComponent(l)}else{f="/nextDueDate/dateBefore/"+encodeURIComponent(l)}}var h="";if(g!==""&&g!=="TOTAL"){h="/denormalizedStatus/textExactMatch/"+encodeURIComponent(g)}var a="";if(!YAHOO.lang.isNull(this.filterType)&&this.filterType!==""){a="/type/enumIs/"+encodeURIComponent(this.filterType)}var d="";if(!YAHOO.lang.isNull(this.filterSource)&&this.filterSource!==""){d="/source/textExactMatch/"+encodeURIComponent(this.filterSource)}var e="/finding/remediation/list?q="+f+h+a+d;if(i){e+="/organization/textExactMatch/"+encodeURIComponent(j)}else{e+="/organization/organizationSubtree/"+encodeURIComponent(j)}return e},exportTable:function(b){var a="/finding/remediation/summary-data/format/"+b+this.listExpandedNodes(this.treeRoot,"");document.location=a},listExpandedNodes:function(b,a){for(var e in b){var d=b[e];if(d.expanded){a+="/e/"+d.id;a=this.listExpandedNodes(d.children,a)}else{a+="/c/"+d.id}}return a}}};/**
  * Copyright (c) 2008 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
@@ -3395,6 +5188,7 @@ Fisma.FindingSummary = function() {
 
             // Render each node at this level
             for (var nodeId in tree) {
+                var c;
                 var node = tree[nodeId];
 
                 // Append two rows ('ontime' and 'overdue') to the table for this node
@@ -3415,7 +5209,7 @@ Fisma.FindingSummary = function() {
 
                 var expandControlImage = document.createElement('img');
                 expandControlImage.className = 'control';
-                expandControlImage.id = node.nickname + "Img"
+                expandControlImage.id = node.nickname + "Img";
 
                 var expandControl = document.createElement('a');
                 expandControl.appendChild(expandControlImage);
@@ -3454,9 +5248,9 @@ Fisma.FindingSummary = function() {
                 
                 // Render the remaining cells on the this row (which are all summary counts)
                 var i = 1; // start at 1 because the system label is in the first cell
-                for (var c in ontime) {
+                for (c in ontime) {
                     count = ontime[c];
-                    cell = firstRow.insertCell(i++);
+                    cell = firstRow.insertCell(i);
                     if (c == 'CLOSED' || c == 'TOTAL') {
                         // The last two colums don't have the ontime/overdue distinction
                         cell.className = "noDueDate";
@@ -3465,10 +5259,11 @@ Fisma.FindingSummary = function() {
                         cell.className = 'onTime';                
                     }
                     this.updateCellCount(cell, count, node.nickname, c, 'ontime', node.expanded);
+                    i += 1;
                 }
 
                 // Now add cells to the second row
-                for (var c in overdue) {
+                for (c in overdue) {
                     count = overdue[c];
                     cell = secondRow.insertCell(secondRow.childNodes.length);
                     cell.className = 'overdue';
@@ -3540,7 +5335,7 @@ Fisma.FindingSummary = function() {
             var overdueRow = document.getElementById(treeNode.nickname + "_overdue");
             if (treeNode.hasOverdue) {
                 // Do not hide the overdue row. Instead, update the counts
-                var i = 0;
+                i = 0;
                 for (c in treeNode.overdue) {
                     count = treeNode.overdue[c];
                     this.updateCellCount(overdueRow.childNodes[i], count, treeNode.nickname, c, 'overdue', true);
@@ -3600,7 +5395,7 @@ Fisma.FindingSummary = function() {
                 ontimeRow.childNodes[ontimeRow.childNodes.length - 1].rowSpan = "2";
                 overdueRow.style.display = '';  // set to default instead of 'table-row' to work around an IE6 bug
 
-                var i = 0;
+                i = 0;
                 for (c in treeNode.all_overdue) {
                     count = treeNode.all_overdue[c];
                     this.updateCellCount(overdueRow.childNodes[i], count, treeNode.nickname, c, 'overdue', false);
@@ -3704,11 +5499,11 @@ Fisma.FindingSummary = function() {
         findNode : function (nodeName, tree) {
             for (var nodeId in tree) {
                 node = tree[nodeId];
-                if (node.nickname == nodeName) {
+                if (node.nickname === nodeName) {
                     return node;
                 } else if (node.children.length > 0) {
                     var foundNode = this.findNode(nodeName, node.children);
-                    if (foundNode != false) {
+                    if (foundNode !== false) {
                         return foundNode;
                     }
                 }
@@ -3745,10 +5540,11 @@ Fisma.FindingSummary = function() {
          * @param expanded Used to generate link
          */
         updateCellCount : function (cell, count, orgName, status, ontime, expanded) {
+            var link;
             if (!cell.hasChildNodes()) {
                 // Initialize this cell
                 if (count > 0) {
-                    var link = document.createElement('a');
+                    link = document.createElement('a');
                     link.href = this.makeLink(orgName, status, ontime, expanded);
                     link.appendChild(document.createTextNode(count));
                     cell.appendChild(link);
@@ -3773,7 +5569,7 @@ Fisma.FindingSummary = function() {
                     if (count > 0) {
                         // Need to add a new anchor
                         cell.removeChild(cell.firstChild);
-                        var link = document.createElement('a');
+                        link = document.createElement('a');
                         link.href = this.makeLink(orgName, status, ontime, expanded);
                         link.appendChild(document.createTextNode(count));
                         cell.appendChild(link);
@@ -3805,40 +5601,36 @@ Fisma.FindingSummary = function() {
                 var nowStr = now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate();
 
                 if ('ontime' == ontime) {
-                    onTimeString = '/nextDueDate/dateAfter/' + nowStr;
+                    onTimeString = '/nextDueDate/dateAfter/' + encodeURIComponent(nowStr);
                 } else {
-                    onTimeString = '/nextDueDate/dateBefore/' + nowStr;
+                    onTimeString = '/nextDueDate/dateBefore/' + encodeURIComponent(nowStr);
                 }
             }
 
             // Include any status
             var statusString = '';
-            if (status != '' && status !='TOTAL') {
-                statusString = '/denormalizedStatus/textExactMatch/' + escape(status);
+            if (status !== '' && status !=='TOTAL') {
+                statusString = '/denormalizedStatus/textExactMatch/' + encodeURIComponent(status);
             }
 
             // Include any filters
             var filterType = '';
-            if (!YAHOO.lang.isNull(this.filterType) && this.filterType != '') {
-                filterType = '/type/enumIs/' + this.filterType;
+            if (!YAHOO.lang.isNull(this.filterType) && this.filterType !== '') {
+                filterType = '/type/enumIs/' + encodeURIComponent(this.filterType);
             }
 
             var filterSource = '';
-            if (!YAHOO.lang.isNull(this.filterSource) && this.filterSource != '') {
-                filterSource = '/source/textExactMatch/' + this.filterSource;
+            if (!YAHOO.lang.isNull(this.filterSource) && this.filterSource !== '') {
+                filterSource = '/source/textExactMatch/' + encodeURIComponent(this.filterSource);
             }
 
             // Render the link
-            var uri = '/finding/remediation/list/queryType/advanced'
-                    + onTimeString
-                    + statusString
-                    + filterType
-                    + filterSource;
+            var uri = '/finding/remediation/list?q=' + onTimeString + statusString + filterType + filterSource;
 
             if (expanded) {
-                uri += '/organization/textExactMatch/' + orgName;
+                uri += '/organization/textExactMatch/' + encodeURIComponent(orgName);
             } else {
-                uri += '/organization/organizationSubtree/' + orgName;
+                uri += '/organization/organizationSubtree/' + encodeURIComponent(orgName);
             }
 
             return uri;            
@@ -3850,9 +5642,7 @@ Fisma.FindingSummary = function() {
          * @param format Only 'pdf' is valid at the moment.
          */
         exportTable : function (format) {
-            var uri = '/finding/remediation/summary-data/format/'
-                    + format
-                    + this.listExpandedNodes(this.treeRoot, '');
+            var uri = '/finding/remediation/summary-data/format/' + format + this.listExpandedNodes(this.treeRoot, '');
 
             document.location = uri;            
         }, 
@@ -3881,7 +5671,7 @@ Fisma.FindingSummary = function() {
         }
     };
 };
-Fisma.Highlighter=function(){return{highlightDelimitedText:function(a,b){var h=Fisma.Util.escapeRegexValue(b);var j=new RegExp("^(.*?)"+h+"(.*?)"+h+"(.*?)$");for(var d in a){var e=a[d];if(!e.firstChild||!e.firstChild.firstChild){continue}var g=e.firstChild;if(g&&g.firstChild&&g.firstChild.nodeType!=3){continue}var c=g.firstChild;var k=c.nodeValue;var f=this._getDelimitedRegexMatches(k,j);this._highlightMatches(g,f)}},_getDelimitedRegexMatches:function(h,d){var f=[];var g=null;var e=h;do{g=e.match(d);if(g&&g.length==4){var c=g[1];var a=g[2];var b=g[3];f.push(c);f.push(a);e=b}else{f.push(e);break}}while(g);return f},_highlightMatches:function(a,f){if((f.length>1)&&(f.length%2==1)){a.removeChild(a.firstChild);for(var d in f){var c=f[d];var e=document.createTextNode(c);if(d%2==0){a.appendChild(e)}else{var b=document.createElement("span");b.className="highlight";b.appendChild(e);a.appendChild(b)}}}}}}();/**
+Fisma.Highlighter=function(){return{highlightDelimitedText:function(a,b){var h=Fisma.Util.escapeRegexValue(b);var j=new RegExp("^(.*?)"+h+"(.*?)"+h+"(.*?)$");for(var d in a){var e=a[d];if(!e.firstChild||!e.firstChild.firstChild){continue}var g=e.firstChild;if(g&&g.firstChild&&g.firstChild.nodeType!=3){continue}var c=g.firstChild;var k=c.nodeValue;var f=this._getDelimitedRegexMatches(k,j);this._highlightMatches(g,f)}},_getDelimitedRegexMatches:function(h,d){var f=[];var g=null;var e=h;do{g=e.match(d);if(g&&g.length==4){var c=g[1];var a=g[2];var b=g[3];f.push(c);f.push(a);e=b}else{f.push(e);break}}while(g);return f},_highlightMatches:function(a,f){if((f.length>1)&&(f.length%2==1)){a.removeChild(a.firstChild);for(var d in f){var c=f[d];var e=document.createTextNode(c);if(d%2===0){a.appendChild(e)}else{var b=document.createElement("span");b.className="highlight";b.appendChild(e);a.appendChild(b)}}}}}}();/**
  * Copyright (c) 2010 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
@@ -3927,11 +5717,7 @@ Fisma.Highlighter = function() {
 
             var escapedDelimiter = Fisma.Util.escapeRegexValue(delimiter);
 
-            var regex = new RegExp("^(.*?)" 
-                                   + escapedDelimiter
-                                   + "(.*?)"
-                                   + escapedDelimiter
-                                   + "(.*?)$");
+            var regex = new RegExp("^(.*?)" + escapedDelimiter + "(.*?)" + escapedDelimiter + "(.*?)$");
 
             for (var i in elements) {
                 var element = elements[i];
@@ -4033,7 +5819,7 @@ Fisma.Highlighter = function() {
 
                     var newTextNode = document.createTextNode(match);
 
-                    if (j % 2 == 0) {
+                    if (j % 2 === 0) {
                         // This is a plaintext node
                         parentNode.appendChild(newTextNode);
                     } else {
@@ -4047,9 +5833,9 @@ Fisma.Highlighter = function() {
                 }
             }
         }
-    }
+    };
 }();
-Fisma.HtmlPanel=function(){return{showPanel:function(e,c,b,d){if(typeof(b)=="undefined"||b==null){b="panel"}if(typeof(d)=="undefined"||d==null){d={width:"540px",modal:true}}var a=new YAHOO.widget.Panel(b,d);a.setHeader(e);a.setBody("Loading...");a.render(document.body);a.center();a.show();if(c!=""){a.setBody(c);a.center()}return a}}}();/**
+Fisma.HtmlPanel=function(){return{showPanel:function(e,c,b,d){if(typeof(b)==="undefined"||b===null){b="panel"}if(typeof(d)==="undefined"||d===null){d={width:"540px",modal:true}}var a=new YAHOO.widget.Panel(b,d);a.setHeader(e);a.setBody("Loading...");a.render(document.body);a.center();a.show();if(c!==""){a.setBody(c);a.center()}return a}}}();/**
  * Copyright (c) 2008 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
@@ -4074,7 +5860,6 @@ Fisma.HtmlPanel=function(){return{showPanel:function(e,c,b,d){if(typeof(b)=="und
  * @license   http://www.openfisma.org/content/license
  * @version   $Id$
  */
-
 Fisma.HtmlPanel = function() {
     return {
         /**
@@ -4088,12 +5873,12 @@ Fisma.HtmlPanel = function() {
          */
         showPanel : function(title, html, element, userConfig) {
             // Initialize element or its id representing the panel with default value conditionally
-            if (typeof(element) == 'undefined' || element == null)
+            if (typeof(element) === 'undefined' || element === null)
             {
                 element = "panel";
             }
             // Initialize user config with default config object if the user config is not specified or null
-            if (typeof(userConfig) == 'undefined' || userConfig == null)
+            if (typeof(userConfig) === 'undefined' || userConfig === null)
             {
                 userConfig = {
                     width : "540px",
@@ -4111,7 +5896,7 @@ Fisma.HtmlPanel = function() {
             panel.show();
             
             // Fill the panel with HTML text
-            if (html != '') {
+            if (html !== '') {
                 panel.setBody(html);
                 panel.center();
             }
@@ -4120,7 +5905,7 @@ Fisma.HtmlPanel = function() {
         }
     };
 }();
-Fisma.Incident={commentTable:null,attachArtifactCallback:function(a){window.location.href=window.location.href},commentCallback:function(f,b){var d=this;var c={timestamp:f.createdTs,username:f.username,comment:f.comment};this.commentTable.addRow(c);this.commentTable.sortColumn(this.commentTable.getColumn(0),YAHOO.widget.DataTable.CLASS_DESC);var a=new Fisma.Blinker(100,6,function(){d.commentTable.highlightRow(0)},function(){d.commentTable.unhighlightRow(0)});a.start();var e=document.getElementById("incidentCommentsCount").firstChild;e.nodeValue++;b.hide();b.destroy()},getIncidentStepParentElement:function(b){var c=b.parentNode.parentNode.parentNode;var a=1;if(!(a==c.nodeType&&"TR"==c.tagName)){throw"Cannot locate the parent element for this incident step."}return c},getIncidentStepNumber:function(e){var d=e.firstChild;var b=1;if(!(b==d.nodeType&&"TD"==d.tagName)){throw"Cannot locate the table data (td) element for this incident step."}var a=d.firstChild.nodeValue;var c=a.match(/\d+/);if(c.length!=1){throw"Not able to locate the step number in the incident step label."}return c[0]},renumberAllIncidentSteps:function(b){var c=YAHOO.util.Dom.getElementsByClassName("incidentStep","tr",b);var a=1;for(var d in c){var e=c[d];e.firstChild.firstChild.nodeValue="Step "+a+":";a++}},addIncidentStepAbove:function(c){var b=this.getIncidentStepParentElement(c);var d=this.generateTextareaId(b.parentNode);var a=this.generateIncidentStep(b,d);b.parentNode.insertBefore(a,b);tinyMCE.execCommand("mceAddControl",false,d);this.renumberAllIncidentSteps(b.parentNode);return false},addIncidentStepBelow:function(c){var b=this.getIncidentStepParentElement(c);var d=this.generateTextareaId(b.parentNode);var a=this.generateIncidentStep(b,d);if(b.nextSibling){b.parentNode.insertBefore(a,b.nextSibling)}else{b.parentNode.appendChild(a)}tinyMCE.execCommand("mceAddControl",false,d);this.renumberAllIncidentSteps(b.parentNode);return false},removeIncidentStep:function(b){var a=this.getIncidentStepParentElement(b);a.parentNode.removeChild(a);this.renumberAllIncidentSteps(a.parentNode);return false},generateIncidentStep:function(p,g){var o=p.cloneNode(false);var s=p.parentNode;var b=document.createElement("td");b.innerHTML="Step : ";o.appendChild(b);var n=document.createElement("td");o.appendChild(n);var e=YAHOO.util.Dom.getLastChild(p);var t=YAHOO.util.Dom.getFirstChild(e);var i=t.cloneNode(true);var r=YAHOO.util.Dom.getNextSibling(t);var a=r.cloneNode(true);n.appendChild(i);n.appendChild(a);var q=document.createElement("p");q.innerHTML="Description: ";var k=document.createElement("textarea");k.setAttribute("id",g);var h=YAHOO.util.Dom.getNextSibling(r);var j=YAHOO.util.Dom.getFirstChild(h);var l=YAHOO.util.Dom.getAttribute(j,"rows");var m=YAHOO.util.Dom.getAttribute(j,"cols");var d=YAHOO.util.Dom.getAttribute(j,"name");k.setAttribute("rows",l);k.setAttribute("cols",m);k.setAttribute("name",d);q.appendChild(k);n.appendChild(q);var c=YAHOO.util.Dom.getNextSibling(h);var f=c.cloneNode(true);n.appendChild(f);return o},generateTextareaId:function(c){var b=YAHOO.util.Dom.getElementsByClassName("incidentStep","tr",c);var a=1+b.length;var d="textareaid"+a;return d}};/**
+Fisma.Incident={commentTable:null,attachArtifactCallback:function(a){window.location.href=window.location.href},commentCallback:function(f,b){var d=this;var c={timestamp:f.createdTs,username:f.username,comment:f.comment};this.commentTable.addRow(c);this.commentTable.sortColumn(this.commentTable.getColumn(0),YAHOO.widget.DataTable.CLASS_DESC);var a=new Fisma.Blinker(100,6,function(){d.commentTable.highlightRow(0)},function(){d.commentTable.unhighlightRow(0)});a.start();var e=document.getElementById("incidentCommentsCount").firstChild;e.nodeValue++;b.hide();b.destroy()},getIncidentStepParentElement:function(b){var c=b.parentNode.parentNode.parentNode;var a=1;if(!(a==c.nodeType&&"TR"==c.tagName)){throw"Cannot locate the parent element for this incident step."}return c},getIncidentStepNumber:function(e){var d=e.firstChild;var b=1;if(!(b==d.nodeType&&"TD"==d.tagName)){throw"Cannot locate the table data (td) element for this incident step."}var a=d.firstChild.nodeValue;var c=a.match(/\d+/);if(c.length!=1){throw"Not able to locate the step number in the incident step label."}return c[0]},renumberAllIncidentSteps:function(b){var c=YAHOO.util.Dom.getElementsByClassName("incidentStep","tr",b);var a=1;for(var d in c){var e=c[d];e.firstChild.firstChild.nodeValue="Step "+a+":";a++}},addIncidentStepAbove:function(c){var b=this.getIncidentStepParentElement(c);var d=this.generateTextareaId(b.parentNode);var a=this.generateIncidentStep(b,d);b.parentNode.insertBefore(a,b);tinyMCE.execCommand("mceAddControl",false,d);this.renumberAllIncidentSteps(b.parentNode);return false},addIncidentStepBelow:function(c){var b=this.getIncidentStepParentElement(c);var d=this.generateTextareaId(b.parentNode);var a=this.generateIncidentStep(b,d);if(b.nextSibling){b.parentNode.insertBefore(a,b.nextSibling)}else{b.parentNode.appendChild(a)}tinyMCE.execCommand("mceAddControl",false,d);this.renumberAllIncidentSteps(b.parentNode);return false},removeIncidentStep:function(b){var a=this.getIncidentStepParentElement(b);a.parentNode.removeChild(a);this.renumberAllIncidentSteps(a.parentNode);return false},generateIncidentStep:function(p,g){var o=p.cloneNode(false);var s=p.parentNode;var b=document.createElement("td");b.innerHTML="Step : ";o.appendChild(b);var n=document.createElement("td");o.appendChild(n);var e=YAHOO.util.Dom.getLastChild(p);var t=YAHOO.util.Dom.getFirstChild(e);var i=t.cloneNode(true);var r=YAHOO.util.Dom.getNextSibling(t);var a=r.cloneNode(true);n.appendChild(i);n.appendChild(a);var q=document.createElement("p");q.innerHTML="Description: ";var h=YAHOO.util.Dom.getNextSibling(r);var j=YAHOO.util.Dom.getFirstChild(h);var l=YAHOO.util.Dom.getAttribute(j,"rows");var m=YAHOO.util.Dom.getAttribute(j,"cols");var d=YAHOO.util.Dom.getAttribute(j,"name");var k;if(YAHOO.env.ua.ie){k=document.createElement("<textarea name='"+d+"'></textarea>")}else{k=document.createElement("textarea")}k.setAttribute("id",g);k.setAttribute("rows",l);k.setAttribute("cols",m);k.setAttribute("name",d);q.appendChild(k);n.appendChild(q);var c=YAHOO.util.Dom.getNextSibling(h);var f=c.cloneNode(true);n.appendChild(f);return o},generateTextareaId:function(c){var b=YAHOO.util.Dom.getElementsByClassName("incidentStep","tr",c);var a=1+b.length;var d="textareaid"+a;return d}};/**
  * Copyright (c) 2008 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
@@ -4350,11 +6135,11 @@ Fisma.Incident = {
 
         //The first child of <td> block should be Name field.
         var nameField = YAHOO.util.Dom.getFirstChild(tdForm);
-        var nameElClone = nameField.cloneNode(true) 
+        var nameElClone = nameField.cloneNode(true);
 
         //The next sibling should be role field  
         var roleField = YAHOO.util.Dom.getNextSibling(nameField);
-        var roleElClone = roleField.cloneNode(true) 
+        var roleElClone = roleField.cloneNode(true);
 
         newTdElForm.appendChild(nameElClone); 
         newTdElForm.appendChild(roleElClone); 
@@ -4362,9 +6147,6 @@ Fisma.Incident = {
         //create p node for Desription and textarea
         var elP = document.createElement('p');
         elP.innerHTML = 'Description: ';
-
-        var newTextareaEl = document.createElement('textarea');
-        newTextareaEl.setAttribute('id',textareaId);
 
         var descField = YAHOO.util.Dom.getNextSibling(roleField);
         var textareaField = YAHOO.util.Dom.getFirstChild(descField);
@@ -4374,10 +6156,19 @@ Fisma.Incident = {
         var textareaCols = YAHOO.util.Dom.getAttribute(textareaField, 'cols');
         var textareaName = YAHOO.util.Dom.getAttribute(textareaField, 'name');
 
+        // To create an element with a NAME attribute and its value for IE.
+        var newTextareaEl;
+        if (YAHOO.env.ua.ie) {
+            newTextareaEl = document.createElement("<textarea name='" + textareaName + "'></textarea>");
+        } else {
+            newTextareaEl = document.createElement('textarea');
+        }
+
+        newTextareaEl.setAttribute('id',textareaId);
         newTextareaEl.setAttribute('rows',textareaRows);
         newTextareaEl.setAttribute('cols',textareaCols);
         newTextareaEl.setAttribute('name',textareaName);
- 
+
         elP.appendChild(newTextareaEl);
         newTdElForm.appendChild(elP); 
 
@@ -4402,7 +6193,7 @@ Fisma.Incident = {
         return textareaId;
     }
 };
-Fisma.Ldap={validateLdapBusy:false,validateLdapConfiguration:function(){if(Fisma.Ldap.validateLdapBusy){return}Fisma.Ldap.validateLdapBusy=true;var c=document.location;var f=document.location.pathname.split("/");var b=null;for(pieceIndex in f){var d=f[pieceIndex];if("id"==d){b=f[parseInt(pieceIndex)+1];break}}var a=document.getElementById("validateLdap");a.className="yui-button yui-push-button yui-button-disabled";var g=new Fisma.Spinner(a.parentNode);g.show();var e=document.getElementById("ldapUpdate");YAHOO.util.Connect.setForm(e);YAHOO.util.Connect.asyncRequest("POST","/config/validate-ldap/format/json/id/"+b,{success:function(i){var h=YAHOO.lang.JSON.parse(i.responseText);message(h.msg,h.type,true);a.className="yui-button yui-push-button";Fisma.Ldap.validateLdapBusy=false;g.hide()},failure:function(h){message("Validation failed: "+h.statusText,"warning",true);g.hide()}})}};/**
+Fisma.Ldap={validateLdapBusy:false,validateLdapConfiguration:function(){if(Fisma.Ldap.validateLdapBusy){return}Fisma.Ldap.validateLdapBusy=true;var c=document.location;var f=document.location.pathname.split("/");var b=null;for(pieceIndex in f){var d=f[pieceIndex];if("id"==d){b=f[parseInt(pieceIndex,10)+1];break}}var a=document.getElementById("validateLdap");a.className="yui-button yui-push-button yui-button-disabled";var g=new Fisma.Spinner(a.parentNode);g.show();var e=document.getElementById("ldapUpdate");YAHOO.util.Connect.setForm(e);YAHOO.util.Connect.asyncRequest("POST","/config/validate-ldap/format/json/id/"+b,{success:function(i){var h=YAHOO.lang.JSON.parse(i.responseText);message(h.msg,h.type,true);a.className="yui-button yui-push-button";Fisma.Ldap.validateLdapBusy=false;g.hide()},failure:function(h){message("Validation failed: "+h.statusText,"warning",true);g.hide()}})}};/**
  * Copyright (c) 2008 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
@@ -4453,7 +6244,7 @@ Fisma.Ldap = {
             var piece = pieces[pieceIndex];
 
             if ('id' == piece) {
-                ldapConfigId = pieces[parseInt(pieceIndex) + 1];
+                ldapConfigId = pieces[parseInt(pieceIndex, 10) + 1];
 
                 break;
             }
@@ -4491,6 +6282,93 @@ Fisma.Ldap = {
         );
     }  
 };
+(function(){Fisma.Menu={resolveOnClickObjects:function(f){if(f.onclick&&f.onclick.fn){f.onclick.fn=Fisma.Util.getObjectFromName(f.onclick.fn)}if(f.submenu){var a=f.submenu.itemdata;for(var c in a){var e=a[c];for(var b in e){var d=e[b];Fisma.Menu.resolveOnClickObjects(d)}}}},goTo:function(f,c,d){var i=YAHOO.util.Dom,m=YAHOO.util.Event,l=YAHOO.widget.Panel,e=document.createElement("div"),h=document.createElement("div"),b=document.createElement("form"),g=document.createElement("input"),j=document.createElement("input");i.setAttribute(g,"type","text");i.setAttribute(j,"type","submit");i.setAttribute(j,"value","Go");b.innerHTML="ID: ";b.appendChild(g);b.appendChild(j);e.appendChild(h);e.appendChild(b);var k=function(o,p){m.stopEvent(o);var n=Number(p.textField.value.trim());if(isFinite(n)){p.errorDiv.innerHTML="Navigating to ID "+n+"...";window.location=p.controller+"/view/id/"+n}else{p.errorDiv.innerHTML="Please enter a single ID number."}};d.textField=g;d.errorDiv=h;m.addListener(b,"submit",k,d);var a=new l(i.generateId(),{modal:true});a.setHeader("Go To "+d.model+"...");a.setBody(e);a.render(document.body);a.center();a.show();g.focus()}}})();/**
+ * Copyright (c) 2011 Endeavor Systems, Inc.
+ *
+ * This file is part of OpenFISMA.
+ *
+ * OpenFISMA is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * OpenFISMA is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with OpenFISMA.  If not, see {@link http://www.gnu.org/licenses/}.
+ *
+ * @author    Andrew Reeves <andrew.reeves@endeavorsystems.com>
+ * @copyright (c) Endeavor Systems, Inc. 2011 {@link http://www.endeavorsystems.com}
+ * @license   http://www.openfisma.org/content/license
+ */
+
+(function() {
+    Fisma.Menu = {
+        resolveOnClickObjects: function(obj) {
+            if (obj.onclick && obj.onclick.fn) {
+                obj.onclick.fn = Fisma.Util.getObjectFromName(obj.onclick.fn);
+            }
+
+            if (obj.submenu) {
+                var groups = obj.submenu.itemdata;
+                for (var i in groups) {
+                    var group = groups[i];
+                    for (var j in group) {
+                        var item = group[j];
+                        Fisma.Menu.resolveOnClickObjects(item);
+                    }
+                }
+            }
+        },
+
+        goTo: function(eType, eObject, param) {
+            // create dialog
+            var Dom = YAHOO.util.Dom,
+                Event = YAHOO.util.Event,
+                Panel = YAHOO.widget.Panel,
+                contentDiv = document.createElement("div"),
+                errorDiv = document.createElement("div"),
+                form = document.createElement('form'),
+                textField = document.createElement('input'),
+                button = document.createElement('input');
+            Dom.setAttribute(textField, "type", "text");
+            Dom.setAttribute(button, "type", "submit");
+            Dom.setAttribute(button, "value", "Go");
+            form.innerHTML = "ID: ";
+            form.appendChild(textField);
+            form.appendChild(button);
+            contentDiv.appendChild(errorDiv);
+            contentDiv.appendChild(form);
+
+            // Add event listener
+            var fn = function(ev, obj) {
+                Event.stopEvent(ev);
+                var input = Number(obj.textField.value.trim());
+                if (isFinite(input)) {
+                    obj.errorDiv.innerHTML = "Navigating to ID " + input + "...";
+                    window.location = obj.controller + "/view/id/" + input;
+                } else { // input NaN
+                    obj.errorDiv.innerHTML = "Please enter a single ID number.";
+                }
+            };
+            param.textField = textField;
+            param.errorDiv = errorDiv;
+            Event.addListener(form, "submit", fn, param);
+
+            // show the panel
+            var panel = new Panel(Dom.generateId(), {modal: true});
+            panel.setHeader("Go To " + param.model + "...");
+            panel.setBody(contentDiv);
+            panel.render(document.body);
+            panel.center();
+            panel.show();
+            textField.focus();
+        }
+    };
+})();
 Fisma.Module={handleSwitchButtonStateChange:function(a){a.setBusy(true);var b=a.state?"true":"false";var c="/config/set-module/id/"+a.payload.id+"/enabled/"+b+"/format/json/";YAHOO.util.Connect.asyncRequest("GET",c,{success:Fisma.Module.handleAsyncResponse,failure:Fisma.Module.handleAsyncResponse,argument:a},null)},handleAsyncResponse:function(b){try{var c=YAHOO.lang.JSON.parse(b.responseText).response}catch(d){if(d instanceof SyntaxError){c=new Object();c.success=false;c.message="Invalid response from server."}else{throw d}}if(!c.success){alert("Error: Not able to change module status. Reason: "+c.message)}var a=b.argument;a.setBusy(false)}};/**
  * Copyright (c) 2008 Endeavor Systems, Inc.
  *
@@ -4522,11 +6400,7 @@ Fisma.Module = {
         
         var enabled = switchButton.state ? 'true' : 'false';
         
-        var requestUrl = '/config/set-module/id/' 
-                       + switchButton.payload.id 
-                       + '/enabled/' 
-                       + enabled
-                       + '/format/json/';
+        var requestUrl = '/config/set-module/id/' + switchButton.payload.id + '/enabled/' + enabled + '/format/json/';
         
         YAHOO.util.Connect.asyncRequest(
             'GET', 
@@ -4536,8 +6410,7 @@ Fisma.Module = {
                 failure : Fisma.Module.handleAsyncResponse,
                 argument : switchButton
             }, 
-            null
-        );
+            null);
     },
     
     /**
@@ -4552,7 +6425,7 @@ Fisma.Module = {
                 // Handle a JSON syntax error by constructing a fake response object
                 responseStatus = new Object();
                 responseStatus.success = false;
-                responseStatus.message = "Invalid response from server."
+                responseStatus.message = "Invalid response from server.";
             } else {
                 throw e;
             }
@@ -4567,7 +6440,133 @@ Fisma.Module = {
         switchButton.setBusy(false);
     }
 };
-Fisma.Remediation={upload_evidence:function(){if(!form_confirm(document.finding_detail,"Upload Evidence")){return false}Fisma.UrlPanel.showPanel("Upload Evidence","/finding/remediation/upload-form",Fisma.Remediation.upload_evidence_form_init);return false},upload_evidence_form_init:function(){document.finding_detail_upload_evidence.action=document.finding_detail.action},ev_approve:function(d){if(!form_confirm(document.finding_detail,"approve the evidence package")){return false}var c=document.createElement("div");var e=document.createElement("p");e.appendChild(document.createTextNode("Comments (OPTIONAL):"));c.appendChild(e);var b=document.createElement("textarea");b.rows=5;b.cols=60;b.id="dialog_comment";b.name="comment";c.appendChild(b);var f=document.createElement("div");f.style.height="20px";c.appendChild(f);var a=document.createElement("input");a.type="button";a.id="dialog_continue";a.value="Continue";c.appendChild(a);Fisma.HtmlPanel.showPanel("Evidence Approval",c.innerHTML);document.getElementById("dialog_continue").onclick=function(){var h=d;if(document.all){var i=document.getElementById("dialog_comment").innerHTML}else{var i=document.getElementById("dialog_comment").value}h.elements.comment.value=i;h.elements.decision.value="APPROVED";var g=document.createElement("input");g.type="hidden";g.name="submit_ea";g.value="APPROVED";h.appendChild(g);h.submit()}},ev_deny:function(d){if(!form_confirm(document.finding_detail,"deny the evidence package")){return false}var c=document.createElement("div");var e=document.createElement("p");e.appendChild(document.createTextNode("Comments:"));c.appendChild(e);var b=document.createElement("textarea");b.rows=5;b.cols=60;b.id="dialog_comment";b.name="comment";c.appendChild(b);var f=document.createElement("div");f.style.height="20px";c.appendChild(f);var a=document.createElement("input");a.type="button";a.id="dialog_continue";a.value="Continue";c.appendChild(a);Fisma.HtmlPanel.showPanel("Evidence Denial",c.innerHTML);document.getElementById("dialog_continue").onclick=function(){var h=d;if(document.all){var i=document.getElementById("dialog_comment").innerHTML}else{var i=document.getElementById("dialog_comment").value}if(i.match(/^\s*$/)){alert("Comments are required in order to deny.");return}h.elements.comment.value=i;h.elements.decision.value="DENIED";var g=document.createElement("input");g.type="hidden";g.name="submit_ea";g.value="DENIED";h.appendChild(g);h.submit()}},ms_approve:function(d){if(!form_confirm(document.finding_detail,"approve the mitigation strategy")){return false}var c=document.createElement("div");var e=document.createElement("p");var f=document.createTextNode("Comments (OPTIONAL):");e.appendChild(f);c.appendChild(e);var a=document.createElement("textarea");a.id="dialog_comment";a.name="comment";a.rows=5;a.cols=60;c.appendChild(a);var g=document.createElement("div");g.style.height="20px";c.appendChild(g);var b=document.createElement("input");b.type="button";b.id="dialog_continue";b.value="Continue";c.appendChild(b);Fisma.HtmlPanel.showPanel("Mitigation Strategy Approval",c.innerHTML);document.getElementById("dialog_continue").onclick=function(){var i=d;if(document.all){var j=document.getElementById("dialog_comment").innerHTML}else{var j=document.getElementById("dialog_comment").value}i.elements.comment.value=j;i.elements.decision.value="APPROVED";var h=document.createElement("input");h.type="hidden";h.name="submit_msa";h.value="APPROVED";i.appendChild(h);i.submit()}},ms_deny:function(d){if(!form_confirm(document.finding_detail,"deny the mitigation strategy")){return false}var c=document.createElement("div");var e=document.createElement("p");var f=document.createTextNode("Comments:");e.appendChild(f);c.appendChild(e);var a=document.createElement("textarea");a.id="dialog_comment";a.name="comment";a.rows=5;a.cols=60;c.appendChild(a);var g=document.createElement("div");g.style.height="20px";c.appendChild(g);var b=document.createElement("input");b.type="button";b.id="dialog_continue";b.value="Continue";c.appendChild(b);Fisma.HtmlPanel.showPanel("Mitigation Strategy Denial",c.innerHTML);document.getElementById("dialog_continue").onclick=function(){var i=d;if(document.all){var j=document.getElementById("dialog_comment").innerHTML}else{var j=document.getElementById("dialog_comment").value}if(j.match(/^\s*$/)){alert("Comments are required in order to submit.");return}i.elements.comment.value=j;i.elements.decision.value="DENIED";var h=document.createElement("input");h.type="hidden";h.name="submit_msa";h.value="DENIED";i.appendChild(h);i.submit()}}};/**
+(function(){Fisma.PersistentStorage=function(a){Fisma.PersistentStorage.superclass.constructor.call(this,a)};YAHOO.extend(Fisma.PersistentStorage,Fisma.Storage,{_modified:null,set:function(a,b){if(this._modified===null){this._modified={}}this._modified[a]=b;return this._set(a,b)},init:function(a){for(var b in a){this._set(b,a[b])}},sync:function(d,e){var a=null,b=null,c=null;if(e){if(typeof(e)=="function"){a=e}else{if(e.success&&typeof(e.success)=="function"){a=e.success}}if(e.failure&&typeof(e.failure)=="function"){b=e.failure}if(e.scope){c=e.scope}}Fisma.Storage.onReady(function(){var h="/storage/sync/format/json",g=YAHOO.util.Selector.query("input[name^=csrf]"),i={scope:this,success:function(j){var k=YAHOO.lang.JSON.parse(j.responseText);if(k.status=="ok"){this.init(k.data);this._modified=null}if(a){a.call(c?c:this,j,k)}},failure:function(){if(b){b.call(c?c:this)}}},f=$.param({csrf:(YAHOO.lang.isArray(g)&&g.length>0)?g[0].value:"",namespace:this.namespace,updates:YAHOO.lang.JSON.stringify(this._modified),reply:d?YAHOO.lang.JSON.stringify(d):null});YAHOO.util.Connect.asyncRequest("POST",h,i,f)},this,true)}})})();/**
+ * Copyright (c) 2011 Endeavor Systems, Inc.
+ *
+ * This file is part of OpenFISMA.
+ *
+ * OpenFISMA is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * OpenFISMA is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with OpenFISMA.  If not, see {@link http://www.gnu.org/licenses/}.
+ *
+ * @author    Andrew Reeves <andrew.reeves@endeavorsystems.com>
+ * @copyright (c) Endeavor Systems, Inc. 2011 {@link http://www.endeavorsystems.com}
+ * @license   http://www.openfisma.org/content/license
+ */
+
+(function() {
+    /**
+     * Class to store local data and persist to the server.
+     *
+     * @namespace Fisma
+     * @class PeristentStorage
+     * @extends Fisma.Storage
+     * @constructor
+     * @param namespace {String} Namespace of stored data.
+     */
+    Fisma.PersistentStorage = function(namespace) {
+        Fisma.PersistentStorage.superclass.constructor.call(this, namespace);
+    };
+    YAHOO.extend(Fisma.PersistentStorage, Fisma.Storage, {
+        /**
+         * @property _modified
+         * @type Array
+         * @protected
+         */
+        _modified: null,
+
+        /**
+         * Set value for key
+         *
+         * @method PersistentStorage.set
+         * @param key {String}
+         * @param value {String|Array|Object}
+         */
+        set: function(key, value) {
+            if (this._modified === null) {
+                this._modified = {};
+            }
+            this._modified[key] = value;
+            return this._set(key, value);
+        },
+
+        /**
+         * Initialize the local storage with default values.
+         *
+         * @method Storage.init
+         * @param values {Object} Object literal of key-value pairs to set
+         */
+        init: function(values) {
+            for (var key in values) {
+                this._set(key, values[key]);
+            }
+        },
+        /**
+         * Synchronize the server with the local state.
+         *
+         * @method PersistentStorage.sync
+         * @param reply {Array} Array of keys to reply with, null implies all keys.
+         * @param callback {Function|Object} Callback function/object.
+         */
+        sync: function(reply, callback) {
+            var successFn = null,
+                failureFn = null,
+                scope = null;
+            if (callback) {
+                if (typeof(callback) == "function") {
+                    successFn = callback;
+                } else if (callback.success && typeof(callback.success) == "function") {
+                    successFn = callback.success;
+                }
+                if (callback.failure && typeof(callback.failure) == "function") {
+                    failureFn = callback.failure;
+                }
+                if (callback.scope) {
+                    scope = callback.scope;
+                }
+            }
+            Fisma.Storage.onReady(function() {
+                var uri = '/storage/sync/format/json',
+                    csrfInputs = YAHOO.util.Selector.query('input[name^=csrf]'),
+                    callback = {
+                        scope: this,
+                        success: function(response) {
+                            var object = YAHOO.lang.JSON.parse(response.responseText);
+                            if (object.status == "ok") {
+                                this.init(object.data);
+                                this._modified = null;
+                            }
+                            if (successFn) {
+                                successFn.call(scope ? scope : this, response, object);
+                            }
+                        },
+                        failure: function() {
+                            if (failureFn) {
+                                failureFn.call(scope ? scope : this);
+                            }
+                        }
+                    },
+                    postData = $.param({
+                        csrf: (YAHOO.lang.isArray(csrfInputs) && csrfInputs.length > 0) ? csrfInputs[0].value : '',
+                        namespace: this.namespace,
+                        updates: YAHOO.lang.JSON.stringify(this._modified),
+                        reply: reply ? YAHOO.lang.JSON.stringify(reply) : null
+                    });
+                YAHOO.util.Connect.asyncRequest ( 'POST', uri , callback , postData );
+            }, this, true);
+        }
+    });
+})();
+Fisma.Remediation={upload_evidence:function(){if(!form_confirm(document.finding_detail,"Upload Evidence")){return false}Fisma.UrlPanel.showPanel("Upload Evidence","/finding/remediation/upload-form",Fisma.Remediation.upload_evidence_form_init);return false},upload_evidence_form_init:function(){document.finding_detail_upload_evidence.action=document.finding_detail.action},ev_approve:function(d){if(!form_confirm(document.finding_detail,"approve the evidence package")){return false}var c=document.createElement("div");var e=document.createElement("p");e.appendChild(document.createTextNode("Comments (OPTIONAL):"));c.appendChild(e);var b=document.createElement("textarea");b.rows=5;b.cols=60;b.id="dialog_comment";b.name="comment";c.appendChild(b);var f=document.createElement("div");f.style.height="20px";c.appendChild(f);var a=document.createElement("input");a.type="button";a.id="dialog_continue";a.value="Continue";c.appendChild(a);Fisma.HtmlPanel.showPanel("Evidence Approval",c.innerHTML);document.getElementById("dialog_continue").onclick=function(){var h=d;var i=document.getElementById("dialog_comment").value;h.elements.comment.value=i;h.elements.decision.value="APPROVED";var g=document.createElement("input");g.type="hidden";g.name="submit_ea";g.value="APPROVED";h.appendChild(g);h.submit()};return true},ev_deny:function(d){if(!form_confirm(document.finding_detail,"deny the evidence package")){return false}var c=document.createElement("div");var e=document.createElement("p");e.appendChild(document.createTextNode("Comments:"));c.appendChild(e);var b=document.createElement("textarea");b.rows=5;b.cols=60;b.id="dialog_comment";b.name="comment";c.appendChild(b);var f=document.createElement("div");f.style.height="20px";c.appendChild(f);var a=document.createElement("input");a.type="button";a.id="dialog_continue";a.value="Continue";c.appendChild(a);Fisma.HtmlPanel.showPanel("Evidence Denial",c.innerHTML);document.getElementById("dialog_continue").onclick=function(){var h=d;var i=document.getElementById("dialog_comment").value;if(i.match(/^\s*$/)){alert("Comments are required in order to deny.");return}h.elements.comment.value=i;h.elements.decision.value="DENIED";var g=document.createElement("input");g.type="hidden";g.name="submit_ea";g.value="DENIED";h.appendChild(g);h.submit();return};return true},ms_approve:function(d){if(!form_confirm(document.finding_detail,"approve the mitigation strategy")){return false}var c=document.createElement("div");var e=document.createElement("p");var f=document.createTextNode("Comments (OPTIONAL):");e.appendChild(f);c.appendChild(e);var a=document.createElement("textarea");a.id="dialog_comment";a.name="comment";a.rows=5;a.cols=60;c.appendChild(a);var g=document.createElement("div");g.style.height="20px";c.appendChild(g);var b=document.createElement("input");b.type="button";b.id="dialog_continue";b.value="Continue";c.appendChild(b);Fisma.HtmlPanel.showPanel("Mitigation Strategy Approval",c.innerHTML);document.getElementById("dialog_continue").onclick=function(){var i=d;var j=document.getElementById("dialog_comment").value;i.elements.comment.value=j;i.elements.decision.value="APPROVED";var h=document.createElement("input");h.type="hidden";h.name="submit_msa";h.value="APPROVED";i.appendChild(h);i.submit()};return true},ms_deny:function(d){if(!form_confirm(document.finding_detail,"deny the mitigation strategy")){return false}var c=document.createElement("div");var e=document.createElement("p");var f=document.createTextNode("Comments:");e.appendChild(f);c.appendChild(e);var a=document.createElement("textarea");a.id="dialog_comment";a.name="comment";a.rows=5;a.cols=60;c.appendChild(a);var g=document.createElement("div");g.style.height="20px";c.appendChild(g);var b=document.createElement("input");b.type="button";b.id="dialog_continue";b.value="Continue";c.appendChild(b);Fisma.HtmlPanel.showPanel("Mitigation Strategy Denial",c.innerHTML);document.getElementById("dialog_continue").onclick=function(){var i=d;var j=document.getElementById("dialog_comment").value;if(j.match(/^\s*$/)){alert("Comments are required in order to submit.");return}i.elements.comment.value=j;i.elements.decision.value="DENIED";var h=document.createElement("input");h.type="hidden";h.name="submit_msa";h.value="DENIED";i.appendChild(h);i.submit();return};return true}};/**
  * Copyright (c) 2008 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
@@ -4607,8 +6606,7 @@ Fisma.Remediation = {
         Fisma.UrlPanel.showPanel(
             'Upload Evidence', 
             '/finding/remediation/upload-form', 
-            Fisma.Remediation.upload_evidence_form_init
-        );
+            Fisma.Remediation.upload_evidence_form_init);
 
         return false;
     },
@@ -4656,11 +6654,7 @@ Fisma.Remediation = {
         Fisma.HtmlPanel.showPanel('Evidence Approval', content.innerHTML);
         document.getElementById('dialog_continue').onclick = function (){
             var form2 = formname;
-            if  (document.all) { // IE
-                var comment = document.getElementById('dialog_comment').innerHTML;
-            } else {// firefox
-                var comment = document.getElementById('dialog_comment').value;
-            }
+            var comment = document.getElementById('dialog_comment').value;
             form2.elements['comment'].value = comment;
             form2.elements['decision'].value = 'APPROVED';
             var submitMsa = document.createElement('input');
@@ -4669,7 +6663,9 @@ Fisma.Remediation = {
             submitMsa.value = 'APPROVED';
             form2.appendChild(submitMsa);
             form2.submit();
-        }
+        };
+        
+        return true;
     },
 
     /**
@@ -4705,11 +6701,7 @@ Fisma.Remediation = {
         Fisma.HtmlPanel.showPanel('Evidence Denial', content.innerHTML);
         document.getElementById('dialog_continue').onclick = function (){
             var form2 = formname;
-            if  (document.all) { // IE
-                var comment = document.getElementById('dialog_comment').innerHTML;
-            } else {// firefox
-                var comment = document.getElementById('dialog_comment').value;
-            }
+            var comment = document.getElementById('dialog_comment').value;
             if (comment.match(/^\s*$/)) {
                 alert('Comments are required in order to deny.');
                 return;
@@ -4722,7 +6714,10 @@ Fisma.Remediation = {
             submitMsa.value = 'DENIED';
             form2.appendChild(submitMsa);
             form2.submit();
-        }
+            return;
+        };
+        
+        return true;
     },
 
     /**
@@ -4759,11 +6754,7 @@ Fisma.Remediation = {
         Fisma.HtmlPanel.showPanel('Mitigation Strategy Approval', content.innerHTML);
         document.getElementById('dialog_continue').onclick = function (){
             var form2 = formname;
-            if  (document.all) { // IE
-                var comment = document.getElementById('dialog_comment').innerHTML;
-            } else {// firefox
-                var comment = document.getElementById('dialog_comment').value;
-            }
+            var comment = document.getElementById('dialog_comment').value;
             form2.elements['comment'].value = comment;
             form2.elements['decision'].value = 'APPROVED';
             var submitMsa = document.createElement('input');
@@ -4772,7 +6763,9 @@ Fisma.Remediation = {
             submitMsa.value = 'APPROVED';
             form2.appendChild(submitMsa);
             form2.submit();
-        }
+        };
+        
+        return true;
     },
 
     /**
@@ -4809,11 +6802,7 @@ Fisma.Remediation = {
         Fisma.HtmlPanel.showPanel('Mitigation Strategy Denial', content.innerHTML);
         document.getElementById('dialog_continue').onclick = function (){
             var form2 = formname;
-            if  (document.all) { // IE
-                var comment = document.getElementById('dialog_comment').innerHTML;
-            } else {// firefox
-                var comment = document.getElementById('dialog_comment').value;
-            }
+            var comment = document.getElementById('dialog_comment').value;
             if (comment.match(/^\s*$/)) {
                 alert('Comments are required in order to submit.');
                 return;
@@ -4826,10 +6815,13 @@ Fisma.Remediation = {
             submitMsa.value = 'DENIED';
             form2.appendChild(submitMsa);
             form2.submit();
-        }
+            return;
+        };
+        
+        return true;
     }
-}
-Fisma.Search=function(){return{yuiDataTable:null,onSetTableCallback:null,testConfigurationActive:false,advancedSearchPanel:null,columnPreferencesSpinner:null,showDeletedRecords:false,testConfiguration:function(){if(Fisma.Search.testConfigurationActive){return}Fisma.Search.testConfigurationActive=true;var a=document.getElementById("testConfiguration");a.className="yui-button yui-push-button yui-button-disabled";var c=new Fisma.Spinner(a.parentNode);c.show();var b=document.getElementById("search_config");YAHOO.util.Connect.setForm(b);YAHOO.util.Connect.asyncRequest("POST","/config/test-search/format/json",{success:function(e){var d=YAHOO.lang.JSON.parse(e.responseText).response;if(d.success){message("Search configuration is valid","notice",true)}else{message(d.message,"warning",true)}a.className="yui-button yui-push-button";Fisma.Search.testConfigurationActive=false;c.hide()},failure:function(d){message("Error: "+d.statusText,"warning");c.hide()}})},handleSearchEvent:function(d){if(document.getElementById("advancedSearch").style.display=="none"){document.getElementById("searchType").value="simple"}document.getElementById("msgbar").style.display="none";var f=Fisma.Search.yuiDataTable;var b={success:function(i,h,k){f.onDataReturnReplaceRows(i,h,k);var j=0;var l;do{l=f.getColumn(j);j++}while(l.formatter==Fisma.TableFormat.formatCheckbox);f.set("sortedBy",{key:l.key,dir:YAHOO.widget.DataTable.CLASS_ASC});f.get("paginator").setPage(1,true)},failure:f.onDataReturnReplaceRows,scope:f,argument:f.getState()};try{var e=this.getQuery(d);var a=this.convertQueryToPostData(e);f.showTableMessage("Loading...");var g=f.getDataSource();g.connMethodPost=true;g.sendRequest(a,b)}catch(c){if("string"==typeof c){alert(c)}}},getQuery:function(c){var b=document.getElementById("searchType").value;var d={queryType:b};if("simple"==b){d.keywords=c.keywords.value}else{if("advanced"==b){var a=this.advancedSearchPanel.getQuery();d.query=YAHOO.lang.JSON.stringify(a)}else{throw"Invalid value for search type: "+b}}d.showDeleted=this.showDeletedRecords;d.csrf=document.getElementById("searchForm").csrf.value;return d},convertQueryToPostData:function(c){var b=Array();for(var d in c){var e=c[d];b.push(d+"="+encodeURIComponent(e))}var a=b.join("&");return a},exportToFile:function(b,i){var c=document.getElementById("searchForm");var k=Fisma.Search.yuiDataTable;var a=k.getDataSource();var f=a.liveData;var d=document.createElement("form");d.method="post";d.action=f+"/format/"+i;d.style.display="none";var g=Fisma.Search.getQuery(c);for(var j in g){var h=g[j];var e=document.createElement("input");e.type="hidden";e.name=j;e.value=h;d.appendChild(e)}document.body.appendChild(d);d.submit()},handleYuiDataTableEvent:function(c,f){var e=document.getElementById("searchType").value;if(document.getElementById("advancedSearch").style.display=="none"){e="simple"}document.getElementById("msgbar").style.display="none";var a="sort="+c.sortedBy.key+"&dir="+(c.sortedBy.dir=="yui-dt-asc"?"asc":"desc")+"&start="+c.pagination.recordOffset+"&count="+c.pagination.rowsPerPage+"&csrf="+document.getElementById("searchForm").csrf.value;try{if("simple"==e){a+="&queryType=simple&keywords="+encodeURIComponent(document.getElementById("keywords").value)}else{if("advanced"==e){var b=Fisma.Search.advancedSearchPanel.getQuery();a+="&queryType=advanced&query="+encodeURIComponent(YAHOO.lang.JSON.stringify(b))}else{throw"Invalid value for search type: "+e}}}catch(d){if("string"==typeof d){message(d,"warning",true)}}a+="&showDeleted="+Fisma.Search.showDeletedRecords;f.getDataSource().connMethodPost=true;return a},highlightSearchResultsTable:function(d){var d=Fisma.Search.yuiDataTable;var c=d.getTbodyEl();var b=c.getElementsByTagName("td");var a="***";Fisma.Highlighter.highlightDelimitedText(b,a)},toggleAdvancedSearchPanel:function(){if(document.getElementById("advancedSearch").style.display=="none"){document.getElementById("advancedSearch").style.display="block";document.getElementById("keywords").style.visibility="hidden";document.getElementById("searchType").value="advanced"}else{document.getElementById("advancedSearch").style.display="none";document.getElementById("keywords").style.visibility="visible";document.getElementById("searchType").value="simple";document.getElementById("msgbar").style.display="none"}},toggleSearchColumnsPanel:function(){if(document.getElementById("searchColumns").style.display=="none"){document.getElementById("searchColumns").style.display="block"}else{document.getElementById("searchColumns").style.display="none"}},initializeSearchColumnsPanel:function(a,k){var j=document.getElementById("modelName").value;var l=j+"Columns";var b=YAHOO.util.Cookie.get(l);var i=0;for(var g in k){var n=k[g];if(n.hidden===true){continue}var m=n.initiallyVisible;if(b){m=(b&1<<i)!=0}i++;var h="Column is visible. Click to hide column.";var f="Column is hidden. Click to unhide column.";var c=new YAHOO.widget.Button({type:"checkbox",label:n.label,container:a,checked:m,onclick:{fn:function(q,r){this.set("title",this.get("checked")?h:f);var p=Fisma.Search.yuiDataTable;var o=p.getColumn(r);if(this.get("checked")){p.showColumn(o)}else{p.hideColumn(o)}Fisma.Search.saveColumnCookies()},obj:n.name}});c.set("title",m?h:f)}var e=document.createElement("div");e.style.marginLeft="20px";e.style.marginBottom="20px";e.style["float"]="right";var d=new YAHOO.widget.Button({type:"button",label:"Save Column Preferences",container:e,onclick:{fn:Fisma.Search.persistColumnCookie}});if(!Fisma.Search.columnPreferencesSpinner){Fisma.Search.columnPreferencesSpinner=new Fisma.Spinner(e)}a.appendChild(e)},toggleMoreButton:function(){if(document.getElementById("moreSearchOptions").style.display=="none"){document.getElementById("moreSearchOptions").style.display="block"}else{document.getElementById("moreSearchOptions").style.display="none"}},saveColumnCookies:function(){var f=Fisma.Search.yuiDataTable;var e=f.getColumnSet().keys;var c=0;var b=0;for(var d in e){if(e[d].formatter==Fisma.TableFormat.formatCheckbox){continue}if(!e[d].hidden){c|=1<<b}b++}var a=document.getElementById("modelName").value;var g=a+"Columns";YAHOO.util.Cookie.set(g,c,{path:"/",secure:location.protocol=="https"})},persistColumnCookie:function(){Fisma.Search.saveColumnCookies();var a=document.getElementById("modelName").value;var c=a+"Columns";var b=YAHOO.util.Cookie.get(c);Fisma.Search.columnPreferencesSpinner.show();YAHOO.util.Connect.asyncRequest("GET","/user/set-cookie/name/"+c+"/value/"+b+"/format/json",{success:function(e){Fisma.Search.columnPreferencesSpinner.hide();var d=YAHOO.lang.JSON.parse(e.responseText);if(d.success){message("Your column preferences have been saved","notice",true)}else{message(d.message,"warning",true)}},failure:function(d){Fisma.Search.columnPreferencesSpinner.hide();message("Error: "+d.statusText,"warning",true)}})},toggleShowDeletedRecords:function(){Fisma.Search.showDeletedRecords=!Fisma.Search.showDeletedRecords;var a=document.getElementById("searchForm");Fisma.Search.handleSearchEvent(a)},deleteSelectedRecords:function(){var j=[];var b=Fisma.Search.yuiDataTable;var d=b.getSelectedRows();for(var f=0;f<d.length;f++){var g=b.getRecord(d[f]);if(g){j.push(g.getData("id"))}}if(0==j.length){message("No records selected for deletion.","warning",true);return}if(!confirm("Delete "+j.length+" records?")){return}var h=Fisma.Search.yuiDataTable.getDataSource().liveData;var a=h.split("/");a[a.length-1]="multi-delete";var c=a.join("/");var e={success:function(l,i,n){b.onDataReturnReplaceRows(l,i,n);var m=0;var o;do{o=b.getColumn(m);m++}while(o.formatter==Fisma.TableFormat.formatCheckbox);b.set("sortedBy",{key:o.key,dir:YAHOO.widget.DataTable.CLASS_ASC});b.get("paginator").setPage(1,true)},failure:b.onDataReturnReplaceRows,scope:b,argument:b.getState()};var k="csrf="+document.getElementById("searchForm").csrf.value+"&records="+YAHOO.lang.JSON.stringify(j);YAHOO.util.Connect.asyncRequest("POST",c,{success:function(q){var m=[];if(q.responseText!==undefined){var l=YAHOO.lang.JSON.parse(q.responseText);message(l.msg,l.status,true)}var n=Fisma.Search.getQuery(document.getElementById("searchForm"));var i=Fisma.Search.convertQueryToPostData(n);b.showTableMessage("Loading...");var p=b.getDataSource();p.connMethodPost=true;p.sendRequest(i,e)},failure:function(l){var i="An error occurred while trying to delete the records. The error has been logged for administrator review.";message(i,"warning",true)}},k)},setTable:function(a){this.yuiDataTable=a;if(this.onSetTableCallback){this.onSetTableCallback()}},onSetTable:function(a){this.onSetTableCallback=a}}}();/**
+};
+Fisma.Search=function(){return{yuiDataTable:null,onSetTableCallback:null,testConfigurationActive:false,advancedSearchPanel:null,columnPreferencesSpinner:null,showDeletedRecords:false,searchPreferences:null,updateSearchPreferences:false,testConfiguration:function(){if(Fisma.Search.testConfigurationActive){return}Fisma.Search.testConfigurationActive=true;var a=document.getElementById("testConfiguration");a.className="yui-button yui-push-button yui-button-disabled";var c=new Fisma.Spinner(a.parentNode);c.show();var b=document.getElementById("search_config");YAHOO.util.Connect.setForm(b);YAHOO.util.Connect.asyncRequest("POST","/config/test-search/format/json",{success:function(e){var d=YAHOO.lang.JSON.parse(e.responseText).response;if(d.success){message("Search configuration is valid","notice",true)}else{message(d.message,"warning",true)}a.className="yui-button yui-push-button";Fisma.Search.testConfigurationActive=false;c.hide()},failure:function(d){message("Error: "+d.statusText,"warning");c.hide()}})},executeSearch:function(d){if(document.getElementById("advancedSearch").style.display=="none"){document.getElementById("searchType").value="simple"}document.getElementById("msgbar").style.display="none";var e=Fisma.Search.yuiDataTable;var b={success:function(h,g,j){e.onDataReturnReplaceRows(h,g,j);var i=0;var k;do{k=e.getColumn(i);i++}while(k.formatter==Fisma.TableFormat.formatCheckbox)},failure:e.onDataReturnReplaceRows,scope:e,argument:e.getState()};try{var a=this.buildPostRequest(e.getState());e.showTableMessage("Loading...");var f=e.getDataSource();f.connMethodPost=true;f.sendRequest(a,b)}catch(c){if("string"==typeof c){alert(c)}}},handleSearchEvent:function(f){var d=new Fisma.Search.QueryState(f.modelName.value);var c={type:f.searchType.value};if(c.type==="advanced"){var b=Fisma.Search.advancedSearchPanel.getPanelState();var a={};for(var e in b){a[b[e].field]=b[e].operator}c.fields=a}Fisma.Search.updateSearchPreferences=true;Fisma.Search.searchPreferences=c;Fisma.Search.updateQueryState(d,f);Fisma.Search.executeSearch(f)},updateQueryState:function(b,d){var c=YAHOO.util.Dom;var a=d.searchType.value;b.setSearchType(a);if(a==="simple"){b.setKeywords(d.keywords.value)}else{if(a==="advanced"){b.setAdvancedQuery(Fisma.Search.advancedSearchPanel.getPanelState())}}},getQuery:function(c){var b=document.getElementById("searchType").value;var d={queryType:b};if("simple"==b){d.keywords=c.keywords.value}else{if("advanced"==b){var a=this.advancedSearchPanel.getQuery();d.query=YAHOO.lang.JSON.stringify(a)}else{throw"Invalid value for search type: "+b}}d.showDeleted=this.showDeletedRecords;d.csrf=document.getElementById("searchForm").csrf.value;return d},convertQueryToPostData:function(c){var b=Array();for(var d in c){var e=c[d];b.push(d+"="+encodeURIComponent(e))}var a=b.join("&");return a},exportToFile:function(b,i){var c=document.getElementById("searchForm");var k=Fisma.Search.yuiDataTable;var a=k.getDataSource();var f=a.liveData;var d=document.createElement("form");d.method="post";d.action=f+"/format/"+i;d.style.display="none";var g=Fisma.Search.getQuery(c);for(var j in g){var h=g[j];var e=document.createElement("input");e.type="hidden";e.name=j;e.value=h;d.appendChild(e)}document.body.appendChild(d);d.submit()},generateRequest:function(b,e){var d=document.getElementById("searchType").value;if(document.getElementById("advancedSearch").style.display=="none"){d="simple"}document.getElementById("msgbar").style.display="none";var a="";try{a=Fisma.Search.buildPostRequest(b)}catch(c){if("string"==typeof c){message(c,"warning",true)}}e.getDataSource().connMethodPost=true;return a},buildPostRequest:function(b){var c=document.getElementById("searchType").value;var a={sort:b.sortedBy.key,dir:(b.sortedBy.dir=="yui-dt-asc"?"asc":"desc"),start:b.pagination.recordOffset,count:b.pagination.rowsPerPage,csrf:document.getElementById("searchForm").csrf.value,showDeleted:Fisma.Search.showDeletedRecords,queryType:c};if("simple"==c){a.keywords=document.getElementById("keywords").value}else{if("advanced"==c){a.query=YAHOO.lang.JSON.stringify(Fisma.Search.advancedSearchPanel.getQuery())}else{throw"Invalid value for search type: "+c}}if(Fisma.Search.updateSearchPreferences){a.queryOptions=YAHOO.lang.JSON.stringify(Fisma.Search.searchPreferences)}var e=[];for(var d in a){e.push(d+"="+encodeURIComponent(a[d]))}return e.join("&")},highlightSearchResultsTable:function(d){var c=d.getTbodyEl();var b=c.getElementsByTagName("td");var a="***";Fisma.Highlighter.highlightDelimitedText(b,a)},toggleAdvancedSearchPanel:function(){var b=YAHOO.util.Dom;var c=YAHOO.widget.Button.getButton("advanced");var a=b.get("advancedSearch");if(a.style.display=="none"){a.style.display="block";b.get("keywords").style.visibility="hidden";b.get("searchType").value="advanced";c.set("checked",true)}else{a.style.display="none";b.get("keywords").style.visibility="visible";b.get("searchType").value="simple";c.set("checked",false);b.get("msgbar").style.display="none"}},toggleSearchColumnsPanel:function(){if(document.getElementById("searchColumns").style.display=="none"){document.getElementById("searchColumns").style.display="block"}else{document.getElementById("searchColumns").style.display="none"}},initializeSearchColumnsPanel:function(a){var k=document.getElementById("modelName").value,m=new Fisma.Search.TablePreferences(k),e=Fisma.Search.yuiDataTable.getColumnSet().keys,j="Column is visible. Click to hide column.",h="Column is hidden. Click to unhide column.";for(var i in e){var d=e[i],b=d.key;if(b==="deleteCheckbox"){continue}var l=!d.hidden;var c=new YAHOO.widget.Button({type:"checkbox",label:d.label,container:a,checked:l,onclick:{fn:function(q,r){var p=Fisma.Search.yuiDataTable,n=p.getColumn(r.name),o=this.get("checked");this.set("title",o?j:h);if(o){p.showColumn(n)}else{p.hideColumn(n)}r.prefs.setColumnVisibility(r.name,o)},obj:{name:b,prefs:m}}});c.set("title",l?j:h)}var g=document.createElement("div");var f=new YAHOO.widget.Button({type:"button",label:"Save Column Preferences",container:g,onclick:{fn:Fisma.Search.persistColumnPreferences}});if(!Fisma.Search.columnPreferencesSpinner){Fisma.Search.columnPreferencesSpinner=new Fisma.Spinner(g)}a.appendChild(g)},toggleMoreButton:function(){if(document.getElementById("moreSearchOptions").style.display=="none"){document.getElementById("moreSearchOptions").style.display="block"}else{document.getElementById("moreSearchOptions").style.display="none"}},persistColumnPreferences:function(){var a=document.getElementById("modelName").value,b=new Fisma.Search.TablePreferences(a);Fisma.Search.columnPreferencesSpinner.show();b.persist({success:function(c,d){Fisma.Search.columnPreferencesSpinner.hide();if(d.status==="ok"){message("Your column preferences have been saved","notice",true)}else{message(d.status,"warning",true)}},failure:function(c){Fisma.Search.columnPreferencesSpinner.hide();message("Error: "+c.statusText,"warning",true)}})},toggleShowDeletedRecords:function(){Fisma.Search.showDeletedRecords=!Fisma.Search.showDeletedRecords;var a=document.getElementById("searchForm");Fisma.Search.handleSearchEvent(a)},deleteSelectedRecords:function(){var j=[];var b=Fisma.Search.yuiDataTable;var d=b.getSelectedRows();for(var f=0;f<d.length;f++){var g=b.getRecord(d[f]);if(g){j.push(g.getData("id"))}}if(0===j.length){message("No records selected for deletion.","warning",true);return}if(!confirm("Delete "+j.length+" records?")){return}var h=Fisma.Search.yuiDataTable.getDataSource().liveData;var a=h.split("/");a[a.length-1]="multi-delete";var c=a.join("/");var e={success:function(l,i,n){b.onDataReturnReplaceRows(l,i,n);var m=0;var o;do{o=b.getColumn(m);m++}while(o.formatter==Fisma.TableFormat.formatCheckbox);b.set("sortedBy",{key:o.key,dir:YAHOO.widget.DataTable.CLASS_ASC});b.get("paginator").setPage(1,true)},failure:b.onDataReturnReplaceRows,scope:b,argument:b.getState()};var k="csrf=";k+=document.getElementById("searchForm").csrf.value;k+="&records=";k+=YAHOO.lang.JSON.stringify(j);YAHOO.util.Connect.asyncRequest("POST",c,{success:function(q){var m=[];if(q.responseText!==undefined){var l=YAHOO.lang.JSON.parse(q.responseText);message(l.msg,l.status,true)}var n=Fisma.Search.getQuery(document.getElementById("searchForm"));var i=Fisma.Search.convertQueryToPostData(n);b.showTableMessage("Loading...");var p=b.getDataSource();p.connMethodPost=true;p.sendRequest(i,e)},failure:function(l){var i="An error occurred while trying to delete the records.";i+=" The error has been logged for administrator review.";message(i,"warning",true)}},k)},setTable:function(a){this.yuiDataTable=a;if(this.onSetTableCallback){this.onSetTableCallback()}},onSetTable:function(a){this.onSetTableCallback=a;if(YAHOO.lang.isObject(this.yuiDataTable)){this.onSetTableCallback()}}}}();/**
  * Copyright (c) 2010 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
@@ -4886,6 +6878,16 @@ Fisma.Search = function() {
         showDeletedRecords : false,
 
         /**
+         * User search preferences for when a search hasn't been executed on this model this session.
+         */
+        searchPreferences: null,
+
+        /**
+         * Boolean flag as to whether the search preferences have been updated.
+         */
+        updateSearchPreferences: false,
+
+        /**
          * Test the current system configuration
          */
         testConfiguration : function () {
@@ -4933,14 +6935,14 @@ Fisma.Search = function() {
         },
 
         /**
-         * Handles a search event. This works in tandem with the search.form and Fisma_Zend_Controller_Action_Object.
+         * Executes a search
          *
          * Two types of query are possible: simple and advanced. A hidden field is used to determine which of the
          * two to use while handling this event.
          *
          * @param form Reference to the search form
          */
-        handleSearchEvent : function (form) {
+        executeSearch: function (form) {
 
             // Ensure the search type is simple when advance search is hidden
             if (document.getElementById('advancedSearch').style.display == 'none') {
@@ -4965,20 +6967,15 @@ Fisma.Search = function() {
                         
                         sortColumnIndex++;
                     } while (sortColumn.formatter == Fisma.TableFormat.formatCheckbox);
-
-                    dataTable.set("sortedBy", {key : sortColumn.key, dir : YAHOO.widget.DataTable.CLASS_ASC});
-                    dataTable.get('paginator').setPage(1, true);
                 },
                 failure : dataTable.onDataReturnReplaceRows,
                 scope : dataTable,
                 argument : dataTable.getState()
-            }
+            };
 
             // Construct a query URL based on whether this is a simple or advanced search
             try {
-                var query = this.getQuery(form);
-
-                var postData = this.convertQueryToPostData(query);
+                var postData = this.buildPostRequest(dataTable.getState());
 
                 dataTable.showTableMessage("Loading...");
 
@@ -4994,6 +6991,45 @@ Fisma.Search = function() {
         },
 
         /**
+         * Handles a search event. This works in tandem with the search.form and Fisma_Zend_Controller_Action_Object.
+         *
+         * @param form Reference to the search form
+         */
+        handleSearchEvent: function(form) {
+            var queryState = new Fisma.Search.QueryState(form.modelName.value);
+            var searchPrefs = {type: form.searchType.value};
+            if (searchPrefs.type === 'advanced') {
+                var panelState = Fisma.Search.advancedSearchPanel.getPanelState();
+                var fields = {};
+                for (var i in panelState) {
+                    fields[panelState[i].field] = panelState[i].operator;
+                }
+                searchPrefs['fields'] = fields;
+            }
+            Fisma.Search.updateSearchPreferences = true;
+            Fisma.Search.searchPreferences = searchPrefs;
+            Fisma.Search.updateQueryState(queryState, form);
+            Fisma.Search.executeSearch(form);
+        },
+
+        /**
+         * Update Query State
+         *
+         * @param queryState {Fisma.Search.QueryState}
+         * @param form Reference to the search form
+         */
+        updateQueryState: function(queryState, form) {
+            var Dom = YAHOO.util.Dom;
+            var searchType = form.searchType.value;
+            queryState.setSearchType(searchType);
+            if (searchType === "simple") {
+                queryState.setKeywords(form.keywords.value);
+            } else if (searchType === "advanced") {
+                queryState.setAdvancedQuery(Fisma.Search.advancedSearchPanel.getPanelState());
+            }
+        },
+
+        /**
          * Returns a POST request suitable for submitting a search query
          *
          * @var form A reference to the form
@@ -5004,7 +7040,7 @@ Fisma.Search = function() {
             var query = {queryType : searchType};
 
             if ('simple' == searchType) {
-                query['keywords'] = form.keywords.value
+                query['keywords'] = form.keywords.value;
             } else if ('advanced' == searchType) {
                 var queryData = this.advancedSearchPanel.getQuery();
 
@@ -5089,7 +7125,7 @@ Fisma.Search = function() {
          * @param table From YUI
          * @return string URL encoded post data
          */
-        handleYuiDataTableEvent : function (tableState, table) {
+        generateRequest: function (tableState, table) {
 
             var searchType = document.getElementById('searchType').value;
 
@@ -5101,35 +7137,55 @@ Fisma.Search = function() {
             // The error message of advance search should be hidden before handles YUI data
             document.getElementById('msgbar').style.display = 'none';
 
-            var postData = "sort=" + tableState.sortedBy.key +
-                           "&dir=" + (tableState.sortedBy.dir == 'yui-dt-asc' ? 'asc' : 'desc') +
-                           "&start=" + tableState.pagination.recordOffset +
-                           "&count=" + tableState.pagination.rowsPerPage +
-                           "&csrf=" + document.getElementById('searchForm').csrf.value;
+            var postData = "";
 
             try {
-                if ('simple' == searchType) {
-                    postData += "&queryType=simple&keywords=" 
-                              + encodeURIComponent(document.getElementById('keywords').value);
-                } else if ('advanced' == searchType) {
-                    var queryData = Fisma.Search.advancedSearchPanel.getQuery();
-
-                    postData += "&queryType=advanced&query=" 
-                              + encodeURIComponent(YAHOO.lang.JSON.stringify(queryData));
-                } else {
-                    throw "Invalid value for search type: " + searchType;
-                }
+                postData = Fisma.Search.buildPostRequest(tableState);
             } catch (error) {
                 if ('string' == typeof error) {
                     message(error, 'warning', true);
                 }
             }
 
-            postData += "&showDeleted=" + Fisma.Search.showDeletedRecords;
-
             table.getDataSource().connMethodPost = true;
 
             return postData;
+        },
+
+        /**
+         * Method to generate the post data for the current query and table state
+         *
+         * @param tableState From YUI
+         * @return {String} Post data representation of the current query
+         */
+        buildPostRequest: function (tableState) {
+            var searchType = document.getElementById('searchType').value;
+            var postData = {
+                sort: tableState.sortedBy.key,
+                dir: (tableState.sortedBy.dir == 'yui-dt-asc' ? 'asc' : 'desc'),
+                start: tableState.pagination.recordOffset,
+                count: tableState.pagination.rowsPerPage,
+                csrf: document.getElementById('searchForm').csrf.value,
+                showDeleted: Fisma.Search.showDeletedRecords,
+                queryType: searchType
+            };
+            if ('simple' == searchType) {
+                postData.keywords = document.getElementById('keywords').value;
+            } else if ('advanced' == searchType) {
+                postData.query = YAHOO.lang.JSON.stringify(Fisma.Search.advancedSearchPanel.getQuery());
+            } else {
+                throw "Invalid value for search type: " + searchType;
+            }
+
+            if (Fisma.Search.updateSearchPreferences) {
+                postData.queryOptions = YAHOO.lang.JSON.stringify(Fisma.Search.searchPreferences);
+            }
+
+            var postDataArray = [];
+            for (var key in postData) {
+                postDataArray.push(key + "=" + encodeURIComponent(postData[key]));
+            }
+            return postDataArray.join("&");
         },
 
         /**
@@ -5141,7 +7197,6 @@ Fisma.Search = function() {
          * @param dataTable The YUI data table to perform highlighting on
          */
         highlightSearchResultsTable :  function (dataTable) {
-            var dataTable = Fisma.Search.yuiDataTable;
 
             var tbody = dataTable.getTbodyEl();
 
@@ -5156,21 +7211,23 @@ Fisma.Search = function() {
          * Show or hide the advanced search options UI
          */
         toggleAdvancedSearchPanel : function () {
-            if (document.getElementById('advancedSearch').style.display == 'none') {
-
-                document.getElementById('advancedSearch').style.display = 'block';
-                document.getElementById('keywords').style.visibility = 'hidden';
-                document.getElementById('searchType').value = 'advanced';
-
+            var Dom = YAHOO.util.Dom;
+            var yuiButton = YAHOO.widget.Button.getButton("advanced");
+            var advancedSearch = Dom.get("advancedSearch");
+            if (advancedSearch.style.display == 'none') {
+                advancedSearch.style.display = 'block';
+                Dom.get('keywords').style.visibility = 'hidden';
+                Dom.get('searchType').value = 'advanced';
+                yuiButton.set("checked", true);
             } else {
-
-                document.getElementById('advancedSearch').style.display = 'none';
-                document.getElementById('keywords').style.visibility = 'visible';
-                document.getElementById('searchType').value = 'simple';
+                advancedSearch.style.display = 'none';
+                Dom.get('keywords').style.visibility = 'visible';
+                Dom.get('searchType').value = 'simple';
+                yuiButton.set("checked", false);
 
                 // The error message of advance search should not be displayed
                 // after the advanced search options is hidden
-                document.getElementById('msgbar').style.display = 'none';
+                Dom.get('msgbar').style.display = 'none';
             }
         },
 
@@ -5190,56 +7247,50 @@ Fisma.Search = function() {
          *
          * @param container The HTML element to render into
          * @param searchOptions The options defined in Fisma_Search_Searchable interface
+         * @param columnVisibility Initial visibility of table columns
          */
-        initializeSearchColumnsPanel : function (container, searchOptions) {
+        initializeSearchColumnsPanel : function (container) {
 
             // Set up the cookie used for tracking which columns are visible
-            var modelName = document.getElementById('modelName').value;
-            var cookieName = modelName + "Columns";
-            var cookie = YAHOO.util.Cookie.get(cookieName);
-            var currentColumn = 0;
+            var modelName = document.getElementById('modelName').value,
+                prefs = new Fisma.Search.TablePreferences(modelName),
+                columns = Fisma.Search.yuiDataTable.getColumnSet().keys,
+                // Title elements used for accessibility
+                checkedTitle = "Column is visible. Click to hide column.",
+                uncheckedTitle = "Column is hidden. Click to unhide column.";
 
-            for (var index in searchOptions) {
-                var searchOption = searchOptions[index];
+            for (var index in columns) {
+                var column = columns[index],
+                    columnName = column.key;
 
-                if (searchOption['hidden'] === true) {
+                if (columnName === "deleteCheckbox") {
                     continue;
                 }
 
-                // Use the cookie to determine which buttons are on, or use the metadata if no cookie exists
-                var checked = searchOption.initiallyVisible;
-
-                if (cookie) {
-                    checked = (cookie & 1 << currentColumn) != 0;
-                }
-
-                currentColumn++;
-
-                // Title elements used for accessibility
-                var checkedTitle = "Column is visible. Click to hide column.";
-                var uncheckedTitle = "Column is hidden. Click to unhide column.";
+                var checked = !column.hidden;
 
                 var columnToggleButton = new YAHOO.widget.Button({
                     type : "checkbox",
-                    label : searchOption.label,
+                    label : column.label,
                     container : container,
                     checked : checked,
                     onclick : {
-                        fn : function (event, columnKey) {
-                            this.set("title", this.get("checked") ? checkedTitle : uncheckedTitle);
+                        fn : function (event, obj) {
+                            var table = Fisma.Search.yuiDataTable,
+                                column = table.getColumn(obj.name),
+                                checked = this.get("checked");
 
-                            var table = Fisma.Search.yuiDataTable;
-                            var column = table.getColumn(columnKey);
+                            this.set("title", checked ? checkedTitle : uncheckedTitle);
 
-                            if (this.get('checked')) {
+                            if (checked) {
                                 table.showColumn(column);
                             } else {
                                 table.hideColumn(column);
                             }
 
-                            Fisma.Search.saveColumnCookies();
+                            obj.prefs.setColumnVisibility(obj.name, checked);
                         },
-                        obj : searchOption.name
+                        obj : {name: columnName, prefs: prefs}
                     }
                 });
 
@@ -5247,10 +7298,6 @@ Fisma.Search = function() {
             }
 
             var saveDiv = document.createElement('div');
-            saveDiv.style.marginLeft = '20px';
-            saveDiv.style.marginBottom = '20px';
-            // The following line trips up YUI compressor if object notation (.) is used instead of array []
-            saveDiv.style['float'] = 'right';
 
             // Create the Save button
             var saveButton = new YAHOO.widget.Button({
@@ -5258,7 +7305,7 @@ Fisma.Search = function() {
                 label : "Save Column Preferences",
                 container : saveDiv,
                 onclick : {
-                    fn : Fisma.Search.persistColumnCookie
+                    fn : Fisma.Search.persistColumnPreferences
                 }
             });
 
@@ -5283,78 +7330,31 @@ Fisma.Search = function() {
         },
 
         /**
-         * Save the currently visible columns into a cookie
-         *
-         * @param table YUI Table
-         */
-        saveColumnCookies : function () {
-            var table = Fisma.Search.yuiDataTable;
-            var columnKeys = table.getColumnSet().keys;
-
-            // Column preferences are stored as a bitmap (1=>visible, 0=>hidden)
-            var prefBitmap = 0;
-            var currentColumn = 0;
-
-            for (var column in columnKeys) {
-                if (columnKeys[column].formatter == Fisma.TableFormat.formatCheckbox) {
-                    continue;
-                }
-
-                if (!columnKeys[column].hidden) {
-                    prefBitmap |= 1 << currentColumn;
-                }
-                
-                currentColumn++;
-            }
-
-            var modelName = document.getElementById('modelName').value;
-            var cookieName = modelName + "Columns";
-
-            YAHOO.util.Cookie.set(
-                cookieName,
-                prefBitmap,
-                {
-                    path : "/",
-                    secure : location.protocol == 'https'
-                }
-            );
-        },
-
-        /**
          * Persist the column cookie into the user's profile
          */
-        persistColumnCookie : function () {
-            Fisma.Search.saveColumnCookies();
+        persistColumnPreferences : function () {
 
-            var modelName = document.getElementById('modelName').value;
-            var cookieName = modelName + "Columns";
-            var cookie = YAHOO.util.Cookie.get(cookieName);
-
+            var modelName = document.getElementById('modelName').value,
+                prefs = new Fisma.Search.TablePreferences(modelName);
             Fisma.Search.columnPreferencesSpinner.show();
 
-            YAHOO.util.Connect.asyncRequest(
-                'GET',
-                '/user/set-cookie/name/' + cookieName + '/value/' + cookie + '/format/json',
-                {
-                    success : function (o) {
-                        Fisma.Search.columnPreferencesSpinner.hide();
+            prefs.persist({
+                success : function (response, object) {
+                    Fisma.Search.columnPreferencesSpinner.hide();
 
-                        var response = YAHOO.lang.JSON.parse(o.responseText);
-
-                        if (response.success) {
-                            message("Your column preferences have been saved", "notice", true);
-                        } else {
-                            message(response.message, "warning", true);
-                        }
-                    },
-
-                    failure : function (o) {
-                        Fisma.Search.columnPreferencesSpinner.hide();
-
-                        message('Error: ' + o.statusText, 'warning', true);
+                    if (object.status === "ok") {
+                        message("Your column preferences have been saved", "notice", true);
+                    } else {
+                        message(object.status, "warning", true);
                     }
+                },
+
+                failure : function (response) {
+                    Fisma.Search.columnPreferencesSpinner.hide();
+
+                    message('Error: ' + response.statusText, 'warning', true);
                 }
-            );
+            });
         },
 
         /**
@@ -5386,7 +7386,7 @@ Fisma.Search = function() {
             }
             
             // Do some sanity checking
-            if (0 == checkedRecords.length) {
+            if (0 === checkedRecords.length) {
                 message("No records selected for deletion.", "warning", true);
                 
                 return;
@@ -5424,13 +7424,13 @@ Fisma.Search = function() {
                 failure : dataTable.onDataReturnReplaceRows,
                 scope : dataTable,
                 argument : dataTable.getState()
-            }
+            };
 
             // Create a post string containing the IDs of the records to delete and the CSRF token
-            var postString = "csrf="
-                           + document.getElementById('searchForm').csrf.value
-                           + "&records="
-                           + YAHOO.lang.JSON.stringify(checkedRecords);
+            var postString = "csrf=";
+            postString += document.getElementById('searchForm').csrf.value;
+            postString += "&records=";
+            postString += YAHOO.lang.JSON.stringify(checkedRecords);
             
             // Submit request to delete records        
             YAHOO.util.Connect.asyncRequest(
@@ -5457,13 +7457,12 @@ Fisma.Search = function() {
                         dataSource.sendRequest(postData, onDataTableRefresh);
                     },
                     failure : function(o) {
-                        var text = 'An error occurred while trying to delete the records.'
-                                 + ' The error has been logged for administrator review.'; 
+                        var text = 'An error occurred while trying to delete the records.';
+                        text += ' The error has been logged for administrator review.'; 
                         message(text, "warning", true);
                     }
                 },
-                postString
-            );
+                postString);
         },
         
         /**
@@ -5484,10 +7483,14 @@ Fisma.Search = function() {
          */
         onSetTable : function(callback) {
             this.onSetTableCallback = callback;
+            if (YAHOO.lang.isObject(this.yuiDataTable)) {
+                // if already set, go ahead and run the callback
+                this.onSetTableCallback();
+            }
         }
-    }
+    };
 }();
-Fisma.Search.Criteria=function(b,a){this.fields=a;this.searchPanel=b};Fisma.Search.Criteria.prototype={container:null,currentQueryType:null,fields:null,currentField:null,searchPanel:null,queryFieldContainer:null,queryTypeContainer:null,queryInputContainer:null,buttonsContainer:null,removeButton:null,enumValues:null,render:function(d,a,b){this.container=document.createElement("div");this.container.className="searchCriteria";this.buttonsContainer=document.createElement("span");this.buttonsContainer.className="searchQueryButtons";this.renderButtons(this.buttonsContainer);this.container.appendChild(this.buttonsContainer);this.queryFieldContainer=document.createElement("span");this.renderQueryField(this.queryFieldContainer,d);this.container.appendChild(this.queryFieldContainer);this.queryTypeContainer=document.createElement("span");this.renderQueryType(this.queryTypeContainer,a);this.container.appendChild(this.queryTypeContainer);this.queryInputContainer=document.createElement("span");this.renderQueryInput(this.queryInputContainer,b);this.container.appendChild(this.queryInputContainer);var c=document.createElement("div");c.className="clear";this.container.appendChild(c);return this.container},renderQueryField:function(a,h){var f=this;var e=new Array();var c;var d=function(n,l,o){var m=o.cfg.getProperty("text");for(var k in f.fields){var p=f.fields[k];if(o.value==p.name){var j=true;var i=true;if(f.getCriteriaDefinition(p)==f.getCriteriaDefinition(f.currentField)){j=false}if("enum"==p.type){i=true}f.currentField=p;f.enumValues=p.enumValues;if(j){f.renderQueryType(f.queryTypeContainer)}if(i){f.renderQueryInput(f.queryInputContainer)}break}}c.set("label",p.label)};for(var b in this.fields){var g=this.fields[b];e.push({text:g.label,value:g.name,onclick:{fn:d}})}this.currentField=this.getField(h);c=new YAHOO.widget.Button({type:"menu",label:this.currentField.label,menu:e,container:a})},renderQueryType:function(b,c){if(b.firstChild){while(b.hasChildNodes()){b.removeChild(b.firstChild)}}var g=this;var d=function(n,l,o){var m=o.cfg.getProperty("text");var p=g.getCriteriaDefinition(g.currentField);var j=p[g.currentQueryType].renderer;var k=p[o.value].renderer;g.currentQueryType=o.value;if(j!=k||"enum"==g.currentField.type){g.renderQueryInput(g.queryInputContainer)}h.set("label",m)};var i=this.getCriteriaDefinition(this.currentField);var a=new Array();for(var f in i){var e=i[f];menuItem={text:e.label,value:f,onclick:{fn:d}};a.push(menuItem);if(e.isDefault){this.currentQueryType=f}}if(c){this.currentQueryType=c}var h=new YAHOO.widget.Button({type:"menu",label:i[this.currentQueryType].label,menu:a,container:b})},renderQueryInput:function(a,d){if(a.firstChild){while(a.hasChildNodes()){a.removeChild(a.firstChild)}}var c=this.getCriteriaDefinition(this.currentField);var b=c[this.currentQueryType].renderer;var e=Fisma.Search.CriteriaRenderer[b];if("enum"==this.currentField.type){e(a,d,this.currentField.enumValues)}else{e(a,d)}},renderButtons:function(a){var d=this;var b=new YAHOO.widget.Button({container:a});b._button.className="searchAddCriteriaButton";b._button.title="Click to add another search criteria";b.on("click",function(){d.searchPanel.addCriteria(d.container)});var c=new YAHOO.widget.Button({container:a});c._button.className="searchRemoveCriteriaButton";c._button.title="Click to remove this search criteria";c.on("click",function(){d.searchPanel.removeCriteria(d.container)});this.removeButton=c},getQuery:function(){var h="";var e=this.getCriteriaDefinition(this.currentField);var d=e[this.currentQueryType].query;var g=Fisma.Search.CriteriaQuery[d];var c=g(this.queryInputContainer);for(var f in c){var a=c[f];if(""==$P.trim(a)){throw"Blank search criteria are not allowed in advanced search mode."}}var b={field:this.currentField.name,operator:this.currentQueryType,operands:c};return b},getCriteriaDefinition:function(d){var c=d.type;if("datetime"==c){c="date"}else{if("text"==c){if(d.sortable){c="sortableText"}else{c="nonSortableText"}}}var b=Fisma.Search.CriteriaDefinition[c];if(d.extraCriteria){for(var a in d.extraCriteria){b[a]=d.extraCriteria[a]}}return b},setRemoveButtonEnabled:function(a){this.removeButton.set("disabled",!a)},getField:function(c){for(var a in this.fields){var b=this.fields[a];if(b.name==c){return b}}throw"No field found with this name: "+c}};/**
+Fisma.Search.Criteria=function(b,a){this.fields=a;this.searchPanel=b};Fisma.Search.Criteria.prototype={container:null,currentQueryType:null,fields:null,currentField:null,searchPanel:null,queryFieldContainer:null,queryTypeContainer:null,queryInputContainer:null,buttonsContainer:null,removeButton:null,enumValues:null,render:function(e,a,b){this.container=document.createElement("div");this.containerForm=document.createElement("form");this.containerForm.action="JavaScript: Fisma.Search.handleSearchEvent(this);";this.containerForm.enctype="application/x-www-form-urlencoded";this.containerForm.method="post";this.container.className="searchCriteria";this.buttonsContainer=document.createElement("span");this.buttonsContainer.className="searchQueryButtons";this.renderButtons(this.buttonsContainer);this.container.appendChild(this.buttonsContainer);this.queryFieldContainer=document.createElement("span");this.renderQueryField(this.queryFieldContainer,e);this.containerForm.appendChild(this.queryFieldContainer);this.queryTypeContainer=document.createElement("span");this.renderQueryType(this.queryTypeContainer,a);this.containerForm.appendChild(this.queryTypeContainer);this.queryInputContainer=document.createElement("span");this.renderQueryInput(this.queryInputContainer,b);this.containerForm.appendChild(this.queryInputContainer);var d=document.createElement("div");d.className="clear";this.containerForm.appendChild(d);var c=document.createElement("input");c.type="hidden";c.name="searchType";c.value="advanced";this.containerForm.appendChild(c);this.container.appendChild(this.containerForm);return this.container},renderQueryField:function(a,h){var f=this;var e=new Array();var c;var d=function(n,l,o){var m=o.cfg.getProperty("text");for(var k in f.fields){var p=f.fields[k];if(o.value==p.name){var j=true;var i=true;if(f.getCriteriaDefinition(p)==f.getCriteriaDefinition(f.currentField)){j=false}if("enum"==p.type){i=true}f.currentField=p;f.enumValues=p.enumValues;if(j){f.renderQueryType(f.queryTypeContainer)}if(i){f.renderQueryInput(f.queryInputContainer)}break}}c.set("label",p.label)};for(var b in this.fields){var g=this.fields[b];e.push({text:g.label,value:g.name,onclick:{fn:d}})}this.currentField=this.getField(h);c=new YAHOO.widget.Button({type:"menu",label:this.currentField.label,menu:e,container:a})},renderQueryType:function(b,c){if(b.firstChild){while(b.hasChildNodes()){b.removeChild(b.firstChild)}}var g=this;var d=function(n,l,o){var m=o.cfg.getProperty("text");var p=g.getCriteriaDefinition(g.currentField);var j=p[g.currentQueryType].renderer;var k=p[o.value].renderer;g.currentQueryType=o.value;if(j!=k||"enum"==g.currentField.type){g.renderQueryInput(g.queryInputContainer)}h.set("label",m)};var i=this.getCriteriaDefinition(this.currentField);var a=new Array();for(var f in i){var e=i[f];menuItem={text:e.label,value:f,onclick:{fn:d}};a.push(menuItem);if(e.isDefault){this.currentQueryType=f}}if(c){this.currentQueryType=c}var h=new YAHOO.widget.Button({type:"menu",label:i[this.currentQueryType].label,menu:a,container:b})},renderQueryInput:function(a,d){if(a.firstChild){while(a.hasChildNodes()){a.removeChild(a.firstChild)}}var c=this.getCriteriaDefinition(this.currentField);var b=c[this.currentQueryType].renderer;var e=Fisma.Search.CriteriaRenderer[b];if("enum"==this.currentField.type){e(a,d,this.currentField.enumValues)}else{e(a,d)}},renderButtons:function(a){var d=this;var b=new YAHOO.widget.Button({container:a});b._button.className="searchAddCriteriaButton";b._button.title="Click to add another search criteria";b.on("click",function(){d.searchPanel.addCriteria(d.container)});var c=new YAHOO.widget.Button({container:a});c._button.className="searchRemoveCriteriaButton";c._button.title="Click to remove this search criteria";c.on("click",function(){d.searchPanel.removeCriteria(d.container)});this.removeButton=c},getQuery:function(){return{field:this.currentField.name,operator:this.currentQueryType,operands:this.getOperands()}},getCriteriaDefinition:function(d){var c=d.type;if("datetime"==c){c="date"}else{if("text"==c){if(d.sortable){c="sortableText"}else{c="nonSortableText"}}}var b=Fisma.Search.CriteriaDefinition[c];if(d.extraCriteria){for(var a in d.extraCriteria){b[a]=d.extraCriteria[a]}}return b},setRemoveButtonEnabled:function(a){this.removeButton.set("disabled",!a)},getField:function(c){for(var a in this.fields){var b=this.fields[a];if(b.name==c){return b}}throw"No field found with this name: "+c},getOperands:function(){var b=this.getCriteriaDefinition(this.currentField);var a=b[this.currentQueryType].query;var c=Fisma.Search.CriteriaQuery[a];return c(this.queryInputContainer)},hasBlankOperands:function(){var a=this.getOperands();for(var b in a){if(""===$P.trim(a[b])){return true}}return false}};/**
  * Copyright (c) 2010 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
@@ -5596,9 +7599,14 @@ Fisma.Search.Criteria.prototype = {
      * @return An HTML element containing the search criteria widget
      */
     render : function (fieldName, operator, operands) {
-
+        
         this.container = document.createElement('div');
-
+        
+        this.containerForm = document.createElement('form');
+        this.containerForm.action =  "JavaScript: Fisma.Search.handleSearchEvent(this);";
+        this.containerForm.enctype = "application/x-www-form-urlencoded";
+        this.containerForm.method = "post";
+        
         this.container.className = "searchCriteria";
 
         // IE7 will display floated elements on the next line, not the current line, unless those floated elements
@@ -5610,21 +7618,27 @@ Fisma.Search.Criteria.prototype = {
 
         this.queryFieldContainer = document.createElement('span');
         this.renderQueryField(this.queryFieldContainer, fieldName);
-        this.container.appendChild(this.queryFieldContainer);
+        this.containerForm.appendChild(this.queryFieldContainer);
 
         this.queryTypeContainer = document.createElement('span');
         this.renderQueryType(this.queryTypeContainer, operator);
-        this.container.appendChild(this.queryTypeContainer);
+        this.containerForm.appendChild(this.queryTypeContainer);
 
         this.queryInputContainer = document.createElement('span');
         this.renderQueryInput(this.queryInputContainer, operands);
-        this.container.appendChild(this.queryInputContainer);
+        this.containerForm.appendChild(this.queryInputContainer);
 
         var clearDiv = document.createElement('div');
-
         clearDiv.className = "clear";
+        this.containerForm.appendChild(clearDiv);
 
-        this.container.appendChild(clearDiv);
+        var searchTypeField = document.createElement('input');
+        searchTypeField.type = 'hidden';
+        searchTypeField.name = 'searchType';
+        searchTypeField.value = 'advanced';
+        this.containerForm.appendChild(searchTypeField);
+
+        this.container.appendChild(this.containerForm);
 
         return this.container;
     },
@@ -5848,31 +7862,11 @@ Fisma.Search.Criteria.prototype = {
      * The query is returned as an object including the field name, the operator, and 0-n operands
      */
     getQuery : function () {
-
-        var queryString = '';
-        var criteriaDefinitions = this.getCriteriaDefinition(this.currentField);
-
-        var queryGeneratorName = criteriaDefinitions[this.currentQueryType].query;
-        var queryGenerator = Fisma.Search.CriteriaQuery[queryGeneratorName];
-
-        var operands = queryGenerator(this.queryInputContainer);
-        
-        // Make sure all operands are not blank
-        for (var i in operands) {
-            var operand = operands[i];
-            
-            if ('' == $P.trim(operand)) {
-                throw "Blank search criteria are not allowed in advanced search mode.";
-            }
-        }
-
-        var response = {
+        return {
             field : this.currentField.name,
             operator : this.currentQueryType,
-            operands : operands
-        }
-
-        return response;
+            operands : this.getOperands()
+        };
     },
 
     /**
@@ -5933,8 +7927,28 @@ Fisma.Search.Criteria.prototype = {
         }
         
         throw "No field found with this name: " + fieldName;
+    },
+
+    getOperands: function() {
+        var criteriaDefinitions = this.getCriteriaDefinition(this.currentField);
+        var queryGeneratorName = criteriaDefinitions[this.currentQueryType].query;
+        var queryGenerator = Fisma.Search.CriteriaQuery[queryGeneratorName];
+
+        return queryGenerator(this.queryInputContainer);
+    },
+
+    hasBlankOperands: function() {
+        var operands = this.getOperands();
+        for (var i in operands) {
+            if ('' === $P.trim(operands[i])) {
+                return true;
+            }
+        }
+        return false;
     }
-};Fisma.Search.CriteriaDefinition=function(){return{date:{dateAfter:{label:"After",renderer:"singleDate",query:"oneInput"},dateBefore:{label:"Before",renderer:"singleDate",query:"oneInput"},dateBetween:{label:"Between",renderer:"betweenDate",query:"twoInputs"},dateDay:{label:"Is",renderer:"singleDate",query:"oneInput",isDefault:true},dateThisMonth:{label:"This Month",renderer:"none",query:"noInputs"},dateThisYear:{label:"This Year",renderer:"none",query:"noInputs"},dateToday:{label:"Today",renderer:"none",query:"noInputs"}},"float":{floatBetween:{label:"Between",renderer:"betweenFloat",query:"twoInputs"},floatGreaterThan:{label:"Greater Than",renderer:"singleFloat",query:"oneInput",isDefault:true},floatLessThan:{label:"Less Than",renderer:"singleFloat",query:"oneInput"}},integer:{integerBetween:{label:"Between",renderer:"betweenInteger",query:"twoInputs"},integerDoesNotEqual:{label:"Does Not Equal",renderer:"singleInteger",query:"oneInput"},integerEquals:{label:"Equals",renderer:"singleInteger",query:"oneInput",isDefault:true},integerGreaterThan:{label:"Greater Than",renderer:"singleInteger",query:"oneInput"},integerLessThan:{label:"Less Than",renderer:"singleInteger",query:"oneInput"}},nonSortableText:{textContains:{label:"Contains",renderer:"text",query:"oneInput",isDefault:true},textDoesNotContain:{label:"Does Not Contain",renderer:"text",query:"oneInput"}},sortableText:{textContains:{label:"Contains",renderer:"text",query:"oneInput",isDefault:true},textDoesNotContain:{label:"Does Not Contain",renderer:"text",query:"oneInput"},textExactMatch:{label:"Exact Match",renderer:"text",query:"oneInput"},textNotExactMatch:{label:"Not Exact Match",renderer:"text",query:"oneInput"}},"enum":{enumIs:{label:"Is",renderer:"enumSelect",query:"enumSelect",isDefault:true},enumIsNot:{label:"Is Not",renderer:"enumSelect",query:"enumSelect"}}}}();/**
+
+};
+Fisma.Search.CriteriaDefinition=function(){return{date:{dateAfter:{label:"After",renderer:"singleDate",query:"oneInput"},dateBefore:{label:"Before",renderer:"singleDate",query:"oneInput"},dateBetween:{label:"Between",renderer:"betweenDate",query:"twoInputs"},dateDay:{label:"Is",renderer:"singleDate",query:"oneInput",isDefault:true},dateThisMonth:{label:"This Month",renderer:"none",query:"noInputs"},dateThisYear:{label:"This Year",renderer:"none",query:"noInputs"},dateToday:{label:"Today",renderer:"none",query:"noInputs"}},"float":{floatBetween:{label:"Between",renderer:"betweenFloat",query:"twoInputs"},floatGreaterThan:{label:"Greater Than",renderer:"singleFloat",query:"oneInput",isDefault:true},floatLessThan:{label:"Less Than",renderer:"singleFloat",query:"oneInput"}},integer:{integerBetween:{label:"Between",renderer:"betweenInteger",query:"twoInputs"},integerDoesNotEqual:{label:"Does Not Equal",renderer:"singleInteger",query:"oneInput"},integerEquals:{label:"Equals",renderer:"singleInteger",query:"oneInput",isDefault:true},integerGreaterThan:{label:"Greater Than",renderer:"singleInteger",query:"oneInput"},integerLessThan:{label:"Less Than",renderer:"singleInteger",query:"oneInput"}},nonSortableText:{textContains:{label:"Contains",renderer:"text",query:"oneInput",isDefault:true},textDoesNotContain:{label:"Does Not Contain",renderer:"text",query:"oneInput"}},sortableText:{textContains:{label:"Contains",renderer:"text",query:"oneInput",isDefault:true},textDoesNotContain:{label:"Does Not Contain",renderer:"text",query:"oneInput"},textExactMatch:{label:"Exact Match",renderer:"text",query:"oneInput"},textNotExactMatch:{label:"Not Exact Match",renderer:"text",query:"oneInput"}},"enum":{enumIs:{label:"Is",renderer:"enumSelect",query:"enumSelect",isDefault:true},enumIsNot:{label:"Is Not",renderer:"enumSelect",query:"enumSelect"}}}}();/**
  * Copyright (c) 2010 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
@@ -6331,7 +8345,7 @@ Fisma.Search.CriteriaRenderer = function () {
             });
         }
     };
-}();Fisma.Search.Panel=function(b,f){var h=b;if(0==h.length){throw"Field array cannot be empty"}h.sort(function(j,i){if(j.label<i.label){return -1}else{if(j.label>i.label){return 1}else{return 0}}});this.searchableFields={};for(var c in h){var d=h[c];if(d.hidden!==true){this.searchableFields[c]=d}}this.defaultQueryTokens=null;if(f){var e=f.split("/");for(var c in e){var a=e[c];var g=parseInt(c);if("advanced"==a&&e.length>(g+1)){e.splice(0,g+1);this.defaultQueryTokens=e;break}}}};Fisma.Search.Panel.prototype={container:null,criteria:[],render:function(b){this.container=b;if(this.defaultQueryTokens){var h=0;while(this.defaultQueryTokens.length>h){var k=this.defaultQueryTokens[h];h++;var c=this.defaultQueryTokens[h];h++;var f=this.getFieldDefinition(k);var l=new Fisma.Search.Criteria(this,this.searchableFields);var d=l.getCriteriaDefinition(f);var m=this.getNumberOfOperands(f,c,d);var j=[];for(;m>0;m--){j.push(this.defaultQueryTokens[h]);h++}var e=$P.array_map(decodeURIComponent,j);var g=l.render(k,c,e);this.container.appendChild(l.container);this.criteria.push(l)}if(1==this.criteria.length){this.criteria[0].setRemoveButtonEnabled(false)}Fisma.Search.toggleAdvancedSearchPanel();Fisma.Search.onSetTable(function(){var n=document.getElementById("searchForm");setTimeout(function(){Fisma.Search.handleSearchEvent(n)},1)})}else{var i=new Fisma.Search.Criteria(this,this.searchableFields);this.criteria.push(i);var a=i.render(this.searchableFields[0].name);i.setRemoveButtonEnabled(false);this.container.appendChild(a)}},addCriteria:function(b){if(1==this.criteria.length){this.criteria[0].setRemoveButtonEnabled(true)}if(!this.searchableFields[this.criteria.length]){throw"No field defined for search"}var d=new Fisma.Search.Criteria(this,this.searchableFields);this.criteria.push(d);var a=this.criteria.length-1;var c=d.render(this.searchableFields[a].name);this.container.insertBefore(c,b.nextSibling)},removeCriteria:function(b){for(var a in this.criteria){var c=this.criteria[a];if(c.container==b){this.criteria.splice(a,1);break}}if(1==this.criteria.length){this.criteria[0].setRemoveButtonEnabled(false)}this.container.removeChild(b)},getQuery:function(){var c=new Array();for(var a in this.criteria){var b=this.criteria[a];queryPart=b.getQuery();c.push(queryPart)}return c},getFieldDefinition:function(b){for(var a in this.searchableFields){if(this.searchableFields[a].name==b){return this.searchableFields[a]}}throw"No definition for field: "+b},getNumberOfOperands:function(e,b,d){var a=d[b];if(!a){throw"No criteria defined for field ("+e.name+") and operator ("+b+")"}var c=a.query;switch(c){case"noInputs":return 0;break;case"enumSelect":case"oneInput":return 1;break;case"twoInputs":return 2;break;default:throw"Number of operands not defined for query function: "+c;break}}};/**
+}();Fisma.Search.Panel=function(f){var h;var b=f;if(0===b.length){throw"Field array cannot be empty"}b.sort(function(l,i){if(l.label<i.label){return -1}else{if(l.label>i.label){return 1}else{return 0}}});this.searchableFields=[];for(h in b){var c=b[h];if(c.hidden!==true){this.searchableFields[this.searchableFields.length]=c}}this.defaultQueryTokens=null;var a=document.location.search.substring(1);var d=a.split("&");for(var g in d){var k=d[g];var e=k.split("=");if("q"==e[0]){var j=e[1];this.defaultQueryTokens=j.split("/");if(this.defaultQueryTokens[0]===""){this.defaultQueryTokens.splice(0,1)}break}}};Fisma.Search.Panel.prototype={container:null,criteria:[],render:function(l){this.container=l;var b=YAHOO.util.Dom;var c=YAHOO.lang;var g=Fisma.Search.QueryState;var t=new g(b.get("modelName").value);if(this.defaultQueryTokens){var f=0;while(this.defaultQueryTokens.length>f){var a=this.defaultQueryTokens[f];f++;var h=this.defaultQueryTokens[f];f++;var m=this.getFieldDefinition(a);var r=new Fisma.Search.Criteria(this,this.searchableFields);var j=r.getCriteriaDefinition(m);var k=this.getNumberOfOperands(m,h,j);var e=[];for(;k>0;k--){e.push(this.defaultQueryTokens[f]);f++}var u=$P.array_map(decodeURIComponent,e);var s=r.render(a,h,u);this.container.appendChild(r.container);this.criteria.push(r)}if(1==this.criteria.length){this.criteria[0].setRemoveButtonEnabled(false)}Fisma.Search.toggleAdvancedSearchPanel();c.later(null,null,function(){Fisma.Search.updateQueryState(t,b.get("searchForm"))})}else{if(t.getSearchType()===g.TYPE_ADVANCED){var o=t.getAdvancedQuery();for(var q in o){var d=new Fisma.Search.Criteria(this,this.searchableFields);this.criteria.push(d);this.container.appendChild(d.render(o[q].field,o[q].operator,o[q].operands))}Fisma.Search.toggleAdvancedSearchPanel()}else{if(Fisma.Search.searchPreferences.type==="advanced"){var n=Fisma.Search.searchPreferences.fields;for(var q in n){var d=new Fisma.Search.Criteria(this,this.searchableFields);this.criteria.push(d);this.container.appendChild(d.render(q,n[q]))}Fisma.Search.toggleAdvancedSearchPanel()}else{var v=new Fisma.Search.Criteria(this,this.searchableFields);this.criteria.push(v);var p=v.render(this.searchableFields[0].name);v.setRemoveButtonEnabled(false);this.container.appendChild(p)}}}Fisma.Search.onSetTable(function(){var i=document.getElementById("searchForm");setTimeout(function(){Fisma.Search.executeSearch(i)},1)})},addCriteria:function(b){if(1==this.criteria.length){this.criteria[0].setRemoveButtonEnabled(true)}if(!this.searchableFields[this.criteria.length]){throw"No field defined for search"}var d=new Fisma.Search.Criteria(this,this.searchableFields);this.criteria.push(d);var a=this.criteria.length-1;var c=d.render(this.searchableFields[a].name);this.container.insertBefore(c,b.nextSibling)},removeCriteria:function(b){for(var a in this.criteria){var c=this.criteria[a];if(c.container==b){this.criteria.splice(a,1);break}}if(1==this.criteria.length){this.criteria[0].setRemoveButtonEnabled(false)}this.container.removeChild(b)},getQuery:function(){var c=new Array();for(var a in this.criteria){var b=this.criteria[a];if(b.hasBlankOperands()){continue}c.push(b.getQuery())}return c},getPanelState:function(){var c=new Array();for(var a in this.criteria){var b=this.criteria[a];c.push(b.getQuery())}return c},getFieldDefinition:function(b){for(var a in this.searchableFields){if(this.searchableFields[a].name==b){return this.searchableFields[a]}}throw"No definition for field: "+b},getNumberOfOperands:function(e,b,d){var a=d[b];if(!a){throw"No criteria defined for field ("+e.name+") and operator ("+b+")"}var c=a.query;switch(c){case"noInputs":return 0;break;case"enumSelect":case"oneInput":return 1;break;case"twoInputs":return 2;break;default:throw"Number of operands not defined for query function: "+c;break}throw"Number of operands not defined for query function: "+c}};/**
  * Copyright (c) 2010 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
@@ -6358,13 +8372,12 @@ Fisma.Search.CriteriaRenderer = function () {
  * Constructor
  * 
  * @param advancedSearchOptions Contains searchable fields and pre-defined filters
- * @param pathname The URL path, used to generate default search filters
  */
-Fisma.Search.Panel = function (advancedSearchOptions, pathname) {
-
+Fisma.Search.Panel = function (advancedSearchOptions) {
+    var index;
     var searchableFields = advancedSearchOptions;
 
-    if (0 == searchableFields.length) {
+    if (0 === searchableFields.length) {
         throw "Field array cannot be empty";
     }
     
@@ -6382,37 +8395,37 @@ Fisma.Search.Panel = function (advancedSearchOptions, pathname) {
     );
 
     // Copy all visible (non-hidden) fields into this panel
-    this.searchableFields = {};
+    this.searchableFields = [];
     
-    for (var index in searchableFields) {
+    for (index in searchableFields) {
         var searchableField = searchableFields[index];
 
         if (searchableField.hidden !== true) {
-            this.searchableFields[index] = searchableField;
+            this.searchableFields[this.searchableFields.length] = searchableField;
         }
     }
 
-    // A pathname can contain default query criteria if it contains the keyword 'advanced'
+    // If default search criteria is included as a URL parameter, parse that out here.
     this.defaultQueryTokens = null;
-    
-    if (pathname) {
-        var pathTokens = pathname.split('/');
 
-        for (var index in pathTokens) {
-            var pathToken = pathTokens[index];
+    var urlParamString = document.location.search.substring(1); // strip the leading "?" character
+    var urlParams = urlParamString.split('&');
 
-            // If the 'advanced' token is found (and has more tokens after it), then save the 
-            // rest of the tokens into the object
-            var start = parseInt(index);
+    for (var i in urlParams) {
+        var urlParam = urlParams[i];
+        var keyValuePair = urlParam.split("=");
 
-            if ('advanced' == pathToken && pathTokens.length > (start + 1)) {
-                
-                pathTokens.splice(0, start + 1);
-                
-                this.defaultQueryTokens = pathTokens;
-                
-                break;
+        // Looking for a parameter called "q"
+        if ("q" == keyValuePair[0]) {
+            var criteriaString = keyValuePair[1];
+            this.defaultQueryTokens = criteriaString.split("/");
+
+            // Remove first element if it's empty
+            if (this.defaultQueryTokens[0] === '') {
+                this.defaultQueryTokens.splice(0, 1);
             }
+
+            break;
         }
     }
 };
@@ -6436,6 +8449,10 @@ Fisma.Search.Panel.prototype = {
      */
     render : function (container) {
         this.container = container;
+        var Dom = YAHOO.util.Dom;
+        var Lang = YAHOO.lang;
+        var QueryState = Fisma.Search.QueryState;
+        var queryState = new QueryState(Dom.get("modelName").value);
 
         if (this.defaultQueryTokens) {
             var index = 0;
@@ -6481,14 +8498,31 @@ Fisma.Search.Panel.prototype = {
 
             // Display the advanced search UI and submit the initial query request XHR
             Fisma.Search.toggleAdvancedSearchPanel();
-            Fisma.Search.onSetTable(function () {
-                var searchForm = document.getElementById('searchForm');
-            
-                // YUI renders the UI after this function returns, so a minimal delay is required to allow YUI to run
-                // (notice the length of delay doesn't matter, this just puts the search event AFTER the YUI render
-                // event in the dispatch queue)
-                setTimeout(function () {Fisma.Search.handleSearchEvent(searchForm);}, 1);
-            });
+            Lang.later(null, null, function() { Fisma.Search.updateQueryState(queryState, Dom.get('searchForm')); });
+        } else if (queryState.getSearchType() === QueryState.TYPE_ADVANCED) {
+            var advancedQuery = queryState.getAdvancedQuery();
+
+            for (var i in advancedQuery) {
+                var advancedCriterion = new Fisma.Search.Criteria(this, this.searchableFields);
+                this.criteria.push(advancedCriterion);
+                this.container.appendChild(
+                    advancedCriterion.render(
+                        advancedQuery[i].field,
+                        advancedQuery[i].operator,
+                        advancedQuery[i].operands));
+            }
+            // Display the advanced search UI and submit the initial query request XHR
+            Fisma.Search.toggleAdvancedSearchPanel();
+        } else if (Fisma.Search.searchPreferences.type === 'advanced') {
+            var fields = Fisma.Search.searchPreferences.fields;
+            for (var i in fields) {
+                var advancedCriterion = new Fisma.Search.Criteria(this, this.searchableFields);
+                this.criteria.push(advancedCriterion);
+                this.container.appendChild(
+                    advancedCriterion.render(i, fields[i]));
+            }
+            // Display the advanced search UI and submit the initial query request XHR
+            Fisma.Search.toggleAdvancedSearchPanel();
         } else {
             // If not default query is specified, then just show 1 default criterion
             var initialCriteria = new Fisma.Search.Criteria(this, this.searchableFields);
@@ -6499,6 +8533,13 @@ Fisma.Search.Panel.prototype = {
             initialCriteria.setRemoveButtonEnabled(false);
             this.container.appendChild(criteriaElement);
         }
+
+        Fisma.Search.onSetTable(function () {
+            var searchForm = document.getElementById('searchForm');
+        
+            // YUI renders the UI after this function returns, so a minimal delay is required to allow YUI to run
+            setTimeout(function () {Fisma.Search.executeSearch(searchForm);}, 1);
+        });
     },
   
     /**
@@ -6559,13 +8600,27 @@ Fisma.Search.Panel.prototype = {
         
         for (var index in this.criteria) {
             var criterion = this.criteria[index];
-
-            queryPart = criterion.getQuery();
-            
-            query.push(queryPart);
+            if (criterion.hasBlankOperands()) {
+                continue;
+            }
+            query.push(criterion.getQuery());
         }
         
         return query;
+    },
+
+    /**
+     * Get the search panel's state
+     */
+    getPanelState: function () {
+        var state = new Array();
+        
+        for (var index in this.criteria) {
+            var criterion = this.criteria[index];
+            state.push(criterion.getQuery());
+        }
+        
+        return state;
     },
     
     /**
@@ -6618,8 +8673,334 @@ Fisma.Search.Panel.prototype = {
                 throw "Number of operands not defined for query function: " + queryFunction;
                 break;
         }
+        
+        throw "Number of operands not defined for query function: " + queryFunction;
     }
 };
+(function(){var a=YAHOO.lang;var b=function(c,d){this._model=c;this._storage=new Fisma.Storage("Fisma.Search.QueryState")};b.TYPE_SIMPLE="simple";b.TYPE_ADVANCED="advanced";b.prototype={getState:function(){return this._storage.get(this._model)},setState:function(c){this._storage.set(this._model,c)},getSearchType:function(){var c=this.getState();if(!a.isObject(c)||!a.isValue(c.searchType)){return b.TYPE_SIMPLE}switch(c.searchType){case b.TYPE_SIMPLE:case b.TYPE_ADVANCED:return c.searchType;default:throw"Invalid search type encountered."}},setSearchType:function(d){var e=this.getState()||{},c={};c.searchType=d;if(d==="simple"){c.keywords=e.keywords||""}else{if(d==="advanced"){c.advancedQuery=e.advancedQuery||[]}else{throw"Invalid search type specified."}}this.setState(c)},getKeywords:function(){var c=this.getState();if(!a.isObject(c)||!a.isValue(c.keywords)){return""}return c.keywords},setKeywords:function(c){if(!a.isString(c)){throw"Can not set non-string as keywords."}if(this.getSearchType()!==b.TYPE_SIMPLE){throw"Attempting to save keywords for non-simple search."}var d=this.getState()||{};d.keywords=c;this.setState(d)},getAdvancedQuery:function(){var c=this.getState();if(!a.isObject(c)||!a.isObject(c.advancedQuery)){return{}}return c.advancedQuery},setAdvancedQuery:function(d){if(!a.isObject(d)){throw"Can not set non-object as advanced search query."}if(this.getSearchType()!==b.TYPE_ADVANCED){throw"Attempting to save advanced search query for non-advanced search."}var c=this.getState()||{};c.advancedQuery=d;this.setState(c)}};Fisma.Search.QueryState=b})();/**
+ * Copyright (c) 2011 Endeavor Systems, Inc.
+ *
+ * This file is part of OpenFISMA.
+ *
+ * OpenFISMA is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * OpenFISMA is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with OpenFISMA.  If not, see {@link http://www.gnu.org/licenses/}.
+ *
+ * @author    Andrew Reeves <andrew.reeves@endeavorsystems.com>
+ * @copyright (c) Endeavor Systems, Inc. 2011 {@link http://www.endeavorsystems.com}
+ * @license   http://www.openfisma.org/content/license
+ */
+
+(function() {
+    var Lang = YAHOO.lang;
+    /**
+     * Enable getting and setting of query state information
+     *
+     * @namespace Fisma.Search
+     * @class QueryState
+     * @constructor
+     * @param model {String} Model for which this state information applies.
+     * @param init {Object} Object literal of default state.
+     */
+    var QueryState = function(model, init) {
+            this._model = model;
+            this._storage = new Fisma.Storage('Fisma.Search.QueryState');
+        };
+    QueryState.TYPE_SIMPLE = "simple";
+    QueryState.TYPE_ADVANCED = "advanced";
+    QueryState.prototype = {
+        /**
+         * Basic getter for all state information.
+         *
+         * @method getState
+         * @return {Object}
+         */
+        getState: function () {
+            return this._storage.get(this._model);
+        },
+
+        /**
+         * Basic setter for state information
+         *
+         * @method setState
+         * @param value {Object} State information.
+         */
+        setState: function (value) {
+            this._storage.set(this._model, value);
+        },
+
+        /**
+         * Get search type
+         *
+         * @method getSearchType
+         * @return {String} TYPE_SIMPLE or TYPE_ADVANCED, default TYPE_SIMPLE
+         */
+        getSearchType: function() {
+            var state = this.getState();
+            if (!Lang.isObject(state) || !Lang.isValue(state.searchType)) {
+                return QueryState.TYPE_SIMPLE;
+            } 
+            switch (state.searchType) {
+                case QueryState.TYPE_SIMPLE:
+                case QueryState.TYPE_ADVANCED:
+                    return state.searchType;
+                default:
+                    throw "Invalid search type encountered.";
+            }
+        },
+
+        /**
+         * Basic setter for search type
+         *
+         * @method setSearchType
+         * @param type {String} Search type, "simple" or "advanced"
+         */
+        setSearchType: function(type) {
+            var oldData = this.getState() || {},
+                newData = {};
+            newData.searchType = type;
+            if (type === "simple") {
+                newData.keywords = oldData.keywords || "";
+            } else if (type === "advanced") {
+                newData.advancedQuery = oldData.advancedQuery || [];
+            } else {
+                throw "Invalid search type specified.";
+            }
+            this.setState(newData);
+        },
+
+        /**
+         * Get search keywords
+         *
+         * @method getKeywords
+         * @return {String} Keywords
+         */
+        getKeywords: function() {
+            var state = this.getState();
+            if (!Lang.isObject(state) || !Lang.isValue(state.keywords)) {
+                return "";
+            } 
+            return state.keywords;
+        },
+
+        /**
+         * Basic setter for search keywords
+         *
+         * @method setKeywords
+         * @param type {String} Search keywords
+         */
+        setKeywords: function(keywords) {
+            if (!Lang.isString(keywords)) {
+                throw "Can not set non-string as keywords.";
+            }
+            if (this.getSearchType() !== QueryState.TYPE_SIMPLE) {
+                throw "Attempting to save keywords for non-simple search.";
+            }
+            var data = this.getState() || {};
+            data.keywords = keywords;
+            this.setState(data);
+        },
+
+        /**
+         * Get advanced search query
+         *
+         * @method getAdvancedQuery
+         * @return {Object} Query
+         */
+        getAdvancedQuery: function() {
+            var state = this.getState();
+            if (!Lang.isObject(state) || !Lang.isObject(state.advancedQuery)) {
+                return {};
+            } 
+            return state.advancedQuery;
+        },
+
+        /**
+         * Basic setter for advanced search query.
+         *
+         * @method setAdvancedQuery
+         * @param query {Object} Advanced search query
+         */
+        setAdvancedQuery: function(query) {
+            if (!Lang.isObject(query)) {
+                throw "Can not set non-object as advanced search query.";
+            }
+            if (this.getSearchType() !== QueryState.TYPE_ADVANCED) {
+                throw "Attempting to save advanced search query for non-advanced search.";
+            }
+            var data = this.getState() || {};
+            data.advancedQuery = query;
+            this.setState(data);
+        }
+    };
+    Fisma.Search.QueryState = QueryState;
+})();
+(function(){var a=YAHOO.lang,b=Fisma.PersistentStorage,c=function(d,e){this._model=d;this._storage=new Fisma.PersistentStorage("Fisma.Search.TablePreferences");this._localStorage=new Fisma.Storage("Fisma.Search.TablePreferences.Local");this._state=null;Fisma.Storage.onReady(function(){var f=this._storage.get(this._model);this._state=a.isObject(e)?e:{};if(a.isObject(f)){this._state=a.merge(f,this._state)}},this,true)};c.prototype={getColumnVisibility:function(d,e){this._stateReady();if(a.isValue(this._state.columnVisibility[d])){return this._state.columnVisibility[d]?true:false}return a.isValue(e)&&e?true:false},setColumnVisibility:function(d,e){this._stateReady();this._state.columnVisibility[d]=e;this._storage.set(this._model,this._state)},getSort:function(){var d=this._localStorage.get(this._model);return a.isObject(d)&&a.isObject(d.sort)?d.sort:null},setSort:function(e,d){var f=this._localStorage.get(this._model);f=a.isObject(f)?f:{};f.sort={column:e,dir:d};this._localStorage.set(this._model,f)},getPage:function(){var d=this._localStorage.get(this._model);return a.isObject(d)&&a.isNumber(d.page)?d.page:null},setPage:function(e){var d=this._localStorage.get(this._model);d=a.isObject(d)?d:{};d.page=e;this._localStorage.set(this._model,d)},persist:function(f){var d=this._model,e=this._storage;e.set(d,e.get(d));e.sync([d],f)},_stateReady:function(){if(this._state===null){throw"Attempting to use storage engine before it is ready."}if(typeof(this._state.columnVisibility)==="undefined"){this._state.columnVisibility={}}}};Fisma.Search.TablePreferences=c})();/**
+ * Copyright (c) 2011 Endeavor Systems, Inc.
+ *
+ * This file is part of OpenFISMA.
+ *
+ * OpenFISMA is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * OpenFISMA is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with OpenFISMA.  If not, see {@link http://www.gnu.org/licenses/}.
+ *
+ * @author    Andrew Reeves <andrew.reeves@endeavorsystems.com>
+ * @copyright (c) Endeavor Systems, Inc. 2011 {@link http://www.endeavorsystems.com}
+ * @license   http://www.openfisma.org/content/license
+ */
+
+(function() {
+    var YL = YAHOO.lang,
+        FPS = Fisma.PersistentStorage,
+    /**
+     * Enable getting and setting of datatable-related preferences.
+     *
+     * @namespace Fisma.Search
+     * @class TablePreferences
+     * @constructor
+     * @param model {String} Model for which this table is representing.
+     * @param init {Object} Object literal of default state.
+     */
+        FSTP = function(model, init) {
+            this._model = model;
+            this._storage = new Fisma.PersistentStorage('Fisma.Search.TablePreferences');
+            this._localStorage = new Fisma.Storage('Fisma.Search.TablePreferences.Local');
+            this._state = null;
+            Fisma.Storage.onReady(function() {
+                var data = this._storage.get(this._model);
+                this._state = YL.isObject(init) ? init : {};
+                if (YL.isObject(data)) {
+                    this._state = YL.merge(data, this._state);
+                }
+            }, this, true);
+        };
+    FSTP.prototype = {
+        /**
+         * Get specified columns visibility.
+         *
+         * @method TablePreferences.getColumnVisibility
+         * @param column {String} Column key.
+         * @param def {Boolean} Default state
+         * @return {Boolean}
+         */
+        getColumnVisibility: function (column, def) {
+            this._stateReady();
+            if (YL.isValue(this._state.columnVisibility[column])) {
+                return this._state.columnVisibility[column] ? true : false; // always return boolean
+            }
+            // if default not provided, assume false
+            return YL.isValue(def) && def ? true : false;
+        },
+
+        /**
+         * Set the specified columns visibility.
+         *
+         * @method TablePreferences.setColumnVisibility
+         * @param column {String} Column key.
+         * @param value {Boolean} Is visible?
+         */
+        setColumnVisibility: function (column, value) {
+            this._stateReady();
+            this._state.columnVisibility[column] = value;
+            this._storage.set(this._model, this._state);
+        },
+
+        /**
+         * Get sort column and direction
+         *
+         * @method TablePreferences.getSort
+         * @return {Object}
+         */
+        getSort: function() {
+            var data = this._localStorage.get(this._model);
+            return YL.isObject(data) && YL.isObject(data.sort) ? data.sort : null;
+        },
+        /**
+         * Set the sort column and direction
+         *
+         * @method TablePreferences.setSort
+         * @param column {String} Column key.
+         * @param dir {String} Sort direction
+         */
+        setSort: function(column, dir) {
+            var data = this._localStorage.get(this._model);
+            data = YL.isObject(data) ? data : {};
+            data.sort = {column: column, dir: dir};
+            this._localStorage.set(this._model, data);
+        },
+
+        /**
+         * Get current page number
+         *
+         * @method TablePreferences.getpage
+         * @return {Integer}
+         */
+        getPage: function() {
+            var data = this._localStorage.get(this._model);
+            return YL.isObject(data) && YL.isNumber(data.page) ? data.page: null;
+        },
+        /**
+         * Set the current page number
+         *
+         * @method TablePreferences.setPage
+         * @param page {Integer} Page number.
+         */
+        setPage: function(page) {
+            var data = this._localStorage.get(this._model);
+            data = YL.isObject(data) ? data : {};
+            data.page = page;
+            this._localStorage.set(this._model, data);
+        },
+
+        /**
+         * Save table preferences
+         *
+         * @method TablePreferences.persist
+         * @param callback {Function|Object} Callback on completion.
+         */
+        persist: function (callback) {
+            var m = this._model,
+                s = this._storage;
+            // force a "set" to ensure sync will know it's been modified
+            s.set(m, s.get(m));
+            s.sync([m], callback);
+        },
+
+        /**
+         * Internal method to assert the object is ready.
+         *
+         * @method TablePreferences._stateReady
+         * @protected
+         */
+        _stateReady: function() {
+            if (this._state === null) {
+                throw "Attempting to use storage engine before it is ready.";
+            }
+            if (typeof(this._state.columnVisibility) === 'undefined') {
+                this._state.columnVisibility = {};
+            }
+        }
+    };
+    Fisma.Search.TablePreferences = FSTP;
+})();
 Fisma.Spinner=function(a){this.container=a;this.spinner=document.createElement("img");this.spinner.id=a.id+"_spinnerImg";this.spinner.src="/images/spinners/small.gif";this.spinner.style.visibility="hidden";this.container.appendChild(this.spinner)};Fisma.Spinner.prototype.show=function(){this.spinner.style.visibility="visible"};Fisma.Spinner.prototype.hide=function(){this.spinner.style.visibility="hidden"};/**
  * Copyright (c) 2008 Endeavor Systems, Inc.
  *
@@ -6665,7 +9046,7 @@ Fisma.Spinner = function (container) {
     
     // Append spinner to end of container element
     this.container.appendChild(this.spinner);
-}
+};
 
 Fisma.Spinner.prototype.show = function () {
     this.spinner.style.visibility = 'visible';
@@ -6674,7 +9055,7 @@ Fisma.Spinner.prototype.show = function () {
 Fisma.Spinner.prototype.hide = function () {
     this.spinner.style.visibility = 'hidden';
 };
-Fisma.SwitchButton=function(b,a,e,d){var c=this;if(b.nodeType&&b.nodeType==document.ELEMENT_NODE){this.element=b}else{if("string"==typeof b){this.element=document.getElementById(b);if(!this.element){throw'Invalid element name "'+name+'"'}}else{throw"Invalid element for switch button constructor"}}this.createDomElements();this.state=a;this.payload=d;if(!this.state){this.element.style.backgroundPosition="-54px 100%"}this.element.onclick=function(){c.toggleSwitch.call(c)};if(""!=e){callbackObj=Fisma.Util.getObjectFromName(e);if("function"==typeof callbackObj){this.callback=callbackObj}else{throw"Specified callback is not a function: "+e}}};Fisma.SwitchButton.prototype={createDomElements:function(){YAHOO.util.Dom.addClass(this.element,"switchButton");var c=document.createElement("span");YAHOO.util.Dom.addClass(c,"border");this.element.appendChild(c);var b=document.createElement("span");YAHOO.util.Dom.addClass(b,"spinner");var a=document.createElement("img");a.src="/images/spinners/small.gif";b.appendChild(a);this.element.appendChild(b);this.spinner=b;this.proxyElement=document.createElement("div");this.proxyElement.style.display="none";document.body.appendChild(this.proxyElement)},toggleSwitch:function(){var b=this;var a;if(this.state){a={left:{from:0,to:-54,unit:"px"}};this.state=false}else{a={left:{from:-54,to:0,unit:"px"}};this.state=true}var c=new YAHOO.util.Anim(this.proxyElement,a,0.1,YAHOO.util.Easing.easeOut);c.onTween.subscribe(function(){b.element.style.backgroundPosition=b.proxyElement.style.left+" 100%"});c.animate();if(this.callback){this.callback(this)}},setBusy:function(a){if(a){this.spinner.style.visibility="visible"}else{this.spinner.style.visibility="hidden"}}};/**
+(function(){var a=function(b){this.namespace=b;a._initStorageEngine()};a._initStorageEngine=function(){if(YAHOO.lang.isNull(a._storageEngine)){var b={swfURL:"/swfstore.swf",containerID:"swfstoreContainer"};a._storageEngine=YAHOO.util.StorageManager.get(null,YAHOO.util.StorageManager.LOCATION_SESSION,{engine:b})}};a._storageEngine=null;a.clear=function(){a._initStorageEngine();a._storageEngine.clear()};a.onReady=function(c,d,b){YAHOO.util.Event.onContentReady("swfstoreContainer",function(){a._initStorageEngine();var f=a._storageEngine;var g=YAHOO.util.StorageManager.LOCATION_SESSION===f._location;if(!(f.isReady||(f._swf&&g))){f.subscribe(f.CE_READY,c,d,b)}else{var e=new YAHOO.util.Subscriber(c,d,b);e.fn.call(e.getScope(window),e.obj)}})};a.prototype={get:function(b){return this._get(b)},set:function(b,c){this._set(b,c)},_get:function(b){var c=a._storageEngine.getItem(this.namespace+":"+b);return YAHOO.lang.isNull(c)?null:YAHOO.lang.JSON.parse(c)},_set:function(b,c){a._storageEngine.setItem(this.namespace+":"+b,YAHOO.lang.JSON.stringify(c))}};Fisma.Storage=a})();Fisma.SwitchButton=function(b,a,e,d){var c=this;if(b.nodeType&&b.nodeType==document.ELEMENT_NODE){this.element=b}else{if("string"==typeof b){this.element=document.getElementById(b);if(!this.element){throw'Invalid element name "'+name+'"'}}else{throw"Invalid element for switch button constructor"}}this.createDomElements();this.state=a;this.payload=d;if(!this.state){this.element.style.backgroundPosition="-54px 100%"}this.element.onclick=function(){c.toggleSwitch.call(c)};if(""!==e){callbackObj=Fisma.Util.getObjectFromName(e);if("function"==typeof callbackObj){this.callback=callbackObj}else{throw"Specified callback is not a function: "+e}}};Fisma.SwitchButton.prototype={createDomElements:function(){YAHOO.util.Dom.addClass(this.element,"switchButton");var c=document.createElement("span");YAHOO.util.Dom.addClass(c,"border");this.element.appendChild(c);var b=document.createElement("span");YAHOO.util.Dom.addClass(b,"spinner");var a=document.createElement("img");a.src="/images/spinners/small.gif";b.appendChild(a);this.element.appendChild(b);this.spinner=b;this.proxyElement=document.createElement("div");this.proxyElement.style.display="none";document.body.appendChild(this.proxyElement)},toggleSwitch:function(){var b=this;var a;if(this.state){a={left:{from:0,to:-54,unit:"px"}};this.state=false}else{a={left:{from:-54,to:0,unit:"px"}};this.state=true}var c=new YAHOO.util.Anim(this.proxyElement,a,0.1,YAHOO.util.Easing.easeOut);c.onTween.subscribe(function(){b.element.style.backgroundPosition=b.proxyElement.style.left+" 100%"});c.animate();if(this.callback){this.callback(this)}},setBusy:function(a){if(a){this.spinner.style.visibility="visible"}else{this.spinner.style.visibility="hidden"}}};/**
  * Based on the iToggle example from Engage Interactive Labs.
  * http://labs.engageinteractive.co.uk/itoggle/
  * 
@@ -6743,13 +9124,13 @@ Fisma.SwitchButton = function (element, initialState, callback, payload) {
     // Set click handler
     this.element.onclick = function () {
         that.toggleSwitch.call(that);
-    }
+    };
     
     /* 
      * Callback will be a string like 'Fisma.Module.handleSwitchButtonStateChange', which needs to be converted into a 
      * reference to the actual function, such as window['Fisma']['Module']['handleSwitchButtonStateChange']
      */
-    if ('' != callback) {
+    if ('' !== callback) {
         callbackObj = Fisma.Util.getObjectFromName(callback);
         
         // At this point, the current value of callbackParent should be the callback function itself
@@ -6759,7 +9140,7 @@ Fisma.SwitchButton = function (element, initialState, callback, payload) {
             throw "Specified callback is not a function: " + callback;
         }
     }
-}
+};
 
 Fisma.SwitchButton.prototype = {
     
@@ -6816,7 +9197,7 @@ Fisma.SwitchButton.prototype = {
                     to : -54,
                     unit : 'px'
                 }                
-            }
+            };
 
             this.state = false;
         } else {
@@ -6828,14 +9209,14 @@ Fisma.SwitchButton.prototype = {
                     to : 0,
                     unit : 'px'
                 }                
-            }
+            };
 
             this.state = true;
         }        
         
         var toggleAnimation = new YAHOO.util.Anim(this.proxyElement, 
                                                   animationAttributes, 
-                                                  .1, 
+                                                  0.1, 
                                                   YAHOO.util.Easing.easeOut);
 
         toggleAnimation.onTween.subscribe(
@@ -6846,7 +9227,7 @@ Fisma.SwitchButton.prototype = {
                  */
                 that.element.style.backgroundPosition = that.proxyElement.style.left + ' 100%';
             }
-        )
+        );
 
         toggleAnimation.animate();
 
@@ -6874,7 +9255,7 @@ Fisma.SwitchButton.prototype = {
             this.spinner.style.visibility = 'hidden';
         }
     }
-};Fisma.System={uploadDocumentCallback:function(a){window.location.href=window.location.href}};/**
+};Fisma.System={uploadDocumentCallback:function(a){window.location.href=window.location.href},removeSelectedUsers:function(b,a){var d=[];var c=new Object();$('input:checkbox[name="rolesAndUsers[][]"]:checked').each(function(){if($(this).val()!==""){d.push($(this).val())}});c.organizationId=a.organizationId;c.userRoles=d;c.csrf=$('[name="csrf"]').val();$.ajax({type:"POST",url:"/user/remove-user-roles/",data:c,dataType:"json",success:function(){$("#rolesAndUsers").load("/system/get-user-access-tree/id/"+c.organizationId+"/name/rolesAndUsers")}})},addUser:function(b,a){var c=new Object();c.userId=$("#addUserId").val();c.roleId=$("#roles").val();c.organizationId=a.organizationId;c.csrf=$('[name="csrf"]').val();$.ajax({type:"POST",url:"/system/add-user/",data:c,dataType:"json",success:function(){$("#rolesAndUsers").load("/system/get-user-access-tree/id/"+c.organizationId+"/name/rolesAndUsers")}})},addSelectedUsers:function(b,a){var d=[];var c=new Object();$('input:checkbox[name="copyUserAccessTree[][]"]:checked').each(function(){if($(this).val()!==""){d.push($(this).val())}});c.userRoles=d;c.organizationId=a.organizationId;c.csrf=$('[name="csrf"]').val();$.ajax({type:"POST",url:"/user/add-user-roles-to-organization/",data:c,dataType:"json",success:function(){$("#rolesAndUsers").load("/system/get-user-access-tree/id/"+c.organizationId+"/name/rolesAndUsers")}})}};/**
  * Copyright (c) 2010 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
@@ -6906,6 +9287,102 @@ Fisma.System = {
      */
     uploadDocumentCallback : function (yuiPanel) {
         window.location.href = window.location.href;
+    },
+
+    /**
+     * removeSelectedUsers 
+     * 
+     * @param event $event 
+     * @param config $config 
+     * @access public
+     * @return void
+     */
+    removeSelectedUsers : function (event, config) {
+        var userRoles = [];
+        var data = new Object();
+
+        $('input:checkbox[name="rolesAndUsers[][]"]:checked').each(
+            function() {
+                if ($(this).val() !== "") {
+                    userRoles.push($(this).val());
+                }
+            }
+        );
+
+        data.organizationId = config.organizationId;
+        data.userRoles = userRoles;
+        data.csrf = $('[name="csrf"]').val();
+
+        $.ajax({
+            type: "POST",
+            url: '/user/remove-user-roles/',
+            data: data,
+            dataType: "json",
+            success: function() {
+                $("#rolesAndUsers").load('/system/get-user-access-tree/id/' + data.organizationId + '/name/rolesAndUsers');
+        }});
+    },
+
+    /**
+     * addUser 
+     * 
+     * @param event $event 
+     * @param config $config 
+     * @access public
+     * @return void
+     */
+    addUser : function (event, config) {
+        var data = new Object();
+
+        data.userId = $('#addUserId').val();
+        data.roleId = $('#roles').val();
+        data.organizationId = config.organizationId;
+        data.csrf = $('[name="csrf"]').val();
+
+        $.ajax({
+            type: "POST",
+            url: '/system/add-user/',
+            data: data,
+            dataType: "json",
+            success: function() {
+                $("#rolesAndUsers").load('/system/get-user-access-tree/id/' + data.organizationId + '/name/rolesAndUsers');
+            }
+        });
+    },
+
+    /**
+     * addSelectedUsers 
+     * 
+     * @param event $event 
+     * @param config $config 
+     * @access public
+     * @return void
+     */
+    addSelectedUsers : function (event, config) {
+        var userRoles = [];
+        var data = new Object();
+
+        $('input:checkbox[name="copyUserAccessTree[][]"]:checked').each(
+            function() {
+                if ($(this).val() !== "") {
+                    userRoles.push($(this).val());
+                }
+            }
+        );
+
+        data.userRoles = userRoles;
+        data.organizationId = config.organizationId;
+        data.csrf = $('[name="csrf"]').val();
+
+        $.ajax({
+            type: "POST",
+            url: '/user/add-user-roles-to-organization/',
+            data: data,
+            dataType: "json",
+            success: function() {
+                $("#rolesAndUsers").load('/system/get-user-access-tree/id/' + data.organizationId + '/name/rolesAndUsers');
+            }
+        });
     }
 };
 Fisma.TabView={};/**
@@ -6931,7 +9408,7 @@ Fisma.TabView={};/**
  */
 
 Fisma.TabView = {};
-Fisma.TabView.Roles=function(){return{init:function(b,a,c){YAHOO.util.Event.addListener("role","change",function(d){YAHOO.util.Dom.batch(YAHOO.util.Dom.getChildren("role"),function(j){var h=Fisma.tabView;var g=h.get("tabs");if(j.selected){var k=0;for(var f in g){if(g[f].get("id")==j.value){k=1;break}}if(!k){for(var f in b){if(b[f]["id"]==j.value){var e=b[f]["nickname"];break}}var l=new YAHOO.widget.Tab({id:j.value,label:e,dataSrc:"/user/get-organization-subform/user/"+a+"/role/"+j.value+"/readOnly/"+c,cacheData:true,active:true});l.subscribe("dataLoadedChange",Fisma.prepareTab);h.addTab(l)}}else{for(var f in g){if(g[f].get("id")==j.value){h.removeTab(g[f])}}}})})}}}();/**
+Fisma.TabView.Roles=function(){return{init:function(b,a,c){YAHOO.util.Event.addListener("role","change",function(d){YAHOO.util.Dom.batch(YAHOO.util.Dom.getChildren("role"),function(j){var g;var h=Fisma.tabView;var f=h.get("tabs");if(j.selected){var k=0;for(g in f){if(f[g].get("id")==j.value){k=1;break}}if(!k){for(g in b){if(b[g]["id"]==j.value){var e=$P.htmlspecialchars(b[g]["nickname"]);break}}var l=new YAHOO.widget.Tab({id:j.value,label:e,dataSrc:"/user/get-organization-subform/user/"+a+"/role/"+j.value+"/readOnly/"+c,cacheData:true,active:true});l.subscribe("dataLoadedChange",Fisma.prepareTab);h.addTab(l)}}else{for(g in f){if(f[g].get("id")==j.value){h.removeTab(f[g])}}}})})}}}();/**
  * Copyright (c) 2008 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
@@ -6960,13 +9437,14 @@ Fisma.TabView.Roles = function() {
         init : function(roles, userid, readOnly) {
             YAHOO.util.Event.addListener('role', 'change', function(e) {
                 YAHOO.util.Dom.batch(YAHOO.util.Dom.getChildren('role'), function(el) {
+                    var i;
                     var tabView = Fisma.tabView;
                     var tabs = tabView.get('tabs');
 
                     if (el.selected) {
                         var found = 0;
                         
-                        for (var i in tabs) {
+                        for (i in tabs) {
                             if (tabs[i].get('id') == el.value) {
                                 found = 1;
                                 break;
@@ -6974,9 +9452,9 @@ Fisma.TabView.Roles = function() {
                         }
 
                         if (!found) {
-                            for (var i in roles) {
+                            for (i in roles) {
                                 if (roles[i]['id'] == el.value) {
-                                    var label = roles[i]['nickname'];
+                                    var label = $P.htmlspecialchars(roles[i]['nickname']);
                                     break;
                                 }
                             }
@@ -6984,8 +9462,7 @@ Fisma.TabView.Roles = function() {
                             var newTab = new YAHOO.widget.Tab({
                                 id: el.value,
                                 label: label,
-                                dataSrc: '/user/get-organization-subform/user/' + userid + '/role/' 
-                                    + el.value + '/readOnly/' + readOnly,
+                                dataSrc: '/user/get-organization-subform/user/' + userid + '/role/' + el.value + '/readOnly/' + readOnly,
                                 cacheData: true,
                                 active: true
                             });
@@ -6993,7 +9470,7 @@ Fisma.TabView.Roles = function() {
                             tabView.addTab(newTab);
                         }
                     } else {
-                        for (var i in tabs) {
+                        for (i in tabs) {
                             if (tabs[i].get('id') == el.value) {
                                 tabView.removeTab(tabs[i]);
                             }
@@ -7002,9 +9479,9 @@ Fisma.TabView.Roles = function() {
                 });
             });
         }
-    }
+    };
 }();
-Fisma.TableFormat={greenColor:"lightgreen",yellowColor:"yellow",redColor:"pink",green:function(a){a.style.backgroundColor=Fisma.TableFormat.greenColor},yellow:function(a){a.style.backgroundColor=Fisma.TableFormat.yellowColor},red:function(a){a.style.backgroundColor=Fisma.TableFormat.redColor},securityAuthorization:function(b,a,c,d){b.innerHTML=d;dateParts=d.split("-");if(3==dateParts.length){authorizedDate=new Date(dateParts[0],dateParts[1],dateParts[2]);greenDate=new Date();greenDate.setMonth(greenDate.getMonth()-30);yellowDate=new Date();yellowDate.setMonth(yellowDate.getMonth()-36);if(authorizedDate>=greenDate){Fisma.TableFormat.green(b.parentNode)}else{if(authorizedDate>=yellowDate){Fisma.TableFormat.yellow(b.parentNode)}else{Fisma.TableFormat.red(b.parentNode)}}}},selfAssessment:function(b,a,c,d){b.innerHTML=d;dateParts=d.split("-");if(3==dateParts.length){assessmentDate=new Date(dateParts[0],dateParts[1],dateParts[2]);greenDate=new Date();greenDate.setMonth(greenDate.getMonth()-8);yellowDate=new Date();yellowDate.setMonth(yellowDate.getMonth()-12);if(assessmentDate>=greenDate){Fisma.TableFormat.green(b.parentNode)}else{if(assessmentDate>=yellowDate){Fisma.TableFormat.yellow(b.parentNode)}else{Fisma.TableFormat.red(b.parentNode)}}}},contingencyPlanTest:function(b,a,c,d){Fisma.TableFormat.selfAssessment(b,a,c,d)},yesNo:function(b,a,c,d){b.innerHTML=d;if("YES"==d){Fisma.TableFormat.green(b.parentNode)}else{if("NO"==d){Fisma.TableFormat.red(b.parentNode)}}},editControl:function(d,c,e,f){var a=document.createElement("img");a.src="/images/edit.png";var b=document.createElement("a");b.href=f;b.appendChild(a);d.appendChild(b)},deleteControl:function(d,c,e,f){var a=document.createElement("img");a.src="/images/del.png";var b=document.createElement("a");b.href=f;b.appendChild(a);d.appendChild(b)},formatHtml:function(a,b,c,d){a.innerHTML=d.replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">")},overdueFinding:function(i,k,f,b){overdueFindingSearchUrl="/finding/remediation/list/queryType/advanced";var a=k.getData("System");if(a){overdueFindingSearchUrl+="/organization/textExactMatch/"+escape(a)}var d=k.getData("Status");if(d){d=PHP_JS().html_entity_decode(d);overdueFindingSearchUrl+="/denormalizedStatus/textExactMatch/"+escape(d)}var j=f.formatterParameters;if(j.source){overdueFindingSearchUrl+="/source/textExactMatch/"+escape(j.source)}var h=null;if(j.from){fromDate=new Date();fromDate.setDate(fromDate.getDate()-parseInt(j.from));h=fromDate.getFullYear()+"-"+(fromDate.getMonth()+1)+"-"+fromDate.getDate()}var g=null;if(j.to){toDate=new Date();toDate.setDate(toDate.getDate()-parseInt(j.to));g=toDate.getFullYear()+"-"+(toDate.getMonth()+1)+"-"+toDate.getDate()}if(h&&g){overdueFindingSearchUrl+="/nextDueDate/dateBetween/"+g+"/"+h}else{if(h){overdueFindingSearchUrl+="/nextDueDate/dateBefore/"+h}else{var e=new Date();e.setDate(e.getDate()-1);var c=e.getFullYear()+"-"+(e.getMonth()+1)+"-"+e.getDate();overdueFindingSearchUrl+="/nextDueDate/dateBefore/"+c}}i.innerHTML="<a href="+overdueFindingSearchUrl+">"+b+"</a>"},completeDocTypePercentage:function(b,a,c,d){b.innerHTML=d;percentage=parseInt(d.replace(/%/g,""));if(percentage!=null){if(percentage>=95&&percentage<=100){Fisma.TableFormat.green(b.parentNode)}else{if(percentage>=80&&percentage<95){Fisma.TableFormat.yellow(b.parentNode)}else{if(percentage>=0&&percentage<80){Fisma.TableFormat.red(b.parentNode)}}}}},incompleteDocumentType:function(c,b,d,e){var a="";if(e.length>0){a+="<ul><li>"+e.replace(/,/g,"</li><li>")+"</li></ul>"}c.innerHTML=a},formatCheckbox:function(c,a,d,e){if(a.getData("deleted_at")){c.parentNode.style.backgroundColor="pink"}else{var b=document.createElement("input");b.type="checkbox";b.className=YAHOO.widget.DataTable.CLASS_CHECKBOX;b.checked=e;if(c.firstChild){c.removeChild(el.firstChild)}c.appendChild(b)}},formatTextToHtml:function(b,c,d,e){var a=$P.trim(e);b.innerHTML="<p>"+a.replace(/\n\n/g,"</p><p>").replace(/\n/g,"<br>")+"</p>"}};/**
+Fisma.TableFormat={greenColor:"lightgreen",yellowColor:"yellow",redColor:"pink",green:function(a){a.style.backgroundColor=Fisma.TableFormat.greenColor},yellow:function(a){a.style.backgroundColor=Fisma.TableFormat.yellowColor},red:function(a){a.style.backgroundColor=Fisma.TableFormat.redColor},securityAuthorization:function(b,a,c,d){b.innerHTML=d;dateParts=d.split("-");if(3==dateParts.length){authorizedDate=new Date(dateParts[0],dateParts[1],dateParts[2]);greenDate=new Date();greenDate.setMonth(greenDate.getMonth()-30);yellowDate=new Date();yellowDate.setMonth(yellowDate.getMonth()-36);if(authorizedDate>=greenDate){Fisma.TableFormat.green(b.parentNode)}else{if(authorizedDate>=yellowDate){Fisma.TableFormat.yellow(b.parentNode)}else{Fisma.TableFormat.red(b.parentNode)}}}},selfAssessment:function(b,a,c,d){b.innerHTML=d;dateParts=d.split("-");if(3==dateParts.length){assessmentDate=new Date(dateParts[0],dateParts[1],dateParts[2]);greenDate=new Date();greenDate.setMonth(greenDate.getMonth()-8);yellowDate=new Date();yellowDate.setMonth(yellowDate.getMonth()-12);if(assessmentDate>=greenDate){Fisma.TableFormat.green(b.parentNode)}else{if(assessmentDate>=yellowDate){Fisma.TableFormat.yellow(b.parentNode)}else{Fisma.TableFormat.red(b.parentNode)}}}},contingencyPlanTest:function(b,a,c,d){Fisma.TableFormat.selfAssessment(b,a,c,d)},yesNo:function(b,a,c,d){b.innerHTML=d;if("YES"==d){Fisma.TableFormat.green(b.parentNode)}else{if("NO"==d){Fisma.TableFormat.red(b.parentNode)}}},editControl:function(d,c,e,f){var a=document.createElement("img");a.src="/images/edit.png";var b=document.createElement("a");b.href=f;b.appendChild(a);d.appendChild(b)},deleteControl:function(d,c,e,f){var a=document.createElement("img");a.src="/images/del.png";var b=document.createElement("a");b.href=f;b.appendChild(a);d.appendChild(b)},formatHtml:function(a,b,c,d){a.innerHTML=d.replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">")},overdueFinding:function(i,k,f,b){overdueFindingSearchUrl="/finding/remediation/list?q=";var a=k.getData("System");if(a){a=$P.html_entity_decode(a);overdueFindingSearchUrl+="/organization/textExactMatch/"+encodeURIComponent(a)}var d=k.getData("Status");if(d){d=PHP_JS().html_entity_decode(d);overdueFindingSearchUrl+="/denormalizedStatus/textExactMatch/"+encodeURIComponent(d)}var j=f.formatterParameters;if(j.source){overdueFindingSearchUrl+="/source/textExactMatch/"+encodeURIComponent(j.source)}var h=null;if(j.from){fromDate=new Date();fromDate.setDate(fromDate.getDate()-parseInt(j.from,10));h=fromDate.getFullYear()+"-"+(fromDate.getMonth()+1)+"-"+fromDate.getDate()}var g=null;if(j.to){toDate=new Date();toDate.setDate(toDate.getDate()-parseInt(j.to,10));g=toDate.getFullYear()+"-"+(toDate.getMonth()+1)+"-"+toDate.getDate()}if(h&&g){overdueFindingSearchUrl+="/nextDueDate/dateBetween/"+encodeURIComponent(g)+"/"+encodeURIComponent(h)}else{if(h){overdueFindingSearchUrl+="/nextDueDate/dateBefore/"+encodeURIComponent(h)}else{var e=new Date();e.setDate(e.getDate()-1);var c=e.getFullYear();c+="-";c+=(e.getMonth()+1);c+="-";c+=e.getDate();overdueFindingSearchUrl+="/nextDueDate/dateBefore/"+encodeURIComponent(c)}}i.innerHTML='<a href="'+overdueFindingSearchUrl+'">'+b+"</a>"},completeDocTypePercentage:function(b,a,c,d){percentage=parseInt(d,10);if(d!==null){b.innerHTML=d+"%";if(percentage>=95&&percentage<=100){Fisma.TableFormat.green(b.parentNode)}else{if(percentage>=80&&percentage<95){Fisma.TableFormat.yellow(b.parentNode)}else{if(percentage>=0&&percentage<80){Fisma.TableFormat.red(b.parentNode)}}}}},incompleteDocumentType:function(c,b,d,e){var a="";if(e.length>0){a+="<ul><li>";a+=e.replace(/,/g,"</li><li>");a+="</li></ul>"}c.innerHTML=a},formatCheckbox:function(c,a,d,e){if(a.getData("deleted_at")){c.parentNode.style.backgroundColor="pink"}else{var b=document.createElement("input");b.type="checkbox";b.className=YAHOO.widget.DataTable.CLASS_CHECKBOX;b.checked=e;if(c.firstChild){c.removeChild(el.firstChild)}c.appendChild(b)}},formatTextToHtml:function(b,c,d,e){var a=$P.trim(e);b.innerHTML="<p>"+a.replace(/\n\n/g,"</p><p>").replace(/\n/g,"<br>")+"</p>"}};/**
  * Copyright (c) 2008 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
@@ -7221,13 +9698,17 @@ Fisma.TableFormat = {
     overdueFinding : function (elCell, oRecord, oColumn, oData) {
 
         // Construct overdue finding search url
-        overdueFindingSearchUrl = '/finding/remediation/list/queryType/advanced';
+        overdueFindingSearchUrl = '/finding/remediation/list?q=';
 
         // Handle organization field
         var organization = oRecord.getData('System');
 
         if (organization) {
-            overdueFindingSearchUrl += "/organization/textExactMatch/" + escape(organization);
+        
+            // Since organization may be html-encoded, decode the html before (url)-escaping it
+            organization = $P.html_entity_decode(organization);
+            
+            overdueFindingSearchUrl += "/organization/textExactMatch/" + encodeURIComponent(organization);
         }
 
         // Handle status field
@@ -7235,14 +9716,14 @@ Fisma.TableFormat = {
 
         if (status) {
             status = PHP_JS().html_entity_decode(status);
-            overdueFindingSearchUrl += "/denormalizedStatus/textExactMatch/" + escape(status);
+            overdueFindingSearchUrl += "/denormalizedStatus/textExactMatch/" + encodeURIComponent(status);
         }
 
         // Handle source field
         var parameters = oColumn.formatterParameters;
 
         if (parameters.source) {
-            overdueFindingSearchUrl += "/source/textExactMatch/" + escape(parameters.source);
+            overdueFindingSearchUrl += "/source/textExactMatch/" + encodeURIComponent(parameters.source);
         }
 
         // Handle date fields
@@ -7250,7 +9731,7 @@ Fisma.TableFormat = {
 
         if (parameters.from) {
             fromDate = new Date();
-            fromDate.setDate(fromDate.getDate() - parseInt(parameters.from));
+            fromDate.setDate(fromDate.getDate() - parseInt(parameters.from, 10));
             
             from = fromDate.getFullYear() + '-' + (fromDate.getMonth() + 1) + '-' + fromDate.getDate();
         }
@@ -7259,33 +9740,32 @@ Fisma.TableFormat = {
 
         if (parameters.to) {
             toDate = new Date();
-            toDate.setDate(toDate.getDate() - parseInt(parameters.to));
+            toDate.setDate(toDate.getDate() - parseInt(parameters.to, 10));
             
             to = toDate.getFullYear() + '-' + (toDate.getMonth() + 1) + '-' + toDate.getDate();
         }
 
         if (from && to) {
-            overdueFindingSearchUrl += "/nextDueDate/dateBetween/" + to + "/" + from;
+            overdueFindingSearchUrl += "/nextDueDate/dateBetween/" + 
+                                        encodeURIComponent(to) +
+                                        "/" +
+                                        encodeURIComponent(from);
         } else if (from) {
-            overdueFindingSearchUrl += "/nextDueDate/dateBefore/" + from;
+            overdueFindingSearchUrl += "/nextDueDate/dateBefore/" + encodeURIComponent(from);
         } else {
             // This is the TOTAL column
             var yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
-            var yesterdayString = yesterday.getFullYear() 
-                                + '-' 
-                                + (yesterday.getMonth() + 1) 
-                                + '-' 
-                                + yesterday.getDate();
+            var yesterdayString = yesterday.getFullYear();
+            yesterdayString += '-';
+            yesterdayString += (yesterday.getMonth() + 1);
+            yesterdayString += '-';
+            yesterdayString += yesterday.getDate();
 
-            overdueFindingSearchUrl += "/nextDueDate/dateBefore/" + yesterdayString;
+            overdueFindingSearchUrl += "/nextDueDate/dateBefore/" + encodeURIComponent(yesterdayString);
         }
 
-        elCell.innerHTML = "<a href="
-                         + overdueFindingSearchUrl
-                         + ">"
-                         + oData
-                         + "</a>";
+        elCell.innerHTML = '<a href="' + overdueFindingSearchUrl + '">' + oData + "</a>";
     },
 
     /**
@@ -7298,11 +9778,11 @@ Fisma.TableFormat = {
      * @param oData The data stored in this cell
      */
     completeDocTypePercentage : function (elCell, oRecord, oColumn, oData) {
-        elCell.innerHTML = oData;
+        percentage = parseInt(oData, 10);
 
-        percentage = parseInt(oData.replace(/%/g, ''));
+        if (oData !== null) {
+            elCell.innerHTML = oData + "%";
 
-        if (percentage != null) {
             if (percentage >= 95 && percentage <= 100) {
                 Fisma.TableFormat.green(elCell.parentNode);
             } else if (percentage >= 80 && percentage < 95) {
@@ -7324,9 +9804,9 @@ Fisma.TableFormat = {
     incompleteDocumentType : function (elCell, oRecord, oColumn, oData) {
         var docTypeNames = '';
         if (oData.length > 0) {
-            docTypeNames += '<ul><li>'
-                          + oData.replace(/,/g, '</li><li>')
-                          + '</li></ul>';
+            docTypeNames += '<ul><li>';
+            docTypeNames += oData.replace(/,/g, '</li><li>');
+            docTypeNames += '</li></ul>';
         }
 
         elCell.innerHTML = docTypeNames;
@@ -7380,7 +9860,7 @@ Fisma.TableFormat = {
     }
 
 };
-Fisma.UrlPanel=function(){return{showPanel:function(e,b,f,c,d){if(typeof(c)=="undefined"||c==null){c="panel"}if(typeof(d)=="undefined"||d==null){d={width:"540px",modal:true}}var a=new YAHOO.widget.Panel(c,d);a.setHeader(e);a.setBody("Loading...");a.render(document.body);a.center();a.show();if(b!=""){YAHOO.util.Connect.asyncRequest("GET",b,{success:function(g){g.argument.setBody(g.responseText);g.argument.center();if(typeof(f)=="function"){f()}},failure:function(g){alert("Failed to load the specified panel.")},argument:a},null)}return a}}}();/**
+Fisma.UrlPanel=function(){return{showPanel:function(e,b,f,c,d){if(typeof(c)==="undefined"||c===null){c="panel"}if(typeof(d)==="undefined"||d===null){d={width:"540px",modal:true}}var a=new YAHOO.widget.Panel(c,d);a.setHeader(e);a.setBody("Loading...");a.render(document.body);a.center();a.show();if(b!==""){YAHOO.util.Connect.asyncRequest("GET",b,{success:function(g){g.argument.setBody(g.responseText);g.argument.center();if(typeof(f)=="function"){f()}},failure:function(g){alert("Failed to load the specified panel.")},argument:a},null)}return a}}}();/**
  * Copyright (c) 2008 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
@@ -7421,12 +9901,12 @@ Fisma.UrlPanel = function() {
          */
         showPanel : function(title, url, callback, element, userConfig) {
             // Initialize element or its id representing the panel with default value if necessary
-            if (typeof(element) == 'undefined' || element == null)
+            if (typeof(element) === 'undefined' || element === null)
             {
                 element = "panel";
             }
             // Initialize user config with default config object if the user config is not specified or null
-            if (typeof(userConfig) == 'undefined' || userConfig == null)
+            if (typeof(userConfig) === 'undefined' || userConfig === null)
             {
                 userConfig = {
                     width : "540px",
@@ -7444,7 +9924,7 @@ Fisma.UrlPanel = function() {
             panel.show();
             
             // Load panel content from url
-            if (url != '') {
+            if (url !== '') {
                 YAHOO.util.Connect.asyncRequest('GET', url, {
                     success : function(o) {
                         o.argument.setBody(o.responseText);
@@ -7466,7 +9946,7 @@ Fisma.UrlPanel = function() {
         }
     };
 }();
-Fisma.User={userInfoPanelList:{},generatePasswordBusy:false,checkAccountBusy:false,displayUserInfo:function(c,b){var a;if(typeof Fisma.User.userInfoPanelList[b]=="undefined"){a=Fisma.User.createUserInfoPanel(c,b);Fisma.User.userInfoPanelList[b]=a;a.show()}else{a=Fisma.User.userInfoPanelList[b];if(a.cfg.getProperty("visible")){a.hide()}else{a.bringToTop();a.show()}}},createUserInfoPanel:function(e,d){var b=350;var c,a;c=d+"InfoPanel";a=new YAHOO.widget.Panel(c,{width:b+"px",modal:false,close:true,constraintoviewport:true});a.setHeader("User Profile");a.setBody("Loading user profile for <em>"+d+"</em>...");a.render(document.body);Fisma.Util.positionPanelRelativeToElement(a,e);YAHOO.util.Connect.asyncRequest("GET","/user/info/username/"+escape(d),{success:function(f){a.setBody(f.responseText);Fisma.Util.positionPanelRelativeToElement(a,e)},failure:function(f){a.setBody("User information cannot be loaded.");Fisma.Util.positionPanelRelativeToElement(a,e)}},null);return a},generatePassword:function(){if(Fisma.User.generatePasswordBusy){return}Fisma.User.generatePasswordBusy=true;var a=document.getElementById("generate_password");a.className="yui-button yui-push-button yui-button-disabled";var b=new Fisma.Spinner(a.parentNode);b.show();YAHOO.util.Connect.asyncRequest("GET","/user/generate-password/format/html",{success:function(c){document.getElementById("password").value=c.responseText;document.getElementById("confirmPassword").value=c.responseText;Fisma.User.generatePasswordBusy=false;a.className="yui-button yui-push-button";b.hide()},failure:function(c){b.hide();alert("Failed to generate password: "+c.statusText)}},null);return false},checkAccount:function(){if(Fisma.User.checkAccountBusy){return}Fisma.User.checkAccountBusy=true;var c=document.getElementById("username").value;var a="/user/check-account/format/json/account/"+encodeURIComponent(c);var b=document.getElementById("checkAccount");b.className="yui-button yui-push-button yui-button-disabled";var d=new Fisma.Spinner(b.parentNode);d.show();YAHOO.util.Connect.asyncRequest("GET",a,{success:function(k){var h=YAHOO.lang.JSON.parse(k.responseText);message(h.msg,h.type,true);var e=new Array("nameFirst","nameLast","phoneOffice","phoneMobile","email","title");var f=new Array("givenname","sn","telephonenumber","mobile","mail","title");if(h.accountInfo!=null){for(var g in f){if(!f.hasOwnProperty(g)){continue}var j=h.accountInfo[f[g]];if(j!=null){document.getElementById(e[g]).value=j}else{document.getElementById(e[g]).value=""}}}Fisma.User.checkAccountBusy=false;b.className="yui-button yui-push-button";d.hide()},failure:function(e){d.hide();alert("Failed to check account password: "+e.statusText)}},null)}};/**
+Fisma.User={userInfoPanelList:{},generatePasswordBusy:false,checkAccountBusy:false,displayUserInfo:function(c,b){var a;if(typeof Fisma.User.userInfoPanelList[b]=="undefined"){a=Fisma.User.createUserInfoPanel(c,b);Fisma.User.userInfoPanelList[b]=a;a.show()}else{a=Fisma.User.userInfoPanelList[b];if(a.cfg.getProperty("visible")){a.hide()}else{a.bringToTop();a.show()}}},createUserInfoPanel:function(e,d){var b=350;var c,a;c=d+"InfoPanel";a=new YAHOO.widget.Panel(c,{width:b+"px",modal:false,close:true,constraintoviewport:true});a.setHeader("User Profile");a.setBody("Loading user profile for <em>"+d+"</em>...");a.render(document.body);Fisma.Util.positionPanelRelativeToElement(a,e);YAHOO.util.Connect.asyncRequest("GET","/user/info/username/"+escape(d),{success:function(f){a.setBody(f.responseText);Fisma.Util.positionPanelRelativeToElement(a,e)},failure:function(f){a.setBody("User information cannot be loaded.");Fisma.Util.positionPanelRelativeToElement(a,e)}},null);return a},generatePassword:function(){if(Fisma.User.generatePasswordBusy){return true}Fisma.User.generatePasswordBusy=true;var a=document.getElementById("generate_password");a.className="yui-button yui-push-button yui-button-disabled";var b=new Fisma.Spinner(a.parentNode);b.show();YAHOO.util.Connect.asyncRequest("GET","/user/generate-password/format/html",{success:function(c){document.getElementById("password").value=c.responseText;document.getElementById("confirmPassword").value=c.responseText;Fisma.User.generatePasswordBusy=false;a.className="yui-button yui-push-button";b.hide()},failure:function(c){b.hide();alert("Failed to generate password: "+c.statusText)}},null);return false},checkAccount:function(){if(Fisma.User.checkAccountBusy){return}Fisma.User.checkAccountBusy=true;var c=document.getElementById("username").value;var a="/user/check-account/format/json/account/"+encodeURIComponent(c);var b=document.getElementById("checkAccount");b.className="yui-button yui-push-button yui-button-disabled";var d=new Fisma.Spinner(b.parentNode);d.show();YAHOO.util.Connect.asyncRequest("GET",a,{success:function(k){var h=YAHOO.lang.JSON.parse(k.responseText);message(h.msg,h.type,true);var e=new Array("nameFirst","nameLast","phoneOffice","phoneMobile","email","title");var f=new Array("givenname","sn","telephonenumber","mobile","mail","title");if(h.accountInfo!==null){for(var g in f){if(!f.hasOwnProperty(g)){continue}var j=h.accountInfo[f[g]];if(j!==null){document.getElementById(e[g]).value=j}else{document.getElementById(e[g]).value=""}}}Fisma.User.checkAccountBusy=false;b.className="yui-button yui-push-button";d.hide()},failure:function(e){d.hide();alert("Failed to check account password: "+e.statusText)}},null)},showCommentPanel:function(){var g=YAHOO.util.Dom.get("locked");if(g===null||parseInt(g.value,10)===0){YAHOO.util.Dom.getAncestorByTagName("save-button","form").submit();return false}var c=document.createElement("div");var e=document.createElement("p");var b=document.createTextNode("Comments (OPTIONAL):");e.appendChild(b);c.appendChild(e);var f=document.createElement("textarea");f.id="commentTextArea";f.name="commentTextArea";f.rows=5;f.cols=60;c.appendChild(f);var d=document.createElement("div");d.style.height="10px";c.appendChild(d);var a=document.createElement("input");a.type="button";a.id="continueButton";a.value="continue";c.appendChild(a);Fisma.HtmlPanel.showPanel("Add Comment",c.innerHTML);YAHOO.util.Dom.get("continueButton").onclick=Fisma.User.submitUserForm;return true},submitUserForm:function(){var a=YAHOO.util.Dom.get("commentTextArea").value;YAHOO.util.Dom.get("comment").value=a;var b=YAHOO.util.Dom.getAncestorByTagName("save-button","form");b.submit()}};/**
  * Copyright (c) 2008 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
@@ -7588,8 +10068,7 @@ Fisma.User = {
                     Fisma.Util.positionPanelRelativeToElement(panel, referenceElement);
                 }
             }, 
-            null
-        );
+            null);
 
         return panel;
     },
@@ -7597,7 +10076,7 @@ Fisma.User = {
     generatePassword : function () {
         
         if (Fisma.User.generatePasswordBusy) {
-            return;
+            return true;
         }
 
         Fisma.User.generatePasswordBusy = true;
@@ -7627,8 +10106,7 @@ Fisma.User = {
                     alert('Failed to generate password: ' + o.statusText);
                 }
             },
-            null
-        );
+            null);
 
         return false;
     },
@@ -7675,7 +10153,7 @@ Fisma.User = {
                                                 'title');
 
                     // Make sure each column value is not null in LDAP account, then populate to related elements.
-                    if (data.accountInfo != null) {
+                    if (data.accountInfo !== null) {
                         for (var i in ldapColumns) {
                             if (!ldapColumns.hasOwnProperty(i)) {
                                 continue;
@@ -7683,7 +10161,7 @@ Fisma.User = {
 
                             var columnValue = data.accountInfo[ldapColumns[i]];
 
-                            if (columnValue != null) {
+                            if (columnValue !== null) {
                                 document.getElementById(openfismaColumns[i]).value = columnValue;
                             } else {
                                 document.getElementById(openfismaColumns[i]).value = '';
@@ -7702,8 +10180,66 @@ Fisma.User = {
                     alert('Failed to check account password: ' + o.statusText);
                 }
             },
-            null
-        );
+            null);
+    },
+
+    /**
+     * Show the comment panel
+     * 
+     * @return void
+     */
+    showCommentPanel : function () {
+        var lockedElement = YAHOO.util.Dom.get('locked');
+
+        // Only show panel in locked status
+        if (lockedElement === null || parseInt(lockedElement.value, 10) === 0) {
+            YAHOO.util.Dom.getAncestorByTagName('save-button', 'form').submit();
+            return false;
+        }
+
+        // Create a panel
+        var content = document.createElement('div');
+        var p = document.createElement('p');
+        var contentTitle = document.createTextNode('Comments (OPTIONAL):');
+        p.appendChild(contentTitle);
+        content.appendChild(p);
+
+        // Add comment textarea to panel
+        var commentTextArea = document.createElement('textarea');
+        commentTextArea.id = 'commentTextArea';
+        commentTextArea.name = 'commentTextArea';
+        commentTextArea.rows = 5;
+        commentTextArea.cols = 60;
+        content.appendChild(commentTextArea);
+
+        // Add line spacing to panel
+        var lineSpacingDiv = document.createElement('div');
+        lineSpacingDiv.style.height = '10px';
+        content.appendChild(lineSpacingDiv);
+
+        // Add submmit button to panel
+        var continueButton = document.createElement('input');
+        continueButton.type = 'button';
+        continueButton.id = 'continueButton';
+        continueButton.value = 'continue';
+        content.appendChild(continueButton);
+
+        Fisma.HtmlPanel.showPanel('Add Comment', content.innerHTML);
+
+        YAHOO.util.Dom.get('continueButton').onclick = Fisma.User.submitUserForm;
+        return true;
+    },
+
+    /*
+     * Submit user form after assign comment value to comment element
+     */
+    submitUserForm : function () {
+
+        // Get commentTextArea value from panel and assign its value to comment element
+        var commentElement = YAHOO.util.Dom.get('commentTextArea').value;
+        YAHOO.util.Dom.get('comment').value = commentElement;
+        var form = YAHOO.util.Dom.getAncestorByTagName('save-button', 'form');
+        form.submit();
     }
 };
 Fisma.Util={escapeRegexValue:function(b){var a=new RegExp("[.*+?|()\\[\\]{}\\\\]","g");return b.replace(a,"\\$&")},getObjectFromName:function(c){var b=c.split(".");var a=window;for(piece in b){a=a[b[piece]];if(a==undefined){throw"Specified object does not exist: "+c}}return a},positionPanelRelativeToElement:function(b,c){var a=5;b.cfg.setProperty("context",[c,YAHOO.widget.Overlay.TOP_LEFT,YAHOO.widget.Overlay.BOTTOM_LEFT,null,[0,a]])},getTimestamp:function(){var b=new Date();var a=b.getHours()+"";if(a.length==1){a="0"+a}var c=b.getMinutes()+"";if(c.length==1){c="0"+c}var d=b.getSeconds()+"";if(d.length==1){d="0"+d}return a+":"+c+":"+d}};/**
@@ -7795,8 +10331,7 @@ Fisma.Util = {
                 YAHOO.widget.Overlay.BOTTOM_LEFT,
                 null,
                 [0, VERTICAL_OFFSET]
-            ]
-        );        
+            ]);        
     },
     
     /**
@@ -7903,1895 +10438,7 @@ Fisma.Vulnerability = {
         yuiPanel.hide();
         yuiPanel.destroy();
     }
-}
-var CHART_CREATE_SUCCESS=1;var CHART_CREATE_FAILURE=2;var CHART_CREATE_EXTERNAL=3;var globalSettingsDefaults={fadingEnabled:false,barShadows:false,barShadowDepth:3,dropShadows:false,gridLines:false,pointLabels:false,pointLabelsOutline:false,showDataTable:false};var chartsOnDOM={};isIE=(window.ActiveXObject)?true:false;function createJQChart(e){var d={concatXLabel:false,nobackground:true,drawGridLines:false,pointLabelStyle:"color: black; font-size: 12pt; font-weight: bold",pointLabelAdjustX:-3,pointLabelAdjustY:-7,AxisLabelX:"",AxisLabelY:"",DataTextAngle:-30};e=jQuery.extend(true,d,e);if(document.getElementById(e.uniqueid)==false){throw"createJQChart Error - The target div/uniqueid does not exists"+e.uniqueid;return CHART_CREATE_FAILURE}setChartWidthAttribs(e);makeElementVisible(e.uniqueid+"loader");if(e.externalSource){document.getElementById(e.uniqueid).innerHTML="Loading chart data...";var c=e.externalSource;if(!e.oldExternalSource){e.oldExternalSource=e.externalSource}e.externalSource=undefined;e=buildExternalSourceParams(e);c+=String(e.externalSourceParams).replace(/ /g,"%20");e.lastURLpull=c;var f=new YAHOO.util.DataSource(c);f.responseType=YAHOO.util.DataSource.TYPE_JSON;f.responseSchema={resultsList:"chart"};var b={success:createJQChart_asynchReturn,failure:createJQChart_asynchReturn,argument:e};f.sendRequest("",b);return CHART_CREATE_EXTERNAL}document.getElementById(e.uniqueid).innerHTML="";document.getElementById(e.uniqueid).className="";document.getElementById(e.uniqueid+"toplegend").innerHTML="";if(typeof e.barMargin!="undefined"){e=jQuery.extend(true,e,{seriesDefaults:{rendererOptions:{barMargin:e.barMargin}}});e.barMargin=undefined}if(typeof e.legendLocation!="undefined"){e=jQuery.extend(true,e,{legend:{location:e.legendLocation}});e.legendLocation=undefined}if(typeof e.legendRowCount!="undefined"){e=jQuery.extend(true,e,{legend:{rendererOptions:{numberRows:e.legendRowCount}}});e.legendRowCount=undefined}e.chartData=forceIntegerArray(e.chartData);document.getElementById(e.uniqueid+"holder").style.display="";makeElementInvisible(e.uniqueid+"holder");document.getElementById(e.uniqueid+"loader").style.position="absolute";document.getElementById(e.uniqueid+"loader").finnishFadeCallback=new Function("fadeIn('"+e.uniqueid+"holder', 500);");fadeOut(e.uniqueid+"loader",500);setChartWidthAttribs(e);chartsOnDOM[e.uniqueid]=jQuery.extend(true,{},e);if(!chartIsEmpty(e)){switch(e.chartType){case"stackedbar":e.varyBarColor=false;if(typeof e.showlegend=="undefined"){e.showlegend=true}var a=createChartStackedBar(e);break;case"bar":if(typeof e.chartData[0]=="object"){e.varyBarColor=false;e.showlegend=true}else{e.chartData=[e.chartData];e.links=[e.links];e.varyBarColor=true;e.showlegend=false}e.stackSeries=false;var a=createChartStackedBar(e);break;case"line":var a=createChartStackedLine(e);break;case"stackedline":var a=createChartStackedLine(e);break;case"pie":e.links=[e.links];var a=createChartPie(e);break;default:throw"createJQChart Error - chartType is invalid ("+e.chartType+")";return CHART_CREATE_FAILURE}}removeOverlappingPointLabels(e);applyChartBackground(e);applyChartWidgets(e);createChartThreatLegend(e);applyChartBorders(e);globalSettingRefreshUi(e);showMsgOnEmptyChart(e);getTableFromChartData(e);return a}function createJQChart_asynchReturn(a,c,b){if(c){if(c.results[0]){b=mergeExtrnIntoParamObjectByInheritance(b,c)}else{throw"Error - Chart creation failed due to data source error at "+b.lastURLpull;return CHART_CREATE_FAILURE}if(typeof b.chartData=="undefined"){throw'Chart Error - The remote data source for chart "'+b.uniqueid+'" located at '+b.lastURLpull+" did not return data to plot on a chart";return CHART_CREATE_FAILURE}return createJQChart(b)}else{throw"Error - Chart creation failed due to data source error at "+b.lastURLpull;return CHART_CREATE_FAILURE}return CHART_CREATE_FAILURE}function mergeExtrnIntoParamObjectByInheritance(c,b){var a={};if(b.results[0]["inheritCtl"]){if(b.results[0]["inheritCtl"]=="minimal"){var a=b.results[0];a.width=c.width;a.height=c.height;a.uniqueid=c.uniqueid;a.externalSource=c.externalSource;a.oldExternalSource=c.oldExternalSource;a.widgets=c.widgets}else{if(b.results[0]["inheritCtl"]=="none"){var a=b.results[0]}else{throw"Error - Unknown chart inheritance mode";return}}}else{var a=jQuery.extend(true,c,b.results[0],true)}return a}function createChartPie(e){usedLabelsPie=e.chartDataText;var d=[];for(var b=0;b<e.chartData.length;b++){e.chartDataText[b]+=" ("+e.chartData[b]+")";d[d.length]=[e.chartDataText[b],e.chartData[b]]}var a={title:e.title,seriesColors:e.colors,grid:{drawBorder:false,drawGridlines:false,shadow:false},axes:{xaxis:{tickOptions:{angle:e.DataTextAngle,fontSize:"10pt",formatString:"%.0f"}},yaxis:{tickOptions:{formatString:"%.0f"}}},seriesDefaults:{renderer:$.jqplot.PieRenderer,rendererOptions:{sliceMargin:0,showDataLabels:true,shadowAlpha:0.15,shadowOffset:0,lineLabels:true,lineLabelsLineColor:"#777",diameter:e.height*0.55}},legend:{location:"s",show:false,rendererOptions:{numberRows:1}}};a.seriesDefaults.renderer.prototype.startAngle=0;$("[id="+e.uniqueid+"]").css("height",e.height);a=jQuery.extend(true,a,e);plot1=$.jqplot(e.uniqueid,[d],a);var c=new Function("ev","seriesIndex","pointIndex","data","var thisChartParamObj = "+YAHOO.lang.JSON.stringify(e)+"; chartClickEvent(ev, seriesIndex, pointIndex, data, thisChartParamObj);");$("#"+e.uniqueid).bind("jqplotDataClick",c);return CHART_CREATE_SUCCESS}function createChartStackedBar(j){var e=[];var d=0;var g=0;var c=0;for(var h=0;h<j.chartDataText.length;h++){d=0;for(var f=0;f<j.chartData.length;f++){d+=j.chartData[f][h]}if(d>g){g=d}if(j.concatXLabel==true){j.chartDataText[h]+=" ("+d+")"}}var b=[];if(j.chartLayerText){for(h=0;h<j.chartLayerText.length;h++){b[h]={label:j.chartLayerText[h]}}}c=Math.ceil(g/5)*5;yAxisTicks=[];yAxisTicks[0]=0;yAxisTicks[1]=(c/5)*1;yAxisTicks[2]=(c/5)*2;yAxisTicks[3]=(c/5)*3;yAxisTicks[4]=(c/5)*4;yAxisTicks[5]=(c/5)*5;$.jqplot.config.enablePlugins=true;var a={title:j.title,seriesColors:j.colors,stackSeries:true,series:b,seriesDefaults:{renderer:$.jqplot.BarRenderer,rendererOptions:{barWidth:35,showDataLabels:true,varyBarColor:j.varyBarColor,shadowAlpha:0.15,shadowOffset:0},pointLabels:{show:false,location:"s",hideZeros:true}},axesDefaults:{tickRenderer:$.jqplot.CanvasAxisTickRenderer,borderWidth:0,labelOptions:{enableFontSupport:true,fontFamily:"arial, helvetica, clean, sans-serif",fontSize:"12pt",textColor:"#555555"}},axes:{xaxis:{label:j.AxisLabelX,labelRenderer:$.jqplot.CanvasAxisLabelRenderer,renderer:$.jqplot.CategoryAxisRenderer,ticks:j.chartDataText,tickOptions:{angle:j.DataTextAngle,fontFamily:"arial, helvetica, clean, sans-serif",fontSize:"10pt",textColor:"#555555"}},yaxis:{label:j.AxisLabelY,labelRenderer:$.jqplot.CanvasAxisLabelRenderer,min:0,max:c,autoscale:true,ticks:yAxisTicks,tickOptions:{formatString:"%.0f",fontFamily:"arial, helvetica, clean, sans-serif",fontSize:"10pt",textColor:"#555555"}}},highlighter:{show:false},grid:{gridLineWidth:0,shadow:false,borderWidth:1,gridLineColor:"#FFFFFF",background:"transparent",drawGridLines:j.drawGridLines,show:j.drawGridLines},legend:{show:j.showlegend,rendererOptions:{numberRows:1},location:"nw"}};if(isIE){a.grid.background="#FFFFFF"}$("[id="+j.uniqueid+"]").css("height",j.height);a=jQuery.extend(true,a,j);a=alterChartByGlobals(a);plot1=$.jqplot(j.uniqueid,j.chartData,a);var i=new Function("ev","seriesIndex","pointIndex","data","var thisChartParamObj = "+YAHOO.lang.JSON.stringify(j)+"; chartClickEvent(ev, seriesIndex, pointIndex, data, thisChartParamObj);");$("#"+j.uniqueid).bind("jqplotDataClick",i);removeDecFromPointLabels(j);return CHART_CREATE_SUCCESS}function createChartStackedLine(d){var b=[];var c=0;for(var a=0;a<d.chartDataText.length;a++){c=0;for(var e=0;e<["chartData"].length;e++){c+=["chartData"][e][a]}d.chartDataText[a]+=" ("+c+")"}plot1=$.jqplot(d.uniqueid,d.chartData,{title:d.title,seriesColors:["#F4FA58","#FAAC58","#FA5858"],series:[{label:"Open Findings",lineWidth:4,markerOptions:{style:"square"}},{label:"Closed Findings",lineWidth:4,markerOptions:{style:"square"}},{lineWidth:4,markerOptions:{style:"square"}}],seriesDefaults:{fill:false,showMarker:true,showLine:true},axes:{xaxis:{renderer:$.jqplot.CategoryAxisRenderer,ticks:d.chartDataText},yaxis:{min:0}},highlighter:{show:false},legend:{show:true,rendererOptions:{numberRows:1},location:"nw"}});return CHART_CREATE_SUCCESS}function createChartThreatLegend(i){if(i.showThreatLegend&&!chartIsEmpty(i)){if(i.showThreatLegend==true){var c="100%";if(i.threatLegendWidth){c=i.threatLegendWidth}var d=document.createElement("table");d.style.fontSize="12px";d.style.color="#555555";d.width=c;var b=document.createElement("tbody");var h=document.createElement("tr");var g=document.createElement("td");g.style.textAlign="center";g.style.fontWeight="bold";g.width="40%";var a=document.createTextNode("Threat Level");g.appendChild(a);h.appendChild(g);var g=document.createElement("td");g.width="20%";g.appendChild(createThreatLegendSingleColor("FF0000","High"));h.appendChild(g);var g=document.createElement("td");g.width="20%";g.appendChild(createThreatLegendSingleColor("FF6600","Moderate"));h.appendChild(g);var g=document.createElement("td");g.width="20%";g.appendChild(createThreatLegendSingleColor("FFC000","Low"));h.appendChild(g);b.appendChild(h);d.appendChild(b);var f=i.uniqueid;var e=document.getElementById(f+"toplegend");e.appendChild(d)}}}function createThreatLegendSingleColor(b,c){var f=document.createElement("table");var e=document.createElement("tbody");var a=document.createElement("tr");var d=document.createElement("td");d.style.backgroundColor="#"+b;d.width="15px";a.appendChild(d);var d=document.createElement("td");d.width="3px";a.appendChild(d);var d=document.createElement("td");d.style.fontSize="12px";var c=document.createTextNode("   "+c);d.appendChild(c);a.appendChild(d);e.appendChild(a);f.appendChild(e);return f}function chartClickEvent(d,a,c,e,b){var g=false;if(b.links){if(typeof b.links=="string"){g=b.links}else{if(b.links[a]){if(typeof b.links[a]=="object"){g=b.links[a][c]}else{g=b.links[a]}}}}g=unescape(g);if(g!=false){g=String(g).replace("#ColumnLabel#",b.chartDataText[c])}if(b.linksdebug==true){var f="You clicked on layer "+a+", in column "+c+", which has the data of "+e[1]+"\n";f+="The link information for this element should be stored as a string in chartParamData['links'], or as a string in chartParamData['links']["+a+"]["+c+"]\n";if(g!=false){f+="The link with this element is "+g}alert(f)}else{if(g!=false&&g!="false"&&String(g)!="null"){document.location=g}}}function forceIntegerArray(b){for(var a=0;a<b.length;a++){if(typeof b[a]=="object"){b[a]=forceIntegerArray(b[a])}else{b[a]=parseInt(b[a])}}return b}function applyChartBorders(g){if(typeof g.borders=="undefined"){if(g.chartType=="bar"||g.chartType=="stackedbar"){g.borders="BL"}else{return}}var i=document.getElementById(g.uniqueid);var d=i.childNodes;for(var a=d.length-1;a>0;a--){if(typeof d[a].nodeName!="undefined"){if(String(d[a].nodeName).toLowerCase()=="canvas"&&d[a].className=="jqplot-series-shadowCanvas"){var f=d[a];var c=f.getContext("2d");var e=d[a].height;var b=d[a].width;c.strokeStyle="#777777";c.lineWidth=3;c.beginPath();if(g.borders.indexOf("L")!=-1){c.moveTo(0,0);c.lineTo(0,e);c.stroke()}if(g.borders.indexOf("B")!=-1){c.moveTo(0,e);c.lineTo(b,e);c.stroke()}if(g.borders.indexOf("R")!=-1){c.moveTo(b,0);c.lineTo(b,e);c.stroke()}if(g.borders.indexOf("T")!=-1){c.moveTo(0,0);c.lineTo(b,0);c.stroke()}return}}}}function applyChartBackground(e){var g=document.getElementById(e.uniqueid);if(e.nobackground){if(e.nobackground==true){return}}if(e.background){if(e.background["nobackground"]){if(e.background["nobackground"]==true){return}}}var b="/images/logoShark.png";if(e.background){if(e.background["URL"]){b=e.background["URL"]}}var d='<img height="100%" src="'+b+'" style="opacity:0.15;filter:alpha(opacity=15);opacity:0.15" />';if(e.background){if(e.background["overrideHTML"]){b=e.background["overrideHTML"]}}if(e.chartType=="pie"){var a=g.childNodes[3];var h=g.childNodes[4]}else{var a=g.childNodes[6];var h=g.childNodes[5]}var f=a.style;injectedBackgroundImg=document.createElement("span");injectedBackgroundImg.setAttribute("align","center");injectedBackgroundImg.setAttribute("style","position: absolute; left: "+f.left+"; top: "+f.top+"; width: "+a.width+"px; height: "+a.height+"px;");var c=g.insertBefore(injectedBackgroundImg,h);c.innerHTML=d}function applyChartWidgets(d){var f=document.getElementById(d.uniqueid+"WidgetSpace");if(typeof d.widgets=="undefined"){f.innerHTML="<br/><i>There are no parameters for this chart.</i><br/><br/>";return}else{if(d.widgets.length==0){f.innerHTML="<br/><i>There are no parameters for this chart.</i><br/><br/>";return}}if(d.widgets){var b="";for(var a=0;a<d.widgets.length;a++){var c=d.widgets[a];if(!c.uniqueid){c.uniqueid=d.uniqueid+"_widget"+a;d.widgets[a]["uniqueid"]=c.uniqueid}b+="<tr><td nowrap align=left>"+c.label+' </td><td><td nowrap width="10"></td><td width="99%" align=left>';switch(c.type){case"combo":b+='<select id="'+c.uniqueid+'" onChange="widgetEvent('+YAHOO.lang.JSON.stringify(d).replace(/"/g,"'")+');">';for(var e=0;e<c.options.length;e++){b+='<option value="'+c.options[e]+'">'+c.options[e]+"</option><br/>"}b+="</select>";break;case"text":b+='<input onKeyDown="if(event.keyCode==13){widgetEvent('+YAHOO.lang.JSON.stringify(d).replace(/"/g,"'")+');};" type="textbox" id="'+c.uniqueid+'" />';break;default:throw"Error - Widget "+a+"'s type ("+c.type+") is not a known widget type";return false}b+="</td></tr>"}f.innerHTML="<table>"+b+"</table>"}applyChartWidgetSettings(d)}function applyChartWidgetSettings(e){if(e.widgets){for(var a=0;a<e.widgets.length;a++){var c=e.widgets[a];var d=document.getElementById(c.uniqueid);if(c.forcevalue){d.value=c.forcevalue;d.text=c.forcevalue}else{var b=YAHOO.util.Cookie.get(e.uniqueid+"_"+c.uniqueid);if(b!=null){b=b.replace(/%20/g," ");d.value=b;d.text=b}else{if(c.defaultvalue){d.value=c.defaultvalue;d.text=c.defaultvalue}}}}}}function buildExternalSourceParams(g){var c="";g.externalSourceParams="";if(g.widgets){for(var b=0;b<g.widgets.length;b++){var f=g.widgets[b];var a=f.uniqueid;var e=document.getElementById(a);if(e){c=e.value}else{var d=YAHOO.util.Cookie.get(g.uniqueid+"_"+f.uniqueid);if(d!=null){c=d}else{if(f.defaultvalue){c=f.defaultvalue}}}g.externalSourceParams+="/"+a+"/"+c}}return g}function widgetEvent(d){if(d.widgets){for(var c=0;c<d.widgets.length;c++){var b=d.widgets[c]["uniqueid"];var a=document.getElementById(b).value;YAHOO.util.Cookie.set(d.uniqueid+"_"+b,a,{path:"/"})}}d=buildExternalSourceParams(d);d.externalSource=d.oldExternalSource;d.oldExternalSource=undefined;d.chartData=undefined;d.chartDataText=undefined;document.getElementById(d.uniqueid+"holder").finnishFadeCallback=new Function("makeElementVisible('"+d.uniqueid+"loader'); createJQChart("+YAHOO.lang.JSON.stringify(d)+"); this.finnishFadeCallback = '';");fadeOut(d.uniqueid+"holder",300)}function makeElementVisible(a){var b=document.getElementById(a);b.style.opacity="1";b.style.filter="alpha(opacity = '100')"}function makeElementInvisible(a){var b=document.getElementById(a);b.style.opacity="0";b.style.filter="alpha(opacity = '0')"}function fadeIn(a,d){var c=document.getElementById(a);if(c==null){return}var b=getGlobalSetting("fadingEnabled");if(b=="false"){makeElementVisible(a);if(c.finnishFadeCallback){c.finnishFadeCallback();c.finnishFadeCallback=undefined}return}if(typeof c.isFadingNow!="undefined"){if(c.isFadingNow==true){return}}c.isFadingNow=true;c.FadeState=null;c.FadeTimeLeft=undefined;makeElementInvisible(a);c.style.opacity="0";c.style.filter="alpha(opacity = '0')";fade(a,d)}function fadeOut(a,d){var c=document.getElementById(a);if(c==null){return}var b=getGlobalSetting("fadingEnabled");if(b=="false"){makeElementInvisible(a);if(c.finnishFadeCallback){c.finnishFadeCallback();c.finnishFadeCallback=undefined}return}if(typeof c.isFadingNow!="undefined"){if(c.isFadingNow==true){return}}c.isFadingNow=true;c.FadeState=null;c.FadeTimeLeft=undefined;makeElementVisible(a);c.style.opacity="1";c.style.filter="alpha(opacity = '100')";fade(a,d)}function fade(a,c){var b=document.getElementById(a);if(b==null){return}if(b.FadeState==null){if(b.style.opacity==null||b.style.opacity==""||b.style.opacity=="1"){b.FadeState=2}else{b.FadeState=-2}}if(b.FadeState==1||b.FadeState==-1){b.FadeState=b.FadeState==1?-1:1;b.FadeTimeLeft=c-b.FadeTimeLeft}else{b.FadeState=b.FadeState==2?-1:1;b.FadeTimeLeft=c;setTimeout("animateFade("+new Date().getTime()+",'"+a+"',"+c+")",33)}}function animateFade(d,a,f){var b=new Date().getTime();var g=b-d;var c=document.getElementById(a);if(c.FadeTimeLeft<=g){if(c.FadeState==1){c.style.filter="alpha(opacity = 100)";c.style.opacity="1"}else{c.style.filter="alpha(opacity = 0)";c.style.opacity="0"}c.isFadingNow=false;c.FadeState=c.FadeState==1?2:-2;if(c.finnishFadeCallback){c.finnishFadeCallback();c.finnishFadeCallback=""}return}c.FadeTimeLeft-=g;var e=c.FadeTimeLeft/f;if(c.FadeState==1){e=1-e}c.style.opacity=e;c.style.filter='alpha(opacity = "'+(e*100)+'")';setTimeout("animateFade("+b+",'"+a+"',"+f+")",33)}function setChartWidthAttribs(d){var b=false;if(d.chartData){if(d.chartType=="bar"||d.chartType=="stackedbar"){if(d.chartType=="stackedbar"){var c=d.chartData[0].length}else{if(d.chartType=="bar"){var c=d.chartData.length}}var a=(c*10)+(c*35)+40;if(d.width<a){b=true}}}if(typeof d.autoWidth!="undefined"){if(d.autoWidth==true){b=true}}if(b==true){document.getElementById(d.uniqueid+"loader").style.width="100%";document.getElementById(d.uniqueid+"holder").style.width="100%";document.getElementById(d.uniqueid+"holder").style.overflow="auto";document.getElementById(d.uniqueid).style.width=a+"px";document.getElementById(d.uniqueid+"toplegend").style.width=a+"px";if(d.align=="center"){document.getElementById(d.uniqueid).style.marginLeft="auto";document.getElementById(d.uniqueid).style.marginRight="auto";document.getElementById(d.uniqueid+"toplegend").style.marginLeft="auto";document.getElementById(d.uniqueid+"toplegend").style.marginRight="auto"}}else{document.getElementById(d.uniqueid+"loader").style.width="100%";document.getElementById(d.uniqueid+"holder").style.width=d.width+"px";document.getElementById(d.uniqueid+"holder").style.overflow="";document.getElementById(d.uniqueid).style.width=d.width+"px";document.getElementById(d.uniqueid+"toplegend").width=d.width+"px"}}function getTableFromChartData(b){if(chartIsEmpty(b)){return}var a=document.getElementById(b.uniqueid+"table");a.innerHTML="";if(getGlobalSetting("showDataTable")==="true"){if(b.chartType==="pie"){getTableFromChartPieChart(b,a)}else{getTableFromBarChart(b,a)}a.style.display="";document.getElementById(b.uniqueid).innerHTML="";document.getElementById(b.uniqueid).style.width=0;document.getElementById(b.uniqueid).style.height=0;document.getElementById(b.uniqueid+"toplegend").style.display="none"}else{a.style.display="none"}}function getTableFromChartPieChart(e,d){var g=document.createElement("table");var f=document.createElement("tbody");var h=document.createElement("tr");for(var b=0;b<e.chartDataText.length;b++){var a=document.createElement("th");var c=document.createTextNode(e.chartDataText[b]);a.setAttribute("style","font-style: bold;");a.appendChild(c);h.appendChild(a)}f.appendChild(h);var h=document.createElement("tr");for(var b=0;b<e.chartData.length;b++){var a=document.createElement("td");var c=document.createTextNode(e.chartData[b]);a.appendChild(c);h.appendChild(a)}f.appendChild(h);g.appendChild(f);g.setAttribute("border","1");g.setAttribute("width","100%");d.appendChild(g)}function getTableFromBarChart(i,a){var b=document.createElement("table");var c=document.createElement("tbody");var h=document.createElement("tr");if(typeof i.chartLayerText!="undefined"){var g=document.createElement("td");var j=document.createTextNode(" ");g.appendChild(j);h.appendChild(g)}for(var f=0;f<i.chartDataText.length;f++){var g=document.createElement("th");var j=document.createTextNode(i.chartDataText[f]);g.setAttribute("style","font-style: bold;");g.appendChild(j);h.appendChild(g)}c.appendChild(h);for(var f=0;f<i.chartData.length;f++){var e=i.chartData[f];var h=document.createElement("tr");if(typeof i.chartLayerText!="undefined"){var g=document.createElement("th");var j=document.createTextNode(i.chartLayerText[f]);g.setAttribute("style","font-style: bold;");g.appendChild(j);h.appendChild(g)}if(typeof(e)=="object"){for(var d=0;d<e.length;d++){var g=document.createElement("td");var j=document.createTextNode(e[d]);g.setAttribute("style","font-style: bold;");g.appendChild(j);h.appendChild(g)}}else{var g=document.createElement("td");var j=document.createTextNode(e);g.appendChild(j);h.appendChild(g)}c.appendChild(h)}b.appendChild(c);b.setAttribute("border","1");b.setAttribute("width","100%");a.appendChild(b)}function removeDecFromPointLabels(g){var f="";var b=document.getElementById(g.uniqueid);for(var a=0;a<b.childNodes.length;a++){var e=b.childNodes[a];if(typeof e.classList=="undefined"){e.classList=String(e.className).split(" ")}if(e.classList){if(e.classList[0]=="jqplot-point-label"){thisLabelValue=parseInt(e.innerHTML);e.innerHTML=thisLabelValue;e.value=thisLabelValue;if(parseInt(e.innerHTML)==0||isNaN(thisLabelValue)){e.innerHTML=""}if(getGlobalSetting("pointLabelsOutline")=="true"){f="text-shadow: ";f+="#FFFFFF 0px -1px 0px, ";f+="#FFFFFF 0px 1px 0px, ";f+="#FFFFFF 1px 0px 0px, ";f+="#FFFFFF -1px 1px 0px, ";f+="#FFFFFF -1px -1px 0px, ";f+="#FFFFFF 1px 1px 0px; ";e.innerHTML='<span style="'+f+g.pointLabelStyle+'">'+e.innerHTML+"</span>";e.style.textShadow="text-shadow: #FFFFFF 0px -1px 0px, #FFFFFF 0px 1px 0px, #FFFFFF 1px 0px 0px, #FFFFFF -1px 1px 0px, #FFFFFF -1px -1px 0px, #FFFFFF 1px 1px 0px;"}else{e.innerHTML='<span style="'+g.pointLabelStyle+'">'+e.innerHTML+"</span>"}var d=parseInt(String(e.style.left).replace("px",""));var c=parseInt(String(e.style.top).replace("px",""));d+=g.pointLabelAdjustX;c+=g.pointLabelAdjustY;if(thisLabelValue>=100){d-=2}if(thisLabelValue>=1000){d-=3}e.style.left=d+"px";e.style.top=c+"px";e.style.color="black"}}}}function removeOverlappingPointLabels(q){if(q.chartType!="stackedbar"&&q.chartType!="stackedline"){return}var s=document.getElementById(q.uniqueid);var g={};var b=[];var k=0;var l=0;for(var o=0;o<s.childNodes.length;o++){var r=s.childNodes[o];if(typeof r.classList=="undefined"){r.classList=String(r.className).split(" ")}if(r.classList[0]=="jqplot-point-label"){var p=false;if(typeof r.isRemoved!="undefined"){p=r.isRemoved}if(p==false){var f=parseInt(String(r.style.left).replace("px",""));var j=parseInt(String(r.style.top).replace("px",""));k=r.value;var a="left_"+f;if(typeof g[a]=="undefined"){g[a]=[];b.push(a)}var e={left:f,top:j,value:k,obj:r};g[a].push(e)}}}for(var o=0;o<b.length;o++){var a=b[o];for(var n=0;n<g[a].length;n++){var i=g[a][n];for(var m=0;m<g[a].length;m++){var h=g[a][m];l=Math.abs(h.top-i.top);if(l<12&&l!=0){if(h.value<i.value){h.obj.innerHTML="";h.obj.isRemoved=true}else{i.obj.innerHTML="";h.obj.isRemoved=true}removeOverlappingPointLabels(q);return}}}}}function hideButtonClick(a,b,c){setChartSettingsVisibility(b,false)}function setChartSettingsVisibility(d,c){var a=d+"WidgetSpaceHolder";var b=document.getElementById(a);if(c=="toggle"){if(b.style.display=="none"){c=true}else{c=false}}if(c==true){b.style.display=""}else{b.style.display="none"}}function globalSettingUpdate(c){var b=document.getElementById(c+"GlobSettings");var e=b.childNodes;for(var a=0;a<e.length;a++){var d=e[a];if(d.nodeName=="INPUT"){if(d.type=="checkbox"){setGlobalSetting(d.id,d.checked)}else{setGlobalSetting(d.id,d.value)}}}redrawAllCharts()}function globalSettingRefreshUi(e){var b=document.getElementById(e.uniqueid+"GlobSettings");var d=b.childNodes;for(var a=0;a<d.length;a++){var c=d[a];if(c.nodeName=="INPUT"){if(c.type=="checkbox"){c.checked=(getGlobalSetting(c.id)=="true")?true:false}else{c.value=getGlobalSetting(c.id);c.text=c.value}}}}function showSetingMode(c){if(c==true){var d=document.getElementsByName("chartSettingsBasic");var b=document.getElementsByName("chartSettingsGlobal")}else{var b=document.getElementsByName("chartSettingsBasic");var d=document.getElementsByName("chartSettingsGlobal")}for(var a=0;a<b.length;a++){b[a].style.display="none"}for(var a=0;a<b.length;a++){d[a].style.display=""}}function getGlobalSetting(b){var a=YAHOO.util.Cookie.get("chartGlobSetting_"+b);if(a!=null){return a}else{if(typeof globalSettingsDefaults[b]=="undefined"){throw"You have referenced a global setting ("+b+"), but have not defined a default value for it! Please defined a def-value in the object called globalSettingsDefaults that is located within the global scope of jqplotWrapper.js"}else{return String(globalSettingsDefaults[b])}}}function setGlobalSetting(a,b){YAHOO.util.Cookie.set("chartGlobSetting_"+a,b,{path:"/"})}function alterChartByGlobals(a){if(getGlobalSetting("barShadows")=="true"){a.seriesDefaults.rendererOptions.shadowDepth=3;a.seriesDefaults.rendererOptions.shadowOffset=3}if(getGlobalSetting("barShadowDepth")!="no-setting"&&getGlobalSetting("barShadows")=="true"){a.seriesDefaults.rendererOptions.shadowDepth=getGlobalSetting("barShadowDepth");a.seriesDefaults.rendererOptions.shadowOffset=getGlobalSetting("barShadowDepth")}if(getGlobalSetting("gridLines")=="true"){a.grid.gridLineWidth=1;a.grid.borderWidth=0;a.grid.gridLineColor=undefined;a.grid.drawGridLines=true;a.grid.show=true}if(getGlobalSetting("dropShadows")!="false"){a.grid.shadow=true}if(getGlobalSetting("pointLabels")=="true"){a.seriesDefaults.pointLabels.show=true}return a}function redrawAllCharts(){for(var b in chartsOnDOM){var a=chartsOnDOM[b];createJQChart(a);globalSettingRefreshUi(a)}}function showMsgOnEmptyChart(d){if(chartIsEmpty(d)){var e=document.getElementById(d.uniqueid);var f=e.childNodes[1];var b=document.createElement("div");b.height="100%";b.style.align="center";b.style.position="absolute";b.style.width=d.width+"px";b.style.height="100%";b.style.textAlign="center";b.style.verticalAlign="middle";var a=document.createTextNode("No data to plot.");b.appendChild(a);e.appendChild(b);var c=document.getElementById(d.uniqueid+"table");c.style.display="none"}}function chartIsEmpty(b){var a=true;for(x in b.chartData){if(typeof b.chartData[x]=="object"){for(y in b.chartData[x]){if(parseInt(b.chartData[x][y])>0){a=false}}}else{if(parseInt(b.chartData[x])>0){a=false}}}return a};
-// Constants
-    var CHART_CREATE_SUCCESS = 1;
-    var CHART_CREATE_FAILURE = 2;
-    var CHART_CREATE_EXTERNAL = 3;
-
-// Defaults for global chart settings definition:
-var globalSettingsDefaults = {
-    fadingEnabled:      false,
-    barShadows:         false,
-    barShadowDepth:     3,
-    dropShadows:        false,
-    gridLines:          false,
-    pointLabels:        false,
-    pointLabelsOutline: false,
-    showDataTable: false
-}
-
-// Remember all chart paramiter objects which are drawn on the DOM within global var chartsOnDom
-var chartsOnDOM = {};
-
-// Is this client/browser Internet Explorer?
-isIE = (window.ActiveXObject) ? true : false;
-
-/**
- * Creates a chart within a div by the name of chartParamsObj['uniqueid'].
- * All paramiters needed to create the chart are expected to be within the chartParamsObj object.
- * This function may return before the actual creation of a chart if there is an external source.
- *
- * @return boolean
- */
-function createJQChart(chartParamsObj)
-{
-
-    // load in default values for paramiters, and replace it with any given params
-    var defaultParams = {
-        concatXLabel: false,
-        nobackground: true,
-        drawGridLines: false,
-        pointLabelStyle: 'color: black; font-size: 12pt; font-weight: bold',
-        pointLabelAdjustX: -3,
-        pointLabelAdjustY: -7,
-        AxisLabelX: '',
-        AxisLabelY: '',
-        DataTextAngle: -30
-    };
-    chartParamsObj = jQuery.extend(true, defaultParams, chartParamsObj);
-
-    // param validation
-    if (document.getElementById(chartParamsObj['uniqueid']) == false) {
-        throw 'createJQChart Error - The target div/uniqueid does not exists' + chartParamsObj['uniqueid'];
-        return CHART_CREATE_FAILURE;
-    }
-
-    // set chart width to chartParamsObj['width']
-    setChartWidthAttribs(chartParamsObj);
-
-    // Ensure the load spinner is visible
-    makeElementVisible(chartParamsObj['uniqueid'] + 'loader');
-
-    // is the data being loaded from an external source? (Or is it all in the chartParamsObj obj?)
-    if (chartParamsObj['externalSource']) {
-        
-        /*
-         * If it is being loaded from an external source
-         *   setup a json request
-         *   have the json request return to createJQChart_asynchReturn
-         *   exit this function as createJQChart_asynchReturn will call this function again with the same chartParamsObj object with chartParamsObj['externalSource'] taken out
-        */
-
-        document.getElementById(chartParamsObj['uniqueid']).innerHTML = 'Loading chart data...';
-
-        // note externalSource, and remove/relocate it from its place in chartParamsObj[] so it dosnt retain and cause us to loop 
-        var externalSource = chartParamsObj['externalSource'];
-        if (!chartParamsObj['oldExternalSource']) {
-            chartParamsObj['oldExternalSource'] = chartParamsObj['externalSource'];
-        }
-        chartParamsObj['externalSource'] = undefined;
-        
-        // Send data from widgets to external data source if needed7 (will load from cookies and defaults if widgets are not drawn yet)
-        chartParamsObj = buildExternalSourceParams(chartParamsObj);
-        externalSource += String(chartParamsObj['externalSourceParams']).replace(/ /g,'%20');
-        chartParamsObj['lastURLpull'] = externalSource;
-
-        var myDataSource = new YAHOO.util.DataSource(externalSource);
-        myDataSource.responseType = YAHOO.util.DataSource.TYPE_JSON;
-        myDataSource.responseSchema = {resultsList: "chart"};
-
-        var callback1 = {
-            success : createJQChart_asynchReturn,
-            failure : createJQChart_asynchReturn,
-            argument: chartParamsObj
-        };
-        myDataSource.sendRequest("", callback1);
-
-        return CHART_CREATE_EXTERNAL;
-    }
-
-    // clear the chart area
-    document.getElementById(chartParamsObj['uniqueid']).innerHTML = '';
-    document.getElementById(chartParamsObj['uniqueid']).className = '';
-    document.getElementById(chartParamsObj['uniqueid'] + 'toplegend').innerHTML = '';
-
-    // handel aliases and short-cut vars
-    if (typeof chartParamsObj['barMargin'] != 'undefined') {
-        chartParamsObj = jQuery.extend(true, chartParamsObj, {'seriesDefaults': {'rendererOptions': {'barMargin': chartParamsObj['barMargin']}}});
-        chartParamsObj['barMargin'] = undefined;
-    }
-    if (typeof chartParamsObj['legendLocation'] != 'undefined') {
-        chartParamsObj = jQuery.extend(true, chartParamsObj, {'legend': {'location': chartParamsObj['legendLocation'] }});
-        chartParamsObj['legendLocation'] = undefined;
-    }
-    if (typeof chartParamsObj['legendRowCount'] != 'undefined') {
-        chartParamsObj = jQuery.extend(true, chartParamsObj, {'legend': {'rendererOptions': {'numberRows': chartParamsObj['legendRowCount']}}});
-        chartParamsObj['legendRowCount'] = undefined;
-    }
-        
-    // make sure the numbers to be plotted in chartParamsObj['chartData'] are infact numbers and not an array of strings of numbers
-    chartParamsObj['chartData'] = forceIntegerArray(chartParamsObj['chartData']);
-
-    // hide the loading spinner and show the canvas target
-    document.getElementById(chartParamsObj['uniqueid'] + 'holder').style.display = '';
-    makeElementInvisible(chartParamsObj['uniqueid'] + 'holder');
-    document.getElementById(chartParamsObj['uniqueid'] + 'loader').style.position = 'absolute';
-    document.getElementById(chartParamsObj['uniqueid'] + 'loader').finnishFadeCallback = new Function ("fadeIn('" + chartParamsObj['uniqueid'] + "holder', 500);");
-    fadeOut(chartParamsObj['uniqueid'] + 'loader', 500);
-
-    // now that we have the chartParamsObj['chartData'], do we need to make the chart larger and scrollable?
-    setChartWidthAttribs(chartParamsObj);
-
-    // Store this charts paramiter object into the global variable chartsOnDOM, so it can be redrawn
-    // This must be done before the next switch block that translates some data within the chartParamsObj object for jqPlot
-    chartsOnDOM[chartParamsObj['uniqueid']] = jQuery.extend(true, {}, chartParamsObj);
-    
-    // call the correct function based on chartType, or state there will be no chart created
-    if (!chartIsEmpty(chartParamsObj)) {
-    
-        switch(chartParamsObj['chartType'])
-        {
-            case 'stackedbar':
-                chartParamsObj['varyBarColor'] = false;
-                            if (typeof chartParamsObj['showlegend'] == 'undefined') { chartParamsObj['showlegend'] = true; }
-                var rtn = createChartStackedBar(chartParamsObj);
-                break;
-            case 'bar':
-
-                // Is this a simple-bar chart (not-stacked-bar) with multiple series?
-                if (typeof chartParamsObj['chartData'][0] =='object') {
-
-                    // the chartData is already a multi dimensional array, and the chartType is bar, not stacked bar. So we assume it is a simple-bar chart with multi series
-                    // thus we will leave the chartData array as is (as opposed to forcing it to a 2 dim array, and claming it to be a stacked bar chart with no other layers of bars (a lazy but functional of creating a regular bar charts from the stacked-bar chart renderer)
-
-                    chartParamsObj['varyBarColor'] = false;
-                    chartParamsObj['showlegend'] = true;
-
-                } else {
-                    chartParamsObj['chartData'] = [chartParamsObj['chartData']];  // force to 2 dimensional array
-                    chartParamsObj['links'] = [chartParamsObj['links']];
-                    chartParamsObj['varyBarColor'] = true;
-                    chartParamsObj['showlegend'] = false;
-                }
-
-                chartParamsObj['stackSeries'] = false;
-                var rtn = createChartStackedBar(chartParamsObj);
-                break;
-
-            case 'line':
-                var rtn = createChartStackedLine(chartParamsObj);
-                break;
-            case 'stackedline':
-                var rtn = createChartStackedLine(chartParamsObj);
-                break;
-            case 'pie':
-                chartParamsObj['links'] = [chartParamsObj['links']];
-                var rtn = createChartPie(chartParamsObj);
-                break;
-            default:
-                throw 'createJQChart Error - chartType is invalid (' + chartParamsObj['chartType'] + ')';
-                return CHART_CREATE_FAILURE;
-        }
-    }
-
-    // chart tweeking external to the jqPlot library
-    removeOverlappingPointLabels(chartParamsObj);
-    applyChartBackground(chartParamsObj);
-    applyChartWidgets(chartParamsObj);
-    createChartThreatLegend(chartParamsObj);
-    applyChartBorders(chartParamsObj);
-    globalSettingRefreshUi(chartParamsObj);
-    showMsgOnEmptyChart(chartParamsObj);
-    getTableFromChartData(chartParamsObj);
-
-    return rtn;
-}
-
-
-/**
- * When an external source is needed, this function should handel the returned JSON request
- * The chartParamsObj object that went into createJQChart(obj) would be the chartParamsObj here, and
- * the "value" parameter should be the returned JSON request.
- * the chartParamsObj and value objects are merged togeather based in inheritance mode and 
- * returns the return value of createJQChart(), or false on external source failure.
- *
- * @return integer
- */
-function createJQChart_asynchReturn(requestNumber, value, chartParamsObj)
-{
-    // If anything (json) was returned at all...
-    if (value) {
-        
-        // YAHOO.util.DataSource puts its JSON responce within value['results'][0]
-        if (value['results'][0]) {
-        
-            chartParamsObj = mergeExtrnIntoParamObjectByInheritance(chartParamsObj, value)
-            
-        } else {
-            throw 'Error - Chart creation failed due to data source error at ' + chartParamsObj['lastURLpull'];
-            return CHART_CREATE_FAILURE;
-        }
-
-        if (typeof chartParamsObj['chartData'] == 'undefined') {
-            throw 'Chart Error - The remote data source for chart "' + chartParamsObj['uniqueid'] + '" located at ' + chartParamsObj['lastURLpull'] + ' did not return data to plot on a chart';
-            return CHART_CREATE_FAILURE;
-        }
-
-        // call the createJQChart() with the chartParamsObj-object initally given to createJQChart() and the merged responce object
-        return createJQChart(chartParamsObj);
-        
-    } else {
-        throw 'Error - Chart creation failed due to data source error at ' + chartParamsObj['lastURLpull'];
-        return CHART_CREATE_FAILURE;
-    }
-    
-    return CHART_CREATE_FAILURE;
-}
-
-/**
- * Takes a chartParamsObj and merges content of 
- * ExternResponce-object into it based in the inheritance mode
- * set in ExternResponce.
- * Expects: A (chart-)object generated from Fisma_Chart->export('array')
- *
- * @param object
- * @return void
- * 
-*/
-function mergeExtrnIntoParamObjectByInheritance(chartParamsObj, ExternResponce)
-{
-    var joinedParam = {};
-
-    // Is there an inheritance mode? 
-    if (ExternResponce['results'][0]['inheritCtl']) {
-        if (ExternResponce['results'][0]['inheritCtl'] == 'minimal') {
-            // Inheritance mode set to minimal, retain certain attribs and merge
-            var joinedParam = ExternResponce['results'][0];
-            joinedParam['width'] = chartParamsObj['width'];
-            joinedParam['height'] = chartParamsObj['height'];
-            joinedParam['uniqueid'] = chartParamsObj['uniqueid'];
-            joinedParam['externalSource'] = chartParamsObj['externalSource'];
-            joinedParam['oldExternalSource'] = chartParamsObj['oldExternalSource'];
-            joinedParam['widgets'] = chartParamsObj['widgets'];
-        } else if (ExternResponce['results'][0]['inheritCtl'] == 'none') {
-            // Inheritance mode set to none, replace the joinedParam object
-            var joinedParam = ExternResponce['results'][0];
-        } else {
-            throw 'Error - Unknown chart inheritance mode';
-            return;
-        }
-    } else {
-        // No inheritance mode, by default, merge everything
-        var joinedParam = jQuery.extend(true, chartParamsObj, ExternResponce['results'][0],true);
-    }
-
-    return joinedParam;
-}
-
- /**
-  * Fires the jqPlot library, and creates a pie chart
-  * based on input chart object
-  *
-  * Expects: A (chart-)object generated from Fisma_Chart->export('array')
-  *
-  * @param object
-  * @return void
- */
-function createChartPie(chartParamsObj)
-{
-    usedLabelsPie = chartParamsObj['chartDataText'];
-
-    var dataSet = [];
-
-    for (var x = 0; x < chartParamsObj['chartData'].length; x++) {
-        chartParamsObj['chartDataText'][x] += ' (' + chartParamsObj['chartData'][x]  + ')';
-        dataSet[dataSet.length] = [chartParamsObj['chartDataText'][x], chartParamsObj['chartData'][x]];
-    }
-    
-    var jPlotParamObj = {
-        title: chartParamsObj['title'],
-        seriesColors: chartParamsObj['colors'],
-        grid: {
-            drawBorder: false,
-            drawGridlines: false,
-            shadow: false
-        },
-        axes: {
-            xaxis:{
-                tickOptions: {
-                    angle: chartParamsObj['DataTextAngle'],
-                    fontSize: '10pt',
-                    formatString: '%.0f'
-                }
-            },
-            yaxis:{
-                tickOptions: {
-                    formatString: '%.0f'
-                }
-            }
-
-        },
-        seriesDefaults:{
-            renderer:$.jqplot.PieRenderer,
-            rendererOptions: {
-                sliceMargin: 0,
-                showDataLabels: true,
-                shadowAlpha: 0.15,
-                shadowOffset: 0,
-                lineLabels: true,
-                lineLabelsLineColor: '#777',
-                diameter: chartParamsObj['height'] * 0.55
-            }
-        },
-        legend: {
-            location: 's',
-            show: false,
-            rendererOptions: {
-                numberRows: 1
-            }
-        }
-    }
-    
-    jPlotParamObj.seriesDefaults.renderer.prototype.startAngle = 0;
-
-    // bug killer (for IE7) - state the height for the container div for emulated excanvas
-    $("[id="+chartParamsObj['uniqueid']+"]").css('height', chartParamsObj['height']);
-
-    // merge any jqPlot direct chartParamsObj-arguments into jPlotParamObj from chartParamsObj
-    jPlotParamObj = jQuery.extend(true, jPlotParamObj, chartParamsObj);
-
-    plot1 = $.jqplot(chartParamsObj['uniqueid'], [dataSet], jPlotParamObj);
-
-    // create an event handeling function that calls chartClickEvent while preserving the parm object
-    var EvntHandler = new Function ("ev", "seriesIndex", "pointIndex", "data", "var thisChartParamObj = " + YAHOO.lang.JSON.stringify(chartParamsObj) + "; chartClickEvent(ev, seriesIndex, pointIndex, data, thisChartParamObj);" );
-    
-    // use the created function as the click-event-handeler
-    $('#' + chartParamsObj['uniqueid']).bind('jqplotDataClick', EvntHandler);
-
-    return CHART_CREATE_SUCCESS;
-}
-
- /**
-  * Fires the jqPlot library, and creates a stacked
-  * bar chart based on input chart object
-  *
-  * Expects: A (chart-)object generated from Fisma_Chart->export('array')
-  *
-  * @param object
-  * @return CHART_CREATE_SUCCESS|CHART_CREATE_FAILURE|CHART_CREATE_EXTERNAL
- */
-function createChartStackedBar(chartParamsObj)
-{
-    var dataSet = [];
-    var thisSum = 0;
-    var maxSumOfAll = 0;
-    var chartCeilingValue = 0;
-
-    for (var x = 0; x < chartParamsObj['chartDataText'].length; x++) {
-    
-        thisSum = 0;
-        
-        for (var y = 0; y < chartParamsObj['chartData'].length; y++) {
-            thisSum += chartParamsObj['chartData'][y][x];
-        }
-        
-        if (thisSum > maxSumOfAll) { maxSumOfAll = thisSum; }
-
-        if (chartParamsObj['concatXLabel'] == true) {
-            chartParamsObj['chartDataText'][x] += ' (' + thisSum  + ')';
-        }
-    }
-
-    var seriesParam = [];
-    if (chartParamsObj['chartLayerText']) {
-        for (x = 0; x < chartParamsObj['chartLayerText'].length; x++) {
-            seriesParam[x] = {label: chartParamsObj['chartLayerText'][x]};
-        }
-    }
-
-    // Make sure the Y-axis (row labels) are not offset by the formatter string rounding their values...
-    // (make the top most row label divisible by 5)
-    chartCeilingValue = Math.ceil(maxSumOfAll / 5) * 5;
-    
-    // Force Y-axis row labels to be divisible by 5
-    yAxisTicks = [];
-    yAxisTicks[0] = 0;
-    yAxisTicks[1] = (chartCeilingValue/5) * 1;
-    yAxisTicks[2] = (chartCeilingValue/5) * 2;
-    yAxisTicks[3] = (chartCeilingValue/5) * 3;
-    yAxisTicks[4] = (chartCeilingValue/5) * 4;
-    yAxisTicks[5] = (chartCeilingValue/5) * 5;
-    
-    $.jqplot.config.enablePlugins = true
-
-    var jPlotParamObj = {
-        title: chartParamsObj['title'],
-        seriesColors: chartParamsObj['colors'],
-        stackSeries: true,
-        series: seriesParam,
-        seriesDefaults:{
-            renderer: $.jqplot.BarRenderer,
-            rendererOptions:{
-                barWidth: 35,
-                showDataLabels: true,
-                varyBarColor: chartParamsObj['varyBarColor'],
-                shadowAlpha: 0.15,
-                shadowOffset: 0
-            },
-            pointLabels:{
-                show: false,
-                location: 's',
-                hideZeros: true
-            }
-        },
-        axesDefaults: {
-            tickRenderer: $.jqplot.CanvasAxisTickRenderer,
-            borderWidth: 0,
-            labelOptions: {
-                enableFontSupport: true,
-                fontFamily: 'arial, helvetica, clean, sans-serif',
-                fontSize: '12pt',
-                textColor: '#555555'
-            }
-        },
-        axes: {
-            xaxis:{
-                label: chartParamsObj['AxisLabelX'],
-                labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
-                renderer: $.jqplot.CategoryAxisRenderer,
-                ticks: chartParamsObj['chartDataText'],
-                tickOptions: {
-                    angle: chartParamsObj['DataTextAngle'],
-                    fontFamily: 'arial, helvetica, clean, sans-serif',
-                    fontSize: '10pt',
-                    textColor: '#555555'
-                }
-            },
-            yaxis:{
-                label: chartParamsObj['AxisLabelY'],
-                labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
-                min: 0,
-                max: chartCeilingValue,
-                autoscale: true,
-                ticks: yAxisTicks,
-                tickOptions: {
-                    formatString: '%.0f',
-                    fontFamily: 'arial, helvetica, clean, sans-serif',
-                    fontSize: '10pt',
-                    textColor: '#555555'
-                }
-            }
-
-        },
-        highlighter: { 
-            show: false 
-            },
-        grid: {
-            gridLineWidth: 0,
-            shadow: false,
-            borderWidth: 1,
-            gridLineColor: '#FFFFFF',
-            background: 'transparent',
-            drawGridLines: chartParamsObj['drawGridLines'],
-            show: chartParamsObj['drawGridLines']
-            },
-        legend: {
-                    show: chartParamsObj['showlegend'],
-                    rendererOptions: {
-                        numberRows: 1
-                    },
-                    location: 'nw'
-                }
-    };
-    
-    // bug killer - The canvas object for IE does not understand what transparency is...
-    if (isIE) {
-        jPlotParamObj.grid.background = '#FFFFFF';
-    }
-    
-    // bug killer (for IE7) - state the height for the container div for emulated excanvas
-    $("[id="+chartParamsObj['uniqueid']+"]").css('height', chartParamsObj['height']);
-    
-    // merge any jqPlot direct chartParamsObj-arguments into jPlotParamObj from chartParamsObj
-    jPlotParamObj = jQuery.extend(true, jPlotParamObj, chartParamsObj);
-    
-    // override any jqPlot direct chartParamsObj-arguments based on globals setting from cookies (set by user)
-    jPlotParamObj = alterChartByGlobals(jPlotParamObj);
-
-    plot1 = $.jqplot(chartParamsObj['uniqueid'], chartParamsObj['chartData'], jPlotParamObj);
-
-    
-    var EvntHandler = new Function ("ev", "seriesIndex", "pointIndex", "data", "var thisChartParamObj = " + YAHOO.lang.JSON.stringify(chartParamsObj) + "; chartClickEvent(ev, seriesIndex, pointIndex, data, thisChartParamObj);" );
-    $('#' + chartParamsObj['uniqueid']).bind('jqplotDataClick', EvntHandler);
-
-    removeDecFromPointLabels(chartParamsObj);
-
-    return CHART_CREATE_SUCCESS;
-}
-
- /**
-  * Fires the jqPlot library, and creates a stacked
-  * line chart based on input chart object
-  *
-  * Expects: A (chart-)object generated from Fisma_Chart->export('array')
-  *
-  * @param object
-  * @return CHART_CREATE_SUCCESS|CHART_CREATE_FAILURE|CHART_CREATE_EXTERNAL
- */
-function createChartStackedLine(chartParamsObj)
-{
-    var dataSet = [];
-    var thisSum = 0;
-
-    for (var x = 0; x < chartParamsObj['chartDataText'].length; x++) {
-    
-        thisSum = 0;
-        
-        for (var y = 0; y < ['chartData'].length; y++) {
-            thisSum += ['chartData'][y][x];
-        }
-        
-        chartParamsObj['chartDataText'][x] += ' (' + thisSum  + ')';
-    }
-        
-    plot1 = $.jqplot(chartParamsObj['uniqueid'], chartParamsObj['chartData'], {
-        title: chartParamsObj['title'],
-        seriesColors: ["#F4FA58", "#FAAC58","#FA5858"],
-        series: [{label: 'Open Findings', lineWidth:4, markerOptions:{style:'square'}}, {label: 'Closed Findings', lineWidth:4, markerOptions:{style:'square'}}, {lineWidth:4, markerOptions:{style:'square'}}],
-        seriesDefaults:{
-            fill:false,
-            showMarker: true,
-            showLine: true
-        },
-        axes: {
-            xaxis:{
-                renderer:$.jqplot.CategoryAxisRenderer,
-                ticks:chartParamsObj['chartDataText']
-            },
-            yaxis:{
-                min: 0
-            }
-        },
-        highlighter: { show: false },
-        legend: {
-                    show: true,
-                    rendererOptions: {
-                        numberRows: 1
-                    },
-                    location: 'nw'
-                }
-    });
-
-    return CHART_CREATE_SUCCESS;
-}
-
-/**
- * Creates the red-orange-yellow threat-legend that shows above charts
- * The generated HTML code should go into the div with the id of the
- * chart's uniqueId + "toplegend"
- *
- * @return boolean/integer
- */
-function createChartThreatLegend(chartParamsObj)
-{
-    if (chartParamsObj['showThreatLegend'] && !chartIsEmpty(chartParamsObj)) {
-        if (chartParamsObj['showThreatLegend'] == true) {
-
-            // Is a width given for the width of the legend? OR should we assume 100%?
-            var threatLegendWidth = '100%';
-            if (chartParamsObj['threatLegendWidth']) {
-                threatLegendWidth = chartParamsObj['threatLegendWidth'];
-            }
-
-            // Tabel to hold all colored boxes and labels
-            var threatTable = document.createElement("table");
-            threatTable.style.fontSize = '12px';
-            threatTable.style.color = '#555555';
-            threatTable.width = threatLegendWidth;
-            var tblBody = document.createElement("tbody");
-            var row = document.createElement("tr");
-            
-            var cell = document.createElement("td");
-            cell.style.textAlign = 'center';
-            cell.style.fontWeight = 'bold';
-            cell.width = '40%';
-            var textLabel = document.createTextNode('Threat Level');
-            cell.appendChild(textLabel);
-            row.appendChild(cell);
-
-            // Red block and "High"
-            var cell = document.createElement("td");
-            cell.width = '20%';
-            cell.appendChild(createThreatLegendSingleColor('FF0000', 'High'));
-            row.appendChild(cell);
-            
-            // Orange block and "Moderate"
-            var cell = document.createElement("td");
-            cell.width = '20%';
-            cell.appendChild(createThreatLegendSingleColor('FF6600', 'Moderate'));
-            row.appendChild(cell);
-            
-            // Yellow block and "Low"
-            var cell = document.createElement("td");
-            cell.width = '20%';
-            cell.appendChild(createThreatLegendSingleColor('FFC000', 'Low'));
-            row.appendChild(cell);
-            
-            // close and post table on DOM
-            tblBody.appendChild(row);
-            threatTable.appendChild(tblBody);
-            var thisChartId = chartParamsObj['uniqueid'];
-            var topLegendOnDOM = document.getElementById(thisChartId + 'toplegend');
-            topLegendOnDOM.appendChild(threatTable);
-        }
-    }        
-}
-
-/**
- * Creates a single color (i.e. red/orange/yellow) tabels to be added 
- * into the threat-legend that shows above charts
- *
- * @return table
- */
-function createThreatLegendSingleColor(blockColor, textLabel) {
-
-    var colorBlockTbl = document.createElement("table");
-    var colorBody = document.createElement("tbody");
-    var colorRow = document.createElement("tr");
-    
-    // Create the colored box
-    var colorCell = document.createElement("td");
-    colorCell.style.backgroundColor= '#' + blockColor;
-    colorCell.width = '15px';
-    colorRow.appendChild(colorCell);
-    
-    // Forced space between colored box and label
-    var colorCell = document.createElement("td");
-    colorCell.width = '3px';
-    colorRow.appendChild(colorCell);
-    
-    // Apply label
-    var colorCell = document.createElement("td");
-    colorCell.style.fontSize = '12px';
-    var textLabel = document.createTextNode('   ' + textLabel);
-    colorCell.appendChild(textLabel);
-    colorRow.appendChild(colorCell);
-    
-    colorBody.appendChild(colorRow);
-    colorBlockTbl.appendChild(colorBody);
-    return colorBlockTbl;    
-}
-
-function chartClickEvent(ev, seriesIndex, pointIndex, data, paramObj)
-{
-    
-    var theLink = false;
-    if (paramObj['links']) {
-        if (typeof paramObj['links'] == 'string') {
-            theLink = paramObj['links'];
-        } else {
-            if (paramObj['links'][seriesIndex]) {
-                if (typeof paramObj['links'][seriesIndex] == "object") {
-                    theLink = paramObj['links'][seriesIndex][pointIndex];
-                } else {
-                    theLink = paramObj['links'][seriesIndex];
-                }
-            }
-        }
-    }
-    
-    // unescape
-    theLink = unescape(theLink);
-    
-    // Does the link contain a variable?
-    if (theLink != false) {
-        theLink = String(theLink).replace('#ColumnLabel#', paramObj['chartDataText'][pointIndex]);
-    }
-    
-    if (paramObj['linksdebug'] == true) {
-        var msg = "You clicked on layer " + seriesIndex + ", in column " + pointIndex + ", which has the data of " + data[1] + "\n";
-        msg += "The link information for this element should be stored as a string in chartParamData['links'], or as a string in chartParamData['links'][" + seriesIndex + "][" + pointIndex + "]\n";
-        if (theLink != false) { msg += "The link with this element is " + theLink; }
-        alert(msg);
-    } else {
-    
-        // We are not in link-debug mode, navigate if there is a link
-        if (theLink != false && theLink != 'false' && String(theLink) != 'null') {
-            document.location = theLink;
-        }
-        
-    }
-}
-
-/**
- * Converts an array from strings to integers, for example;
- * ["1", 2, "3", 4] would become [1, 2, 3, 4]
- * This is a bug killer for external source plotting data as
- * the jqPlot lib expects integers, and JSON may not always 
- * be encoded that way
- *
- * @return array
- */
-function forceIntegerArray(inptArray)
-{
-    for (var x = 0; x < inptArray.length; x++) {
-        if (typeof inptArray[x] == 'object') {
-            inptArray[x] = forceIntegerArray(inptArray[x]);
-        } else {
-            inptArray[x] = parseInt(inptArray[x]);    // make sure this is an int, and not a string of a number
-        }
-    }
-
-    return inptArray;
-}
-
-/**
- * Manually draws borders onto the shadow canvas
- * This function is nessesary as jqPlot's API does not allow 
- * you to choose which borders are drawn and which are not.
- * If "L" exists within chartParamsObj['borders'], the left border is
- * drawn, if "R" does (too), then the right is drawn and so on.
- *
- * @return void
- */
-function applyChartBorders(chartParamsObj)
-{
-
-    // What borders should be drawn? (L = left, B = bottom, R = right, T = top)
-    if (typeof chartParamsObj['borders'] == 'undefined') {
-        if (chartParamsObj['chartType'] == 'bar' || chartParamsObj['chartType'] == 'stackedbar') {
-            // default for bar and stacked bar charts are bottom-left (BL)
-            chartParamsObj['borders'] = 'BL';
-        } else {
-            // assume no default for other chart types
-            return;
-        }
-    }
-
-    // Get the area of our containing divs
-    var targDiv = document.getElementById(chartParamsObj['uniqueid']);
-    var children = targDiv.childNodes;
-    
-    for (var x = children.length - 1; x > 0; x--) {
-        // search for a canvs
-        if (typeof children[x].nodeName != 'undefined') {
-            
-            // search for a canvas that is the shadow canvas
-            if (String(children[x].nodeName).toLowerCase() == 'canvas' && children[x].className == 'jqplot-series-shadowCanvas') {
-
-                // this is the canvas we want to draw on
-                var targCanv = children[x];
-                var context = targCanv.getContext('2d');
-
-                var h = children[x].height;
-                var w = children[x].width;
-
-                context.strokeStyle = '#777777'
-                context.lineWidth = 3;
-                context.beginPath();
-
-                // Draw left border?
-                if (chartParamsObj['borders'].indexOf('L') != -1) {
-                    context.moveTo(0,0);
-                    context.lineTo(0, h);
-                    context.stroke();
-                }               
-
-                // Draw bottom border?
-                if (chartParamsObj['borders'].indexOf('B') != -1) {
-                    context.moveTo(0, h);
-                    context.lineTo(w, h);
-                    context.stroke();
-                }
-
-                // Draw right border?
-                if (chartParamsObj['borders'].indexOf('R') != -1) {
-                    context.moveTo(w, 0);
-                    context.lineTo(w, h);
-                    context.stroke();
-                }
-
-                // Draw top border?
-                if (chartParamsObj['borders'].indexOf('T') != -1) {
-                    context.moveTo(0, 0);
-                    context.lineTo(w, 0);
-                    context.stroke();
-                }
-
-                return;
-            }
-        }
-    }
-    
-}
-
-function applyChartBackground(chartParamsObj)
-{
-
-    var targDiv = document.getElementById(chartParamsObj['uniqueid']);
-
-    // Dont display a background? Defined in either nobackground or background.nobackground
-    if (chartParamsObj['nobackground']) {
-        if (chartParamsObj['nobackground'] == true) { return; }
-    }
-    if (chartParamsObj['background']) {
-        if (chartParamsObj['background']['nobackground']) {
-            if (chartParamsObj['background']['nobackground'] == true) {
-                return;
-            }
-        }
-    }
-    
-    // What is the HTML we should inject?
-    var backURL = '/images/logoShark.png'; // default location
-    if (chartParamsObj['background']) {
-        if (chartParamsObj['background']['URL']) {
-            backURL = chartParamsObj['background']['URL'];
-        }
-    }
-    var injectHTML = '<img height="100%" src="' + backURL + '" style="opacity:0.15;filter:alpha(opacity=15);opacity:0.15" />';
-
-    // But wait, is there an override issued for the HTML of the background to inject?
-    if (chartParamsObj['background']) {
-        if (chartParamsObj['background']['overrideHTML']) {
-            backURL = chartParamsObj['background']['overrideHTML'];
-        }
-    }
-
-    // Where do we inject the background in the DOM? (different for differnt chart rederers)
-    if (chartParamsObj['chartType'] == 'pie') {
-        var cpy = targDiv.childNodes[3];
-        var insertBeforeChild = targDiv.childNodes[4];
-    } else {    
-        var cpy = targDiv.childNodes[6];
-        var insertBeforeChild = targDiv.childNodes[5];
-    }
-
-    var cpyStyl = cpy.style;
-
-    injectedBackgroundImg = document.createElement('span');
-    injectedBackgroundImg.setAttribute('align', 'center');
-    injectedBackgroundImg.setAttribute('style' , 'position: absolute; left: ' + cpyStyl.left + '; top: ' + cpyStyl.top + '; width: ' + cpy.width + 'px; height: ' + cpy.height + 'px;');
-
-    var inserted = targDiv.insertBefore(injectedBackgroundImg, insertBeforeChild);
-    inserted.innerHTML = injectHTML;
-}
-
-/**
- * Creates the chart widgets/options (regular options, not global-settings).
- * The generated HTML for these "widgets" as placed in a div by the id of the
- * chart's uniqueId + "WidgetSpace"
- *
- * @return void
- */
-function applyChartWidgets(chartParamsObj)
-{
-
-    var wigSpace = document.getElementById(chartParamsObj['uniqueid'] + 'WidgetSpace');
-
-    // Are there widgets for this chart?
-    if (typeof chartParamsObj['widgets'] == 'undefined') {
-        wigSpace.innerHTML = '<br/><i>There are no parameters for this chart.</i><br/><br/>';
-        return;
-    } else if (chartParamsObj['widgets'].length == 0) {
-        wigSpace.innerHTML = '<br/><i>There are no parameters for this chart.</i><br/><br/>';
-        return;
-    }
-
-    if (chartParamsObj['widgets']) {
-
-        var addHTML = '';
-
-        for (var x = 0; x < chartParamsObj['widgets'].length; x++) {
-
-            var thisWidget = chartParamsObj['widgets'][x];
-            
-            // create a widget id if one is not explicitly given
-            if (!thisWidget['uniqueid']) {
-                thisWidget['uniqueid'] = chartParamsObj['uniqueid'] + '_widget' + x;
-                chartParamsObj['widgets'][x]['uniqueid'] = thisWidget['uniqueid'];
-            }
-
-            // print the label text to be displayed to the left of the widget if one is given
-            addHTML += '<tr><td nowrap align=left>' + thisWidget['label'] + ' </td><td><td nowrap width="10"></td><td width="99%" align=left>';
-
-            switch(thisWidget['type']) {
-                case 'combo':
-
-                    addHTML += '<select id="' + thisWidget['uniqueid'] + '" onChange="widgetEvent(' + YAHOO.lang.JSON.stringify(chartParamsObj).replace(/"/g, "'") + ');">';
-                                        // " // ( comment double quote to fix syntax highlight errors with /"/g on previus line )
-
-                    for (var y = 0; y < thisWidget['options'].length; y++) {
-                        addHTML += '<option value="' + thisWidget['options'][y] + '">' + thisWidget['options'][y] + '</option><br/>';
-                    }
-                    
-                    addHTML += '</select>';
-
-                    break;
-
-                case 'text':
-    
-                    addHTML += '<input onKeyDown="if(event.keyCode==13){widgetEvent(' + YAHOO.lang.JSON.stringify(chartParamsObj).replace(/"/g, "'") + ');};" type="textbox" id="' + thisWidget['uniqueid'] + '" />';
-                                        // " // ( comment double quote to fix syntax highlight errors with /"/g on previus line )
-                    break;
-
-                default:
-                    throw 'Error - Widget ' + x + "'s type (" + thisWidget['type'] + ') is not a known widget type';
-                    return false;
-            }
-
-            
-            addHTML += '</td></tr>';
-            
-        }
-
-        // add this widget HTML to the DOM
-        wigSpace.innerHTML = '<table>' + addHTML + '</table>';
-        
-    }
-
-    applyChartWidgetSettings(chartParamsObj);
-}
-
-/**
- * Looks at chartParamsObj["widget"], or for every chart-options/widget, loads the
- * values for this opt/widget into the user-interface object for this option.
- * This value may be loaded froma saved cookie, fallback to a default, or
- * be foreced to a certain value every time if the PHP wrapper demands it.
- *
- * @return void
- */
-function applyChartWidgetSettings(chartParamsObj)
-{
-
-    if (chartParamsObj['widgets']) {
-
-        for (var x = 0; x < chartParamsObj['widgets'].length; x++) {
-
-            var thisWidget = chartParamsObj['widgets'][x];
-            
-            // load the value for widgets
-            var thisWigInDOM = document.getElementById(thisWidget['uniqueid']);
-            if (thisWidget['forcevalue']) {
-                // this widget value is forced to a certain value upon every load/reload
-                thisWigInDOM.value = thisWidget['forcevalue'];
-                thisWigInDOM.text = thisWidget['forcevalue'];
-            } else {
-                var thisWigCookieValue = YAHOO.util.Cookie.get(chartParamsObj['uniqueid'] + '_' + thisWidget['uniqueid']);
-                if (thisWigCookieValue != null) {
-                    // the value has been coosen in the past and is stored as a cookie
-                    thisWigCookieValue = thisWigCookieValue.replace(/%20/g, ' ');
-                    thisWigInDOM.value = thisWigCookieValue;
-                    thisWigInDOM.text = thisWigCookieValue;
-                } else {
-                    // no saved value/cookie. Is there a default given in the chartParamsObj object
-                    if (thisWidget['defaultvalue']) {
-                        thisWigInDOM.value = thisWidget['defaultvalue'];
-                        thisWigInDOM.text = thisWidget['defaultvalue'];
-                    }
-                }
-            }
-        }
-    }
-
-}
-
-/**
- * When an external source is queried (JSON query), all chart parameters/options/widgets
- * are placed into the query URL. This function builds the trailing query to be appended
- * to the static external source URL.
- * Returns the chartParamsObj object given to this function with chartParamsObj['externalSourceParams'] altered.
- *
- * @return Array
- */
-function buildExternalSourceParams(chartParamsObj)
-{
-
-    // build arguments to send to the remote data source
-
-    var thisWidgetValue = '';
-    chartParamsObj['externalSourceParams'] = '';
-
-    if (chartParamsObj['widgets']) {
-        for (var x = 0; x < chartParamsObj['widgets'].length; x++) {
-
-            var thisWidget = chartParamsObj['widgets'][x];
-            var thisWidgetName = thisWidget['uniqueid'];
-            var thisWidgetOnDOM = document.getElementById(thisWidgetName);
-
-            // is this widget actully on the DOM? Or should we load the cookie?         
-            if (thisWidgetOnDOM) {
-                // widget is on the DOM
-                thisWidgetValue = thisWidgetOnDOM.value;
-            } else {
-                // not on DOM, is there a cookie?
-                var thisWigCookieValue = YAHOO.util.Cookie.get(chartParamsObj['uniqueid'] + '_' + thisWidget['uniqueid']);
-                if (thisWigCookieValue != null) {
-                    // there is a cookie value, us it
-                    thisWidgetValue = thisWigCookieValue;
-                } else {
-                    // there is no cookie, is there a default value?
-                    if (thisWidget['defaultvalue']) {
-                        thisWidgetValue = thisWidget['defaultvalue'];
-                    }
-                }
-            }
-
-            chartParamsObj['externalSourceParams'] += '/' + thisWidgetName + '/' + thisWidgetValue 
-        }
-    }
-
-    return chartParamsObj;
-}
-
- /**
-  * Event handeler for when a user changes combo-boxes or textboxes 
-  * of chart settings.
-  *
-  * Expects: A (chart-)object generated from Fisma_Chart->export('array')
-  *
-  * @param object
-  * @return void
- */
-function widgetEvent(chartParamsObj)
-{
-
-    // first, save the widget values (as cookies) so they can be retained later when the widgets get redrawn
-    if (chartParamsObj['widgets']) {
-        for (var x = 0; x < chartParamsObj['widgets'].length; x++) {
-            var thisWidgetName = chartParamsObj['widgets'][x]['uniqueid'];
-            var thisWidgetValue = document.getElementById(thisWidgetName).value;
-            YAHOO.util.Cookie.set(chartParamsObj['uniqueid'] + '_' + thisWidgetName, thisWidgetValue, {path: "/"});
-        }
-    }
-
-    // build arguments to send to the remote data source
-    chartParamsObj = buildExternalSourceParams(chartParamsObj);
-
-    // restore externalSource so a json request is fired when calling createJQPChart
-    chartParamsObj['externalSource'] = chartParamsObj['oldExternalSource'];
-    chartParamsObj['oldExternalSource'] = undefined;
-
-    chartParamsObj['chartData'] = undefined;
-    chartParamsObj['chartDataText'] = undefined;
-
-    // re-create chart entirly
-    document.getElementById(chartParamsObj['uniqueid'] + 'holder').finnishFadeCallback = new Function ("makeElementVisible('" + chartParamsObj['uniqueid'] + "loader'); createJQChart(" + YAHOO.lang.JSON.stringify(chartParamsObj) + "); this.finnishFadeCallback = '';");
-    fadeOut(chartParamsObj['uniqueid'] + 'holder', 300);
-
-}
-
-function makeElementVisible(eleId)
-{
-    var ele = document.getElementById(eleId);
-    ele.style.opacity = '1';
-    ele.style.filter = "alpha(opacity = '100')";
-}
-
-function makeElementInvisible(eleId)
-{
-    var ele = document.getElementById(eleId);
-    ele.style.opacity = '0';
-    ele.style.filter = "alpha(opacity = '0')";
-}
-
-function fadeIn(eid, TimeToFade)
-{
-
-    var element = document.getElementById(eid);
-    if (element == null) return;
-    
-    
-    var fadingEnabled = getGlobalSetting('fadingEnabled');
-    if (fadingEnabled == 'false') {
-        makeElementVisible(eid);
-        if (element.finnishFadeCallback) {
-            element.finnishFadeCallback();
-            element.finnishFadeCallback = undefined;
-        }
-        return;
-    }
-    
-    if (typeof element.isFadingNow != 'undefined') {
-        if (element.isFadingNow == true) {
-            return;
-        }
-    }
-    element.isFadingNow = true;
-
-    element.FadeState = null;
-    element.FadeTimeLeft = undefined;
-
-    makeElementInvisible(eid);
-    element.style.opacity = '0';
-    element.style.filter = "alpha(opacity = '0')";
-
-    fade(eid, TimeToFade);
-}
-
-function fadeOut(eid, TimeToFade)
-{
-
-    var element = document.getElementById(eid);
-    if (element == null) return;
-
-    var fadingEnabled = getGlobalSetting('fadingEnabled');
-    if (fadingEnabled == 'false') {
-        makeElementInvisible(eid);
-        if (element.finnishFadeCallback) {
-            element.finnishFadeCallback();
-            element.finnishFadeCallback = undefined;
-        }
-        return;
-    }
-
-    if (typeof element.isFadingNow != 'undefined') {
-        if (element.isFadingNow == true) {
-            return;
-        }
-    }
-    element.isFadingNow = true;
-
-    element.FadeState = null;
-    element.FadeTimeLeft = undefined;
-
-    makeElementVisible(eid);
-    element.style.opacity = '1';
-    element.style.filter = "alpha(opacity = '100')";
-
-    fade(eid, TimeToFade);
-}
-
-function fade(eid, TimeToFade)
-{
-
-    var element = document.getElementById(eid);
-    if (element == null) return;
-
-//  element.style = '';
-
-    if(element.FadeState == null)
-    {
-        if(element.style.opacity == null || element.style.opacity == '' || element.style.opacity == '1')
-        {
-            element.FadeState = 2;
-        } else {
-            element.FadeState = -2;
-        }
-    }
-
-    if (element.FadeState == 1 || element.FadeState == -1) {
-        element.FadeState = element.FadeState == 1 ? -1 : 1;
-        element.FadeTimeLeft = TimeToFade - element.FadeTimeLeft;
-    } else {
-        element.FadeState = element.FadeState == 2 ? -1 : 1;
-        element.FadeTimeLeft = TimeToFade;
-        setTimeout("animateFade(" + new Date().getTime() + ",'" + eid + "'," + TimeToFade + ")", 33);
-    }  
-}
-
-function animateFade(lastTick, eid, TimeToFade)
-{  
-    var curTick = new Date().getTime();
-    var elapsedTicks = curTick - lastTick;
-
-    var element = document.getElementById(eid);
-
-    if(element.FadeTimeLeft <= elapsedTicks)
-    {
-        if (element.FadeState == 1) {
-            element.style.filter = 'alpha(opacity = 100)';
-            element.style.opacity = '1';
-        } else {
-            element.style.filter = 'alpha(opacity = 0)';
-            element.style.opacity = '0';
-        }
-        element.isFadingNow = false;
-        element.FadeState = element.FadeState == 1 ? 2 : -2;
-        
-        if (element.finnishFadeCallback) {
-            element.finnishFadeCallback();
-            element.finnishFadeCallback = '';
-        }
-        return;
-    }
-
-    element.FadeTimeLeft -= elapsedTicks;
-    var newOpVal = element.FadeTimeLeft/TimeToFade;
-    if(element.FadeState == 1) newOpVal = 1 - newOpVal;
-
-    element.style.opacity = newOpVal;
-    element.style.filter = 'alpha(opacity = "' + (newOpVal*100) + '")';
-
-    setTimeout("animateFade(" + curTick + ",'" + eid + "'," + TimeToFade + ")", 33);
-}
-
-/**
- * This function controles how width and scrolling is handeled with the chart's canvase's
- * parent div. If autoWidth (or in PHP Fisma_Chart->widthAuto(true);) is set, the parent
- * div will always be scrollable. If not, it may still be automatically set scrollable if
- * the with in chartParamsObj['width'] is less than the minimum with required by the chart (calculated
- * in this function).
- *
- * NOTE: This function does not actully look at the DOM. It assumes the author to used
- *       Fisma_Chart->setWidth() knew what he was doing and set it correctly.
- *       The static width given to charts is considered a minimum width.
- *
- * @return void
- */
-function setChartWidthAttribs(chartParamsObj)
-{
-
-    var makeScrollable = false;
-
-    // Determin if we need to make this chart scrollable...
-    // Do we really have the chart data to plot?
-    if (chartParamsObj['chartData']) {
-        // Is this a bar chart?
-        if (chartParamsObj['chartType'] == 'bar' || chartParamsObj['chartType'] == 'stackedbar') {
-
-            // How many bars does it have?
-            if (chartParamsObj['chartType'] == 'stackedbar') {
-                var barCount = chartParamsObj['chartData'][0].length;
-            } else if (chartParamsObj['chartType'] == 'bar') {
-                var barCount = chartParamsObj['chartData'].length;
-            }
-
-            // Assuming each bar margin is 10px, And each bar has a minimum width of 35px, how much space is needed total (minimum).
-            var minSpaceRequired = (barCount * 10) + (barCount * 35) + 40;
-
-            // Do we not have enough space for a non-scrolling chart?
-            if (chartParamsObj['width'] < minSpaceRequired) {
-                
-                // We need to make this chart scrollable
-                makeScrollable = true;
-            }
-        }
-    }
-
-    // Is auto-width enabeled? (set width to 100% and make scrollable)
-    if (typeof chartParamsObj['autoWidth'] != 'undefined') {
-        if (chartParamsObj['autoWidth'] == true) {
-            makeScrollable = true;
-        }
-    }
-
-    if (makeScrollable == true) {
-
-        document.getElementById(chartParamsObj['uniqueid'] + 'loader').style.width = '100%';
-        document.getElementById(chartParamsObj['uniqueid'] + 'holder').style.width = '100%';
-        document.getElementById(chartParamsObj['uniqueid'] + 'holder').style.overflow = 'auto';
-        document.getElementById(chartParamsObj['uniqueid']).style.width = minSpaceRequired + 'px';
-        document.getElementById(chartParamsObj['uniqueid']  + 'toplegend').style.width = minSpaceRequired + 'px';
-
-        // handel alignment
-        if (chartParamsObj['align'] == 'center') {
-            document.getElementById(chartParamsObj['uniqueid']).style.marginLeft = 'auto';
-            document.getElementById(chartParamsObj['uniqueid']).style.marginRight = 'auto';
-            document.getElementById(chartParamsObj['uniqueid'] + 'toplegend').style.marginLeft = 'auto';
-            document.getElementById(chartParamsObj['uniqueid'] + 'toplegend').style.marginRight = 'auto';
-        }
-        
-    } else {
-
-        document.getElementById(chartParamsObj['uniqueid'] + 'loader').style.width = '100%';
-        document.getElementById(chartParamsObj['uniqueid'] + 'holder').style.width = chartParamsObj['width'] + 'px';
-        document.getElementById(chartParamsObj['uniqueid'] + 'holder').style.overflow = '';
-        document.getElementById(chartParamsObj['uniqueid']).style.width = chartParamsObj['width'] + 'px';
-        document.getElementById(chartParamsObj['uniqueid'] + 'toplegend').width = chartParamsObj['width'] + 'px';
-    }
-    
-}
-
-/**
- * Builds a table based on the data to plot on the chart for screen readers.
- * The generated HTML should generally be placed in a div by the Id of the
- * chart's uniqueId + "table"
- *
- * @param object
- * @return String
- */
-function getTableFromChartData(chartParamsObj)
-{
-    if (chartIsEmpty(chartParamsObj)) {
-        return;
-    }
-
-    var dataTableObj = document.getElementById(chartParamsObj['uniqueid'] + 'table');
-    dataTableObj.innerHTML = '';
-    
-    if (getGlobalSetting('showDataTable') === 'true') {
-    
-        if (chartParamsObj['chartType'] === 'pie') {
-            getTableFromChartPieChart(chartParamsObj, dataTableObj);
-        } else {
-            getTableFromBarChart(chartParamsObj, dataTableObj);
-        }
-
-        // Show the table generated based on chart data
-        dataTableObj.style.display = '';
-        // Hide, erase, and collapse the container of the chart divs
-        document.getElementById(chartParamsObj['uniqueid']).innerHTML = '';
-        document.getElementById(chartParamsObj['uniqueid']).style.width = 0;
-        document.getElementById(chartParamsObj['uniqueid']).style.height = 0;
-        // Ensure the threat-level-legend is hidden
-        document.getElementById(chartParamsObj['uniqueid'] + 'toplegend').style.display = 'none';
-
-    } else {
-        dataTableObj.style.display = 'none';
-    }
-}
-
-function getTableFromChartPieChart(chartParamsObj, dataTableObj)
-{
-    var tbl     = document.createElement("table");
-    var tblBody = document.createElement("tbody");
-
-    // row of slice-labels
-    var row = document.createElement("tr");
-    for (var x = 0; x < chartParamsObj['chartDataText'].length; x++) {
-        var cell = document.createElement("th");
-        var cellText = document.createTextNode(chartParamsObj['chartDataText'][x]);
-        cell.setAttribute("style", "font-style: bold;");
-        cell.appendChild(cellText);
-        row.appendChild(cell);
-    }
-    tblBody.appendChild(row);
-
-    // row of data
-    var row = document.createElement("tr");
-    for (var x = 0; x < chartParamsObj['chartData'].length; x++) {
-        var cell = document.createElement("td");
-        var cellText = document.createTextNode(chartParamsObj['chartData'][x]);
-        cell.appendChild(cellText);
-        row.appendChild(cell);
-    }
-    tblBody.appendChild(row);
-
-    tbl.appendChild(tblBody);
-    tbl.setAttribute("border", "1");
-    tbl.setAttribute("width", "100%");
-    
-    dataTableObj.appendChild(tbl);
-}
-
-function getTableFromBarChart(chartParamsObj, dataTableObj)
-{
-    var tbl     = document.createElement("table");
-    var tblBody = document.createElement("tbody");
-    var row = document.createElement("tr");
-    
-    // add a column for layer names if this is a stacked chart
-    if (typeof chartParamsObj['chartLayerText'] != 'undefined') {
-        var cell = document.createElement("td");
-        var cellText = document.createTextNode(" ");
-        cell.appendChild(cellText);
-        row.appendChild(cell);
-    }
-    
-    for (var x = 0; x < chartParamsObj['chartDataText'].length; x++) {
-        var cell = document.createElement("th");
-        var cellText = document.createTextNode(chartParamsObj['chartDataText'][x]);
-        cell.setAttribute("style", "font-style: bold;");
-        cell.appendChild(cellText);
-        row.appendChild(cell);
-    }
-    tblBody.appendChild(row);
-    
-
-    for (var x = 0; x < chartParamsObj['chartData'].length; x++) {
-
-        var thisEle = chartParamsObj['chartData'][x];
-        var row = document.createElement("tr");
-        
-        // each layer label
-        if (typeof chartParamsObj['chartLayerText'] != 'undefined') {
-            var cell = document.createElement("th");
-            var cellText = document.createTextNode(chartParamsObj['chartLayerText'][x]);
-            cell.setAttribute("style", "font-style: bold;");
-            cell.appendChild(cellText);
-            row.appendChild(cell);
-        }
-        
-        if (typeof(thisEle) == 'object') {
-
-            for (var y = 0; y < thisEle.length; y++) {
-                var cell = document.createElement("td");
-                var cellText = document.createTextNode(thisEle[y]);
-                cell.setAttribute("style", "font-style: bold;");
-                cell.appendChild(cellText);
-                row.appendChild(cell);
-            }
-            
-        } else {
-
-            var cell = document.createElement("td");
-            var cellText = document.createTextNode(thisEle);
-            cell.appendChild(cellText);
-            row.appendChild(cell);
-        }
-
-        tblBody.appendChild(row);
-
-    }
-
-    tbl.appendChild(tblBody);
-    tbl.setAttribute("border", "1");
-    tbl.setAttribute("width", "100%");
-    
-    dataTableObj.appendChild(tbl);
-}
-
-/**
- * Removes decimals from point labels, along with some other minor maintenance
- * - removes data/point-labels that are 0s
- * - Applies outlines if the globalSettings is set so
- * - forces color to black, and bolds the font
- *
- * Expects: A (chart-)object generated from Fisma_Chart->export('array')
- *
- * @param object
- * @return void
- */
-function removeDecFromPointLabels(chartParamsObj)
-{
-        var outlineStyle = '';
-        var chartOnDOM = document.getElementById(chartParamsObj['uniqueid']);
-    
-        for (var x = 0; x < chartOnDOM.childNodes.length; x++) {
-                
-                var thisChld = chartOnDOM.childNodes[x];
-                
-                // IE Support - IE does not support .classList, manually make this
-                if (typeof thisChld.classList == 'undefined') {
-                    thisChld.classList = String(thisChld.className).split(' ');
-                }
-                
-                if (thisChld.classList) {
-                    if (thisChld.classList[0] == 'jqplot-point-label') {
-
-                            // convert this from a string to a number to a string again (removes decimal if its needless)
-                            thisLabelValue = parseInt(thisChld.innerHTML);
-                            thisChld.innerHTML = thisLabelValue;
-                            thisChld.value = thisLabelValue;
-
-                            // if this number is 0, hide it (0s overlap with other numbers on bar charts)
-                            if (parseInt(thisChld.innerHTML) == 0 || isNaN(thisLabelValue)) {
-                                thisChld.innerHTML = '';
-                            }
-
-                            // add outline to this point label so it is easily visible on dark color backgrounds (outlines are done through white-shadows)
-                            if (getGlobalSetting('pointLabelsOutline') == 'true') {
-
-                                outlineStyle = 'text-shadow: ';
-                                outlineStyle += '#FFFFFF 0px -1px 0px, ';
-                                outlineStyle += '#FFFFFF 0px 1px 0px, ';
-                                outlineStyle += '#FFFFFF 1px 0px 0px, ';
-                                outlineStyle += '#FFFFFF -1px 1px 0px, ';
-                                outlineStyle += '#FFFFFF -1px -1px 0px, ';
-                                outlineStyle += '#FFFFFF 1px 1px 0px; ';
-                                
-                                thisChld.innerHTML = '<span style="' + outlineStyle + chartParamsObj['pointLabelStyle'] + '">' + thisChld.innerHTML + '</span>';
-                                thisChld.style.textShadow = 'text-shadow: #FFFFFF 0px -1px 0px, #FFFFFF 0px 1px 0px, #FFFFFF 1px 0px 0px, #FFFFFF -1px 1px 0px, #FFFFFF -1px -1px 0px, #FFFFFF 1px 1px 0px;';
-                                
-                            } else {
-                                thisChld.innerHTML = '<span style="' + chartParamsObj['pointLabelStyle'] + '">' + thisChld.innerHTML + '</span>';
-                            }
-
-                            // adjust the label to the a little bit since with the decemal trimmed, it may seem off-centered
-                            var thisLeftNbrValue = parseInt(String(thisChld.style.left).replace('px', ''));       // remove "px" from string, and conver to number
-                            var thisTopNbrValue = parseInt(String(thisChld.style.top).replace('px', ''));       // remove "px" from string, and conver to number
-                            thisLeftNbrValue += chartParamsObj['pointLabelAdjustX'];
-                            thisTopNbrValue += chartParamsObj['pointLabelAdjustY'];
-                            if (thisLabelValue >= 100) { thisLeftNbrValue -= 2; }
-                            if (thisLabelValue >= 1000) { thisLeftNbrValue -= 3; }
-                            thisChld.style.left = thisLeftNbrValue + 'px';
-                            thisChld.style.top = thisTopNbrValue + 'px';
-
-                            // force color to black
-                            thisChld.style.color = 'black';
-
-                    }
-                }
-        }
-        
-}
-
-function removeOverlappingPointLabels(chartParamsObj)
-{
-
-        // This function will deal with removing point labels that collie with eachother
-        // There is no need for this unless this is a stacked-bar or stacked-line chart
-        if (chartParamsObj['chartType'] != 'stackedbar' && chartParamsObj['chartType'] != 'stackedline') {
-            return;
-        }
-
-        var chartOnDOM = document.getElementById(chartParamsObj['uniqueid']);
-
-        var pointLabels_info = {};
-        var pointLabels_indexes = [];
-        var thisLabelValue = 0;
-        var d = 0;
-
-        for (var x = 0; x < chartOnDOM.childNodes.length; x++) {
-
-            var thisChld = chartOnDOM.childNodes[x];
-            
-            // IE support - IE dosnt supply .classList array, just a className string. Manually build this....
-            if (typeof thisChld.classList == 'undefined') {
-                thisChld.classList = String(thisChld.className).split(' ');
-            }
-            
-            if (thisChld.classList[0] == 'jqplot-point-label') {
-
-                var chldIsRemoved = false;
-
-                if (typeof thisChld.isRemoved != 'undefined') {
-                    chldIsRemoved = thisChld.isRemoved;
-                }
-
-                if (chldIsRemoved == false) {
-                    // index this point labels position
-
-                    var thisLeftNbrValue = parseInt(String(thisChld.style.left).replace('px', '')); // remove "px" from string, and conver to number
-                    var thisTopNbrValue = parseInt(String(thisChld.style.top).replace('px', '')); // remove "px" from string, and conver to number
-                    thisLabelValue = thisChld.value; // the value property should be given to this element form removeDecFromPointLabels
-
-                    var thisIndex = 'left_' + thisLeftNbrValue;
-                    if (typeof pointLabels_info[thisIndex] == 'undefined') {
-                        pointLabels_info[thisIndex] = [];
-                        pointLabels_indexes.push(thisIndex);
-                    }
-
-                    var thispLabelInfo = {
-                        left: thisLeftNbrValue, 
-                        top: thisTopNbrValue, 
-                        value: thisLabelValue, 
-                        obj: thisChld
-                    };
-
-                    pointLabels_info[thisIndex].push(thispLabelInfo);
-                }
-            }
-        }
-        
-        // Ensure point labels do not collide with others
-        for (var x = 0; x < pointLabels_indexes.length; x++) {
-            
-            var thisIndex = pointLabels_indexes[x];
-            
-            for (var y = 0; y < pointLabels_info[thisIndex].length; y++) {
-                
-                /* now determin the distance between this point label, and all
-                   point labels within this column. pointLabels_info[thisIndex]
-                   holds all point labels within this column. */
-                
-                var thisPointLabel = pointLabels_info[thisIndex][y];
-                
-                for (var c = 0; c < pointLabels_info[thisIndex].length; c++) {
-                
-                    var checkAgainst = pointLabels_info[thisIndex][c];
-                    
-                    // get the distance from thisPointLabel to checkAgainst point label
-                    d = Math.abs(checkAgainst['top'] - thisPointLabel['top']);
-                    
-                    if (d < 12 && d != 0) {
-                        
-                        // remove whichever label has the lower number
-                        
-                        if (checkAgainst['value'] < thisPointLabel['value']) {
-                            checkAgainst['obj'].innerHTML = '';
-                            checkAgainst['obj'].isRemoved = true;
-                        } else {
-                            thisPointLabel['obj'].innerHTML = '';
-                            checkAgainst['obj'].isRemoved = true;
-                        }
-                        
-                        // We jave just removed a point label, so this function will need to be run again
-                        // as the labels will need to be reindexed.
-                        
-                        removeOverlappingPointLabels(chartParamsObj)
-                        return;
-                    }
-                }
-            }
-            
-        }
-        
-}
-
-function hideButtonClick(scope, chartParamsObj, obj)
-{
-    setChartSettingsVisibility(chartParamsObj , false);
-}
-
-/**
- * Controles if the YUI-tab-view of the settings for a given drawn chart on the DOM
- * is visible or not.
- *
- * Expects: A (chart-)object generated from Fisma_Chart->export('array')
- *
- * @param object
- * @return void
- */
-function setChartSettingsVisibility(chartId, boolVisible)
-{
-    var menuHolderId = chartId + 'WidgetSpaceHolder';
-    var menuObj = document.getElementById(menuHolderId);
-    
-    if (boolVisible == 'toggle') {
-        if (menuObj.style.display == 'none') {
-            boolVisible = true;
-        } else {
-            boolVisible = false;
-        }
-    }
-    
-    if (boolVisible == true) {
-        menuObj.style.display = '';
-    } else {
-        menuObj.style.display = 'none';
-    }
-}
-
-/**
- * Will take values from checkboxes/textboxes within the Global Settings tab of
- * a chart and save each settings into cookies, and then trigger redrawAllCharts()
- *
- * Expects: A (chart-)object generated from Fisma_Chart->export('array')
- *
- * @param object
- * @return void
- */
-function globalSettingUpdate(chartUniqueId)
-{
-    // get this chart's GlobSettings menue
-    var settingsMenue = document.getElementById(chartUniqueId + 'GlobSettings');
-    
-    // get all elements of this chart's GlobSettings menue
-    var settingOpts = settingsMenue.childNodes;
-    
-    for (var x = 0; x < settingOpts.length; x++) {
-        var thisOpt = settingOpts[x];
-        if (thisOpt.nodeName == 'INPUT') {
-            if (thisOpt.type == 'checkbox') {
-                setGlobalSetting(thisOpt.id, thisOpt.checked);
-            } else {
-                setGlobalSetting(thisOpt.id, thisOpt.value);
-            }
-        }
-    }
-    
-    redrawAllCharts();
-}
-
-/**
- * Will update checkboxes/textboxes within the Global Settings tab of
- * the chart to be equal to the current cookie state for each setting 
- * or the default stored in globalSettingsDefaults.
- *
- * Expects: A (chart-)object generated from Fisma_Chart->export('array')
- *
- * @param object
- * @return void
- */
-function globalSettingRefreshUi(chartParamsObj)
-{
-    /*
-        Every input-element (setting UI) has an id equal to the cookie name 
-        to which its value is stored. So wee we have to do is look for a
-        cookie based on the id for each input element
-    */
-    
-    // get this chart's GlobSettings menue
-    var settingsMenue = document.getElementById(chartParamsObj['uniqueid'] + 'GlobSettings');
-    
-    // get all elements of this chart's GlobSettings menue
-    var settingOpts = settingsMenue.childNodes;
-    
-    for (var x = 0; x < settingOpts.length; x++) {
-        var thisOpt = settingOpts[x];
-        if (thisOpt.nodeName == 'INPUT') {
-        
-            // By this line (and in this block), we know we have found an input element on this GlobSettings menue
-            
-            if (thisOpt.type == 'checkbox') {
-                thisOpt.checked = (getGlobalSetting(thisOpt.id)=='true') ? true : false;
-            } else {
-                thisOpt.value = getGlobalSetting(thisOpt.id);
-                thisOpt.text = thisOpt.value;
-            }
-        }
-    }
-}
-
-function showSetingMode(showBasic)
-{
-    if (showBasic == true) {
-        var showThese = document.getElementsByName('chartSettingsBasic')
-        var hideThese = document.getElementsByName('chartSettingsGlobal')
-    } else {
-        var hideThese = document.getElementsByName('chartSettingsBasic')
-        var showThese = document.getElementsByName('chartSettingsGlobal')
-    }
-    
-    for (var x = 0; x < hideThese.length; x++) {
-        hideThese[x].style.display = 'none';
-    }
-    
-    for (var x = 0; x < hideThese.length; x++) {
-            showThese[x].style.display = '';
-        }
-    
-}
-
-function getGlobalSetting(settingName)
-{
-
-    var rtnValue = YAHOO.util.Cookie.get('chartGlobSetting_' + settingName);
-
-    if (rtnValue != null) {
-        return rtnValue;
-    } else {
-    
-        if (typeof globalSettingsDefaults[settingName] == 'undefined') {
-            throw 'You have referenced a global setting (' + settingName + '), but have not defined a default value for it! Please defined a def-value in the object called globalSettingsDefaults that is located within the global scope of jqplotWrapper.js';
-        } else {
-            return String(globalSettingsDefaults[settingName]);
-        }
-    }
-
-}
-
-function setGlobalSetting(settingName, newValue)
-{
-    YAHOO.util.Cookie.set('chartGlobSetting_' + settingName, newValue, {path: "/"});
-}
-
-/**
- * Will alter the input chart object based on 
- * settings(cookies) or defaults stored in globalSettingsDefaults.
- *
- * Expects: A (chart) object generated from Fisma_Chart->export('array')
- * Returns: The given object, which may or may not have alterations
- *
- * @param object
- * @return object
- */
-function alterChartByGlobals(chartParamObj)
-{
-    
-    // Show bar shadows?
-    if (getGlobalSetting('barShadows') == 'true') {
-        chartParamObj.seriesDefaults.rendererOptions.shadowDepth = 3;
-        chartParamObj.seriesDefaults.rendererOptions.shadowOffset = 3;
-    }
-    
-    // Depth of bar shadows?
-    if (getGlobalSetting('barShadowDepth') != 'no-setting' && getGlobalSetting('barShadows') == 'true') {
-        chartParamObj.seriesDefaults.rendererOptions.shadowDepth = getGlobalSetting('barShadowDepth');
-        chartParamObj.seriesDefaults.rendererOptions.shadowOffset = getGlobalSetting('barShadowDepth');
-    }
-    
-    // grid-lines?
-    if (getGlobalSetting('gridLines') == 'true') {
-        chartParamObj.grid.gridLineWidth = 1;
-        chartParamObj.grid.borderWidth = 0;
-        chartParamObj.grid.gridLineColor = undefined;
-        chartParamObj.grid.drawGridLines = true;
-        chartParamObj.grid.show = true;
-    }
-    
-    // grid-lines?
-    if (getGlobalSetting('dropShadows') != 'false') {
-        chartParamObj.grid.shadow = true;
-    }   
-
-    // point labels?
-    if (getGlobalSetting('pointLabels') == 'true') {
-        chartParamObj.seriesDefaults.pointLabels.show = true;
-    }
-    
-    // point labels outline?
-        /* no alterations to the chartParamObject needs to be done here, this is handeled by removeDecFromPointLabels() */  
-    
-    
-    return chartParamObj;
-}
-
-function redrawAllCharts()
-{
-
-    for (var uniqueid in chartsOnDOM) {
-    
-        var thisParamObj = chartsOnDOM[uniqueid];
-        
-        // redraw chart
-        createJQChart(thisParamObj);
-        
-        // refreash Global Settings UI
-        globalSettingRefreshUi(thisParamObj);
-    }
-
-}
-
-/**
- * Will insert a "No data to plot" message when there is no 
- * data to plot, or all plot data are 0s
- *
- * Expects: A (chart) object generated from Fisma_Chart->export('array')
- * @param object
- * @return void
- */
-function showMsgOnEmptyChart(chartParamsObj)
-{
-    if (chartIsEmpty(chartParamsObj)) {
-        var targDiv = document.getElementById(chartParamsObj['uniqueid']);
-
-        // Place message on DOM
-        var insertBeforeChild = targDiv.childNodes[1];
-        var msgOnDom = document.createElement('div');
-        msgOnDom.height = '100%';
-        msgOnDom.style.align = 'center';
-        msgOnDom.style.position = 'absolute';
-        msgOnDom.style.width = chartParamsObj['width'] + 'px';
-        msgOnDom.style.height = '100%';
-        msgOnDom.style.textAlign = 'center';
-        msgOnDom.style.verticalAlign = 'middle';
-        var textMsgOnDom = document.createTextNode('No data to plot.');
-        msgOnDom.appendChild(textMsgOnDom);
-        targDiv.appendChild(msgOnDom);
-        
-        // Make sure screen-reader-table is not showing
-        var dataTableObj = document.getElementById(chartParamsObj['uniqueid'] + 'table');
-        dataTableObj.style.display = 'none';
-    }
-}
-
-/**
- * Returns true if there is no data to 
- * plot, or if all plot data are 0s
- *
- * Expects: A (chart) object generated from Fisma_Chart->export('array')
- * @param object
- * @return boolean
- */
-function chartIsEmpty(chartParamsObj)
-{
-
-    // Is all data 0?
-    var isChartEmpty = true;
-    for (x in chartParamsObj['chartData']) {
-    
-        if (typeof chartParamsObj['chartData'][x] == 'object') {
-            
-            for (y in chartParamsObj['chartData'][x]) {
-                if (parseInt(chartParamsObj['chartData'][x][y]) > 0)
-                    isChartEmpty = false;
-            }
-            
-        } else {
-            if (parseInt(chartParamsObj['chartData'][x]) > 0)
-                isChartEmpty = false;
-        }
-    
-    }
-    
-    return isChartEmpty;
-}
-
+};
 (function(C){var l;C.jqplot=function(X,U,S){var T,R;if(S==null){if(U instanceof Array){T=U;R=null}else{if(U.constructor==Object){T=null;R=U}}}else{T=U;R=S}var W=new G();C("#"+X).removeClass("jqplot-error");if(C.jqplot.config.catchErrors){try{W.init(X,T,R);W.draw();W.themeEngine.init.call(W);return W}catch(V){var Y=C.jqplot.config.errorMessage||V.message;C("#"+X).append('<div class="jqplot-error-message">'+Y+"</div>");C("#"+X).addClass("jqplot-error");document.getElementById(X).style.background=C.jqplot.config.errorBackground;document.getElementById(X).style.border=C.jqplot.config.errorBorder;document.getElementById(X).style.fontFamily=C.jqplot.config.errorFontFamily;document.getElementById(X).style.fontSize=C.jqplot.config.errorFontSize;document.getElementById(X).style.fontStyle=C.jqplot.config.errorFontStyle;document.getElementById(X).style.fontWeight=C.jqplot.config.errorFontWeight}}else{W.init(X,T,R);W.draw();W.themeEngine.init.call(W);return W}};C.jqplot.debug=1;C.jqplot.config={debug:1,enablePlugins:false,defaultHeight:300,defaultWidth:400,UTCAdjust:false,timezoneOffset:new Date(new Date().getTimezoneOffset()*60000),errorMessage:"",errorBackground:"",errorBorder:"",errorFontFamily:"",errorFontSize:"",errorFontStyle:"",errorFontWeight:"",catchErrors:false,defaultTickFormatString:"%.1f"};C.jqplot.enablePlugins=C.jqplot.config.enablePlugins;C.jqplot.preInitHooks=[];C.jqplot.postInitHooks=[];C.jqplot.preParseOptionsHooks=[];C.jqplot.postParseOptionsHooks=[];C.jqplot.preDrawHooks=[];C.jqplot.postDrawHooks=[];C.jqplot.preDrawSeriesHooks=[];C.jqplot.postDrawSeriesHooks=[];C.jqplot.preDrawLegendHooks=[];C.jqplot.addLegendRowHooks=[];C.jqplot.preSeriesInitHooks=[];C.jqplot.postSeriesInitHooks=[];C.jqplot.preParseSeriesOptionsHooks=[];C.jqplot.postParseSeriesOptionsHooks=[];C.jqplot.eventListenerHooks=[];C.jqplot.preDrawSeriesShadowHooks=[];C.jqplot.postDrawSeriesShadowHooks=[];C.jqplot.ElemContainer=function(){this._elem;this._plotWidth;this._plotHeight;this._plotDimensions={height:null,width:null}};C.jqplot.ElemContainer.prototype.createElement=function(U,W,S,T,X){this._offsets=W;var R=S||"jqplot";var V=document.createElement(U);this._elem=C(V);this._elem.addClass(R);this._elem.css(T);this._elem.attr(X);return this._elem};C.jqplot.ElemContainer.prototype.getWidth=function(){if(this._elem){return this._elem.outerWidth(true)}else{return null}};C.jqplot.ElemContainer.prototype.getHeight=function(){if(this._elem){return this._elem.outerHeight(true)}else{return null}};C.jqplot.ElemContainer.prototype.getPosition=function(){if(this._elem){return this._elem.position()}else{return{top:null,left:null,bottom:null,right:null}}};C.jqplot.ElemContainer.prototype.getTop=function(){return this.getPosition().top};C.jqplot.ElemContainer.prototype.getLeft=function(){return this.getPosition().left};C.jqplot.ElemContainer.prototype.getBottom=function(){return this._elem.css("bottom")};C.jqplot.ElemContainer.prototype.getRight=function(){return this._elem.css("right")};function o(R){C.jqplot.ElemContainer.call(this);this.name=R;this._series=[];this.show=false;this.tickRenderer=C.jqplot.AxisTickRenderer;this.tickOptions={};this.labelRenderer=C.jqplot.AxisLabelRenderer;this.labelOptions={};this.label=null;this.showLabel=true;this.min=null;this.max=null;this.autoscale=false;this.pad=1.2;this.padMax=null;this.padMin=null;this.ticks=[];this.numberTicks;this.tickInterval;this.renderer=C.jqplot.LinearAxisRenderer;this.rendererOptions={};this.showTicks=true;this.showTickMarks=true;this.showMinorTicks=true;this.useSeriesColor=false;this.borderWidth=null;this.borderColor=null;this._dataBounds={min:null,max:null};this._offsets={min:null,max:null};this._ticks=[];this._label=null;this.syncTicks=null;this.tickSpacing=75;this._min=null;this._max=null;this._tickInterval=null;this._numberTicks=null;this.__ticks=null}o.prototype=new C.jqplot.ElemContainer();o.prototype.constructor=o;o.prototype.init=function(){this.renderer=new this.renderer();this.tickOptions.axis=this.name;if(this.label==null||this.label==""){this.showLabel=false}else{this.labelOptions.label=this.label}if(this.showLabel==false){this.labelOptions.show=false}if(this.pad==0){this.pad=1}if(this.padMax==0){this.padMax=1}if(this.padMin==0){this.padMin=1}if(this.padMax==null){this.padMax=(this.pad-1)/2+1}if(this.padMin==null){this.padMin=(this.pad-1)/2+1}this.pad=this.padMax+this.padMin-1;if(this.min!=null||this.max!=null){this.autoscale=false}if(this.syncTicks==null&&this.name.indexOf("y")>-1){this.syncTicks=true}else{if(this.syncTicks==null){this.syncTicks=false}}this.renderer.init.call(this,this.rendererOptions)};o.prototype.draw=function(R){return this.renderer.draw.call(this,R)};o.prototype.set=function(){this.renderer.set.call(this)};o.prototype.pack=function(S,R){if(this.show){this.renderer.pack.call(this,S,R)}if(this._min==null){this._min=this.min;this._max=this.max;this._tickInterval=this.tickInterval;this._numberTicks=this.numberTicks;this.__ticks=this._ticks}};o.prototype.reset=function(){this.renderer.reset.call(this)};o.prototype.resetScale=function(){this.min=null;this.max=null;this.numberTicks=null;this.tickInterval=null};function g(R){C.jqplot.ElemContainer.call(this);this.show=false;this.location="ne";this.labels=[];this.showLabels=true;this.showSwatches=true;this.placement="insideGrid";this.xoffset=0;this.yoffset=0;this.border;this.background;this.textColor;this.fontFamily;this.fontSize;this.rowSpacing="0.5em";this.renderer=C.jqplot.TableLegendRenderer;this.rendererOptions={};this.preDraw=false;this.marginTop=null;this.marginRight=null;this.marginBottom=null;this.marginLeft=null;this.escapeHtml=false;this._series=[];C.extend(true,this,R)}g.prototype=new C.jqplot.ElemContainer();g.prototype.constructor=g;g.prototype.setOptions=function(R){C.extend(true,this,R);if(this.placement=="inside"){this.placement="insideGrid"}if(this.xoffset>0){if(this.placement=="insideGrid"){switch(this.location){case"nw":case"w":case"sw":if(this.marginLeft==null){this.marginLeft=this.xoffset+"px"}this.marginRight="0px";break;case"ne":case"e":case"se":default:if(this.marginRight==null){this.marginRight=this.xoffset+"px"}this.marginLeft="0px";break}}else{if(this.placement=="outside"){switch(this.location){case"nw":case"w":case"sw":if(this.marginRight==null){this.marginRight=this.xoffset+"px"}this.marginLeft="0px";break;case"ne":case"e":case"se":default:if(this.marginLeft==null){this.marginLeft=this.xoffset+"px"}this.marginRight="0px";break}}}this.xoffset=0}if(this.yoffset>0){if(this.placement=="outside"){switch(this.location){case"sw":case"s":case"se":if(this.marginTop==null){this.marginTop=this.yoffset+"px"}this.marginBottom="0px";break;case"ne":case"n":case"nw":default:if(this.marginBottom==null){this.marginBottom=this.yoffset+"px"}this.marginTop="0px";break}}else{if(this.placement=="insideGrid"){switch(this.location){case"sw":case"s":case"se":if(this.marginBottom==null){this.marginBottom=this.yoffset+"px"}this.marginTop="0px";break;case"ne":case"n":case"nw":default:if(this.marginTop==null){this.marginTop=this.yoffset+"px"}this.marginBottom="0px";break}}}this.yoffset=0}};g.prototype.init=function(){this.renderer=new this.renderer();this.renderer.init.call(this,this.rendererOptions)};g.prototype.draw=function(S){for(var R=0;R<C.jqplot.preDrawLegendHooks.length;R++){C.jqplot.preDrawLegendHooks[R].call(this,S)}return this.renderer.draw.call(this,S)};g.prototype.pack=function(R){this.renderer.pack.call(this,R)};function q(R){C.jqplot.ElemContainer.call(this);this.text=R;this.show=true;this.fontFamily;this.fontSize;this.textAlign;this.textColor;this.renderer=C.jqplot.DivTitleRenderer;this.rendererOptions={}}q.prototype=new C.jqplot.ElemContainer();q.prototype.constructor=q;q.prototype.init=function(){this.renderer=new this.renderer();this.renderer.init.call(this,this.rendererOptions)};q.prototype.draw=function(R){return this.renderer.draw.call(this,R)};q.prototype.pack=function(){this.renderer.pack.call(this)};function H(){C.jqplot.ElemContainer.call(this);this.show=true;this.xaxis="xaxis";this._xaxis;this.yaxis="yaxis";this._yaxis;this.gridBorderWidth=2;this.renderer=C.jqplot.LineRenderer;this.rendererOptions={};this.data=[];this.gridData=[];this.label="";this.showLabel=true;this.color;this.lineWidth=2.5;this.shadow=true;this.shadowAngle=45;this.shadowOffset=1.25;this.shadowDepth=3;this.shadowAlpha="0.1";this.breakOnNull=false;this.markerRenderer=C.jqplot.MarkerRenderer;this.markerOptions={};this.showLine=true;this.showMarker=true;this.index;this.fill=false;this.fillColor;this.fillAlpha;this.fillAndStroke=false;this.disableStack=false;this._stack=false;this.neighborThreshold=4;this.fillToZero=false;this.fillToValue=0;this.fillAxis="y";this.useNegativeColors=true;this._stackData=[];this._plotData=[];this._plotValues={x:[],y:[]};this._intervals={x:{},y:{}};this._prevPlotData=[];this._prevGridData=[];this._stackAxis="y";this._primaryAxis="_xaxis";this.canvas=new C.jqplot.GenericCanvas();this.shadowCanvas=new C.jqplot.GenericCanvas();this.plugins={};this._sumy=0;this._sumx=0}H.prototype=new C.jqplot.ElemContainer();H.prototype.constructor=H;H.prototype.init=function(T,X,V){this.index=T;this.gridBorderWidth=X;var W=this.data;var S=[],U;for(U=0;U<W.length;U++){if(!this.breakOnNull){if(W[U]==null||W[U][0]==null||W[U][1]==null){continue}else{S.push(W[U])}}else{S.push(W[U])}}this.data=S;if(!this.fillColor){this.fillColor=this.color}if(this.fillAlpha){var R=C.jqplot.normalize2rgb(this.fillColor);var R=C.jqplot.getColorComponents(R);this.fillColor="rgba("+R[0]+","+R[1]+","+R[2]+","+this.fillAlpha+")"}this.renderer=new this.renderer();this.renderer.init.call(this,this.rendererOptions,V);this.markerRenderer=new this.markerRenderer();if(!this.markerOptions.color){this.markerOptions.color=this.color}if(this.markerOptions.show==null){this.markerOptions.show=this.showMarker}this.showMarker=this.markerOptions.show;this.markerRenderer.init(this.markerOptions)};H.prototype.draw=function(X,U,W){var S=(U==l)?{}:U;X=(X==l)?this.canvas._ctx:X;for(var R=0;R<C.jqplot.preDrawSeriesHooks.length;R++){C.jqplot.preDrawSeriesHooks[R].call(this,X,S)}if(this.show){this.renderer.setGridData.call(this,W);if(!S.preventJqPlotSeriesDrawTrigger){C(X.canvas).trigger("jqplotSeriesDraw",[this.data,this.gridData])}var V=[];if(S.data){V=S.data}else{if(!this._stack){V=this.data}else{V=this._plotData}}var T=S.gridData||this.renderer.makeGridData.call(this,V,W);this.renderer.draw.call(this,X,T,S,W)}for(var R=0;R<C.jqplot.postDrawSeriesHooks.length;R++){C.jqplot.postDrawSeriesHooks[R].call(this,X,S)}};H.prototype.drawShadow=function(X,U,W){var S=(U==l)?{}:U;X=(X==l)?this.shadowCanvas._ctx:X;for(var R=0;R<C.jqplot.preDrawSeriesShadowHooks.length;R++){C.jqplot.preDrawSeriesShadowHooks[R].call(this,X,S)}if(this.shadow){this.renderer.setGridData.call(this,W);var V=[];if(S.data){V=S.data}else{if(!this._stack){V=this.data}else{V=this._plotData}}var T=S.gridData||this.renderer.makeGridData.call(this,V,W);this.renderer.drawShadow.call(this,X,T,S)}for(var R=0;R<C.jqplot.postDrawSeriesShadowHooks.length;R++){C.jqplot.postDrawSeriesShadowHooks[R].call(this,X,S)}};H.prototype.toggleDisplay=function(S){var R,T;if(S.data.series){R=S.data.series}else{R=this}if(S.data.speed){T=S.data.speed}if(T){if(R.canvas._elem.is(":hidden")){if(R.shadowCanvas._elem){R.shadowCanvas._elem.fadeIn(T)}R.canvas._elem.fadeIn(T);R.canvas._elem.nextAll(".jqplot-point-label.jqplot-series-"+R.index).fadeIn(T)}else{if(R.shadowCanvas._elem){R.shadowCanvas._elem.fadeOut(T)}R.canvas._elem.fadeOut(T);R.canvas._elem.nextAll(".jqplot-point-label.jqplot-series-"+R.index).fadeOut(T)}}else{if(R.canvas._elem.is(":hidden")){if(R.shadowCanvas._elem){R.shadowCanvas._elem.show()}R.canvas._elem.show();R.canvas._elem.nextAll(".jqplot-point-label.jqplot-series-"+R.index).show()}else{if(R.shadowCanvas._elem){R.shadowCanvas._elem.hide()}R.canvas._elem.hide();R.canvas._elem.nextAll(".jqplot-point-label.jqplot-series-"+R.index).hide()}}};function D(){C.jqplot.ElemContainer.call(this);this.drawGridlines=true;this.gridLineColor="#cccccc";this.gridLineWidth=1;this.background="#fffdf6";this.borderColor="#999999";this.borderWidth=2;this.drawBorder=true;this.shadow=true;this.shadowAngle=45;this.shadowOffset=1.5;this.shadowWidth=3;this.shadowDepth=3;this.shadowColor=null;this.shadowAlpha="0.07";this._left;this._top;this._right;this._bottom;this._width;this._height;this._axes=[];this.renderer=C.jqplot.CanvasGridRenderer;this.rendererOptions={};this._offsets={top:null,bottom:null,left:null,right:null}}D.prototype=new C.jqplot.ElemContainer();D.prototype.constructor=D;D.prototype.init=function(){this.renderer=new this.renderer();this.renderer.init.call(this,this.rendererOptions)};D.prototype.createElement=function(R){this._offsets=R;return this.renderer.createElement.call(this)};D.prototype.draw=function(){this.renderer.draw.call(this)};C.jqplot.GenericCanvas=function(){C.jqplot.ElemContainer.call(this);this._ctx};C.jqplot.GenericCanvas.prototype=new C.jqplot.ElemContainer();C.jqplot.GenericCanvas.prototype.constructor=C.jqplot.GenericCanvas;C.jqplot.GenericCanvas.prototype.createElement=function(V,T,S){this._offsets=V;var R="jqplot";if(T!=l){R=T}var U;if(this._elem){U=this._elem.get(0)}else{U=document.createElement("canvas")}if(S!=l){this._plotDimensions=S}U.width=this._plotDimensions.width-this._offsets.left-this._offsets.right;U.height=this._plotDimensions.height-this._offsets.top-this._offsets.bottom;this._elem=C(U);this._elem.css({position:"absolute",left:this._offsets.left,top:this._offsets.top});this._elem.addClass(R);if(C.browser.msie){window.G_vmlCanvasManager.init_(document);U=window.G_vmlCanvasManager.initElement(U)}return this._elem};C.jqplot.GenericCanvas.prototype.setContext=function(){this._ctx=this._elem.get(0).getContext("2d");return this._ctx};C.jqplot.HooksManager=function(){this.hooks=[]};C.jqplot.HooksManager.prototype.addOnce=function(S){var T=false,R;for(R=0;R<this.hooks.length;R++){if(this.hooks[R][0]==S){T=true}}if(!T){this.hooks.push(S)}};C.jqplot.HooksManager.prototype.add=function(R){this.hooks.push(R)};C.jqplot.EventListenerManager=function(){this.hooks=[]};C.jqplot.EventListenerManager.prototype.addOnce=function(U,T){var V=false,S,R;for(R=0;R<this.hooks.length;R++){S=this.hooks[R];if(S[0]==U&&S[1]==T){V=true}}if(!V){this.hooks.push([U,T])}};C.jqplot.EventListenerManager.prototype.add=function(S,R){this.hooks.push([S,R])};function G(){this.data=[];this.targetId=null;this.target=null;this.defaults={axesDefaults:{},axes:{xaxis:{},yaxis:{},x2axis:{},y2axis:{},y3axis:{},y4axis:{},y5axis:{},y6axis:{},y7axis:{},y8axis:{},y9axis:{}},seriesDefaults:{},gridPadding:{top:10,right:10,bottom:23,left:10},series:[]};this.series=[];this.axes={xaxis:new o("xaxis"),yaxis:new o("yaxis"),x2axis:new o("x2axis"),y2axis:new o("y2axis"),y3axis:new o("y3axis"),y4axis:new o("y4axis"),y5axis:new o("y5axis"),y6axis:new o("y6axis"),y7axis:new o("y7axis"),y8axis:new o("y8axis"),y9axis:new o("y9axis")};this.grid=new D();this.legend=new g();this.baseCanvas=new C.jqplot.GenericCanvas();this.seriesStack=[];this.previousSeriesStack=[];this.eventCanvas=new C.jqplot.GenericCanvas();this._width=null;this._height=null;this._plotDimensions={height:null,width:null};this._gridPadding={top:10,right:10,bottom:10,left:10};this.syncXTicks=true;this.syncYTicks=true;this.seriesColors=["#4bb2c5","#EAA228","#c5b47f","#579575","#839557","#958c12","#953579","#4b5de4","#d8b83f","#ff5800","#0085cc","#c747a3","#cddf54","#FBD178","#26B4E3","#bd70c7"];this.negativeSeriesColors=["#498991","#C08840","#9F9274","#546D61","#646C4A","#6F6621","#6E3F5F","#4F64B0","#A89050","#C45923","#187399","#945381","#959E5C","#C7AF7B","#478396","#907294"];this.sortData=true;var U=0;this.textColor;this.fontFamily;this.fontSize;this.title=new q();this.options={};this.stackSeries=false;this._stackData=[];this._plotData=[];this.plugins={};this._drawCount=0;this.drawIfHidden=false;this.captureRightClick=false;this.themeEngine=new C.jqplot.ThemeEngine();this._sumy=0;this._sumx=0;this.preInitHooks=new C.jqplot.HooksManager();this.postInitHooks=new C.jqplot.HooksManager();this.preParseOptionsHooks=new C.jqplot.HooksManager();this.postParseOptionsHooks=new C.jqplot.HooksManager();this.preDrawHooks=new C.jqplot.HooksManager();this.postDrawHooks=new C.jqplot.HooksManager();this.preDrawSeriesHooks=new C.jqplot.HooksManager();this.postDrawSeriesHooks=new C.jqplot.HooksManager();this.preDrawLegendHooks=new C.jqplot.HooksManager();this.addLegendRowHooks=new C.jqplot.HooksManager();this.preSeriesInitHooks=new C.jqplot.HooksManager();this.postSeriesInitHooks=new C.jqplot.HooksManager();this.preParseSeriesOptionsHooks=new C.jqplot.HooksManager();this.postParseSeriesOptionsHooks=new C.jqplot.HooksManager();this.eventListenerHooks=new C.jqplot.EventListenerManager();this.preDrawSeriesShadowHooks=new C.jqplot.HooksManager();this.postDrawSeriesShadowHooks=new C.jqplot.HooksManager();this.colorGenerator=C.jqplot.ColorGenerator;this.init=function(ad,ac,Z){for(var aa=0;aa<C.jqplot.preInitHooks.length;aa++){C.jqplot.preInitHooks[aa].call(this,ad,ac,Z)}for(var aa=0;aa<this.preInitHooks.hooks.length;aa++){this.preInitHooks.hooks[aa].call(this,ad,ac,Z)}this.targetId="#"+ad;this.target=C("#"+ad);this.target.removeClass("jqplot-error");if(!this.target.get(0)){throw"No plot target specified"}if(this.target.css("position")=="static"){this.target.css("position","relative")}if(!this.target.hasClass("jqplot-target")){this.target.addClass("jqplot-target")}if(!this.target.height()){var ab;if(Z&&Z.height){ab=parseInt(Z.height,10)}else{if(this.target.attr("data-height")){ab=parseInt(this.target.attr("data-height"),10)}else{ab=parseInt(C.jqplot.config.defaultHeight,10)}}this._height=ab;this.target.css("height",ab+"px")}else{this._height=this.target.height()}if(!this.target.width()){var W;if(Z&&Z.width){W=parseInt(Z.width,10)}else{if(this.target.attr("data-width")){W=parseInt(this.target.attr("data-width"),10)}else{W=parseInt(C.jqplot.config.defaultWidth,10)}}this._width=W;this.target.css("width",W+"px")}else{this._width=this.target.width()}this._plotDimensions.height=this._height;this._plotDimensions.width=this._width;this.grid._plotDimensions=this._plotDimensions;this.title._plotDimensions=this._plotDimensions;this.baseCanvas._plotDimensions=this._plotDimensions;this.eventCanvas._plotDimensions=this._plotDimensions;this.legend._plotDimensions=this._plotDimensions;if(this._height<=0||this._width<=0||!this._height||!this._width){throw"Canvas dimension not set"}if(ac==null){throw {name:"DataError",message:"No data to plot."}}if(ac.constructor!=Array||ac.length==0||ac[0].constructor!=Array||ac[0].length==0){throw {name:"DataError",message:"No data to plot."}}this.data=ac;this.parseOptions(Z);if(this.textColor){this.target.css("color",this.textColor)}if(this.fontFamily){this.target.css("font-family",this.fontFamily)}if(this.fontSize){this.target.css("font-size",this.fontSize)}this.title.init();this.legend.init();this._sumy=0;this._sumx=0;for(var aa=0;aa<this.series.length;aa++){this.seriesStack.push(aa);this.previousSeriesStack.push(aa);this.series[aa].shadowCanvas._plotDimensions=this._plotDimensions;this.series[aa].canvas._plotDimensions=this._plotDimensions;for(var Y=0;Y<C.jqplot.preSeriesInitHooks.length;Y++){C.jqplot.preSeriesInitHooks[Y].call(this.series[aa],ad,ac,this.options.seriesDefaults,this.options.series[aa],this)}for(var Y=0;Y<this.preSeriesInitHooks.hooks.length;Y++){this.preSeriesInitHooks.hooks[Y].call(this.series[aa],ad,ac,this.options.seriesDefaults,this.options.series[aa],this)}this.populatePlotData(this.series[aa],aa);this.series[aa]._plotDimensions=this._plotDimensions;this.series[aa].init(aa,this.grid.borderWidth,this);for(var Y=0;Y<C.jqplot.postSeriesInitHooks.length;Y++){C.jqplot.postSeriesInitHooks[Y].call(this.series[aa],ad,ac,this.options.seriesDefaults,this.options.series[aa],this)}for(var Y=0;Y<this.postSeriesInitHooks.hooks.length;Y++){this.postSeriesInitHooks.hooks[Y].call(this.series[aa],ad,ac,this.options.seriesDefaults,this.options.series[aa],this)}this._sumy+=this.series[aa]._sumy;this._sumx+=this.series[aa]._sumx}for(var X in this.axes){this.axes[X]._plotDimensions=this._plotDimensions;this.axes[X].init()}if(this.sortData){R(this.series)}this.grid.init();this.grid._axes=this.axes;this.legend._series=this.series;for(var aa=0;aa<C.jqplot.postInitHooks.length;aa++){C.jqplot.postInitHooks[aa].call(this,ad,ac,Z)}for(var aa=0;aa<this.postInitHooks.hooks.length;aa++){this.postInitHooks.hooks[aa].call(this,ad,ac,Z)}};this.resetAxesScale=function(Z){var Y=(Z!=l)?Z:this.axes;if(Y===true){Y=this.axes}if(Y.constructor===Array){for(var X=0;X<Y.length;X++){this.axes[Y[X]].resetScale()}}else{if(Y.constructor===Object){for(var W in Y){this.axes[W].resetScale()}}}};this.reInitialize=function(){if(!this.target.height()){var Z;if(options&&options.height){Z=parseInt(options.height,10)}else{if(this.target.attr("data-height")){Z=parseInt(this.target.attr("data-height"),10)}else{Z=parseInt(C.jqplot.config.defaultHeight,10)}}this._height=Z;this.target.css("height",Z+"px")}else{this._height=this.target.height()}if(!this.target.width()){var W;if(options&&options.width){W=parseInt(options.width,10)}else{if(this.target.attr("data-width")){W=parseInt(this.target.attr("data-width"),10)}else{W=parseInt(C.jqplot.config.defaultWidth,10)}}this._width=W;this.target.css("width",W+"px")}else{this._width=this.target.width()}if(this._height<=0||this._width<=0||!this._height||!this._width){throw"Target dimension not set"}this._plotDimensions.height=this._height;this._plotDimensions.width=this._width;this.grid._plotDimensions=this._plotDimensions;this.title._plotDimensions=this._plotDimensions;this.baseCanvas._plotDimensions=this._plotDimensions;this.eventCanvas._plotDimensions=this._plotDimensions;this.legend._plotDimensions=this._plotDimensions;for(var aa in this.axes){this.axes[aa]._plotWidth=this._width;this.axes[aa]._plotHeight=this._height}this.title._plotWidth=this._width;if(this.textColor){this.target.css("color",this.textColor)}if(this.fontFamily){this.target.css("font-family",this.fontFamily)}if(this.fontSize){this.target.css("font-size",this.fontSize)}this._sumy=0;this._sumx=0;for(var Y=0;Y<this.series.length;Y++){this.populatePlotData(this.series[Y],Y);this.series[Y]._plotDimensions=this._plotDimensions;this.series[Y].canvas._plotDimensions=this._plotDimensions;this._sumy+=this.series[Y]._sumy;this._sumx+=this.series[Y]._sumx}for(var X in this.axes){this.axes[X]._plotDimensions=this._plotDimensions;this.axes[X]._ticks=[];this.axes[X].renderer.init.call(this.axes[X],{})}if(this.sortData){R(this.series)}this.grid._axes=this.axes;this.legend._series=this.series};function R(aa){var ae,af,ag,W,ad;for(var ab=0;ab<aa.length;ab++){var X;var ac=[aa[ab].data,aa[ab]._stackData,aa[ab]._plotData,aa[ab]._prevPlotData];for(var Y=0;Y<4;Y++){X=true;ae=ac[Y];if(aa[ab]._stackAxis=="x"){for(var Z=0;Z<ae.length;Z++){if(typeof(ae[Z][1])!="number"){X=false;break}}if(X){ae.sort(function(ai,ah){return ai[1]-ah[1]})}}else{for(var Z=0;Z<ae.length;Z++){if(typeof(ae[Z][0])!="number"){X=false;break}}if(X){ae.sort(function(ai,ah){return ai[0]-ah[0]})}}}}}this.populatePlotData=function(aa,ab){this._plotData=[];this._stackData=[];aa._stackData=[];aa._plotData=[];var ae={x:[],y:[]};if(this.stackSeries&&!aa.disableStack){aa._stack=true;var ac=aa._stackAxis=="x"?0:1;var ad=ac?0:1;var af=C.extend(true,[],aa.data);var ag=C.extend(true,[],aa.data);for(var Y=0;Y<ab;Y++){var W=this.series[Y].data;for(var X=0;X<W.length;X++){af[X][0]+=W[X][0];af[X][1]+=W[X][1];ag[X][ac]+=W[X][ac]}}for(var Z=0;Z<ag.length;Z++){ae.x.push(ag[Z][0]);ae.y.push(ag[Z][1])}this._plotData.push(ag);this._stackData.push(af);aa._stackData=af;aa._plotData=ag;aa._plotValues=ae}else{for(var Z=0;Z<aa.data.length;Z++){ae.x.push(aa.data[Z][0]);ae.y.push(aa.data[Z][1])}this._stackData.push(aa.data);this.series[ab]._stackData=aa.data;this._plotData.push(aa.data);aa._plotData=aa.data;aa._plotValues=ae}if(ab>0){aa._prevPlotData=this.series[ab-1]._plotData}aa._sumy=0;aa._sumx=0;for(Z=aa.data.length-1;Z>-1;Z--){aa._sumy+=aa.data[Z][1];aa._sumx+=aa.data[Z][0]}};this.getNextSeriesColor=(function(X){var W=0;var Y=X.seriesColors;return function(){if(W<Y.length){return Y[W++]}else{W=0;return Y[W++]}}})(this);this.parseOptions=function(ae){for(var ab=0;ab<this.preParseOptionsHooks.hooks.length;ab++){this.preParseOptionsHooks.hooks[ab].call(this,ae)}for(var ab=0;ab<C.jqplot.preParseOptionsHooks.length;ab++){C.jqplot.preParseOptionsHooks[ab].call(this,ae)}this.options=C.extend(true,{},this.defaults,ae);this.stackSeries=this.options.stackSeries;if(this.options.seriesColors){this.seriesColors=this.options.seriesColors}if(this.options.negativeSeriesColors){this.negativeSeriesColors=this.options.negativeSeriesColors}if(this.options.captureRightClick){this.captureRightClick=this.options.captureRightClick}var W=new this.colorGenerator(this.seriesColors);C.extend(true,this._gridPadding,this.options.gridPadding);this.sortData=(this.options.sortData!=null)?this.options.sortData:this.sortData;for(var X in this.axes){var Z=this.axes[X];C.extend(true,Z,this.options.axesDefaults,this.options.axes[X]);Z._plotWidth=this._width;Z._plotHeight=this._height}if(this.data.length==0){this.data=[];for(var ab=0;ab<this.options.series.length;ab++){this.data.push(this.options.series.data)}}var ac=function(ai,ag){var af=[];var ah;ag=ag||"vertical";if(!(ai[0] instanceof Array)){for(ah=0;ah<ai.length;ah++){if(ag=="vertical"){af.push([ah+1,ai[ah]])}else{af.push([ai[ah],ah+1])}}}else{C.extend(true,af,ai)}return af};for(var ab=0;ab<this.data.length;ab++){var ad=new H();for(var aa=0;aa<C.jqplot.preParseSeriesOptionsHooks.length;aa++){C.jqplot.preParseSeriesOptionsHooks[aa].call(ad,this.options.seriesDefaults,this.options.series[ab])}for(var aa=0;aa<this.preParseSeriesOptionsHooks.hooks.length;aa++){this.preParseSeriesOptionsHooks.hooks[aa].call(ad,this.options.seriesDefaults,this.options.series[ab])}C.extend(true,ad,{seriesColors:this.seriesColors,negativeSeriesColors:this.negativeSeriesColors},this.options.seriesDefaults,this.options.series[ab]);var Y="vertical";if(ad.renderer.constructor==C.jqplot.barRenderer&&ad.rendererOptions&&ad.rendererOptions.barDirection=="horizontal"){Y="horizontal"}ad.data=ac(this.data[ab],Y);switch(ad.xaxis){case"xaxis":ad._xaxis=this.axes.xaxis;break;case"x2axis":ad._xaxis=this.axes.x2axis;break;default:break}ad._yaxis=this.axes[ad.yaxis];ad._xaxis._series.push(ad);ad._yaxis._series.push(ad);if(ad.show){ad._xaxis.show=true;ad._yaxis.show=true}if(!ad.color&&ad.show!=false){ad.color=W.next()}if(!ad.label){ad.label="Series "+(ab+1).toString()}this.series.push(ad);for(var aa=0;aa<C.jqplot.postParseSeriesOptionsHooks.length;aa++){C.jqplot.postParseSeriesOptionsHooks[aa].call(this.series[ab],this.options.seriesDefaults,this.options.series[ab])}for(var aa=0;aa<this.postParseSeriesOptionsHooks.hooks.length;aa++){this.postParseSeriesOptionsHooks.hooks[aa].call(this.series[ab],this.options.seriesDefaults,this.options.series[ab])}}C.extend(true,this.grid,this.options.grid);for(var X in this.axes){var Z=this.axes[X];if(Z.borderWidth==null){Z.borderWidth=this.grid.borderWidth}if(Z.borderColor==null){if(X!="xaxis"&&X!="x2axis"&&Z.useSeriesColor===true&&Z.show){Z.borderColor=Z._series[0].color}else{Z.borderColor=this.grid.borderColor}}}if(typeof this.options.title=="string"){this.title.text=this.options.title}else{if(typeof this.options.title=="object"){C.extend(true,this.title,this.options.title)}}this.title._plotWidth=this._width;this.legend.setOptions(this.options.legend);for(var ab=0;ab<C.jqplot.postParseOptionsHooks.length;ab++){C.jqplot.postParseOptionsHooks[ab].call(this,ae)}for(var ab=0;ab<this.postParseOptionsHooks.hooks.length;ab++){this.postParseOptionsHooks.hooks[ab].call(this,ae)}};this.replot=function(X){var Y=(X!=l)?X:{};var W=(Y.clear!=l)?Y.clear:true;var Z=(Y.resetAxes!=l)?Y.resetAxes:false;this.target.trigger("jqplotPreReplot");if(W){this.target.empty()}if(Z){this.resetAxesScale(Z)}this.reInitialize();this.draw();this.target.trigger("jqplotPostReplot")};this.redraw=function(W){W=(W!=null)?W:true;this.target.trigger("jqplotPreRedraw");if(W){this.target.empty()}for(var Y in this.axes){this.axes[Y]._ticks=[]}for(var X=0;X<this.series.length;X++){this.populatePlotData(this.series[X],X)}this._sumy=0;this._sumx=0;for(X=0;X<this.series.length;X++){this._sumy+=this.series[X]._sumy;this._sumx+=this.series[X]._sumx}this.draw();this.target.trigger("jqplotPostRedraw")};this.draw=function(){if(this.drawIfHidden||this.target.is(":visible")){this.target.trigger("jqplotPreDraw");var ac,ab;for(ac=0;ac<C.jqplot.preDrawHooks.length;ac++){C.jqplot.preDrawHooks[ac].call(this)}for(ac=0;ac<this.preDrawHooks.hooks.length;ac++){this.preDrawHooks.hooks[ac].call(this)}this.target.append(this.baseCanvas.createElement({left:0,right:0,top:0,bottom:0},"jqplot-base-canvas"));this.baseCanvas.setContext();this.target.append(this.title.draw());this.title.pack({top:0,left:0});var ah=this.legend.draw();var ag={top:0,left:0,bottom:0,right:0};if(this.legend.placement=="outsideGrid"){this.target.append(ah);switch(this.legend.location){case"n":ag.top+=this.legend.getHeight();break;case"s":ag.bottom+=this.legend.getHeight();break;case"ne":case"e":case"se":ag.right+=this.legend.getWidth();break;case"nw":case"w":case"sw":ag.left+=this.legend.getWidth();break;default:ag.right+=this.legend.getWidth();break}ah=ah.detach()}var W=this.axes;for(var Y in W){this.target.append(W[Y].draw(this.baseCanvas._ctx));W[Y].set()}if(W.yaxis.show){ag.left+=W.yaxis.getWidth()}var Z=["y2axis","y3axis","y4axis","y5axis","y6axis","y7axis","y8axis","y9axis"];var X=[0,0,0,0,0,0,0,0];var ae=0;var aa;for(aa=0;aa<8;aa++){if(W[Z[aa]].show){ae+=W[Z[aa]].getWidth();X[aa]=ae}}ag.right+=ae;if(W.x2axis.show){ag.top+=W.x2axis.getHeight()}if(this.title.show){ag.top+=this.title.getHeight()}if(W.xaxis.show){ag.bottom+=W.xaxis.getHeight()}var ad=["top","bottom","left","right"];for(var aa in ad){if(ag[ad[aa]]){this._gridPadding[ad[aa]]=ag[ad[aa]]}}var af=(this.legend.placement=="outsideGrid")?{top:this.title.getHeight(),left:0,right:0,bottom:0}:this._gridPadding;W.xaxis.pack({position:"absolute",bottom:this._gridPadding.bottom-W.xaxis.getHeight(),left:0,width:this._width},{min:this._gridPadding.left,max:this._width-this._gridPadding.right});W.yaxis.pack({position:"absolute",top:0,left:this._gridPadding.left-W.yaxis.getWidth(),height:this._height},{min:this._height-this._gridPadding.bottom,max:this._gridPadding.top});W.x2axis.pack({position:"absolute",top:this._gridPadding.top-W.x2axis.getHeight(),left:0,width:this._width},{min:this._gridPadding.left,max:this._width-this._gridPadding.right});for(ac=8;ac>0;ac--){W[Z[ac-1]].pack({position:"absolute",top:0,right:this._gridPadding.right-X[ac-1]},{min:this._height-this._gridPadding.bottom,max:this._gridPadding.top})}this.target.append(this.grid.createElement(this._gridPadding));this.grid.draw();for(ac=0;ac<this.series.length;ac++){ab=this.seriesStack[ac];this.target.append(this.series[ab].shadowCanvas.createElement(this._gridPadding,"jqplot-series-shadowCanvas"));this.series[ab].shadowCanvas.setContext();this.series[ab].shadowCanvas._elem.data("seriesIndex",ab)}for(ac=0;ac<this.series.length;ac++){ab=this.seriesStack[ac];this.target.append(this.series[ab].canvas.createElement(this._gridPadding,"jqplot-series-canvas"));this.series[ab].canvas.setContext();this.series[ab].canvas._elem.data("seriesIndex",ab)}this.target.append(this.eventCanvas.createElement(this._gridPadding,"jqplot-event-canvas"));this.eventCanvas.setContext();this.eventCanvas._ctx.fillStyle="rgba(0,0,0,0)";this.eventCanvas._ctx.fillRect(0,0,this.eventCanvas._ctx.canvas.width,this.eventCanvas._ctx.canvas.height);this.bindCustomEvents();if(this.legend.preDraw){this.eventCanvas._elem.before(ah);this.legend.pack(af);if(this.legend._elem){this.drawSeries({legendInfo:{location:this.legend.location,placement:this.legend.placement,width:this.legend.getWidth(),height:this.legend.getHeight(),xoffset:this.legend.xoffset,yoffset:this.legend.yoffset}})}else{this.drawSeries()}}else{this.drawSeries();C(this.series[this.series.length-1].canvas._elem).after(ah);this.legend.pack(af)}for(var ac=0;ac<C.jqplot.eventListenerHooks.length;ac++){this.eventCanvas._elem.bind(C.jqplot.eventListenerHooks[ac][0],{plot:this},C.jqplot.eventListenerHooks[ac][1])}for(var ac=0;ac<this.eventListenerHooks.hooks.length;ac++){this.eventCanvas._elem.bind(this.eventListenerHooks.hooks[ac][0],{plot:this},this.eventListenerHooks.hooks[ac][1])}for(var ac=0;ac<C.jqplot.postDrawHooks.length;ac++){C.jqplot.postDrawHooks[ac].call(this)}for(var ac=0;ac<this.postDrawHooks.hooks.length;ac++){this.postDrawHooks.hooks[ac].call(this)}if(this.target.is(":visible")){this._drawCount+=1}this.target.trigger("jqplotPostDraw",[this])}};this.bindCustomEvents=function(){this.eventCanvas._elem.bind("click",{plot:this},this.onClick);this.eventCanvas._elem.bind("dblclick",{plot:this},this.onDblClick);this.eventCanvas._elem.bind("mousedown",{plot:this},this.onMouseDown);this.eventCanvas._elem.bind("mousemove",{plot:this},this.onMouseMove);this.eventCanvas._elem.bind("mouseenter",{plot:this},this.onMouseEnter);this.eventCanvas._elem.bind("mouseleave",{plot:this},this.onMouseLeave);if(this.captureRightClick){this.eventCanvas._elem.bind("mouseup",{plot:this},this.onRightClick);this.eventCanvas._elem.get(0).oncontextmenu=function(){return false}}else{this.eventCanvas._elem.bind("mouseup",{plot:this},this.onMouseUp)}};function S(ae){var ad=ae.data.plot;var Z=ad.eventCanvas._elem.offset();var ac={x:ae.pageX-Z.left,y:ae.pageY-Z.top};var aa={xaxis:null,yaxis:null,x2axis:null,y2axis:null,y3axis:null,y4axis:null,y5axis:null,y6axis:null,y7axis:null,y8axis:null,y9axis:null};var ab=["xaxis","yaxis","x2axis","y2axis","y3axis","y4axis","y5axis","y6axis","y7axis","y8axis","y9axis"];var W=ad.axes;var X,Y;for(X=11;X>0;X--){Y=ab[X-1];if(W[Y].show){aa[Y]=W[Y].series_p2u(ac[Y.charAt(0)])}}return{offsets:Z,gridPos:ac,dataPos:aa}}function T(ad,ah,ag){var ae=null;var aj,ab,Y,af,aa,X,Z;var ac,ai;for(var Z=ad.seriesStack.length-1;Z>-1;Z--){ab=ad.seriesStack[Z];aj=ad.series[ab];X=aj.renderer;if(aj.show){ai=aj.markerRenderer.size/2+aj.neighborThreshold;ac=(ai>0)?ai:0;for(var aa=0;aa<aj.gridData.length;aa++){p=aj.gridData[aa];if(X.constructor==C.jqplot.OHLCRenderer){if(X.candleStick){var W=aj._yaxis.series_u2p;if(ah>=p[0]-X._bodyWidth/2&&ah<=p[0]+X._bodyWidth/2&&ag>=W(aj.data[aa][2])&&ag<=W(aj.data[aa][3])){return{seriesIndex:ab,pointIndex:aa,gridData:p,data:aj.data[aa]}}}else{if(!X.hlc){var W=aj._yaxis.series_u2p;if(ah>=p[0]-X._tickLength&&ah<=p[0]+X._tickLength&&ag>=W(aj.data[aa][2])&&ag<=W(aj.data[aa][3])){return{seriesIndex:ab,pointIndex:aa,gridData:p,data:aj.data[aa]}}}else{var W=aj._yaxis.series_u2p;if(ah>=p[0]-X._tickLength&&ah<=p[0]+X._tickLength&&ag>=W(aj.data[aa][1])&&ag<=W(aj.data[aa][2])){return{seriesIndex:ab,pointIndex:aa,gridData:p,data:aj.data[aa]}}}}}else{af=Math.sqrt((ah-p[0])*(ah-p[0])+(ag-p[1])*(ag-p[1]));if(af<=ac&&(af<=Y||Y==null)){Y=af;return{seriesIndex:ab,pointIndex:aa,gridData:p,data:aj.data[aa]}}}}}}return ae}function V(W,X,al){var ab=X.series;var aG,aF,aE,az,aA,au,at,ag,ae,ai,aj,av;var aD,aH,aB,ac,ar,ax;var Y,ay;for(aE=X.seriesStack.length-1;aE>=0;aE--){aG=X.seriesStack[aE];az=ab[aG];switch(az.renderer.constructor){case C.jqplot.BarRenderer:au=W.x;at=W.y;for(aF=az.gridData.length-1;aF>=0;aF--){ar=az._barPoints[aF];if(au>ar[0][0]&&au<ar[2][0]&&at>ar[2][1]&&at<ar[0][1]){return{seriesIndex:az.index,pointIndex:aF,gridData:aB,data:az.data[aF],points:az._barPoints[aF]}}}break;case C.jqplot.DonutRenderer:ai=az.startAngle/180*Math.PI;au=W.x-az._center[0];at=W.y-az._center[1];aA=Math.sqrt(Math.pow(au,2)+Math.pow(at,2));if(au>0&&-at>=0){ag=2*Math.PI-Math.atan(-at/au)}else{if(au>0&&-at<0){ag=-Math.atan(-at/au)}else{if(au<0){ag=Math.PI-Math.atan(-at/au)}else{if(au==0&&-at>0){ag=3*Math.PI/2}else{if(au==0&&-at<0){ag=Math.PI/2}else{if(au==0&&at==0){ag=0}}}}}}if(ai){ag-=ai;if(ag<0){ag+=2*Math.PI}else{if(ag>2*Math.PI){ag-=2*Math.PI}}}ae=az.sliceMargin/180*Math.PI;if(aA<az._radius&&aA>az._innerRadius){for(aF=0;aF<az.gridData.length;aF++){aj=(aF>0)?az.gridData[aF-1][1]+ae:ae;av=az.gridData[aF][1];if(ag>aj&&ag<av){return{seriesIndex:az.index,pointIndex:aF,gridData:az.gridData[aF],data:az.data[aF]}}}}break;case C.jqplot.PieRenderer:ai=az.startAngle/180*Math.PI;au=W.x-(al.width/2);at=W.y-(al.height/2);aA=Math.sqrt(Math.pow(au,2)+Math.pow(at,2));if(au>0&&-at>=0){ag=2*Math.PI-Math.atan(-at/au)}else{if(au>0&&-at<0){ag=-Math.atan(-at/au)}else{if(au<0){ag=Math.PI-Math.atan(-at/au)}else{if(au==0&&-at>0){ag=3*Math.PI/2}else{if(au==0&&-at<0){ag=Math.PI/2}else{if(au==0&&at==0){ag=0}}}}}}if(ai){ag-=ai;if(ag<0){ag+=2*Math.PI}else{if(ag>2*Math.PI){ag-=2*Math.PI}}}ae=az.sliceMargin/180*Math.PI;if(aA<az._radius){for(aF=0;aF<az.gridData.length;aF++){aj=(aF>0)?az.gridData[aF-1][1]+ae:ae;av=az.gridData[aF][1];if(ag>aj&&ag<av){return{seriesIndex:az.index,pointIndex:aF,gridData:az.gridData[aF],data:az.data[aF]}}}}break;case C.jqplot.BubbleRenderer:au=W.x;at=W.y;var ap=null;if(az.show){for(var aF=0;aF<az.gridData.length;aF++){aB=az.gridData[aF];aH=Math.sqrt((au-aB[0])*(au-aB[0])+(at-aB[1])*(at-aB[1]));if(aH<=aB[2]&&(aH<=aD||aD==null)){aD=aH;ap={seriesIndex:aG,pointIndex:aF,gridData:aB,data:az.data[aF]}}}if(ap!=null){return ap}}break;case C.jqplot.FunnelRenderer:au=W.x;at=W.y;var aw=az._vertices,aa=aw[0],Z=aw[aw.length-1],ad,ao;function aC(aK,aM,aL){var aJ=(aM[1]-aL[1])/(aM[0]-aL[0]);var aI=aM[1]-aJ*aM[0];var aN=aK+aM[1];return[(aN-aI)/aJ,aN]}ad=aC(at,aa[0],Z[3]);ao=aC(at,aa[1],Z[2]);for(aF=0;aF<aw.length;aF++){cv=aw[aF];if(at>=cv[0][1]&&at<=cv[3][1]&&au>=ad[0]&&au<=ao[0]){return{seriesIndex:az.index,pointIndex:aF,gridData:null,data:az.data[aF]}}}break;case C.jqplot.LineRenderer:au=W.x;at=W.y;aA=az.renderer;if(az.show){if(az.fill){au=W.x;at=W.y;var ah=false;if(au>az._boundingBox[0][0]&&au<az._boundingBox[1][0]&&at>az._boundingBox[1][1]&&at<az._boundingBox[0][1]){var an=az._areaPoints.length;var aq;var aF=an-1;for(var aq=0;aq<an;aq++){var am=[az._areaPoints[aq][0],az._areaPoints[aq][1]];var ak=[az._areaPoints[aF][0],az._areaPoints[aF][1]];if(am[1]<at&&ak[1]>=at||ak[1]<at&&am[1]>=at){if(am[0]+(at-am[1])/(ak[1]-am[1])*(ak[0]-am[0])<au){ah=!ah}}aF=aq}}if(ah){return{seriesIndex:aG,pointIndex:null,gridData:az.gridData,data:az.data,points:az._areaPoints}}break}else{ay=az.markerRenderer.size/2+az.neighborThreshold;Y=(ay>0)?ay:0;for(var aF=0;aF<az.gridData.length;aF++){aB=az.gridData[aF];if(aA.constructor==C.jqplot.OHLCRenderer){if(aA.candleStick){var af=az._yaxis.series_u2p;if(au>=aB[0]-aA._bodyWidth/2&&au<=aB[0]+aA._bodyWidth/2&&at>=af(az.data[aF][2])&&at<=af(az.data[aF][3])){return{seriesIndex:aG,pointIndex:aF,gridData:aB,data:az.data[aF]}}}else{if(!aA.hlc){var af=az._yaxis.series_u2p;if(au>=aB[0]-aA._tickLength&&au<=aB[0]+aA._tickLength&&at>=af(az.data[aF][2])&&at<=af(az.data[aF][3])){return{seriesIndex:aG,pointIndex:aF,gridData:aB,data:az.data[aF]}}}else{var af=az._yaxis.series_u2p;if(au>=aB[0]-aA._tickLength&&au<=aB[0]+aA._tickLength&&at>=af(az.data[aF][1])&&at<=af(az.data[aF][2])){return{seriesIndex:aG,pointIndex:aF,gridData:aB,data:az.data[aF]}}}}}else{aH=Math.sqrt((au-aB[0])*(au-aB[0])+(at-aB[1])*(at-aB[1]));if(aH<=Y&&(aH<=aD||aD==null)){aD=aH;return{seriesIndex:aG,pointIndex:aF,gridData:aB,data:az.data[aF]}}}}}}break;default:au=W.x;at=W.y;aA=az.renderer;if(az.show){ay=az.markerRenderer.size/2+az.neighborThreshold;Y=(ay>0)?ay:0;for(var aF=0;aF<az.gridData.length;aF++){aB=az.gridData[aF];if(aA.constructor==C.jqplot.OHLCRenderer){if(aA.candleStick){var af=az._yaxis.series_u2p;if(au>=aB[0]-aA._bodyWidth/2&&au<=aB[0]+aA._bodyWidth/2&&at>=af(az.data[aF][2])&&at<=af(az.data[aF][3])){return{seriesIndex:aG,pointIndex:aF,gridData:aB,data:az.data[aF]}}}else{if(!aA.hlc){var af=az._yaxis.series_u2p;if(au>=aB[0]-aA._tickLength&&au<=aB[0]+aA._tickLength&&at>=af(az.data[aF][2])&&at<=af(az.data[aF][3])){return{seriesIndex:aG,pointIndex:aF,gridData:aB,data:az.data[aF]}}}else{var af=az._yaxis.series_u2p;if(au>=aB[0]-aA._tickLength&&au<=aB[0]+aA._tickLength&&at>=af(az.data[aF][1])&&at<=af(az.data[aF][2])){return{seriesIndex:aG,pointIndex:aF,gridData:aB,data:az.data[aF]}}}}}else{aH=Math.sqrt((au-aB[0])*(au-aB[0])+(at-aB[1])*(at-aB[1]));if(aH<=Y&&(aH<=aD||aD==null)){aD=aH;return{seriesIndex:aG,pointIndex:aF,gridData:aB,data:az.data[aF]}}}}}break}}return null}this.onClick=function(Y){var X=S(Y);var aa=Y.data.plot;var Z=V(X.gridPos,aa,this);var W=jQuery.Event("jqplotClick");W.pageX=Y.pageX;W.pageY=Y.pageY;C(this).trigger(W,[X.gridPos,X.dataPos,Z,aa])};this.onDblClick=function(Y){var X=S(Y);var aa=Y.data.plot;var Z=V(X.gridPos,aa,this);var W=jQuery.Event("jqplotDblClick");W.pageX=Y.pageX;W.pageY=Y.pageY;C(this).trigger(W,[X.gridPos,X.dataPos,Z,aa])};this.onMouseDown=function(Y){var X=S(Y);var aa=Y.data.plot;var Z=V(X.gridPos,aa,this);var W=jQuery.Event("jqplotMouseDown");W.pageX=Y.pageX;W.pageY=Y.pageY;C(this).trigger(W,[X.gridPos,X.dataPos,Z,aa])};this.onMouseUp=function(Y){var X=S(Y);var W=jQuery.Event("jqplotMouseUp");W.pageX=Y.pageX;W.pageY=Y.pageY;C(this).trigger(W,[X.gridPos,X.dataPos,null,Y.data.plot])};this.onRightClick=function(Y){var X=S(Y);var aa=Y.data.plot;var Z=V(X.gridPos,aa,this);if(aa.captureRightClick){if(Y.which==3){var W=jQuery.Event("jqplotRightClick");W.pageX=Y.pageX;W.pageY=Y.pageY;C(this).trigger(W,[X.gridPos,X.dataPos,Z,aa])}else{var W=jQuery.Event("jqplotMouseUp");W.pageX=Y.pageX;W.pageY=Y.pageY;C(this).trigger(W,[X.gridPos,X.dataPos,Z,aa])}}};this.onMouseMove=function(Y){var X=S(Y);var aa=Y.data.plot;var Z=V(X.gridPos,aa,this);var W=jQuery.Event("jqplotMouseMove");W.pageX=Y.pageX;W.pageY=Y.pageY;C(this).trigger(W,[X.gridPos,X.dataPos,Z,aa])};this.onMouseEnter=function(Y){var X=S(Y);var Z=Y.data.plot;var W=jQuery.Event("jqplotMouseEnter");W.pageX=Y.pageX;W.pageY=Y.pageY;C(this).trigger(W,[X.gridPos,X.dataPos,null,Z])};this.onMouseLeave=function(Y){var X=S(Y);var Z=Y.data.plot;var W=jQuery.Event("jqplotMouseLeave");W.pageX=Y.pageX;W.pageY=Y.pageY;C(this).trigger(W,[X.gridPos,X.dataPos,null,Z])};this.drawSeries=function(Y,W){var aa,Z,X;W=(typeof(Y)=="number"&&W==null)?Y:W;Y=(typeof(Y)=="object")?Y:{};if(W!=l){Z=this.series[W];X=Z.shadowCanvas._ctx;X.clearRect(0,0,X.canvas.width,X.canvas.height);Z.drawShadow(X,Y,this);X=Z.canvas._ctx;X.clearRect(0,0,X.canvas.width,X.canvas.height);Z.draw(X,Y,this);if(Z.renderer.constructor==C.jqplot.BezierCurveRenderer){if(W<this.series.length-1){this.drawSeries(W+1)}}}else{for(aa=0;aa<this.series.length;aa++){Z=this.series[aa];X=Z.shadowCanvas._ctx;X.clearRect(0,0,X.canvas.width,X.canvas.height);Z.drawShadow(X,Y,this);X=Z.canvas._ctx;X.clearRect(0,0,X.canvas.width,X.canvas.height);Z.draw(X,Y,this)}}};this.moveSeriesToFront=function(X){X=parseInt(X,10);var aa=C.inArray(X,this.seriesStack);if(aa==-1){return}if(aa==this.seriesStack.length-1){this.previousSeriesStack=this.seriesStack.slice(0);return}var W=this.seriesStack[this.seriesStack.length-1];var Z=this.series[X].canvas._elem.detach();var Y=this.series[X].shadowCanvas._elem.detach();this.series[W].shadowCanvas._elem.after(Y);this.series[W].canvas._elem.after(Z);this.previousSeriesStack=this.seriesStack.slice(0);this.seriesStack.splice(aa,1);this.seriesStack.push(X)};this.moveSeriesToBack=function(X){X=parseInt(X,10);var aa=C.inArray(X,this.seriesStack);if(aa==0||aa==-1){return}var W=this.seriesStack[0];var Z=this.series[X].canvas._elem.detach();var Y=this.series[X].shadowCanvas._elem.detach();this.series[W].shadowCanvas._elem.before(Y);this.series[W].canvas._elem.before(Z);this.previousSeriesStack=this.seriesStack.slice(0);this.seriesStack.splice(aa,1);this.seriesStack.unshift(X)};this.restorePreviousSeriesOrder=function(){var aa,Z,Y,X,W;if(this.seriesStack==this.previousSeriesStack){return}for(aa=1;aa<this.previousSeriesStack.length;aa++){move=this.previousSeriesStack[aa];keep=this.previousSeriesStack[aa-1];Y=this.series[move].canvas._elem.detach();X=this.series[move].shadowCanvas._elem.detach();this.series[keep].shadowCanvas._elem.after(X);this.series[keep].canvas._elem.after(Y)}W=this.seriesStack.slice(0);this.seriesStack=this.previousSeriesStack.slice(0);this.previousSeriesStack=W};this.restoreOriginalSeriesOrder=function(){var Y,X,W=[];for(Y=0;Y<this.series.length;Y++){W.push(Y)}if(this.seriesStack==W){return}this.previousSeriesStack=this.seriesStack.slice(0);this.seriesStack=W;for(Y=1;Y<this.seriesStack.length;Y++){serelem=this.series[Y].canvas._elem.detach();shadelem=this.series[Y].shadowCanvas._elem.detach();this.series[Y-1].shadowCanvas._elem.after(shadelem);this.series[Y-1].canvas._elem.after(serelem)}};this.activateTheme=function(W){this.themeEngine.activate(this,W)}}C.jqplot.computeHighlightColors=function(S){var U;if(typeof(S)=="array"){U=[];for(var W=0;W<S.length;W++){var V=C.jqplot.getColorComponents(S[W]);var R=[V[0],V[1],V[2]];var X=R[0]+R[1]+R[2];for(var T=0;T<3;T++){R[T]=(X>570)?R[T]*0.8:R[T]+0.3*(255-R[T]);R[T]=parseInt(R[T],10)}U.push("rgb("+R[0]+","+R[1]+","+R[2]+")")}}else{var V=C.jqplot.getColorComponents(S);var R=[V[0],V[1],V[2]];var X=R[0]+R[1]+R[2];for(var T=0;T<3;T++){R[T]=(X>570)?R[T]*0.8:R[T]+0.3*(255-R[T]);R[T]=parseInt(R[T],10)}U="rgb("+R[0]+","+R[1]+","+R[2]+")"}return U};C.jqplot.ColorGenerator=function(S){var R=0;this.next=function(){if(R<S.length){return S[R++]}else{R=0;return S[R++]}};this.previous=function(){if(R>0){return S[R--]}else{R=S.length-1;return S[R]}};this.get=function(U){var T=U-S.length*Math.floor(U/S.length);return S[T]};this.setColors=function(T){S=T};this.reset=function(){R=0}};C.jqplot.hex2rgb=function(T,R){T=T.replace("#","");if(T.length==3){T=T[0]+T[0]+T[1]+T[1]+T[2]+T[2]}var S;S="rgba("+parseInt(T.slice(0,2),16)+", "+parseInt(T.slice(2,4),16)+", "+parseInt(T.slice(4,6),16);if(R){S+=", "+R}S+=")";return S};C.jqplot.rgb2hex=function(V){var T=/rgba?\( *([0-9]{1,3}\.?[0-9]*%?) *, *([0-9]{1,3}\.?[0-9]*%?) *, *([0-9]{1,3}\.?[0-9]*%?) *(?:, *[0-9.]*)?\)/;var R=V.match(T);var U="#";for(i=1;i<4;i++){var S;if(R[i].search(/%/)!=-1){S=parseInt(255*R[i]/100,10).toString(16);if(S.length==1){S="0"+S}}else{S=parseInt(R[i],10).toString(16);if(S.length==1){S="0"+S}}U+=S}return U};C.jqplot.normalize2rgb=function(S,R){if(S.search(/^ *rgba?\(/)!=-1){return S}else{if(S.search(/^ *#?[0-9a-fA-F]?[0-9a-fA-F]/)!=-1){return C.jqplot.hex2rgb(S,R)}else{throw"invalid color spec"}}};C.jqplot.getColorComponents=function(V){V=C.jqplot.colorKeywordMap[V]||V;var U=C.jqplot.normalize2rgb(V);var T=/rgba?\( *([0-9]{1,3}\.?[0-9]*%?) *, *([0-9]{1,3}\.?[0-9]*%?) *, *([0-9]{1,3}\.?[0-9]*%?) *,? *([0-9.]* *)?\)/;var R=U.match(T);var S=[];for(i=1;i<4;i++){if(R[i].search(/%/)!=-1){S[i-1]=parseInt(255*R[i]/100,10)}else{S[i-1]=parseInt(R[i],10)}}S[3]=parseFloat(R[4])?parseFloat(R[4]):1;return S};C.jqplot.colorKeywordMap={aliceblue:"rgb(240, 248, 255)",antiquewhite:"rgb(250, 235, 215)",aqua:"rgb( 0, 255, 255)",aquamarine:"rgb(127, 255, 212)",azure:"rgb(240, 255, 255)",beige:"rgb(245, 245, 220)",bisque:"rgb(255, 228, 196)",black:"rgb( 0, 0, 0)",blanchedalmond:"rgb(255, 235, 205)",blue:"rgb( 0, 0, 255)",blueviolet:"rgb(138, 43, 226)",brown:"rgb(165, 42, 42)",burlywood:"rgb(222, 184, 135)",cadetblue:"rgb( 95, 158, 160)",chartreuse:"rgb(127, 255, 0)",chocolate:"rgb(210, 105, 30)",coral:"rgb(255, 127, 80)",cornflowerblue:"rgb(100, 149, 237)",cornsilk:"rgb(255, 248, 220)",crimson:"rgb(220, 20, 60)",cyan:"rgb( 0, 255, 255)",darkblue:"rgb( 0, 0, 139)",darkcyan:"rgb( 0, 139, 139)",darkgoldenrod:"rgb(184, 134, 11)",darkgray:"rgb(169, 169, 169)",darkgreen:"rgb( 0, 100, 0)",darkgrey:"rgb(169, 169, 169)",darkkhaki:"rgb(189, 183, 107)",darkmagenta:"rgb(139, 0, 139)",darkolivegreen:"rgb( 85, 107, 47)",darkorange:"rgb(255, 140, 0)",darkorchid:"rgb(153, 50, 204)",darkred:"rgb(139, 0, 0)",darksalmon:"rgb(233, 150, 122)",darkseagreen:"rgb(143, 188, 143)",darkslateblue:"rgb( 72, 61, 139)",darkslategray:"rgb( 47, 79, 79)",darkslategrey:"rgb( 47, 79, 79)",darkturquoise:"rgb( 0, 206, 209)",darkviolet:"rgb(148, 0, 211)",deeppink:"rgb(255, 20, 147)",deepskyblue:"rgb( 0, 191, 255)",dimgray:"rgb(105, 105, 105)",dimgrey:"rgb(105, 105, 105)",dodgerblue:"rgb( 30, 144, 255)",firebrick:"rgb(178, 34, 34)",floralwhite:"rgb(255, 250, 240)",forestgreen:"rgb( 34, 139, 34)",fuchsia:"rgb(255, 0, 255)",gainsboro:"rgb(220, 220, 220)",ghostwhite:"rgb(248, 248, 255)",gold:"rgb(255, 215, 0)",goldenrod:"rgb(218, 165, 32)",gray:"rgb(128, 128, 128)",grey:"rgb(128, 128, 128)",green:"rgb( 0, 128, 0)",greenyellow:"rgb(173, 255, 47)",honeydew:"rgb(240, 255, 240)",hotpink:"rgb(255, 105, 180)",indianred:"rgb(205, 92, 92)",indigo:"rgb( 75, 0, 130)",ivory:"rgb(255, 255, 240)",khaki:"rgb(240, 230, 140)",lavender:"rgb(230, 230, 250)",lavenderblush:"rgb(255, 240, 245)",lawngreen:"rgb(124, 252, 0)",lemonchiffon:"rgb(255, 250, 205)",lightblue:"rgb(173, 216, 230)",lightcoral:"rgb(240, 128, 128)",lightcyan:"rgb(224, 255, 255)",lightgoldenrodyellow:"rgb(250, 250, 210)",lightgray:"rgb(211, 211, 211)",lightgreen:"rgb(144, 238, 144)",lightgrey:"rgb(211, 211, 211)",lightpink:"rgb(255, 182, 193)",lightsalmon:"rgb(255, 160, 122)",lightseagreen:"rgb( 32, 178, 170)",lightskyblue:"rgb(135, 206, 250)",lightslategray:"rgb(119, 136, 153)",lightslategrey:"rgb(119, 136, 153)",lightsteelblue:"rgb(176, 196, 222)",lightyellow:"rgb(255, 255, 224)",lime:"rgb( 0, 255, 0)",limegreen:"rgb( 50, 205, 50)",linen:"rgb(250, 240, 230)",magenta:"rgb(255, 0, 255)",maroon:"rgb(128, 0, 0)",mediumaquamarine:"rgb(102, 205, 170)",mediumblue:"rgb( 0, 0, 205)",mediumorchid:"rgb(186, 85, 211)",mediumpurple:"rgb(147, 112, 219)",mediumseagreen:"rgb( 60, 179, 113)",mediumslateblue:"rgb(123, 104, 238)",mediumspringgreen:"rgb( 0, 250, 154)",mediumturquoise:"rgb( 72, 209, 204)",mediumvioletred:"rgb(199, 21, 133)",midnightblue:"rgb( 25, 25, 112)",mintcream:"rgb(245, 255, 250)",mistyrose:"rgb(255, 228, 225)",moccasin:"rgb(255, 228, 181)",navajowhite:"rgb(255, 222, 173)",navy:"rgb( 0, 0, 128)",oldlace:"rgb(253, 245, 230)",olive:"rgb(128, 128, 0)",olivedrab:"rgb(107, 142, 35)",orange:"rgb(255, 165, 0)",orangered:"rgb(255, 69, 0)",orchid:"rgb(218, 112, 214)",palegoldenrod:"rgb(238, 232, 170)",palegreen:"rgb(152, 251, 152)",paleturquoise:"rgb(175, 238, 238)",palevioletred:"rgb(219, 112, 147)",papayawhip:"rgb(255, 239, 213)",peachpuff:"rgb(255, 218, 185)",peru:"rgb(205, 133, 63)",pink:"rgb(255, 192, 203)",plum:"rgb(221, 160, 221)",powderblue:"rgb(176, 224, 230)",purple:"rgb(128, 0, 128)",red:"rgb(255, 0, 0)",rosybrown:"rgb(188, 143, 143)",royalblue:"rgb( 65, 105, 225)",saddlebrown:"rgb(139, 69, 19)",salmon:"rgb(250, 128, 114)",sandybrown:"rgb(244, 164, 96)",seagreen:"rgb( 46, 139, 87)",seashell:"rgb(255, 245, 238)",sienna:"rgb(160, 82, 45)",silver:"rgb(192, 192, 192)",skyblue:"rgb(135, 206, 235)",slateblue:"rgb(106, 90, 205)",slategray:"rgb(112, 128, 144)",slategrey:"rgb(112, 128, 144)",snow:"rgb(255, 250, 250)",springgreen:"rgb( 0, 255, 127)",steelblue:"rgb( 70, 130, 180)",tan:"rgb(210, 180, 140)",teal:"rgb( 0, 128, 128)",thistle:"rgb(216, 191, 216)",tomato:"rgb(255, 99, 71)",turquoise:"rgb( 64, 224, 208)",violet:"rgb(238, 130, 238)",wheat:"rgb(245, 222, 179)",white:"rgb(255, 255, 255)",whitesmoke:"rgb(245, 245, 245)",yellow:"rgb(255, 255, 0)",yellowgreen:"rgb(154, 205, 50)"};C.jqplot.log=function(){if(window.console&&C.jqplot.debug){if(arguments.length==1){console.log(arguments[0])}else{console.log(arguments)}}};var e=C.jqplot.log;C.jqplot.AxisLabelRenderer=function(R){C.jqplot.ElemContainer.call(this);this.axis;this.show=true;this.label="";this.fontFamily=null;this.fontSize=null;this.textColor=null;this._elem;this.escapeHTML=false;C.extend(true,this,R)};C.jqplot.AxisLabelRenderer.prototype=new C.jqplot.ElemContainer();C.jqplot.AxisLabelRenderer.prototype.constructor=C.jqplot.AxisLabelRenderer;C.jqplot.AxisLabelRenderer.prototype.init=function(R){C.extend(true,this,R)};C.jqplot.AxisLabelRenderer.prototype.draw=function(){this._elem=C('<div style="position:absolute;" class="jqplot-'+this.axis+'-label"></div>');if(Number(this.label)){this._elem.css("white-space","nowrap")}if(!this.escapeHTML){this._elem.html(this.label)}else{this._elem.text(this.label)}if(this.fontFamily){this._elem.css("font-family",this.fontFamily)}if(this.fontSize){this._elem.css("font-size",this.fontSize)}if(this.textColor){this._elem.css("color",this.textColor)}return this._elem};C.jqplot.AxisLabelRenderer.prototype.pack=function(){};C.jqplot.AxisTickRenderer=function(R){C.jqplot.ElemContainer.call(this);this.mark="outside";this.axis;this.showMark=true;this.showGridline=true;this.isMinorTick=false;this.size=4;this.markSize=6;this.show=true;this.showLabel=true;this.label="";this.value=null;this._styles={};this.formatter=C.jqplot.DefaultTickFormatter;this.prefix="";this.formatString="";this.fontFamily;this.fontSize;this.textColor;this._elem;C.extend(true,this,R)};C.jqplot.AxisTickRenderer.prototype.init=function(R){C.extend(true,this,R)};C.jqplot.AxisTickRenderer.prototype=new C.jqplot.ElemContainer();C.jqplot.AxisTickRenderer.prototype.constructor=C.jqplot.AxisTickRenderer;C.jqplot.AxisTickRenderer.prototype.setTick=function(R,T,S){this.value=R;this.axis=T;if(S){this.isMinorTick=true}return this};C.jqplot.AxisTickRenderer.prototype.draw=function(){if(!this.label){this.label=this.formatter(this.formatString,this.value)}if(this.prefix&&!this.formatString){this.label=this.prefix+this.label}style='style="position:absolute;';if(Number(this.label)){style+="white-space:nowrap;"}style+='"';this._elem=C("<div "+style+' class="jqplot-'+this.axis+'-tick">'+this.label+"</div>");for(var R in this._styles){this._elem.css(R,this._styles[R])}if(this.fontFamily){this._elem.css("font-family",this.fontFamily)}if(this.fontSize){this._elem.css("font-size",this.fontSize)}if(this.textColor){this._elem.css("color",this.textColor)}return this._elem};C.jqplot.DefaultTickFormatter=function(R,S){if(typeof S=="number"){if(!R){R=C.jqplot.config.defaultTickFormatString}return C.jqplot.sprintf(R,S)}else{return String(S)}};C.jqplot.AxisTickRenderer.prototype.pack=function(){};C.jqplot.CanvasGridRenderer=function(){this.shadowRenderer=new C.jqplot.ShadowRenderer()};C.jqplot.CanvasGridRenderer.prototype.init=function(S){this._ctx;C.extend(true,this,S);var R={lineJoin:"miter",lineCap:"round",fill:false,isarc:false,angle:this.shadowAngle,offset:this.shadowOffset,alpha:this.shadowAlpha,depth:this.shadowDepth,lineWidth:this.shadowWidth,closePath:false,strokeStyle:this.shadowColor};this.renderer.shadowRenderer.init(R)};C.jqplot.CanvasGridRenderer.prototype.createElement=function(){var T=document.createElement("canvas");var R=this._plotDimensions.width;var S=this._plotDimensions.height;T.width=R;T.height=S;this._elem=C(T);this._elem.addClass("jqplot-grid-canvas");this._elem.css({position:"absolute",left:0,top:0});if(C.browser.msie){window.G_vmlCanvasManager.init_(document)}if(C.browser.msie){T=window.G_vmlCanvasManager.initElement(T)}this._top=this._offsets.top;this._bottom=S-this._offsets.bottom;this._left=this._offsets.left;this._right=R-this._offsets.right;this._width=this._right-this._left;this._height=this._bottom-this._top;return this._elem};C.jqplot.CanvasGridRenderer.prototype.draw=function(){this._ctx=this._elem.get(0).getContext("2d");var ah=this._ctx;var aa=this._axes;ah.save();ah.clearRect(0,0,this._plotDimensions.width,this._plotDimensions.height);ah.fillStyle=this.backgroundColor||this.background;ah.fillRect(this._left,this._top,this._width,this._height);if(this.drawGridlines){ah.save();ah.lineJoin="miter";ah.lineCap="butt";ah.lineWidth=this.gridLineWidth;ah.strokeStyle=this.gridLineColor;var ac,Z;var R=["xaxis","yaxis","x2axis","y2axis"];for(var W=4;W>0;W--){var S=R[W-1];var U=aa[S];var ad=U._ticks;if(U.show){for(var V=ad.length;V>0;V--){var ag=ad[V-1];if(ag.show){var ab=Math.round(U.u2p(ag.value))+0.5;switch(S){case"xaxis":if(ag.showGridline){Y(ab,this._top,ab,this._bottom)}if(ag.showMark&&ag.mark){s=ag.markSize;m=ag.mark;var ab=Math.round(U.u2p(ag.value))+0.5;switch(m){case"outside":ac=this._bottom;Z=this._bottom+s;break;case"inside":ac=this._bottom-s;Z=this._bottom;break;case"cross":ac=this._bottom-s;Z=this._bottom+s;break;default:ac=this._bottom;Z=this._bottom+s;break}if(this.shadow){this.renderer.shadowRenderer.draw(ah,[[ab,ac],[ab,Z]],{lineCap:"butt",lineWidth:this.gridLineWidth,offset:this.gridLineWidth*0.75,depth:2,fill:false,closePath:false})}Y(ab,ac,ab,Z)}break;case"yaxis":if(ag.showGridline){Y(this._right,ab,this._left,ab)}if(ag.showMark&&ag.mark){s=ag.markSize;m=ag.mark;var ab=Math.round(U.u2p(ag.value))+0.5;switch(m){case"outside":ac=this._left-s;Z=this._left;break;case"inside":ac=this._left;Z=this._left+s;break;case"cross":ac=this._left-s;Z=this._left+s;break;default:ac=this._left-s;Z=this._left;break}if(this.shadow){this.renderer.shadowRenderer.draw(ah,[[ac,ab],[Z,ab]],{lineCap:"butt",lineWidth:this.gridLineWidth*1.5,offset:this.gridLineWidth*0.75,fill:false,closePath:false})}Y(ac,ab,Z,ab,{strokeStyle:U.borderColor})}break;case"x2axis":if(ag.showGridline){Y(ab,this._bottom,ab,this._top)}if(ag.showMark&&ag.mark){s=ag.markSize;m=ag.mark;var ab=Math.round(U.u2p(ag.value))+0.5;switch(m){case"outside":ac=this._top-s;Z=this._top;break;case"inside":ac=this._top;Z=this._top+s;break;case"cross":ac=this._top-s;Z=this._top+s;break;default:ac=this._top-s;Z=this._top;break}if(this.shadow){this.renderer.shadowRenderer.draw(ah,[[ab,ac],[ab,Z]],{lineCap:"butt",lineWidth:this.gridLineWidth,offset:this.gridLineWidth*0.75,depth:2,fill:false,closePath:false})}Y(ab,ac,ab,Z)}break;case"y2axis":if(ag.showGridline){Y(this._left,ab,this._right,ab)}if(ag.showMark&&ag.mark){s=ag.markSize;m=ag.mark;var ab=Math.round(U.u2p(ag.value))+0.5;switch(m){case"outside":ac=this._right;Z=this._right+s;break;case"inside":ac=this._right-s;Z=this._right;break;case"cross":ac=this._right-s;Z=this._right+s;break;default:ac=this._right;Z=this._right+s;break}if(this.shadow){this.renderer.shadowRenderer.draw(ah,[[ac,ab],[Z,ab]],{lineCap:"butt",lineWidth:this.gridLineWidth*1.5,offset:this.gridLineWidth*0.75,fill:false,closePath:false})}Y(ac,ab,Z,ab,{strokeStyle:U.borderColor})}break;default:break}}}}}R=["y3axis","y4axis","y5axis","y6axis","y7axis","y8axis","y9axis"];for(var W=7;W>0;W--){var U=aa[R[W-1]];var ad=U._ticks;if(U.show){var af=ad[U.numberTicks-1];var X=ad[0];var T=U.getLeft();var ae=[[T,af.getTop()+af.getHeight()/2],[T,X.getTop()+X.getHeight()/2+1]];if(this.shadow){this.renderer.shadowRenderer.draw(ah,ae,{lineCap:"butt",fill:false,closePath:false})}Y(ae[0][0],ae[0][1],ae[1][0],ae[1][1],{lineCap:"butt",strokeStyle:U.borderColor,lineWidth:U.borderWidth});for(var V=ad.length;V>0;V--){var ag=ad[V-1];s=ag.markSize;m=ag.mark;var ab=Math.round(U.u2p(ag.value))+0.5;if(ag.showMark&&ag.mark){switch(m){case"outside":ac=T;Z=T+s;break;case"inside":ac=T-s;Z=T;break;case"cross":ac=T-s;Z=T+s;break;default:ac=T;Z=T+s;break}ae=[[ac,ab],[Z,ab]];if(this.shadow){this.renderer.shadowRenderer.draw(ah,ae,{lineCap:"butt",lineWidth:this.gridLineWidth*1.5,offset:this.gridLineWidth*0.75,fill:false,closePath:false})}Y(ac,ab,Z,ab,{strokeStyle:U.borderColor})}}}}ah.restore()}function Y(am,al,aj,ai,ak){ah.save();ak=ak||{};if(ak.lineWidth==null||ak.lineWidth!=0){C.extend(true,ah,ak);ah.beginPath();ah.moveTo(am,al);ah.lineTo(aj,ai);ah.stroke();ah.restore()}}if(this.shadow){var ae=[[this._left,this._bottom],[this._right,this._bottom],[this._right,this._top]];this.renderer.shadowRenderer.draw(ah,ae)}if(this.borderWidth!=0&&this.drawBorder){Y(this._left,this._top,this._right,this._top,{lineCap:"round",strokeStyle:aa.x2axis.borderColor,lineWidth:aa.x2axis.borderWidth});Y(this._right,this._top,this._right,this._bottom,{lineCap:"round",strokeStyle:aa.y2axis.borderColor,lineWidth:aa.y2axis.borderWidth});Y(this._right,this._bottom,this._left,this._bottom,{lineCap:"round",strokeStyle:aa.xaxis.borderColor,lineWidth:aa.xaxis.borderWidth});Y(this._left,this._bottom,this._left,this._top,{lineCap:"round",strokeStyle:aa.yaxis.borderColor,lineWidth:aa.yaxis.borderWidth})}ah.restore()};var w=24*60*60*1000;var L=function(R,S){R=String(R);while(R.length<S){R="0"+R}return R};var x={millisecond:1,second:1000,minute:60*1000,hour:60*60*1000,day:w,week:7*w,month:{add:function(T,R){x.year.add(T,Math[R>0?"floor":"ceil"](R/12));var S=T.getMonth()+(R%12);if(S==12){S=0;T.setYear(T.getFullYear()+1)}else{if(S==-1){S=11;T.setYear(T.getFullYear()-1)}}T.setMonth(S)},diff:function(V,T){var R=V.getFullYear()-T.getFullYear();var S=V.getMonth()-T.getMonth()+(R*12);var U=V.getDate()-T.getDate();return S+(U/30)}},year:{add:function(S,R){S.setYear(S.getFullYear()+Math[R>0?"floor":"ceil"](R))},diff:function(S,R){return x.month.diff(S,R)/12}}};for(var K in x){if(K.substring(K.length-1)!="s"){x[K+"s"]=x[K]}}var z=function(U,T){if(Date.prototype.strftime.formatShortcuts[T]){return U.strftime(Date.prototype.strftime.formatShortcuts[T])}else{var R=(Date.prototype.strftime.formatCodes[T]||"").split(".");var S=U["get"+R[0]]?U["get"+R[0]]():"";if(R[1]){S=L(S,R[1])}return S}};var t={succ:function(R){return this.clone().add(1,R)},add:function(T,S){var R=x[S]||x.day;if(typeof R=="number"){this.setTime(this.getTime()+(R*T))}else{R.add(this,T)}return this},diff:function(S,V,R){S=Date.create(S);if(S===null){return null}var T=x[V]||x.day;if(typeof T=="number"){var U=(this.getTime()-S.getTime())/T}else{var U=T.diff(this,S)}return(R?U:Math[U>0?"floor":"ceil"](U))},strftime:function(S){var U=S||"%Y-%m-%d",R="",T;while(U.length>0){if(T=U.match(Date.prototype.strftime.formatCodes.matcher)){R+=U.slice(0,T.index);R+=(T[1]||"")+z(this,T[2]);U=U.slice(T.index+T[0].length)}else{R+=U;U=""}}return R},getShortYear:function(){return this.getYear()%100},getMonthNumber:function(){return this.getMonth()+1},getMonthName:function(){return Date.MONTHNAMES[this.getMonth()]},getAbbrMonthName:function(){return Date.ABBR_MONTHNAMES[this.getMonth()]},getDayName:function(){return Date.DAYNAMES[this.getDay()]},getAbbrDayName:function(){return Date.ABBR_DAYNAMES[this.getDay()]},getDayOrdinal:function(){return Date.ORDINALNAMES[this.getDate()%10]},getHours12:function(){var R=this.getHours();return R>12?R-12:(R==0?12:R)},getAmPm:function(){return this.getHours()>=12?"PM":"AM"},getUnix:function(){return Math.round(this.getTime()/1000,0)},getGmtOffset:function(){var R=this.getTimezoneOffset()/60;var S=R<0?"+":"-";R=Math.abs(R);return S+L(Math.floor(R),2)+":"+L((R%1)*60,2)},getTimezoneName:function(){var R=/(?:\((.+)\)$| ([A-Z]{3}) )/.exec(this.toString());return R[1]||R[2]||"GMT"+this.getGmtOffset()},toYmdInt:function(){return(this.getFullYear()*10000)+(this.getMonthNumber()*100)+this.getDate()},clone:function(){return new Date(this.getTime())}};for(var n in t){Date.prototype[n]=t[n]}var B={create:function(R){if(R instanceof Date){return R}if(typeof R=="number"){return new Date(R)}var W=String(R).replace(/^\s*(.+)\s*$/,"$1"),S=0,T=Date.create.patterns.length,U;var V=W;while(S<T){ms=Date.parse(V);if(!isNaN(ms)){return new Date(ms)}U=Date.create.patterns[S];if(typeof U=="function"){obj=U(V);if(obj instanceof Date){return obj}}else{V=W.replace(U[0],U[1])}S++}return NaN},MONTHNAMES:"January February March April May June July August September October November December".split(" "),ABBR_MONTHNAMES:"Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split(" "),DAYNAMES:"Sunday Monday Tuesday Wednesday Thursday Friday Saturday".split(" "),ABBR_DAYNAMES:"Sun Mon Tue Wed Thu Fri Sat".split(" "),ORDINALNAMES:"th st nd rd th th th th th th".split(" "),ISO:"%Y-%m-%dT%H:%M:%S.%N%G",SQL:"%Y-%m-%d %H:%M:%S",daysInMonth:function(R,S){if(S==2){return new Date(R,1,29).getDate()==29?29:28}return[l,31,l,31,30,31,30,31,31,30,31,30,31][S]}};for(var n in B){Date[n]=B[n]}Date.prototype.strftime.formatCodes={matcher:/()%(#?(%|[a-z]))/i,Y:"FullYear",y:"ShortYear.2",m:"MonthNumber.2","#m":"MonthNumber",B:"MonthName",b:"AbbrMonthName",d:"Date.2","#d":"Date",e:"Date",A:"DayName",a:"AbbrDayName",w:"Day",o:"DayOrdinal",H:"Hours.2","#H":"Hours",I:"Hours12.2","#I":"Hours12",p:"AmPm",M:"Minutes.2","#M":"Minutes",S:"Seconds.2","#S":"Seconds",s:"Unix",N:"Milliseconds.3","#N":"Milliseconds",O:"TimezoneOffset",Z:"TimezoneName",G:"GmtOffset"};Date.prototype.strftime.formatShortcuts={F:"%Y-%m-%d",T:"%H:%M:%S",X:"%H:%M:%S",x:"%m/%d/%y",D:"%m/%d/%y","#c":"%a %b %e %H:%M:%S %Y",v:"%e-%b-%Y",R:"%H:%M",r:"%I:%M:%S %p",t:"\t",n:"\n","%":"%"};Date.create.patterns=[[/-/g,"/"],[/st|nd|rd|th/g,""],[/(3[01]|[0-2]\d)\s*\.\s*(1[0-2]|0\d)\s*\.\s*([1-9]\d{3})/,"$2/$1/$3"],[/([1-9]\d{3})\s*-\s*(1[0-2]|0\d)\s*-\s*(3[01]|[0-2]\d)/,"$2/$3/$1"],function(U){var S=U.match(/^(?:(.+)\s+)?([012]?\d)(?:\s*\:\s*(\d\d))?(?:\s*\:\s*(\d\d(\.\d*)?))?\s*(am|pm)?\s*$/i);if(S){if(S[1]){var T=Date.create(S[1]);if(isNaN(T)){return}}else{var T=new Date();T.setMilliseconds(0)}var R=parseFloat(S[2]);if(S[6]){R=S[6].toLowerCase()=="am"?(R==12?0:R):(R==12?12:R+12)}T.setHours(R,parseInt(S[3]||0,10),parseInt(S[4]||0,10),((parseFloat(S[5]||0))||0)*1000);return T}else{return U}},function(U){var S=U.match(/^(?:(.+))[T|\s+]([012]\d)(?:\:(\d\d))(?:\:(\d\d))(?:\.\d+)([\+\-]\d\d\:\d\d)$/i);if(S){if(S[1]){var T=Date.create(S[1]);if(isNaN(T)){return}}else{var T=new Date();T.setMilliseconds(0)}var R=parseFloat(S[2]);T.setHours(R,parseInt(S[3],10),parseInt(S[4],10),parseFloat(S[5])*1000);return T}else{return U}},function(V){var T=V.match(/^([0-3]?\d)\s*[-\/.\s]{1}\s*([a-zA-Z]{3,9})\s*[-\/.\s]{1}\s*([0-3]?\d)$/);if(T){var U=new Date();var W=parseFloat(String(U.getFullYear()).slice(2,4));var X=parseInt(String(U.getFullYear())/100,10)*100;var Z=1;var aa=parseFloat(T[1]);var Y=parseFloat(T[3]);var S,R,ab;if(aa>31){R=T[3];if(aa<W+Z){S=X+aa}else{S=X-100+aa}}else{R=T[1];if(Y<W+Z){S=X+Y}else{S=X-100+Y}}var ab=C.inArray(T[2],Date.ABBR_MONTHNAMES);if(ab==-1){ab=C.inArray(T[2],Date.MONTHNAMES)}U.setFullYear(S,ab,R);U.setHours(0,0,0,0);return U}else{return V}}];if(C.jqplot.config.debug){C.date=Date.create}C.jqplot.DivTitleRenderer=function(){};C.jqplot.DivTitleRenderer.prototype.init=function(R){C.extend(true,this,R)};C.jqplot.DivTitleRenderer.prototype.draw=function(){var T=this.renderer;if(!this.text){this.show=false;this._elem=C('<div class="jqplot-title" style="height:0px;width:0px;"></div>')}else{if(this.text){var S;if(this.color){S=this.color}else{if(this.textColor){S=this.textColor}}var R="position:absolute;top:0px;left:0px;";R+=(this._plotWidth)?"width:"+this._plotWidth+"px;":"";R+=(this.fontSize)?"font-size:"+this.fontSize+";":"";R+=(this.textAlign)?"text-align:"+this.textAlign+";":"text-align:center;";R+=(S)?"color:"+S+";":"";R+=(this.paddingBottom)?"padding-bottom:"+this.paddingBottom+";":"";this._elem=C('<div class="jqplot-title" style="'+R+'">'+this.text+"</div>");if(this.fontFamily){this._elem.css("font-family",this.fontFamily)}}}return this._elem};C.jqplot.DivTitleRenderer.prototype.pack=function(){};C.jqplot.LineRenderer=function(){this.shapeRenderer=new C.jqplot.ShapeRenderer();this.shadowRenderer=new C.jqplot.ShadowRenderer()};C.jqplot.LineRenderer.prototype.init=function(S,W){S=S||{};var U={highlightMouseOver:S.highlightMouseOver,highlightMouseDown:S.highlightMouseDown,highlightColor:S.highlightColor};delete (S.highlightMouseOver);delete (S.highlightMouseDown);delete (S.highlightColor);C.extend(true,this.renderer,S);var V={lineJoin:"round",lineCap:"round",fill:this.fill,isarc:false,strokeStyle:this.color,fillStyle:this.fillColor,lineWidth:this.lineWidth,closePath:this.fill};this.renderer.shapeRenderer.init(V);if(this.lineWidth>2.5){var T=this.shadowOffset*(1+(Math.atan((this.lineWidth/2.5))/0.785398163-1)*0.6)}else{var T=this.shadowOffset*Math.atan((this.lineWidth/2.5))/0.785398163}var R={lineJoin:"round",lineCap:"round",fill:this.fill,isarc:false,angle:this.shadowAngle,offset:T,alpha:this.shadowAlpha,depth:this.shadowDepth,lineWidth:this.lineWidth,closePath:this.fill};this.renderer.shadowRenderer.init(R);this._areaPoints=[];this._boundingBox=[[],[]];if(!this.isTrendline&&this.fill){this.highlightMouseOver=true;this.highlightMouseDown=false;this.highlightColor=null;if(U.highlightMouseDown&&U.highlightMouseOver==null){U.highlightMouseOver=false}C.extend(true,this,{highlightMouseOver:U.highlightMouseOver,highlightMouseDown:U.highlightMouseDown,highlightColor:U.highlightColor});if(!this.highlightColor){this.highlightColor=C.jqplot.computeHighlightColors(this.fillColor)}if(this.highlighter){this.highlighter.show=false}W.postInitHooks.addOnce(r);W.postDrawHooks.addOnce(Q);W.eventListenerHooks.addOnce("jqplotMouseMove",d);W.eventListenerHooks.addOnce("jqplotMouseDown",a);W.eventListenerHooks.addOnce("jqplotMouseUp",P);W.eventListenerHooks.addOnce("jqplotClick",c);W.eventListenerHooks.addOnce("jqplotRightClick",j)}};C.jqplot.LineRenderer.prototype.setGridData=function(W){var S=this._xaxis.series_u2p;var V=this._yaxis.series_u2p;var T=this._plotData;var U=this._prevPlotData;this.gridData=[];this._prevGridData=[];for(var R=0;R<this.data.length;R++){if(T[R]!=null){this.gridData.push([S.call(this._xaxis,T[R][0]),V.call(this._yaxis,T[R][1])])}if(U[R]!=null){this._prevGridData.push([S.call(this._xaxis,U[R][0]),V.call(this._yaxis,U[R][1])])}}};C.jqplot.LineRenderer.prototype.makeGridData=function(U,W){var T=this._xaxis.series_u2p;var V=this._yaxis.series_u2p;var S=[];var X=[];for(var R=0;R<U.length;R++){if(U[R]!=null){S.push([T.call(this._xaxis,U[R][0]),V.call(this._yaxis,U[R][1])])}}return S};C.jqplot.LineRenderer.prototype.draw=function(ag,ap,S){var ak;var aa=(S!=l)?S:{};var U=(aa.shadow!=l)?aa.shadow:this.shadow;var aq=(aa.showLine!=l)?aa.showLine:this.showLine;var aj=(aa.fill!=l)?aa.fill:this.fill;var R=(aa.fillAndStroke!=l)?aa.fillAndStroke:this.fillAndStroke;var ab,ah,ae,al;ag.save();if(ap.length){if(aq){if(aj){if(this.fillToZero){var V=new C.jqplot.ColorGenerator(this.negativeSeriesColors);var am=V.get(this.index);if(!this.useNegativeColors){am=aa.fillStyle}var Y=false;var Z=aa.fillStyle;if(R){var ao=ap.slice(0)}if(this.index==0||!this._stack){var af=[];this._areaPoints=[];var an=this._yaxis.series_u2p(this.fillToValue);var T=this._xaxis.series_u2p(this.fillToValue);if(this.fillAxis=="y"){af.push([ap[0][0],an]);this._areaPoints.push([ap[0][0],an]);for(var ak=0;ak<ap.length-1;ak++){af.push(ap[ak]);this._areaPoints.push(ap[ak]);if(this._plotData[ak][1]*this._plotData[ak+1][1]<0){if(this._plotData[ak][1]<0){Y=true;aa.fillStyle=am}else{Y=false;aa.fillStyle=Z}var X=ap[ak][0]+(ap[ak+1][0]-ap[ak][0])*(an-ap[ak][1])/(ap[ak+1][1]-ap[ak][1]);af.push([X,an]);this._areaPoints.push([X,an]);if(U){this.renderer.shadowRenderer.draw(ag,af,aa)}this.renderer.shapeRenderer.draw(ag,af,aa);af=[[X,an]]}}if(this._plotData[ap.length-1][1]<0){Y=true;aa.fillStyle=am}else{Y=false;aa.fillStyle=Z}af.push(ap[ap.length-1]);this._areaPoints.push(ap[ap.length-1]);af.push([ap[ap.length-1][0],an]);this._areaPoints.push([ap[ap.length-1][0],an])}if(U){this.renderer.shadowRenderer.draw(ag,af,aa)}this.renderer.shapeRenderer.draw(ag,af,aa)}else{var ad=this._prevGridData;for(var ak=ad.length;ak>0;ak--){ap.push(ad[ak-1])}if(U){this.renderer.shadowRenderer.draw(ag,ap,aa)}this._areaPoints=ap;this.renderer.shapeRenderer.draw(ag,ap,aa)}}else{if(R){var ao=ap.slice(0)}if(this.index==0||!this._stack){var W=ag.canvas.height;ap.unshift([ap[0][0],W]);len=ap.length;ap.push([ap[len-1][0],W])}else{var ad=this._prevGridData;for(var ak=ad.length;ak>0;ak--){ap.push(ad[ak-1])}}this._areaPoints=ap;if(U){this.renderer.shadowRenderer.draw(ag,ap,aa)}this.renderer.shapeRenderer.draw(ag,ap,aa)}if(R){var ai=C.extend(true,{},aa,{fill:false,closePath:false});this.renderer.shapeRenderer.draw(ag,ao,ai);if(this.markerRenderer.show){for(ak=0;ak<ao.length;ak++){this.markerRenderer.draw(ao[ak][0],ao[ak][1],ag,aa.markerOptions)}}}}else{if(U){this.renderer.shadowRenderer.draw(ag,ap,aa)}this.renderer.shapeRenderer.draw(ag,ap,aa)}}var ab=ae=ah=al=null;for(ak=0;ak<this._areaPoints.length;ak++){var ac=this._areaPoints[ak];if(ab>ac[0]||ab==null){ab=ac[0]}if(al<ac[1]||al==null){al=ac[1]}if(ae<ac[0]||ae==null){ae=ac[0]}if(ah>ac[1]||ah==null){ah=ac[1]}}this._boundingBox=[[ab,al],[ae,ah]];if(this.markerRenderer.show&&!aj){for(ak=0;ak<ap.length;ak++){this.markerRenderer.draw(ap[ak][0],ap[ak][1],ag,aa.markerOptions)}}}ag.restore()};C.jqplot.LineRenderer.prototype.drawShadow=function(R,T,S){};function r(T,S,R){for(i=0;i<this.series.length;i++){if(this.series[i].renderer.constructor==C.jqplot.LineRenderer){if(this.series[i].highlightMouseOver){this.series[i].highlightMouseDown=false}}}this.target.bind("mouseout",{plot:this},function(U){N(U.data.plot)})}function Q(){this.plugins.lineRenderer={highlightedSeriesIndex:null};this.plugins.lineRenderer.highlightCanvas=new C.jqplot.GenericCanvas();this.eventCanvas._elem.before(this.plugins.lineRenderer.highlightCanvas.createElement(this._gridPadding,"jqplot-lineRenderer-highlight-canvas",this._plotDimensions));var R=this.plugins.lineRenderer.highlightCanvas.setContext()}function O(X,W,U,T){var S=X.series[W];var R=X.plugins.lineRenderer.highlightCanvas;R._ctx.clearRect(0,0,R._ctx.canvas.width,R._ctx.canvas.height);S._highlightedPoint=U;X.plugins.lineRenderer.highlightedSeriesIndex=W;var V={fillStyle:S.highlightColor};S.renderer.shapeRenderer.draw(R._ctx,T,V)}function N(T){var R=T.plugins.lineRenderer.highlightCanvas;R._ctx.clearRect(0,0,R._ctx.canvas.width,R._ctx.canvas.height);for(var S=0;S<T.series.length;S++){T.series[S]._highlightedPoint=null}T.plugins.lineRenderer.highlightedSeriesIndex=null;T.target.trigger("jqplotDataUnhighlight")}function d(V,U,Y,X,W){if(X){var T=[X.seriesIndex,X.pointIndex,X.data];var S=jQuery.Event("jqplotDataMouseOver");S.pageX=V.pageX;S.pageY=V.pageY;W.target.trigger(S,T);if(W.series[T[0]].highlightMouseOver&&!(T[0]==W.plugins.lineRenderer.highlightedSeriesIndex)){var R=jQuery.Event("jqplotDataHighlight");R.pageX=V.pageX;R.pageY=V.pageY;W.target.trigger(R,T);O(W,X.seriesIndex,X.pointIndex,X.points)}}else{if(X==null){N(W)}}}function a(U,T,X,W,V){if(W){var S=[W.seriesIndex,W.pointIndex,W.data];if(V.series[S[0]].highlightMouseDown&&!(S[0]==V.plugins.lineRenderer.highlightedSeriesIndex)){var R=jQuery.Event("jqplotDataHighlight");R.pageX=U.pageX;R.pageY=U.pageY;V.target.trigger(R,S);O(V,W.seriesIndex,W.pointIndex,W.points)}}else{if(W==null){N(V)}}}function P(T,S,W,V,U){var R=U.plugins.lineRenderer.highlightedSeriesIndex;if(R!=null&&U.series[R].highlightMouseDown){N(U)}}function c(U,T,X,W,V){if(W){var S=[W.seriesIndex,W.pointIndex,W.data];var R=jQuery.Event("jqplotDataClick");R.pageX=U.pageX;R.pageY=U.pageY;V.target.trigger(R,S)}}function j(V,U,Y,X,W){if(X){var T=[X.seriesIndex,X.pointIndex,X.data];var R=W.plugins.lineRenderer.highlightedSeriesIndex;if(R!=null&&W.series[R].highlightMouseDown){N(W)}var S=jQuery.Event("jqplotDataRightClick");S.pageX=V.pageX;S.pageY=V.pageY;W.target.trigger(S,T)}}C.jqplot.LinearAxisRenderer=function(){};C.jqplot.LinearAxisRenderer.prototype.init=function(T){C.extend(true,this,T);var R=this._dataBounds;for(var U=0;U<this._series.length;U++){var V=this._series[U];var W=V._plotData;for(var S=0;S<W.length;S++){if(this.name=="xaxis"||this.name=="x2axis"){if(W[S][0]<R.min||R.min==null){R.min=W[S][0]}if(W[S][0]>R.max||R.max==null){R.max=W[S][0]}}else{if(W[S][1]<R.min||R.min==null){R.min=W[S][1]}if(W[S][1]>R.max||R.max==null){R.max=W[S][1]}}}}};C.jqplot.LinearAxisRenderer.prototype.draw=function(R){if(this.show){this.renderer.createTicks.call(this);var X=0;var S;if(this._elem){this._elem.empty()}this._elem=C('<div class="jqplot-axis jqplot-'+this.name+'" style="position:absolute;"></div>');if(this.name=="xaxis"||this.name=="x2axis"){this._elem.width(this._plotDimensions.width)}else{this._elem.height(this._plotDimensions.height)}this.labelOptions.axis=this.name;this._label=new this.labelRenderer(this.labelOptions);if(this._label.show){var W=this._label.draw(R);W.appendTo(this._elem)}if(this.showTicks){var V=this._ticks;for(var U=0;U<V.length;U++){var T=V[U];if(T.showLabel&&(!T.isMinorTick||this.showMinorTicks)){var W=T.draw(R);W.appendTo(this._elem)}}}}return this._elem};C.jqplot.LinearAxisRenderer.prototype.reset=function(){this.min=this._min;this.max=this._max;this.tickInterval=this._tickInterval;this.numberTicks=this._numberTicks};C.jqplot.LinearAxisRenderer.prototype.set=function(){var Y=0;var T;var S=0;var X=0;var R=(this._label==null)?false:this._label.show;if(this.show&&this.showTicks){var W=this._ticks;for(var V=0;V<W.length;V++){var U=W[V];if(U.showLabel&&(!U.isMinorTick||this.showMinorTicks)){if(this.name=="xaxis"||this.name=="x2axis"){T=U._elem.outerHeight(true)}else{T=U._elem.outerWidth(true)}if(T>Y){Y=T}}}if(R){S=this._label._elem.outerWidth(true);X=this._label._elem.outerHeight(true)}if(this.name=="xaxis"){Y=Y+X;this._elem.css({height:Y+"px",left:"0px",bottom:"0px"})}else{if(this.name=="x2axis"){Y=Y+X;this._elem.css({height:Y+"px",left:"0px",top:"0px"})}else{if(this.name=="yaxis"){Y=Y+S;this._elem.css({width:Y+"px",left:"0px",top:"0px"});if(R&&this._label.constructor==C.jqplot.AxisLabelRenderer){this._label._elem.css("width",S+"px")}}else{Y=Y+S;this._elem.css({width:Y+"px",right:"0px",top:"0px"});if(R&&this._label.constructor==C.jqplot.AxisLabelRenderer){this._label._elem.css("width",S+"px")}}}}}};C.jqplot.LinearAxisRenderer.prototype.createTicks=function(){var au=this._ticks;var an=this.ticks;var ae=this.name;var ag=this._dataBounds;var R,V;var aG,al;var X,W;var aE,aB;var ak=this.min;var aF=this.max;var ax=this.numberTicks;var aJ=this.tickInterval;if(an.length){for(aB=0;aB<an.length;aB++){var aq=an[aB];var av=new this.tickRenderer(this.tickOptions);if(aq.constructor==Array){av.value=aq[0];av.label=aq[1];if(!this.showTicks){av.showLabel=false;av.showMark=false}else{if(!this.showTickMarks){av.showMark=false}}av.setTick(aq[0],this.name);this._ticks.push(av)}else{av.value=aq;if(!this.showTicks){av.showLabel=false;av.showMark=false}else{if(!this.showTickMarks){av.showMark=false}}av.setTick(aq,this.name);this._ticks.push(av)}}this.numberTicks=an.length;this.min=this._ticks[0].value;this.max=this._ticks[this.numberTicks-1].value;this.tickInterval=(this.max-this.min)/(this.numberTicks-1)}else{if(ae=="xaxis"||ae=="x2axis"){R=this._plotDimensions.width}else{R=this._plotDimensions.height}if(!this.autoscale&&this.min!=null&&this.max!=null&&this.numberTicks!=null){this.tickInterval=null}aG=((this.min!=null)?this.min:ag.min);al=((this.max!=null)?this.max:ag.max);if(aG==al){var S=0.05;if(aG>0){S=Math.max(Math.log(aG)/Math.LN10,0.05)}aG-=S;al+=S}var ac=al-aG;var ar,ad;var aa;if(this.autoscale&&this.min==null&&this.max==null){var T,U,Z;var ah=false;var ap=false;var af={min:null,max:null,average:null,stddev:null};for(var aB=0;aB<this._series.length;aB++){var aw=this._series[aB];var ai=(aw.fillAxis=="x")?aw._xaxis.name:aw._yaxis.name;if(this.name==ai){var at=aw._plotValues[aw.fillAxis];var aj=at[0];var aC=at[0];for(var aA=1;aA<at.length;aA++){if(at[aA]<aj){aj=at[aA]}else{if(at[aA]>aC){aC=at[aA]}}}var ab=(aC-aj)/aC;if(aw.renderer.constructor==C.jqplot.BarRenderer){if(aj>=0&&(aw.fillToZero||ab>0.1)){ah=true}else{ah=false;if(aw.fill&&aw.fillToZero&&aj<0&&aC>0){ap=true}else{ap=false}}}else{if(aw.fill){if(aj>=0&&(aw.fillToZero||ab>0.1)){ah=true}else{if(aj<0&&aC>0&&aw.fillToZero){ah=false;ap=true}else{ah=false;ap=false}}}else{if(aj<0){ah=false}}}}}if(ah){this.numberTicks=2+Math.ceil((R-(this.tickSpacing-1))/this.tickSpacing);this.min=0;ak=0;U=al/(this.numberTicks-1);aa=Math.pow(10,Math.abs(Math.floor(Math.log(U)/Math.LN10)));if(U/aa==parseInt(U/aa,10)){U+=aa}this.tickInterval=Math.ceil(U/aa)*aa;this.max=this.tickInterval*(this.numberTicks-1)}else{if(ap){this.numberTicks=2+Math.ceil((R-(this.tickSpacing-1))/this.tickSpacing);var am=Math.ceil(Math.abs(aG)/ac*(this.numberTicks-1));var aI=this.numberTicks-1-am;U=Math.max(Math.abs(aG/am),Math.abs(al/aI));aa=Math.pow(10,Math.abs(Math.floor(Math.log(U)/Math.LN10)));this.tickInterval=Math.ceil(U/aa)*aa;this.max=this.tickInterval*aI;this.min=-this.tickInterval*am}else{if(this.numberTicks==null){if(this.tickInterval){this.numberTicks=3+Math.ceil(ac/this.tickInterval)}else{this.numberTicks=2+Math.ceil((R-(this.tickSpacing-1))/this.tickSpacing)}}if(this.tickInterval==null){U=ac/(this.numberTicks-1);if(U<1){aa=Math.pow(10,Math.abs(Math.floor(Math.log(U)/Math.LN10)))}else{aa=1}this.tickInterval=Math.ceil(U*aa*this.pad)/aa}else{aa=1/this.tickInterval}T=this.tickInterval*(this.numberTicks-1);Z=(T-ac)/2;if(this.min==null){this.min=Math.floor(aa*(aG-Z))/aa}if(this.max==null){this.max=this.min+T}}}}else{ar=(this.min!=null)?this.min:aG-ac*(this.padMin-1);ad=(this.max!=null)?this.max:al+ac*(this.padMax-1);this.min=ar;this.max=ad;ac=this.max-this.min;if(this.numberTicks==null){if(this.tickInterval!=null){this.numberTicks=Math.ceil((this.max-this.min)/this.tickInterval)+1;this.max=this.min+this.tickInterval*(this.numberTicks-1)}else{if(R>100){this.numberTicks=parseInt(3+(R-100)/75,10)}else{this.numberTicks=2}}}if(this.tickInterval==null){this.tickInterval=ac/(this.numberTicks-1)}}if(this.renderer.constructor==C.jqplot.LinearAxisRenderer){ac=this.max-this.min;var aH=new this.tickRenderer(this.tickOptions);var ao=aH.formatString||C.jqplot.config.defaultTickFormatString;var ao=ao.match(C.jqplot.sprintf.regex)[0];var aD=0;if(ao){if(ao.search(/[fFeEgGpP]/)>-1){var az=ao.match(/\%\.(\d{0,})?[eEfFgGpP]/);if(az){aD=parseInt(az[1],10)}else{aD=6}}else{if(ao.search(/[di]/)>-1){aD=0}}var Y=Math.pow(10,-aD);if(this.tickInterval<Y){if(ax==null&&aJ==null){this.tickInterval=Y;if(aF==null&&ak==null){this.min=Math.floor(this._dataBounds.min/Y)*Y;if(this.min==this._dataBounds.min){this.min=this._dataBounds.min-this.tickInterval}this.max=Math.ceil(this._dataBounds.max/Y)*Y;if(this.max==this._dataBounds.max){this.max=this._dataBounds.max+this.tickInterval}var ay=(this.max-this.min)/this.tickInterval;ay=ay.toFixed(11);ay=Math.ceil(ay);this.numberTicks=ay+1}else{if(aF==null){var ay=(this._dataBounds.max-this.min)/this.tickInterval;ay=ay.toFixed(11);this.numberTicks=Math.ceil(ay)+2;this.max=this.min+this.tickInterval*(this.numberTicks-1)}else{if(ak==null){var ay=(this.max-this._dataBounds.min)/this.tickInterval;ay=ay.toFixed(11);this.numberTicks=Math.ceil(ay)+2;this.min=this.max-this.tickInterval*(this.numberTicks-1)}}}}}}}for(var aB=0;aB<this.numberTicks;aB++){aE=this.min+aB*this.tickInterval;var av=new this.tickRenderer(this.tickOptions);if(!this.showTicks){av.showLabel=false;av.showMark=false}else{if(!this.showTickMarks){av.showMark=false}}av.setTick(aE,this.name);this._ticks.push(av)}}};C.jqplot.LinearAxisRenderer.prototype.pack=function(aa,V){var ad=this._ticks;var ab=this.max;var X=this.min;var U=V.max;var ah=V.min;var Y=(this._label==null)?false:this._label.show;for(var R in aa){this._elem.css(R,aa[R])}this._offsets=V;var T=U-ah;var ag=ab-X;this.p2u=function(ai){return(ai-ah)*ag/T+X};this.u2p=function(ai){return(ai-X)*T/ag+ah};if(this.name=="xaxis"||this.name=="x2axis"){this.series_u2p=function(ai){return(ai-X)*T/ag};this.series_p2u=function(ai){return ai*ag/T+X}}else{this.series_u2p=function(ai){return(ai-ab)*T/ag};this.series_p2u=function(ai){return ai*ag/T+ab}}if(this.show){if(this.name=="xaxis"||this.name=="x2axis"){for(i=0;i<ad.length;i++){var af=ad[i];if(af.show&&af.showLabel){var W;if(af.constructor==C.jqplot.CanvasAxisTickRenderer&&af.angle){var ae=(this.name=="xaxis")?1:-1;switch(af.labelPosition){case"auto":if(ae*af.angle<0){W=-af.getWidth()+af._textRenderer.height*Math.sin(-af._textRenderer.angle)/2}else{W=-af._textRenderer.height*Math.sin(af._textRenderer.angle)/2}break;case"end":W=-af.getWidth()+af._textRenderer.height*Math.sin(-af._textRenderer.angle)/2;break;case"start":W=-af._textRenderer.height*Math.sin(af._textRenderer.angle)/2;break;case"middle":W=-af.getWidth()/2+af._textRenderer.height*Math.sin(-af._textRenderer.angle)/2;break;default:W=-af.getWidth()/2+af._textRenderer.height*Math.sin(-af._textRenderer.angle)/2;break}}else{W=-af.getWidth()/2}var S=this.u2p(af.value)+W+"px";af._elem.css("left",S);af.pack()}}if(Y){var ac=this._label._elem.outerWidth(true);this._label._elem.css("left",ah+T/2-ac/2+"px");if(this.name=="xaxis"){this._label._elem.css("bottom","0px")}else{this._label._elem.css("top","0px")}this._label.pack()}}else{for(i=0;i<ad.length;i++){var af=ad[i];if(af.show&&af.showLabel){var W;if(af.constructor==C.jqplot.CanvasAxisTickRenderer&&af.angle){var ae=(this.name=="yaxis")?1:-1;switch(af.labelPosition){case"auto":case"end":if(ae*af.angle<0){W=-af._textRenderer.height*Math.cos(-af._textRenderer.angle)/2}else{W=-af.getHeight()+af._textRenderer.height*Math.cos(af._textRenderer.angle)/2}break;case"start":if(af.angle>0){W=-af._textRenderer.height*Math.cos(-af._textRenderer.angle)/2}else{W=-af.getHeight()+af._textRenderer.height*Math.cos(af._textRenderer.angle)/2}break;case"middle":W=-af.getHeight()/2;break;default:W=-af.getHeight()/2;break}}else{W=-af.getHeight()/2}var S=this.u2p(af.value)+W+"px";af._elem.css("top",S);af.pack()}}if(Y){var Z=this._label._elem.outerHeight(true);this._label._elem.css("top",U-T/2-Z/2+"px");if(this.name=="yaxis"){this._label._elem.css("left","0px")}else{this._label._elem.css("right","0px")}this._label.pack()}}}};C.jqplot.MarkerRenderer=function(R){this.show=true;this.style="filledCircle";this.lineWidth=2;this.size=9;this.color="#666666";this.shadow=true;this.shadowAngle=45;this.shadowOffset=1;this.shadowDepth=3;this.shadowAlpha="0.07";this.shadowRenderer=new C.jqplot.ShadowRenderer();this.shapeRenderer=new C.jqplot.ShapeRenderer();C.extend(true,this,R)};C.jqplot.MarkerRenderer.prototype.init=function(R){C.extend(true,this,R);var T={angle:this.shadowAngle,offset:this.shadowOffset,alpha:this.shadowAlpha,lineWidth:this.lineWidth,depth:this.shadowDepth,closePath:true};if(this.style.indexOf("filled")!=-1){T.fill=true}if(this.style.indexOf("ircle")!=-1){T.isarc=true;T.closePath=false}this.shadowRenderer.init(T);var S={fill:false,isarc:false,strokeStyle:this.color,fillStyle:this.color,lineWidth:this.lineWidth,closePath:true};if(this.style.indexOf("filled")!=-1){S.fill=true}if(this.style.indexOf("ircle")!=-1){S.isarc=true;S.closePath=false}this.shapeRenderer.init(S)};C.jqplot.MarkerRenderer.prototype.drawDiamond=function(T,S,W,V,Y){var R=1.2;var Z=this.size/2/R;var X=this.size/2*R;var U=[[T-Z,S],[T,S+X],[T+Z,S],[T,S-X]];if(this.shadow){this.shadowRenderer.draw(W,U)}this.shapeRenderer.draw(W,U,Y)};C.jqplot.MarkerRenderer.prototype.drawPlus=function(U,T,X,W,aa){var S=1;var ab=this.size/2*S;var Y=this.size/2*S;var Z=[[U,T-Y],[U,T+Y]];var V=[[U+ab,T],[U-ab,T]];var R=C.extend(true,{},this.options,{closePath:false});if(this.shadow){this.shadowRenderer.draw(X,Z,{closePath:false});this.shadowRenderer.draw(X,V,{closePath:false})}this.shapeRenderer.draw(X,Z,R);this.shapeRenderer.draw(X,V,R)};C.jqplot.MarkerRenderer.prototype.drawX=function(U,T,X,W,aa){var S=1;var ab=this.size/2*S;var Y=this.size/2*S;var R=C.extend(true,{},this.options,{closePath:false});var Z=[[U-ab,T-Y],[U+ab,T+Y]];var V=[[U-ab,T+Y],[U+ab,T-Y]];if(this.shadow){this.shadowRenderer.draw(X,Z,{closePath:false});this.shadowRenderer.draw(X,V,{closePath:false})}this.shapeRenderer.draw(X,Z,R);this.shapeRenderer.draw(X,V,R)};C.jqplot.MarkerRenderer.prototype.drawDash=function(T,S,W,V,Y){var R=1;var Z=this.size/2*R;var X=this.size/2*R;var U=[[T-Z,S],[T+Z,S]];if(this.shadow){this.shadowRenderer.draw(W,U)}this.shapeRenderer.draw(W,U,Y)};C.jqplot.MarkerRenderer.prototype.drawSquare=function(T,S,W,V,Y){var R=1;var Z=this.size/2/R;var X=this.size/2*R;var U=[[T-Z,S-X],[T-Z,S+X],[T+Z,S+X],[T+Z,S-X]];if(this.shadow){this.shadowRenderer.draw(W,U)}this.shapeRenderer.draw(W,U,Y)};C.jqplot.MarkerRenderer.prototype.drawCircle=function(S,Y,U,X,V){var R=this.size/2;var T=2*Math.PI;var W=[S,Y,R,0,T,true];if(this.shadow){this.shadowRenderer.draw(U,W)}this.shapeRenderer.draw(U,W,V)};C.jqplot.MarkerRenderer.prototype.draw=function(R,U,S,T){T=T||{};if(T.show==null||T.show!=false){if(T.color&&!T.fillStyle){T.fillStyle=T.color}if(T.color&&!T.strokeStyle){T.strokeStyle=T.color}switch(this.style){case"diamond":this.drawDiamond(R,U,S,false,T);break;case"filledDiamond":this.drawDiamond(R,U,S,true,T);break;case"circle":this.drawCircle(R,U,S,false,T);break;case"filledCircle":this.drawCircle(R,U,S,true,T);break;case"square":this.drawSquare(R,U,S,false,T);break;case"filledSquare":this.drawSquare(R,U,S,true,T);break;case"x":this.drawX(R,U,S,true,T);break;case"plus":this.drawPlus(R,U,S,true,T);break;case"dash":this.drawDash(R,U,S,true,T);break;default:this.drawDiamond(R,U,S,false,T);break}}};C.jqplot.ShadowRenderer=function(R){this.angle=45;this.offset=1;this.alpha=0.07;this.lineWidth=1.5;this.lineJoin="miter";this.lineCap="round";this.closePath=false;this.fill=false;this.depth=3;this.strokeStyle="rgba(0,0,0,0.1)";this.isarc=false;C.extend(true,this,R)};C.jqplot.ShadowRenderer.prototype.init=function(R){C.extend(true,this,R)};C.jqplot.ShadowRenderer.prototype.draw=function(aa,Y,ac){aa.save();var R=(ac!=null)?ac:{};var Z=(R.fill!=null)?R.fill:this.fill;var X=(R.closePath!=null)?R.closePath:this.closePath;var U=(R.offset!=null)?R.offset:this.offset;var S=(R.alpha!=null)?R.alpha:this.alpha;var W=(R.depth!=null)?R.depth:this.depth;var ab=(R.isarc!=null)?R.isarc:this.isarc;aa.lineWidth=(R.lineWidth!=null)?R.lineWidth:this.lineWidth;aa.lineJoin=(R.lineJoin!=null)?R.lineJoin:this.lineJoin;aa.lineCap=(R.lineCap!=null)?R.lineCap:this.lineCap;aa.strokeStyle=R.strokeStyle||this.strokeStyle||"rgba(0,0,0,"+S+")";aa.fillStyle=R.fillStyle||this.fillStyle||"rgba(0,0,0,"+S+")";for(var T=0;T<W;T++){aa.translate(Math.cos(this.angle*Math.PI/180)*U,Math.sin(this.angle*Math.PI/180)*U);aa.beginPath();if(ab){aa.arc(Y[0],Y[1],Y[2],Y[3],Y[4],true)}else{aa.moveTo(Y[0][0],Y[0][1]);for(var V=1;V<Y.length;V++){aa.lineTo(Y[V][0],Y[V][1])}}if(X){aa.closePath()}if(Z){aa.fill()}else{aa.stroke()}}aa.restore()};C.jqplot.ShapeRenderer=function(R){this.lineWidth=1.5;this.lineJoin="miter";this.lineCap="round";this.closePath=false;this.fill=false;this.isarc=false;this.fillRect=false;this.strokeRect=false;this.clearRect=false;this.strokeStyle="#999999";this.fillStyle="#999999";C.extend(true,this,R)};C.jqplot.ShapeRenderer.prototype.init=function(R){C.extend(true,this,R)};C.jqplot.ShapeRenderer.prototype.draw=function(Z,X,ab){Z.save();var R=(ab!=null)?ab:{};var Y=(R.fill!=null)?R.fill:this.fill;var V=(R.closePath!=null)?R.closePath:this.closePath;var W=(R.fillRect!=null)?R.fillRect:this.fillRect;var T=(R.strokeRect!=null)?R.strokeRect:this.strokeRect;var S=(R.clearRect!=null)?R.clearRect:this.clearRect;var aa=(R.isarc!=null)?R.isarc:this.isarc;Z.lineWidth=R.lineWidth||this.lineWidth;Z.lineJoin=R.lineJoing||this.lineJoin;Z.lineCap=R.lineCap||this.lineCap;Z.strokeStyle=(R.strokeStyle||R.color)||this.strokeStyle;Z.fillStyle=R.fillStyle||this.fillStyle;Z.beginPath();if(aa){Z.arc(X[0],X[1],X[2],X[3],X[4],true);if(V){Z.closePath()}if(Y){Z.fill()}else{Z.stroke()}Z.restore();return}else{if(S){Z.clearRect(X[0],X[1],X[2],X[3]);Z.restore();return}else{if(W||T){if(W){Z.fillRect(X[0],X[1],X[2],X[3])}if(T){Z.strokeRect(X[0],X[1],X[2],X[3]);Z.restore();return}}else{Z.moveTo(X[0][0],X[0][1]);for(var U=1;U<X.length;U++){Z.lineTo(X[U][0],X[U][1])}if(V){Z.closePath()}if(Y){Z.fill()}else{Z.stroke()}}}}Z.restore()};C.jqplot.TableLegendRenderer=function(){};C.jqplot.TableLegendRenderer.prototype.init=function(R){C.extend(true,this,R)};C.jqplot.TableLegendRenderer.prototype.addrow=function(U,S,X,T){var R=(X)?this.rowSpacing:"0";if(T){var W=C('<tr class="jqplot-table-legend"></tr>').prependTo(this._elem)}else{var W=C('<tr class="jqplot-table-legend"></tr>').appendTo(this._elem)}if(this.showSwatches){C('<td class="jqplot-table-legend" style="text-align:center;padding-top:'+R+';"><div><div class="jqplot-table-legend-swatch" style="background-color:'+S+";border-color:"+S+';"></div></div></td>').appendTo(W)}if(this.showLabels){var V=C('<td class="jqplot-table-legend" style="padding-top:'+R+';"></td>');V.appendTo(W);if(this.escapeHtml){V.text(U)}else{V.html(U)}}};C.jqplot.TableLegendRenderer.prototype.draw=function(){var Y=this;if(this.show){var V=this._series;var aa="position:absolute;";aa+=(this.background)?"background:"+this.background+";":"";aa+=(this.border)?"border:"+this.border+";":"";aa+=(this.fontSize)?"font-size:"+this.fontSize+";":"";aa+=(this.fontFamily)?"font-family:"+this.fontFamily+";":"";aa+=(this.textColor)?"color:"+this.textColor+";":"";aa+=(this.marginTop!=null)?"margin-top:"+this.marginTop+";":"";aa+=(this.marginBottom!=null)?"margin-bottom:"+this.marginBottom+";":"";aa+=(this.marginLeft!=null)?"margin-left:"+this.marginLeft+";":"";aa+=(this.marginRight!=null)?"margin-right:"+this.marginRight+";":"";this._elem=C('<table class="jqplot-table-legend" style="'+aa+'"></table>');var R=false,X=false;for(var W=0;W<V.length;W++){s=V[W];if(s._stack||s.renderer.constructor==C.jqplot.BezierCurveRenderer){X=true}if(s.show&&s.showLabel){var U=this.labels[W]||s.label.toString();if(U){var S=s.color;if(X&&W<V.length-1){R=true}else{if(X&&W==V.length-1){R=false}}this.renderer.addrow.call(this,U,S,R,X);R=true}for(var T=0;T<C.jqplot.addLegendRowHooks.length;T++){var Z=C.jqplot.addLegendRowHooks[T].call(this,s);if(Z){this.renderer.addrow.call(this,Z.label,Z.color,R);R=true}}}}}return this._elem};C.jqplot.TableLegendRenderer.prototype.pack=function(T){if(this.show){if(this.placement=="insideGrid"){switch(this.location){case"nw":var S=T.left;var R=T.top;this._elem.css("left",S);this._elem.css("top",R);break;case"n":var S=(T.left+(this._plotDimensions.width-T.right))/2-this.getWidth()/2;var R=T.top;this._elem.css("left",S);this._elem.css("top",R);break;case"ne":var S=T.right;var R=T.top;this._elem.css({right:S,top:R});break;case"e":var S=T.right;var R=(T.top+(this._plotDimensions.height-T.bottom))/2-this.getHeight()/2;this._elem.css({right:S,top:R});break;case"se":var S=T.right;var R=T.bottom;this._elem.css({right:S,bottom:R});break;case"s":var S=(T.left+(this._plotDimensions.width-T.right))/2-this.getWidth()/2;var R=T.bottom;this._elem.css({left:S,bottom:R});break;case"sw":var S=T.left;var R=T.bottom;this._elem.css({left:S,bottom:R});break;case"w":var S=T.left;var R=(T.top+(this._plotDimensions.height-T.bottom))/2-this.getHeight()/2;this._elem.css({left:S,top:R});break;default:var S=T.right;var R=T.bottom;this._elem.css({right:S,bottom:R});break}}else{if(this.placement=="outside"){switch(this.location){case"nw":var S=this._plotDimensions.width-T.left;var R=T.top;this._elem.css("right",S);this._elem.css("top",R);break;case"n":var S=(T.left+(this._plotDimensions.width-T.right))/2-this.getWidth()/2;var R=this._plotDimensions.height-T.top;this._elem.css("left",S);this._elem.css("bottom",R);break;case"ne":var S=this._plotDimensions.width-T.right;var R=T.top;this._elem.css({left:S,top:R});break;case"e":var S=this._plotDimensions.width-T.right;var R=(T.top+(this._plotDimensions.height-T.bottom))/2-this.getHeight()/2;this._elem.css({left:S,top:R});break;case"se":var S=this._plotDimensions.width-T.right;var R=T.bottom;this._elem.css({left:S,bottom:R});break;case"s":var S=(T.left+(this._plotDimensions.width-T.right))/2-this.getWidth()/2;var R=this._plotDimensions.height-T.bottom;this._elem.css({left:S,top:R});break;case"sw":var S=this._plotDimensions.width-T.left;var R=T.bottom;this._elem.css({right:S,bottom:R});break;case"w":var S=this._plotDimensions.width-T.left;var R=(T.top+(this._plotDimensions.height-T.bottom))/2-this.getHeight()/2;this._elem.css({right:S,top:R});break;default:var S=T.right;var R=T.bottom;this._elem.css({right:S,bottom:R});break}}else{switch(this.location){case"nw":this._elem.css({left:0,top:T.top});break;case"n":var S=(T.left+(this._plotDimensions.width-T.right))/2-this.getWidth()/2;this._elem.css({left:S,top:T.top});break;case"ne":this._elem.css({right:0,top:T.top});break;case"e":var R=(T.top+(this._plotDimensions.height-T.bottom))/2-this.getHeight()/2;this._elem.css({right:T.right,top:R});break;case"se":this._elem.css({right:T.right,bottom:T.bottom});break;case"s":var S=(T.left+(this._plotDimensions.width-T.right))/2-this.getWidth()/2;this._elem.css({left:S,bottom:T.bottom});break;case"sw":this._elem.css({left:T.left,bottom:T.bottom});break;case"w":var R=(T.top+(this._plotDimensions.height-T.bottom))/2-this.getHeight()/2;this._elem.css({left:T.left,top:R});break;default:this._elem.css({right:T.right,bottom:T.bottom});break}}}}};C.jqplot.ThemeEngine=function(){this.themes={};this.activeTheme=null};C.jqplot.ThemeEngine.prototype.init=function(){var U=new C.jqplot.Theme({_name:"Default"});var W,S;for(W in U.target){if(W=="textColor"){U.target[W]=this.target.css("color")}else{U.target[W]=this.target.css(W)}}if(this.title.show&&this.title._elem){for(W in U.title){if(W=="textColor"){U.title[W]=this.title._elem.css("color")}else{U.title[W]=this.title._elem.css(W)}}}for(W in U.grid){U.grid[W]=this.grid[W]}if(U.grid.backgroundColor==null&&this.grid.background!=null){U.grid.backgroundColor=this.grid.background}if(this.legend.show&&this.legend._elem){for(W in U.legend){if(W=="textColor"){U.legend[W]=this.legend._elem.css("color")}else{U.legend[W]=this.legend._elem.css(W)}}}var T;for(S=0;S<this.series.length;S++){T=this.series[S];if(T.renderer.constructor==C.jqplot.LineRenderer){U.series.push(new h())}else{if(T.renderer.constructor==C.jqplot.BarRenderer){U.series.push(new I())}else{if(T.renderer.constructor==C.jqplot.PieRenderer){U.series.push(new b())}else{if(T.renderer.constructor==C.jqplot.DonutRenderer){U.series.push(new y())}else{if(T.renderer.constructor==C.jqplot.FunnelRenderer){U.series.push(new M())}else{if(T.renderer.constructor==C.jqplot.MeterGaugeRenderer){U.series.push(new v())}else{U.series.push({})}}}}}}for(W in U.series[S]){U.series[S][W]=T[W]}}var R,V;for(W in this.axes){V=this.axes[W];R=U.axes[W]=new F();R.borderColor=V.borderColor;R.borderWidth=V.borderWidth;if(V._ticks&&V._ticks[0]){for(nn in R.ticks){if(V._ticks[0].hasOwnProperty(nn)){R.ticks[nn]=V._ticks[0][nn]}else{if(V._ticks[0]._elem){R.ticks[nn]=V._ticks[0]._elem.css(nn)}}}}if(V._label&&V._label.show){for(nn in R.label){if(V._label[nn]){R.label[nn]=V._label[nn]}else{if(V._label._elem){if(nn=="textColor"){R.label[nn]=V._label._elem.css("color")}else{R.label[nn]=V._label._elem.css(nn)}}}}}}this.themeEngine._add(U);this.themeEngine.activeTheme=this.themeEngine.themes[U._name]};C.jqplot.ThemeEngine.prototype.get=function(R){if(!R){return this.activeTheme}else{return this.themes[R]}};function E(S,R){return S-R}C.jqplot.ThemeEngine.prototype.getThemeNames=function(){var R=[];for(var S in this.themes){R.push(S)}return R.sort(E)};C.jqplot.ThemeEngine.prototype.getThemes=function(){var S=[];var R=[];for(var U in this.themes){S.push(U)}S.sort(E);for(var T=0;T<S.length;T++){R.push(this.themes[S[T]])}return R};C.jqplot.ThemeEngine.prototype.activate=function(ac,U){var ah=false;if(!U&&this.activeTheme&&this.activeTheme._name){U=this.activeTheme._name}if(!this.themes.hasOwnProperty(U)){throw new Error("No theme of that name")}else{var V=this.themes[U];this.activeTheme=V;var X,ag=false,ad=false;var ab=["xaxis","x2axis","yaxis","y2axis"];for(aa=0;aa<ab.length;aa++){var T=ab[aa];if(V.axesStyles.borderColor!=null){ac.axes[T].borderColor=V.axesStyles.borderColor}if(V.axesStyles.borderWidth!=null){ac.axes[T].borderWidth=V.axesStyles.borderWidth}}for(axname in ac.axes){var Y=ac.axes[axname];if(Y.show){var af=V.axes[axname]||{};var S=V.axesStyles;var Z=C.jqplot.extend(true,{},af,S);X=(V.axesStyles.borderColor!=null)?V.axesStyles.borderColor:Z.borderColor;if(Z.borderColor!=null){Y.borderColor=Z.borderColor;ah=true}X=(V.axesStyles.borderWidth!=null)?V.axesStyles.borderWidth:Z.borderWidth;if(Z.borderWidth!=null){Y.borderWidth=Z.borderWidth;ah=true}if(Y._ticks&&Y._ticks[0]){for(nn in Z.ticks){X=Z.ticks[nn];if(X!=null){Y.tickOptions[nn]=X;Y._ticks=[];ah=true}}}if(Y._label&&Y._label.show){for(nn in Z.label){X=Z.label[nn];if(X!=null){Y.labelOptions[nn]=X;ah=true}}}}}for(var W in V.grid){if(V.grid[W]!=null){ac.grid[W]=V.grid[W]}}if(!ah){ac.grid.draw()}if(ac.legend.show){for(W in V.legend){if(V.legend[W]!=null){ac.legend[W]=V.legend[W]}}}if(ac.title.show){for(W in V.title){if(V.title[W]!=null){ac.title[W]=V.title[W]}}}var aa;for(aa=0;aa<V.series.length;aa++){var R={};var ae=false;for(W in V.series[aa]){X=(V.seriesStyles[W]!=null)?V.seriesStyles[W]:V.series[aa][W];if(X!=null){R[W]=X;if(W=="color"){ac.series[aa].renderer.shapeRenderer.fillStyle=X;ac.series[aa].renderer.shapeRenderer.strokeStyle=X;ac.series[aa][W]=X}else{if(W=="lineWidth"){ac.series[aa].renderer.shapeRenderer.lineWidth=X;ac.series[aa][W]=X}else{if(W=="markerOptions"){J(ac.series[aa].markerOptions,X);J(ac.series[aa].markerRenderer,X)}else{ac.series[aa][W]=X}}}ah=true}}}if(ah){ac.target.empty();ac.draw()}for(W in V.target){if(V.target[W]!=null){ac.target.css(W,V.target[W])}}}};C.jqplot.ThemeEngine.prototype._add=function(S,R){if(R){S._name=R}if(!S._name){S._name=Date.parse(new Date())}if(!this.themes.hasOwnProperty(S._name)){this.themes[S._name]=S}else{throw new Error("jqplot.ThemeEngine Error: Theme already in use")}};C.jqplot.ThemeEngine.prototype.remove=function(R){if(R=="Default"){return false}return delete this.themes[R]};C.jqplot.ThemeEngine.prototype.newTheme=function(R,T){if(typeof(R)=="object"){T=T||R;R=null}if(T&&T._name){R=T._name}else{R=R||Date.parse(new Date())}var S=this.copy(this.themes.Default._name,R);C.jqplot.extend(S,T);return S};function u(T){if(T==null||typeof(T)!="object"){return T}var R=new T.constructor();for(var S in T){R[S]=u(T[S])}return R}C.jqplot.clone=u;function J(T,S){if(S==null||typeof(S)!="object"){return}for(var R in S){if(R=="highlightColors"){T[R]=u(S[R])}if(S[R]!=null&&typeof(S[R])=="object"){if(!T.hasOwnProperty(R)){T[R]={}}J(T[R],S[R])}else{T[R]=S[R]}}}C.jqplot.merge=J;C.jqplot.extend=function(){var W=arguments[0]||{},U=1,V=arguments.length,R=false,T;if(typeof W==="boolean"){R=W;W=arguments[1]||{};U=2}if(typeof W!=="object"&&!toString.call(W)==="[object Function]"){W={}}for(;U<V;U++){if((T=arguments[U])!=null){for(var S in T){var X=W[S],Y=T[S];if(W===Y){continue}if(R&&Y&&typeof Y==="object"&&!Y.nodeType){W[S]=C.jqplot.extend(R,X||(Y.length!=null?[]:{}),Y)}else{if(Y!==l){W[S]=Y}}}}}return W};C.jqplot.ThemeEngine.prototype.rename=function(S,R){if(S=="Default"||R=="Default"){throw new Error("jqplot.ThemeEngine Error: Cannot rename from/to Default")}if(this.themes.hasOwnProperty(R)){throw new Error("jqplot.ThemeEngine Error: New name already in use.")}else{if(this.themes.hasOwnProperty(S)){var T=this.copy(S,R);this.remove(S);return T}}throw new Error("jqplot.ThemeEngine Error: Old name or new name invalid")};C.jqplot.ThemeEngine.prototype.copy=function(R,T,V){if(T=="Default"){throw new Error("jqplot.ThemeEngine Error: Cannot copy over Default theme")}if(!this.themes.hasOwnProperty(R)){var S="jqplot.ThemeEngine Error: Source name invalid";throw new Error(S)}if(this.themes.hasOwnProperty(T)){var S="jqplot.ThemeEngine Error: Target name invalid";throw new Error(S)}else{var U=u(this.themes[R]);U._name=T;C.jqplot.extend(true,U,V);this._add(U);return U}};C.jqplot.Theme=function(R,S){if(typeof(R)=="object"){S=S||R;R=null}R=R||Date.parse(new Date());this._name=R;this.target={backgroundColor:null};this.legend={textColor:null,fontFamily:null,fontSize:null,border:null,background:null};this.title={textColor:null,fontFamily:null,fontSize:null,textAlign:null};this.seriesStyles={};this.series=[];this.grid={drawGridlines:null,gridLineColor:null,gridLineWidth:null,backgroundColor:null,borderColor:null,borderWidth:null,shadow:null};this.axesStyles={label:{},ticks:{}};this.axes={};if(typeof(S)=="string"){this._name=S}else{if(typeof(S)=="object"){C.jqplot.extend(true,this,S)}}};var F=function(){this.borderColor=null;this.borderWidth=null;this.ticks=new f();this.label=new k()};var f=function(){this.show=null;this.showGridline=null;this.showLabel=null;this.showMark=null;this.size=null;this.textColor=null;this.whiteSpace=null;this.fontSize=null;this.fontFamily=null};var k=function(){this.textColor=null;this.whiteSpace=null;this.fontSize=null;this.fontFamily=null;this.fontWeight=null};var h=function(){this.color=null;this.lineWidth=null;this.shadow=null;this.fillColor=null;this.showMarker=null;this.markerOptions=new A()};var A=function(){this.show=null;this.style=null;this.lineWidth=null;this.size=null;this.color=null;this.shadow=null};var I=function(){this.color=null;this.seriesColors=null;this.lineWidth=null;this.shadow=null;this.barPadding=null;this.barMargin=null;this.barWidth=null;this.highlightColors=null};var b=function(){this.seriesColors=null;this.padding=null;this.sliceMargin=null;this.fill=null;this.shadow=null;this.startAngle=null;this.lineWidth=null;this.highlightColors=null};var y=function(){this.seriesColors=null;this.padding=null;this.sliceMargin=null;this.fill=null;this.shadow=null;this.startAngle=null;this.lineWidth=null;this.innerDiameter=null;this.thickness=null;this.ringMargin=null;this.highlightColors=null};var M=function(){this.color=null;this.lineWidth=null;this.shadow=null;this.padding=null;this.sectionMargin=null;this.seriesColors=null;this.highlightColors=null};var v=function(){this.padding=null;this.backgroundColor=null;this.ringColor=null;this.tickColor=null;this.ringWidth=null;this.intervalColors=null;this.intervalInnerRadius=null;this.intervalOuterRadius=null;this.hubRadius=null;this.needleThickness=null;this.needlePad=null};C.jqplot.sprintf=function(){function W(ac,Y,Z,ab){var aa=(ac.length>=Y)?"":Array(1+Y-ac.length>>>0).join(Z);return ab?ac+aa:aa+ac}function T(ad,ac,af,aa,ab,Z){var ae=aa-ad.length;if(ae>0){var Y=" ";if(Z){Y="&nbsp;"}if(af||!ab){ad=W(ad,aa,Y,af)}else{ad=ad.slice(0,ac.length)+W("",ae,"0",true)+ad.slice(ac.length)}}return ad}function X(ag,Z,ae,aa,Y,ad,af,ac){var ab=ag>>>0;ae=ae&&ab&&{"2":"0b","8":"0","16":"0x"}[Z]||"";ag=ae+W(ab.toString(Z),ad||0,"0",false);return T(ag,ae,aa,Y,af,ac)}function R(ac,ad,aa,Y,ab,Z){if(Y!=null){ac=ac.slice(0,Y)}return T(ac,"",ad,aa,ab,Z)}var S=arguments,U=0,V=S[U++];return V.replace(C.jqplot.sprintf.regex,function(ar,ae,af,ai,au,ap,ac){if(ar=="%%"){return"%"}var aj=false,ag="",ah=false,aq=false,ad=false;for(var ao=0;af&&ao<af.length;ao++){switch(af.charAt(ao)){case" ":ag=" ";break;case"+":ag="+";break;case"-":aj=true;break;case"0":ah=true;break;case"#":aq=true;break;case"&":ad=true;break}}if(!ai){ai=0}else{if(ai=="*"){ai=+S[U++]}else{if(ai.charAt(0)=="*"){ai=+S[ai.slice(1,-1)]}else{ai=+ai}}}if(ai<0){ai=-ai;aj=true}if(!isFinite(ai)){throw new Error("$.jqplot.sprintf: (minimum-)width must be finite")}if(!ap){ap="fFeE".indexOf(ac)>-1?6:(ac=="d")?0:void (0)}else{if(ap=="*"){ap=+S[U++]}else{if(ap.charAt(0)=="*"){ap=+S[ap.slice(1,-1)]}else{ap=+ap}}}var al=ae?S[ae.slice(0,-1)]:S[U++];switch(ac){case"s":if(al==null){return""}return R(String(al),aj,ai,ap,ah,ad);case"c":return R(String.fromCharCode(+al),aj,ai,ap,ah,ad);case"b":return X(al,2,aq,aj,ai,ap,ah,ad);case"o":return X(al,8,aq,aj,ai,ap,ah,ad);case"x":return X(al,16,aq,aj,ai,ap,ah,ad);case"X":return X(al,16,aq,aj,ai,ap,ah,ad).toUpperCase();case"u":return X(al,10,aq,aj,ai,ap,ah,ad);case"i":var aa=parseInt(+al,10);if(isNaN(aa)){return""}var an=aa<0?"-":ag;al=an+W(String(Math.abs(aa)),ap,"0",false);return T(al,an,aj,ai,ah,ad);case"d":var aa=Math.round(+al);if(isNaN(aa)){return""}var an=aa<0?"-":ag;al=an+W(String(Math.abs(aa)),ap,"0",false);return T(al,an,aj,ai,ah,ad);case"e":case"E":case"f":case"F":case"g":case"G":var aa=+al;if(isNaN(aa)){return""}var an=aa<0?"-":ag;var ab=["toExponential","toFixed","toPrecision"]["efg".indexOf(ac.toLowerCase())];var at=["toString","toUpperCase"]["eEfFgG".indexOf(ac)%2];al=an+Math.abs(aa)[ab](ap);return T(al,an,aj,ai,ah,ad)[at]();case"p":case"P":var aa=+al;if(isNaN(aa)){return""}var an=aa<0?"-":ag;var ak=String(Number(Math.abs(aa)).toExponential()).split(/e|E/);var Z=(ak[0].indexOf(".")!=-1)?ak[0].length-1:ak[0].length;var am=(ak[1]<0)?-ak[1]-1:0;if(Math.abs(aa)<1){if(Z+am<=ap){al=an+Math.abs(aa).toPrecision(Z)}else{if(Z<=ap-1){al=an+Math.abs(aa).toExponential(Z-1)}else{al=an+Math.abs(aa).toExponential(ap-1)}}}else{var Y=(Z<=ap)?Z:ap;al=an+Math.abs(aa).toPrecision(Y)}var at=["toString","toUpperCase"]["pP".indexOf(ac)%2];return T(al,an,aj,ai,ah,ad)[at]();case"n":return"";default:return ar}})};C.jqplot.sprintf.regex=/%%|%(\d+\$)?([-+#0& ]*)(\*\d+\$|\*|\d+)?(\.(\*\d+\$|\*|\d+))?([nAscboxXuidfegpEGP])/g})(jQuery);/**
  * Title: jqPlot Charts
  * 

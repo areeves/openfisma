@@ -5,6 +5,7 @@ $sectionName = "{$this->escape($this->document->DocumentType->name)} "
              . "for {$this->escape($this->document->System->Organization->name)}";
 Fisma_Format_Section::startSection($sectionName);
 ?>
+    
 <table class="keyValues">
     <tr>
         <td>File Name:</td>
@@ -44,9 +45,10 @@ Fisma_Format_Section::startSection($sectionName);
     </tr>
     <tr>
         <td>Version Notes:</td>
-        <td><?php echo $this->escape($this->document->description); ?></td>
+        <td><?php echo $this->escape($this->textToHtml($this->escape($this->document->description)), 'none'); ?></td>
     </tr>
 </table>
+
 
 <?php 
     Fisma_Format_Section::stopSection(); 
@@ -69,7 +71,7 @@ Fisma_Format_Section::startSection($sectionName);
                <?php echo $this->escape($history->version); ?>
            </td>
            <td>
-               <?php echo $this->escape($history->description); ?>
+               <?php echo $this->escape($this->textToHtml($this->escape($history->description)), 'none'); ?>
            </td>
         </tr>
     <?php
@@ -77,6 +79,7 @@ Fisma_Format_Section::startSection($sectionName);
     ?>
     </table>
 </div>
+
 <?php 
     Fisma_Format_Section::stopSection();
 ?>
@@ -84,9 +87,9 @@ Fisma_Format_Section::startSection($sectionName);
 <script type="text/javascript">
 YAHOO.util.Event.onContentReady('systemDocumentHistory', function() {
     var myColumnDefs = [
-        {key:'fileName', label:'File Name', sortable:false},
+        {key:'fileName', label:'File Name', sortable:true},
         {key:'version', label:'Version', sortable:true},
-        {key:'description', label:'Version Notes', sortable:false, formatter:Fisma.TableFormat.formatTextToHtml}
+        {key:'description', label:'Version Notes', sortable:false}
     ];
 
     this.myDataSource = new YAHOO.util.DataSource(YAHOO.util.Dom.get("systemDocumentHistoryTable"));
@@ -99,7 +102,7 @@ YAHOO.util.Event.onContentReady('systemDocumentHistory', function() {
         ]
     };
 
-    this.myDataTable = new YAHOO.widget.DataTable("systemDocumentHistory", myColumnDefs, this.myDataSource, {});
+    var myDataTable = new YAHOO.widget.DataTable("systemDocumentHistory", myColumnDefs, this.myDataSource, {});
 });
-
 </script>
+
