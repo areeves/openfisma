@@ -18,3 +18,9 @@ library/Zend:
   squashed: true
   type: svn
   url: http://framework.zend.com/svn/framework/standard/tags/release-1.11.4/library/Zend
+library/solr: 
+  remote: braid/library/solr
+  revision: 1086927
+  squashed: true
+  type: svn
+  url: http://svn.apache.org/repos/asf/lucene/dev/tags/lucene_solr_3_1/solr
