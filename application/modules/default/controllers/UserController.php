@@ -784,4 +784,9 @@ class UserController extends Fisma_Zend_Controller_Action_Object
 
         Doctrine_Manager::connection()->commit();
     }
+
+    public function _isDeletable() {
+        return false;
+    }
+
 }

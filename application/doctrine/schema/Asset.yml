@@ -69,7 +69,6 @@ Asset:
             foreignAlias: Assets
 
     actAs:
-        SoftDelete: true
         Timestampable:
             created:
                 name: createdTs

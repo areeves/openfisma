@@ -20,6 +20,3 @@ Source:
                 purify: html
                 notify: true
             comment: Any extra information about this finding source
-
-    actAs:
-        SoftDelete: true
