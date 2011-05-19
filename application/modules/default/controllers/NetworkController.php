@@ -37,7 +37,8 @@ class NetworkController extends Fisma_Zend_Controller_Action_Object
      */
     protected $_modelName = 'Network';
     
-    public function _isDeletable() {
+    protected function _isDeletable()
+    {
         return false;
     }
     
