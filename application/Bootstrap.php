@@ -95,6 +95,8 @@ class Bootstrap extends Fisma_Zend_Application_Bootstrap_SymfonyContainerBootstr
         $manager->setAttribute(Doctrine::ATTR_USE_DQL_CALLBACKS, true);
         $manager->setAttribute(Doctrine::ATTR_USE_NATIVE_ENUM, true);
         $manager->setAttribute(Doctrine::ATTR_AUTOLOAD_TABLE_CLASSES, true);
+        $manager->setAttribute(Doctrine::ATTR_QUERY_CLASS, 'Fisma_Doctrine_Query');
+
         $manager->registerValidators(
             array('Fisma_Doctrine_Validator_Ip', 'Fisma_Doctrine_Validator_Url', 'Fisma_Doctrine_Validator_Phone')
         );
