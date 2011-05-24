@@ -27,4 +27,34 @@
  */
 class Fisma_Doctrine_Query extends Doctrine_Query
 {
+    /**
+     * Perform input validation on the order by clause before continuing 
+     * 
+     * @param mixed $orderBy 
+     * @access public
+     * @return Doctrine_Query 
+     */
+    public function orderBy($orderBy)
+    {
+        /**
+         * Matches the following examples as valid clauses:
+         *
+         *   alias.field desc
+         *   alias.field asc
+         *   alias.field
+         *   field
+         *
+         * The pattern is case insensitive.
+         * @TODO Modify the pattern so that multiple clauses are valid, for example:
+         * alias.field desc, alias2.field2 asc
+         * We don't use this format anywhere in OpenFISMA presently, but we probably will at some point.
+         */
+        $pattern = '(^\w*?\.?\w*(\ )*(desc|asc/i)*$)';
+
+        if (!preg_match($pattern, $orderBy)) {
+            throw new Doctrine_Exception('syntax error');
+        }
+
+        return parent::orderBy($orderBy);
+    }
 }
