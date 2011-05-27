@@ -54,6 +54,25 @@ class User extends BaseUser
     const PASSWORD_HISTORY_LIMIT = 3;
 
     /**
+     * Handle user relation which set value to plural, so, it will show plural name in the warning message
+     * 
+     * @var array
+     */
+    private static $_userRelations = array(
+        'Roles'              => 'Roles',
+        'Events'             => 'Events',
+        'Incidents'          => 'Incidents',
+        'Uploads'            => 'Uploads',
+        'Evidence'           => 'Evidences',
+        'Notifications'      => 'Notifications',
+        'FindingEvaluations' => 'FindingEvaluations',
+        'Vulnerabilities'    => 'Vulnerabilities',
+        'Findings'           => 'Findings',
+        'WorkflowSteps'      => 'WorkflowSteps',
+        'Comments'           => 'Comments'
+    );
+
+    /**
      * Doctrine hook which is used to set up mutators
      *
      * @return void
@@ -686,9 +705,8 @@ class User extends BaseUser
         }
 
         // Make sure the user can not be deleted when it is already associated with other objects.
-        $relations = $this->getTable()->getRelations();
-        foreach ($relations as $name => $relation) {
-            if (count($this->$name) > 0) {
+        foreach (self::$_userRelations as $relation => $name) {
+            if (count($this->$relation) > 0) {
                 throw new Fisma_Zend_Exception_User(
                     "This user can not be deleted because it is already associated with one or more "
                     . strtolower($name)
