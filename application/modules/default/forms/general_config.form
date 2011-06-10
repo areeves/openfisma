@@ -52,6 +52,7 @@ elements.auth_type.type = "select"
 elements.auth_type.options.label = "Authentication Method"
 elements.auth_type.options.multiOptions.database = "database"
 elements.auth_type.options.multiOptions.ldap = "ldap"
+elements.auth_type.options.multiOptions.ldap = "remote_user"
 elements.auth_type.options.validators.notEmpty.validator = "NotEmpty"
 elements.auth_type.options.required = true
 displayGroups.general.elements.auth_type = "auth_type"

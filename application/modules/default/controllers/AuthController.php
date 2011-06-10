@@ -25,6 +25,7 @@
  * @package    Controller
  * @version    $Id$
  */
+ 
 class AuthController extends Zend_Controller_Action
 {
     /**
@@ -67,6 +68,21 @@ class AuthController extends Zend_Controller_Action
         $this->_helper->layout->setLayout('login');
         $username = $this->getRequest()->getPost('username');
         $password = $this->getRequest()->getPost('userpass');
+        
+        // Are we using Apache's BasicAuth?
+        $authMethod = Fisma::configuration()->getConfig('auth_type');
+        if ( $authMethod === 'remote_user' ) {
+        
+            // Pull $username from apache's BasicAuth (PHP_AUTH_USER)
+            if (!empty($_SERVER['PHP_AUTH_USER'])) {
+                $username = $_SERVER['PHP_AUTH_USER'];
+            }
+            
+            // Note this to the viewscript (hide login inputs)
+            $this->view->usingBasicAuth = true;
+        } else {
+            $this->view->usingBasicAuth = false;
+        }
         
         // Display anonymous reporting button if IR module is enabled
         $incidentModule = Doctrine::getTable('Module')->findOneByName('Incident Reporting');
@@ -186,7 +202,7 @@ class AuthController extends Zend_Controller_Action
                 }
 
             }
-           
+            
             // Finally, if the user has passed through all of this, 
             // send them to their original requested page or dashboard otherwise
             $session = Fisma::getSession();
@@ -225,7 +241,7 @@ class AuthController extends Zend_Controller_Action
         // the database)
         $method = Fisma::configuration()->getConfig('auth_type');
 
-        if ('root' == $user->username) {
+        if ('root' == $user->username && $method !== 'remote_user') {
             $method = 'database';
         }
 
@@ -238,8 +254,11 @@ class AuthController extends Zend_Controller_Action
             case 'database':
                 $authAdapter = new Fisma_Zend_Auth_Adapter_Doctrine($user, $password);
                 break;
+            case 'remote_user':
+                $authAdapter = new Fisma_Zend_Auth_Adapter_RemoteUser($user);
+                break;
             default:
-                throw new Zend_Auth_Exception('Invalid authentication method ($method)');
+                throw new Zend_Auth_Exception('Invalid authentication method (' . $method . ')');
                 break;
         }
         

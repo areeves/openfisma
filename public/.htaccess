@@ -108,3 +108,8 @@ php_flag	register_globals	Off
    Header append Vary User-Agent env=!dont-vary
 
 </IfModule> 
+
+AuthType Basic
+AuthName "OpenFISMA Authentication"
+AuthUserFile /home/openfisma/inst/dev/passwords
+Require valid-user

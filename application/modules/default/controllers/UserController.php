@@ -542,7 +542,7 @@ class UserController extends Fisma_Zend_Controller_Action_Object
         $this->view->roles = Zend_Json::encode($roles);
 
         parent::_editObject();
-
+        
         $this->view->form->removeDecorator('Fisma_Zend_Form_Decorator');
     }
 

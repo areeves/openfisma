@@ -48,9 +48,16 @@ class Fisma_Zend_Form_Manager_User extends Fisma_Zend_Form_Manager_Abstract
             $form->getElement('role')->addMultiOptions(array($role->id => $role->name));
         }
 
-        if ('database' == Fisma::configuration()->getConfig('auth_type')) {
+        $authType = Fisma::configuration()->getConfig('auth_type');
+        if ($authType === 'database') {
             $form->removeElement('checkAccount');
             $this->_view->requirements =  $passwordRequirements->direct();
+        } elseif ($authType === 'remote_user') {
+            $form->removeElement('password');
+            $form->removeElement('confirmPassword');
+            $form->removeElement('generate_password');
+            $form->removeElement('checkAccount');
+            $form->removeElement('mustResetPassword');
         } else {
             $form->removeElement('password');
             $form->removeElement('confirmPassword');
