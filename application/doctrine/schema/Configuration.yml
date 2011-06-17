@@ -27,7 +27,7 @@ Configuration:
         auth_type:
             type: enum
             notblank: true
-            values: [database, ldap]
+            values: [database, ldap, remote_user]
             default: database
             comment: Authentication type
         sender:
