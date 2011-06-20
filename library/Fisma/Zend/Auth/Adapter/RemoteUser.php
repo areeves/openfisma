@@ -7,13 +7,6 @@
 * This is a basic extension to OpenFISMA to allow the use of the REMOTE_USER variable for login to OpenFISMA.
 * It was written so that Shibboleth authentiation could be used with OpenFISMA, but it has many other uses.
 *
-* INSTALLATION
-* After this file has been placed in 'library/Fisma/Zend/Auth/Adapter/'
-* and 'application/modules/default/controllers/AuthController.php' has been patched,
-* you need to update the database to add support. This can be done by running the following
-* SQL command:
-* ALTER TABLE openfisma.configuration MODIFY COLUMN auth_type enum('database','ldap','remote_user');
-*
 * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
 * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
 * version.

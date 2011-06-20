@@ -26,6 +26,12 @@
  */
 class Version115 extends Doctrine_Migration_Base
 {
+
+    /** 
+    * Add the remote_user (Apache's BasicAuth) option to the configuration as an auth_type option (enum)
+    * 
+    * @return void 
+    */
     public function up()
     {
         $this->changeColumn(
@@ -43,6 +49,11 @@ class Version115 extends Doctrine_Migration_Base
         );
     }
 
+    /** 
+    * Remove the remote_user (Apache's BasicAuth) option to the configuration as an auth_type option (enum)
+    * 
+    * @return void 
+    */
     public function down()
     {
         $this->changeColumn(

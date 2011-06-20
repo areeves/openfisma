@@ -69,7 +69,7 @@ class AuthController extends Zend_Controller_Action
         $username = $this->getRequest()->getPost('username');
         $password = $this->getRequest()->getPost('userpass');
         
-        // Are we using Apache's BasicAuth?
+        // Check if we are we using Apache's BasicAuth
         $authMethod = Fisma::configuration()->getConfig('auth_type');
         if ( $authMethod === 'remote_user' ) {
         
@@ -79,9 +79,9 @@ class AuthController extends Zend_Controller_Action
             }
             
             // Note this to the viewscript (hide login inputs)
-            $this->view->usingBasicAuth = true;
+            $this->view->displayLoginForm = true;
         } else {
-            $this->view->usingBasicAuth = false;
+            $this->view->displayLoginForm = false;
         }
         
         // Display anonymous reporting button if IR module is enabled
