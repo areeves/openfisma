@@ -69,19 +69,30 @@ class AuthController extends Zend_Controller_Action
         $username = $this->getRequest()->getPost('username');
         $password = $this->getRequest()->getPost('userpass');
         
-        // Check if we are we using Apache's BasicAuth
+        // Check if we are we using Apache's BasicAuth 
         $authMethod = Fisma::configuration()->getConfig('auth_type');
         if ( $authMethod === 'remote_user' ) {
         
-            // Pull $username from apache's BasicAuth (PHP_AUTH_USER)
-            if (!empty($_SERVER['PHP_AUTH_USER'])) {
-                $username = $_SERVER['PHP_AUTH_USER'];
+            // First make sure the admin is not trying to log-in with a misconfigured server
+            if ($username !== 'root') {
+            
+                /* On Apache-auth failure by bad user/pass,     the user is shown an error page by apache
+                   On Apache-auth failure by misconfiguration,  PHP_AUTH_USER will be null
+                   On Apache-auth success by correct user/pass, PHP_AUTH_USER will be the username */
+
+                if (!empty($_SERVER['PHP_AUTH_USER'])) {
+                    // Apache authentication success
+                    $username = $_SERVER['PHP_AUTH_USER'];
+                    $this->view->apacheAuthConfigErr = false;
+                } else {
+                    // Apache is misconfigured, probably is not set to use BasicAuth
+                    $this->view->apacheAuthConfigErr = true;
+                }
             }
             
-            // Note this to the viewscript (hide login inputs)
-            $this->view->displayLoginForm = true;
-        } else {
             $this->view->displayLoginForm = false;
+        } else {
+            $this->view->displayLoginForm = true;
         }
         
         // Display anonymous reporting button if IR module is enabled
@@ -239,12 +250,10 @@ class AuthController extends Zend_Controller_Action
     {
         // Determine authentication method (based on system configuration, except root is always authenticated against
         // the database)
-        $method = Fisma::configuration()->getConfig('auth_type');
-
-        if ('root' == $user->username && $method !== 'remote_user') {
+        if ('root' == $user->username) {
             $method = 'database';
         }
-
+        
         // Construct an adapter for the desired authentication method
         switch ($method) {
             case 'ldap':

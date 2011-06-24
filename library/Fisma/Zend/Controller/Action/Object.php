@@ -318,6 +318,16 @@ abstract class Fisma_Zend_Controller_Action_Object extends Fisma_Zend_Controller
                     $msg   = "{$this->_modelName} created successfully";
                     $type = 'notice';
                     $this->view->priorityMessenger($msg, $type);
+                    
+                    // If we are creating a new user, and we are using Apache's BasicAuth...
+                    $authMethod = Fisma::configuration()->getConfig('auth_type');
+                    if ($this->_modelName === 'User' && $authMethod === 'remote_user') {
+                        // Remind the administrator the create this same username in Apache's auth config
+                        $msg = 'REMINDER: OpenFISMA will now accept this username, but ' .
+                            'you must also configure Apache\'s authentication for this new user.';
+                        $this->view->priorityMessenger($msg, 'notice');
+                    }
+                    
                     $this->_redirect("{$this->_moduleName}/{$this->_controllerName}/view/id/$objectId");
                 } catch (Doctrine_Validator_Exception $e) {
                     Doctrine_Manager::connection()->rollback();

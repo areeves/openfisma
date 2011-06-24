@@ -2,6 +2,30 @@
     <?php echo $this->escape(Fisma::configuration()->getConfig('system_name'));?>
 </div>
 
+
+<script>
+    <?php /*
+        Normally javascript code never goes in view scripts.
+        But the Authentication page ignores the asset injector, and dosnt even construct the Fisa javaScript object...
+    */ ?>
+
+    function showAdminLoginForm() {
+        // User should be loging in as root
+        var userNameInput = document.getElementById('username');
+        userNameInput.value = 'root';
+        userNameInput.disabled = true;
+        // Show the login form
+        var loginForm = document.getElementById('loginForm');
+        loginForm.style.display = '';
+        loginForm.onsubmit = function () {
+            userNameInput.disabled = false;
+        }
+        // Focus the password box
+        document.getElementById('userpass').focus();
+    }
+
+</script>
+
 <div class="bd">
     <?php echo $this->escape(Fisma::configuration()->getConfig('use_notification'), 'none');?>
         
@@ -16,11 +40,30 @@
         ?>
     </p>
 
-    <?php
-        if ($this->displayLoginForm !== true) {
-    ?>
+    <?php if ($this->apacheAuthConfigErr === true): ?>
+        
+        <hr/>
+        <b>NOTE:</b> It appears this service is misconfigured, please alert your OpenFISMA administrator of this.
+        Either the Apache-BasicAuth module is not on, or the password for root by Apache does not match the 
+        password OpenFISMA is expecting.
+        <br/>
+        <div align="right">
+            [<a href="javascript: showAdminLoginForm();">Administrator Login</a>]
+        </div>
+        
+    <?php endif; ?>
 
-    <form id='loginForm' method="post" action="/auth/login">
+    <form
+        id="loginForm"
+        method="post"
+        action="/auth/login"
+        <?php
+            // Hiding form instead of not-echoing it so administrators can still log into root
+            // upon apache misconfiguration (clicking the Administrator Login link)
+            if($this->displayLoginForm === false) {
+                echo $this->escape('style="display: none;"', 'none');
+            }
+        ?> >
         <table>
             <tr>
                 <td><label for="username">Username:</label></td>
@@ -52,34 +95,31 @@
                 </td>
             </tr>
         </table>
-        <?php
-        if ($this->showReportIncidentButton):
-        ?>
-            <hr>
-            <table>
-                <tr>
-                    <td colspan="2">
-                        <?php 
-                        $reportIncidentButton = new Fisma_Yui_Form_Button_Link(
-                            'reportIncident', 
-                            array(
-                                'value' => 'Report A Security Incident',
-                                'href' => '/incident/report',
-                                'imageSrc' => $this->serverUrl('/images/report_incident.png')
-                            )
-                        ); 
-                        echo $this->escape($reportIncidentButton, 'none');
-                        ?>
-                    </td>
-                </tr>
-            </table>
-        <?php
-        endif;
-        ?>
     </form>
     
     <?php
-        }
+    if ($this->showReportIncidentButton):
+    ?>
+        <hr>
+        <table>
+            <tr>
+                <td colspan="2">
+                    <?php 
+                    $reportIncidentButton = new Fisma_Yui_Form_Button_Link(
+                        'reportIncident', 
+                        array(
+                            'value' => 'Report A Security Incident',
+                            'href' => '/incident/report',
+                            'imageSrc' => $this->serverUrl('/images/report_incident.png')
+                        )
+                    ); 
+                    echo $this->escape($reportIncidentButton, 'none');
+                    ?>
+                </td>
+            </tr>
+        </table>
+    <?php
+    endif;
     ?>
     
 </div>
