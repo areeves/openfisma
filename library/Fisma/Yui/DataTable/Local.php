@@ -39,9 +39,9 @@ class Fisma_Yui_DataTable_Local extends Fisma_Yui_DataTable_Abstract
      * An array of events for the data-table to listen for, and the javascript function name to tigger for each
      * i.e. eventListeners['checkboxClickEvent'] => 'myJavaScriptFunctionName'
      * 
-     * @var 
+     * @var array 
      */
-    public $eventListeners = array();
+    private $_eventListeners = array();
     
     /**
      * Set the table's data
@@ -75,7 +75,7 @@ class Fisma_Yui_DataTable_Local extends Fisma_Yui_DataTable_Abstract
             'data' => $this->_data,
             'columnDefinitions' => $this->_getYuiColumnDefinitions(),
             'responseSchema' => $this->_getYuiResponseSchema(),
-            'eventListeners' => $this->eventListeners
+            'eventListeners' => $this->_eventListeners
         );
         
         return $view->partial('yui/data-table-local.phtml', 'default', $data);
@@ -98,4 +98,14 @@ class Fisma_Yui_DataTable_Local extends Fisma_Yui_DataTable_Abstract
         
         return $responseSchema;
     }        
+    
+    /**
+     * Adds an event listener to the YUI data table, upon event, will call the target JavaScript function.
+     * 
+     * @return void
+     */
+    public function addEventListener($yuiEventName, $javaScriptFunctionName)
+    {
+        $this->_eventListeners[$yuiEventName] = $javaScriptFunctionName;
+    }
 }
