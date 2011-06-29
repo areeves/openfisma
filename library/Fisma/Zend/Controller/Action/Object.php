@@ -322,9 +322,11 @@ abstract class Fisma_Zend_Controller_Action_Object extends Fisma_Zend_Controller
                     // If we are creating a new user, and we are using Apache's BasicAuth...
                     $authMethod = Fisma::configuration()->getConfig('auth_type');
                     if ($this->_modelName === 'User' && $authMethod === 'remote_user') {
-                        // Remind the administrator the create this same username in Apache's auth config
-                        $msg = 'REMINDER: OpenFISMA will now accept this username, but ' .
-                            'you must also configure Apache\'s authentication for this new user.';
+                        /* Remind the current administrator to create this same username in Apache's authentication.
+                           When using BasicAuth, all usernames registered in OpenFISMA will never be abel to gain 
+                           access to the domain OpenFISMA exists on unless Apache is aware of the users just crated */
+                        $msg = 'REMINDER: OpenFISMA will now accept this username, but'
+                            . ' you must also configure Apache\'s authentication for this new user.';
                         $this->view->priorityMessenger($msg, 'notice');
                     }
                     
