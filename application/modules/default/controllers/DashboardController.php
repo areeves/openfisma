@@ -25,7 +25,6 @@
  * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
  * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Controller
- * @version    $Id$
  */
 class DashboardController extends Fisma_Zend_Controller_Action_Security
 {
@@ -119,16 +118,6 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
         $result = $eoFindingsQuery->fetchOne();
         $alert['EO']  = $result['count'];
 
-        if ($this->_acl->hasPrivilegeForClass('approve', 'Finding')) {
-            $pendingFindingsQuery = Doctrine_Query::create()
-                                    ->select('COUNT(*) as count')
-                                    ->from('Finding f')
-                                    ->where('f.status = ?', 'PEND')
-                                    ->andWhereIn('f.responsibleorganizationid', $this->_myOrgSystemIds);
-            $result = $pendingFindingsQuery->fetchOne();
-            $alert['PEND'] = $result['count'];
-        }
-
         $this->view->alert = $alert;
 
         // URLs for "Alerts" panel
@@ -136,8 +125,7 @@ class DashboardController extends Fisma_Zend_Controller_Action_Security
 
         $this->view->newFindingUrl = $baseUrl . '/denormalizedStatus/textExactMatch/NEW';
         $this->view->draftFindingUrl = $baseUrl . '/denormalizedStatus/textExactMatch/DRAFT';
-        $this->view->pendingFindingUrl = '/finding/index/approve';
-        
+
         $today = Zend_Date::now()->toString('yyyy-MM-dd');        
         $this->view->evidenceNeededOntimeUrl = $baseUrl 
                                              . '/denormalizedStatus/textExactMatch/EN'

@@ -445,7 +445,7 @@ table.modules td:first-child {
 
 .searchCriteria {    
     border-top: 1px dotted #bfbfbf;
-    max-width: 50em;
+    max-width: 60em;
     padding-top: 5px;
     padding-bottom: 3px;
     -margin-left: auto;
@@ -528,6 +528,79 @@ div.toolbar {
     padding: 5px 10px;
     text-align: right;
 }
+/* Styles for a draggable YUI tree */
+
+div.showDisposalSystem {
+    margin: 0px 0px 5px 3px;
+    font-weight: bold;
+}
+
+div.showDisposalSystem input {
+    vertical-align: middle;
+    margin: 0px 5px 3px 0px;
+}
+
+.treeNodeDragAbove span {
+    border-top: 4px solid #bbc6d6;
+}
+
+
+.treeNodeDragOnto {
+    background-color: #bbc6d6;
+}
+
+.treeNodeDragBelow span {
+    border-bottom: 4px solid #bbc6d6;
+}
+
+.treeNodeDragProxy {
+    border: 1px solid #bbc6d6 !important;
+    padding: 3px;
+    opacity: 0.75;
+}
+
+/* The following styles are for the organization tree view icons */
+.draggableTreeContainer .agency {
+       display: block;
+       padding-left: 20px; 
+       background: url(/images/agency-small.png) no-repeat;
+}
+
+.draggableTreeContainer .bureau {
+       display: block;
+       padding-left: 20px; 
+       background: url(/images/bureau-small.png) no-repeat;
+}
+
+.draggableTreeContainer .organization {
+       display: block;
+       padding-left: 20px; 
+       background: url(/images/organization-small.png) no-repeat;
+}
+
+.draggableTreeContainer .gss {
+       display: block;
+       padding-left: 20px; 
+       background: url(/images/gss-small.png) no-repeat;
+}
+
+.draggableTreeContainer .major {
+       display: block;
+       padding-left: 20px; 
+       background: url(/images/major-small.png) no-repeat;
+}
+
+.draggableTreeContainer .minor {
+       display: block;
+       padding-left: 20px; 
+       background: url(/images/minor-small.png) no-repeat;
+}
+
+.draggableTreeContainer .disposal {
+       display: block;
+       padding-left: 20px; 
+       background-color: pink;
+}
 /* Style for the UserInfo view helper */
 
 span.userInfo {
@@ -577,6 +650,10 @@ span.userInfo:active {
  *******************************************************************************
  */
 
+.chartSection {
+    page-break-inside: avoid;
+}
+
 /* style for the data-table for screen readers */
 .screenReaderTabel {
     width: 100%;
@@ -584,16 +661,16 @@ span.userInfo:active {
 
 /* the div that holds the chart options */
 .widgetSpaceHolder {
-	width: 400px;
-	margin-left: auto;
-	margin-right: auto;
-	text-align: left;
+    width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
 }
 
 /* the gear icon that toggles chart-options visibility */
 .chartGear {
-	cursor: pointer;
-	width: 20px;
+    cursor: pointer;
+    width: 20px;
 }
 /**
  * jquery.jqplot.css
@@ -1219,43 +1296,6 @@ div#msgbar {
     height:8em; /* hold some space while loading */
 }
 
-/* The following styles are for the organization tree view icons */
-.agency {
-	display:block;
-	padding-left: 20px; 
-	background: url(/images/agency-small.png) no-repeat;
-}
-
-.bureau {
-	display:block;
-	padding-left: 20px; 
-	background: url(/images/bureau-small.png) no-repeat;
-}
-
-.organization {
-	display:block;
-	padding-left: 20px; 
-	background: url(/images/organization-small.png) no-repeat;
-}
-
-.gss {
-	display:block;
-	padding-left: 20px; 
-	background: url(/images/gss-small.png) no-repeat;
-}
-
-.major {
-	display:block;
-	padding-left: 20px; 
-	background: url(/images/major-small.png) no-repeat;
-}
-
-.minor {
-	display:block;
-	padding-left: 20px; 
-	background: url(/images/minor-small.png) no-repeat;
-}
-
 /* 
 Styles for displaying system documentation
 */
@@ -1327,6 +1367,10 @@ ul.treelist li {
     list-style: none;
 }
 
+ul.treelist {
+    margin-top: 1em;
+}
+
 div#TabView_UserView_TabViewContainer {
     float: left;
     margin-top: 14px;
@@ -1364,6 +1408,86 @@ input[type=text].date {
     background-color: white;
     width: 10em;
 }
+
+/* Begin user access css */
+
+div#leftPane {
+    float: left;
+    width: 0;
+    min-width: 25em;
+    margin-right: 2em;
+}
+
+div#rightPane {
+    float: left;
+    width: 0;
+    min-width: 40em;
+}
+
+div#copyUserAccess > div.section > label {
+    float: left;
+}
+
+div#copyUserAccess > div.section > div {
+    float: left;
+}
+
+span#rolesAndUserscheckboxMatrixTooltip.tooltip {
+    display: none;
+}
+
+span#copyUserAccessTreecheckboxMatrixTooltip.tooltip {
+    display: none;
+}
+
+div#addUserAccess > div.section > div#addUserAccessLeft {
+    float: left;
+    min-width: 5em;
+    text-align: right;
+    margin-right: 1em;
+}
+
+div#addUserAccess > div.section > div#addUserAccessRight {
+    float:left;
+}
+
+dt#-label {
+    display: none;
+}
+
+div#addUserAccess > div.section > dd#-element > fieldset > dl > select#roles {
+    clear: both;
+    display: block;
+}
+
+div#addUserAccess > div.section > dd#-element > fieldset > dl > label {
+    display: block;
+    margin-top: 1em;
+}
+
+div#addUserAccess > div.section > dd#-element {
+    margin-top: -1em;
+}
+
+div#addUserAccess > div.section > dd#-element > fieldset > dl > span#addUser.yui-button.yui-push-button {
+    margin-top: .75em;
+    margin-left: 0em;
+}
+
+div#copyUserAccess > div.section > dd#-element > fieldset > dl > div.yui-ac {
+    margin-top: .25em;
+    margin-bottom: .75em;
+}
+
+span#selectAll {
+    margin-left: 0em;
+}
+
+span#removeUsers {
+    margin-left: 0em;
+}
+
+/* End user access CSS */
 
 /* class for dynamically hidden elements */
 .display-none {

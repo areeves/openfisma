@@ -20,7 +20,6 @@
  * Bootstrap class for Zend_Application 
  * 
  * @uses Zend_Application_Bootstrap_Bootstrap
- * @version $Id$
  * @copyright (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
  * @author Josh Boyd <joshua.boyd@endeavorsystems.com> 
  * @license http://www.openfisma.org/content/license GPLv3
@@ -96,10 +95,15 @@ class Bootstrap extends Fisma_Zend_Application_Bootstrap_SymfonyContainerBootstr
         $manager->setAttribute(Doctrine::ATTR_USE_DQL_CALLBACKS, true);
         $manager->setAttribute(Doctrine::ATTR_USE_NATIVE_ENUM, true);
         $manager->setAttribute(Doctrine::ATTR_AUTOLOAD_TABLE_CLASSES, true);
+        $manager->setAttribute(Doctrine::ATTR_VALIDATE, Doctrine::VALIDATE_ALL);
+
         $manager->registerValidators(
             array('Fisma_Doctrine_Validator_Ip', 'Fisma_Doctrine_Validator_Url', 'Fisma_Doctrine_Validator_Phone')
         );
-        $manager->setAttribute(Doctrine::ATTR_VALIDATE, Doctrine::VALIDATE_CONSTRAINTS);
+
+        // Set globally on a Doctrine_Manager instance .
+        $manager->setCollate('utf8_unicode_ci');
+        $manager->setCharset('utf8');
 
         /**
          * Set up the cache driver and connect to the manager.
@@ -123,6 +127,21 @@ class Bootstrap extends Fisma_Zend_Application_Bootstrap_SymfonyContainerBootstr
                 )
             )
         );
+    }
+
+    /**
+     * Instantiate a search engine and save it in the registry 
+     * 
+     * @access protected
+     * @return void
+     */
+    protected function _initSearchEngine()
+    {
+        $searchConfig = Fisma::$appConf['search'];
+
+        $searchEngine = new Fisma_Search_Engine($searchConfig['host'], $searchConfig['port'], $searchConfig['path']);
+
+        Zend_Registry::set('search_engine', $searchEngine);
     }
 
     /**
@@ -216,6 +235,7 @@ class Bootstrap extends Fisma_Zend_Application_Bootstrap_SymfonyContainerBootstr
         $view = Zend_Layout::getMvcInstance()->getView();
         $view->addHelperPath(Fisma::getPath('viewHelper'), 'View_Helper_');
         $view->addScriptPath(Fisma::getPath('application') . '/modules/default/views/scripts');
+        $view->setEncoding('UTF-8');
         $view->doctype('HTML4_STRICT');
         // Make sure that we don't double encode
         $view->setEscape(array('Fisma', 'htmlentities'));
