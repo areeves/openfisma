@@ -41,25 +41,26 @@ class Fisma_Gearman_Client extends GearmanClient
     /**
      * @return integer Gearman ID
      */
-    public function setup()
+    public function setup($worker)
     {
         $task = new Task();
         $task->userId = CurrentUser::getInstance()->id;
+        $task->worker = $worker;
         $task->save();
         return $task->id;
     }
 
-    public function doBackground($task, $data)
+    public function doBackground($worker, $data, $unique = null)
     {
-        $data['id'] = $this->setup($task);
-        $data['data'] = $data;
-        parent::doBackground($task, serialize($data));
+        $workerData['id'] = $this->setup($worker);
+        $workerData['data'] = $data;
+        parent::doBackground($worker, serialize($workerData), $unique);
     }
 
-    public function addBackgroundTask($task, $data)
+    public function addTaskBackground($worker, $data, $context = null, $unique = null)
     {
-        $data['id'] = $this->setup($task);
-        $data['data'] = $data;
-        parent::addBackgroundTask($task, serialize($data));
+        $workerData['id'] = $this->setup($worker);
+        $workerData['data'] = $data;
+        parent::addTaskBackground($worker, serialize($workerData), $context, $unique);
     }
 }

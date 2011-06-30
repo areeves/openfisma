@@ -53,7 +53,7 @@ class TestWorker extends Fisma_Gearman_Worker
         foreach (range(1,10) as $number) {
             $this->setProgress($number . '0');
             echo "$number / 10\n";
-            sleep(1);
+            sleep(10);
         }
         echo "Finished\n";
         $this->setSuccess('1');

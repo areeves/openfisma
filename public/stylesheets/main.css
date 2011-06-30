@@ -103,6 +103,46 @@ div#logout p {
     margin-top: 8px;
 }
 
+div#taskbar {
+    padding-top: 3px;
+    padding-bottom: 3px;
+    visibility: hidden;
+    font-weight: bold;
+    display: none;
+    width: 100%;
+    display: inline-block;
+    background-color:  lightgreen;
+}
+
+div#taskbar-worker {
+    padding-left: 5px;
+    display:  inline;
+    float: left;
+    font-weight: normal;
+    font-style: normal;
+}
+
+div#taskbar-progress {
+    margin-left: 5px;
+    float:  left;
+    display:  inline;
+}
+
+div#taskbar-status {
+    display:  inline;
+    float:  right;
+    font-weight:  normal;
+}
+
+div#taskbar-finished {
+    display:  inline;
+    width: 40%;
+    margin: auto;
+    float:  left;
+    text-align: center;
+    color: #426fd9;
+}
+
 /* Styling for the menubar. The min-height reserves the space required for the menubar while it loads. */
 div#menubar {
     clear: both;

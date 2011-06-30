@@ -27,15 +27,28 @@
 
 class GearmanController extends Fisma_Zend_Controller_Action_Object
 {
+    protected $_userId;
 
     protected $_modelName = 'Task';
+
+    public function init()
+    {
+        parent::init();
+        $this->_userId = CurrentUser::getInstance()->id;
+
+        $this->_helper->fismaContextSwitch()
+                      ->setActionContext('status-data', 'json')
+                      ->setActionContext('status-task', 'json')
+                      ->initContext();
+    }
 
     public function testAction()
     {
         $values = 'test';
         $client = new Fisma_Gearman_Client;
         $client->doBackground('test', $values);
-        $this->_redirect('/gearman/list');
+        $script = "Fisma.Task.start;";
+        //$this->_redirect('/gearman/list');
     }
 
     public function tasksAction()
@@ -49,24 +62,127 @@ class GearmanController extends Fisma_Zend_Controller_Action_Object
         }
         $client->runTasks();
         $this->_redirect('/gearman/list');
+
     }
 
     public function statusAction()
     {
-        $this->_redirect('/gearman/list');
+        if ($this->getRequest()->getParam('id')) {
+            $this->_helper->layout()->setLayout('ajax');
+            $this->_helper->viewRenderer->setNoRender(true);
+/*            $query = Doctrine_Query::create()
+                    ->from('Task t')
+                    ->where('userid = ?', $userid)
+            //->andWhere('t.status', 'running')
+                    ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+            $userTasks = $query->execute();
+*/
+            $query = Doctrine_Query::create()
+                    ->select('userid, status, count(*)')
+                    ->from('Task')
+                    ->andWhere('userid = ?', $this->_userId)
+                    ->whereIn('status', array('pending', 'running', 'finished'))
+                    ->orderBy('status');
+
+            $this->view->results = $query->fetchArray();
+        }
     }
 
-    public function jobstatusAction()
+    public function statusTaskAction()
     {
-       $jobId = $this->_request->getParam('jobId');
-       if (isset($jobId)) {
-           $this->view->status = $client->jobStatus($jobId);
-       }
-       else {
-           $this->_redirect('/gearman/status/');
-       }
+            $this->_helper->layout()->setLayout('ajax');
+            $this->_helper->viewRenderer->setNoRender(true);
+            $query = Doctrine_Query::create()
+                    ->select('id, worker, status, progress, success')
+                    ->from('Task')
+                    ->andWhere('userid = ?', $this->_userId);
+
+            $taskInfo = $query->fetchArray();
+            $this->view->task = $taskInfo;
     }
 
+    public function statusDataAction()
+    {
+        $this->_helper->layout()->setLayout('ajax');
+        $this->_helper->viewRenderer->setNoRender(true);
+        $userId = CurrentUser::getInstance()->id;
+
+        /*
+        $query = Doctrine_Query::create()
+                ->from('Task t')
+                ->where('userid = ?', $userid)
+                //->andWhere('t.status', 'running')
+                ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
+        $userTasks = $query->execute();
+        */
+
+        /*
+        $query = Doctrine_Query::create()
+                select("IFNULL(pending,0) AS pending, IFNULL(running,0) AS running, IFNULL(finished,0) AS finished, IFNULL(failed,0) AS failed")
+                FROM (SELECT COUNT(status) AS pending FROM Task where status='pending') AS t1,
+                (SELECT COUNT(status) AS running FROM Task WHERE status='running') AS t2,
+                (SELECT COUNT(status) AS finished FROM Task WHERE status='finished') AS t3,
+                (SELECT count(status) AS failed FROM Task WHERE status='failed') AS t4"
+        )
+        */
+
+        $query = Doctrine_Query::create()
+                ->select('status, count(*)')
+                ->from('Task')
+                ->whereIn('status', array('failed', 'pending', 'running', 'finished'))
+                ->andWhere('userid = ?', $this->_userId)
+                ->groupBy('status');
+        $statusCount = $query->fetchArray();
+
+
+        foreach ($statusCount as $status) {
+           $count[$status['status']] = $status['count'];
+        }
+
+        foreach (array('failed', 'pending', 'running', 'finished') as $value) {
+            if (!isset($count[$value])) {
+                $count[$value] = 0;
+            }
+        }
+
+        if ($id = $this->_request->getParam('id')) {
+            $tasksRunningQuery = Doctrine_Query::create()
+                    ->select()
+                    ->from('Task')
+                    ->where('userId = ?', $this->_userId)
+                    ->andWhere('id = ?', $id)
+                    ->orderBy('id')
+                    ->limit(1);
+            $running = $tasksRunningQuery->fetchArray();
+        } else {
+            $tasksRunningQuery = Doctrine_Query::create()
+                    ->select()
+                    ->from('Task')
+                    ->where('userId = ?', $this->_userId)
+                    ->andWhere('status = ?', 'running')
+                    ->orderBy('id')
+                    ->limit(1);
+            $running = $tasksRunningQuery->fetchArray();
+        }
+        $array['running'] = $running[0];
+        $array['count'] = $count;
+        $this->view->tasks = $array;
+
+        /*
+        $tasksFinishedQuery = Doctrine_Query::create()
+                ->select()
+                ->from('Task')
+                ->where('userId = ?', $this->_userId)
+                ->andWhere('status = ?', 'finished');
+        $status['finished'] = $tasksFinishedQuery->fetchArray();
+
+        $this->view->status = $status;
+        */
+    }
+
+    /**
+     * @return void
+     */
     public function virusAction()
     {
         $uploadForm = Fisma_Zend_Form_Manager::loadForm('virusscan');
@@ -87,10 +203,16 @@ class GearmanController extends Fisma_Zend_Controller_Action_Object
         }
     }
 
+    /**
+     * @return void
+     */
     public function indexAction()
     {
     }
 
+    /**
+     * @return void
+     */
     public function scanAction()
     {
         $this->_acl->requirePrivilegeForClass('create', 'Vulnerability');
@@ -126,7 +248,7 @@ class GearmanController extends Fisma_Zend_Controller_Action_Object
                 $values = $uploadForm->getValues();
                 $values['filepath'] = $filePath;
                 $gearmanClient = new Fisma_Gearman_Client;
-                $gearmajClient->doBackground('scan', $values);
+                $gearmanClient->doBackground('scan', $values);
                 $this->_redirect('/gearman/list');
             } else {
                 $errorString = Fisma_Zend_Form_Manager::getErrors($uploadForm);
