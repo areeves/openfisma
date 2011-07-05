@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Copyright (c) 2011 Endeavor Systems, Inc.
  *
@@ -18,45 +17,33 @@
  */
 
 /**
- * Gearman Test Worker
- *
  * @author     Christian Smith <christian.smith@endeavorsystems.com>
  * @copyright  (c) Endeavor Systems, Inc. 2011 {@link http://www.endeavorsystems.com}
  * @license    http://www.openfisma.org/content/license GPLv3
- * @package    Controller
+ * @package    View_Helper
  */
 
-class TestWorker extends Fisma_Gearman_Worker
+class View_Helper_TaskProgressLauncher extends Zend_View_Helper_Abstract
 {
-    public function __construct()
+    /**
+     * Kick-off the Task ProgressBar if a user has a task running
+     *
+     * @return string
+     */
+    public function taskProgressLauncher()
     {
-        parent::__construct();
-        $this->addFunction("test", array($this, 'testFunction'));
-        $this->setWorkerName('test');
-    }
+        $userId = CurrentUser::getInstance()->id;
+        $runningCountQuery = Doctrine_Query::create()
+                ->from('Task')
+                ->where('userId = ?', $userId)
+                ->andWhere('status = ?', 'running')
+                ->orderBy('id');
+        $runningCount = $runningCountQuery->fetchArray();
 
-    public function testFunction($job)
-    {
-        $this->setup($job);
-        $data = $this->_workload;
-        if (!$data) {
-            $data = "test";
+        if ($runningCount) {
+            return '<script type="text/javascript">Fisma.Task.start();</script>';
+        } else {
+            return '';
         }
-        echo "Id: $id\n";
-        echo "Job handle: " . $job->handle() . "\n";
-        echo "Date: $data\n";
-
-        $this->setStatus('running');
-        echo "Workload size " . $job->workloadSize() . "\n";
-        echo "Workload:" . $job->workload() . "\n";
-        echo strrev($data) . "\n";
-        foreach (range(1,10) as $number) {
-            $this->setProgress($number . '0');
-            echo "$number / 10\n";
-            sleep(2);
-        }
-        echo "Finished\n";
-        $this->setSuccess('1');
-        $this->setStatus('finished');
     }
 }

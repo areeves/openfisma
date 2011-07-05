@@ -116,7 +116,7 @@ div#taskbar {
 
 div#taskbar-worker {
     padding-left: 5px;
-    display:  inline;
+    display: inline;
     float: left;
     font-weight: normal;
     font-style: normal;
@@ -124,14 +124,14 @@ div#taskbar-worker {
 
 div#taskbar-progress {
     margin-left: 5px;
-    float:  left;
-    display:  inline;
+    float: left;
+    display: inline;
 }
 
 div#taskbar-status {
-    display:  inline;
-    float:  right;
-    font-weight:  normal;
+    display: inline;
+    float: right;
+    font-weight: normal;
 }
 
 div#taskbar-finished {

@@ -34,7 +34,7 @@ class VirusWorker extends Fisma_Gearman_Worker
     public function __construct()
     {
         parent::__construct();
-        $this->addFunction("antivirus", array($this, 'antivirusFunction'));
+        $this->addFunction("antivirus", array($this, 'antiVirusFunction'));
         $this->setWorkerName('antivirus');
     }
 
@@ -42,29 +42,45 @@ class VirusWorker extends Fisma_Gearman_Worker
      * @param  $job  GearmanJob object passed by Gearman
      * @return void
      */
-    public function antivirusFunction($job)
+    public function antiVirusFunction($job)
     {
         $this->setup($job);
         $values = $this->_workload;
         $uploadedFile = $values['filepath'];
-
+        $filename = $values['filename'];
+        $logger->log('Failed in move_uploaded_file(). ' . $absFile . "\n" . $file['error'], Zend_Log::ERR);
         echo "Job handle: " . $job->handle() . "\n";
         echo "Workload size " . $job->workloadSize() . "\n";
-        echo "File: " . $uploadedFile;
+        echo "File: " . $uploadedFile . "\n";
 
-        $this->setProgress('10');
+        $this->setProgress('20');
         $config = Fisma::$appConf['gearman'];
         $clamscan = $config['antivirus']['clamscan'];
-        $command = $clamscan . ' --stdout --no-summary ' . escapeshellcmd($uploadedFile);
-        exec($command, $avOutput, $avReturnCode);
+
+        if (is_executable($clamscan)) {
+            $command = $clamscan . ' --stdout --no-summary ' . escapeshellcmd($uploadedFile);
+            exec($command, $avOutput, $avReturnCode);
+        } else {
+            throw new Fisma_Zend_Exception('clamscan is not an executable binary.');
+        }
+
+        $evidence = Doctrine::getTable('Evidence')->findOneByFileName("$filename");
+
+        if (!$evidence) {
+            throw new Fisma_Zend_Exception("$filename is not in the evidence table");
+        }
 
         if ($avReturnCode) {
             //Virus discovered
+            $evidence->antiVirus = 'failed';
             $this->setSuccess('0');
         } else {
             //No virus discovered
+            $evidence->antiVirus = 'passed';
             $this->setSuccess('1');
         }
+
+        $evidence->save();
 
         $this->setProgress('100');
         $this->setStatus('finished');

@@ -9,6 +9,10 @@ Evidence:
         userId:
             type: integer
             comment: Foreign key to the use who uploaded this evidence
+        antiVirus:
+            type: enum
+            values: [passed, failed, pending]
+            default: pending
             
     relations:
         Finding:

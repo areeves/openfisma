@@ -75,6 +75,11 @@ class Fisma_Gearman_Worker extends GearmanWorker
     protected $_jobHandle;
 
     /**
+     * @var
+     */
+    protected $_logger;
+
+    /**
      * Constructor
      */
     public function  __construct()
@@ -91,6 +96,7 @@ class Fisma_Gearman_Worker extends GearmanWorker
      */
     protected function setup($job)
     {
+        $this->_logger = $this->getInvokeArg('bootstrap')->getResource('Log');
         $workload = unserialize($job->workload());
         $this->_id = $workload['id'];
         $this->_jobHandle = $job->handle();
@@ -114,7 +120,10 @@ class Fisma_Gearman_Worker extends GearmanWorker
      */
     public function setStatus($status)
     {
+        echo "STATUS: $status\n";
+        echo $this->_task->status;
         $this->_task->status = $status;
+
         if ($status === 'finished' || $status === 'failed') {
             $this->_task->messages = json_encode($this->getMessages());
             $this->_task->errors = json_encode($this->getErrors());

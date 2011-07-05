@@ -892,6 +892,14 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
             $this->view->priorityMessenger($e->getMessage(), 'warning');
         }
 
+        $gearmanConfig = Fisma::$appConf['gearman'];
+        if ($gearmanConfig['antivirus']['enabled']) {
+            $values['filename'] = $filename;
+            $values['filepath'] = $absFile;
+            $gearmanClient = new Fisma_Gearman_Client;
+            $gearmanClient->doBackground('antivirus', $values);
+        }
+
         $this->_redirect("/finding/remediation/view/id/$id");
     }
     

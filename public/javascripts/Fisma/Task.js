@@ -23,22 +23,46 @@
 
 (function () {
     var Task = {
+        /**
+         *
+         */
         UPDATE_INTERVAL: 5000,
 
+        /**
+         *
+         */
         _statusCounter: 0,
 
-        _statusURI: '/gearman/status-data/format/json',
+        /**
+         *
+         */
+        _statusURI: '/task/status-data/format/json',
 
+        /**
+         *
+         */
         _statusTimer: null,
 
+        /**
+         *
+         */
         _progressBar: null,
 
+        /**
+         *
+         */
         _progressBarId: null,
 
+        /**
+         *
+         */
         start: function() {
             Task.getStatus();
         },
 
+        /**
+         *
+         */
         createProgressBar: function() {
             var taskBar = document.getElementById('taskbar');
             taskBar.style.visibility = 'visible';
@@ -46,12 +70,29 @@
                 anim: true,
                 direction: "ltr",
                 height: "16px",
-                width: "100px"
+                width: "100px",
             }).render("taskbar-progress");
+
+/*            Task._progressBar.anim.on('end', function(){
+                console.log('Finished');
+            });*/
+
+            Task._progressBar.on('complete', function (value) {
+         //       Task._progressBar.set('anim', false);
+          //      Task._progressBar.set('value', 0);
+           //     Task._progressBar.set('anim', true);
+                //Dom.get('status').innerHTML = 'Stopped';
+                //window.setTimeout(function() {
+                 //   Dom.get('status').innerHTML = '';
+                //},100);
+            });
+            Task._progressBar.on('progress',function (value) {
+               YAHOO.util.Dom.get('yui-pb-caption').innerHTML = value;
+            });
         },
 
+
         updateProgressBar: function(data) {
-            Task._progressBar.set('anim', 'true');
             Task._statusCounter++;
             var taskBarWorker = document.getElementById('taskbar-worker');
             var workerName = data.running.worker;
@@ -69,22 +110,21 @@
 
             var taskBarStatus = document.getElementById('taskbar-status');
             taskBarStatus.innerHTML = '<b>' + data.count.pending + '</b> jobs remaining';
-
             var taskBarFinished = document.getElementById('taskbar-finished');
 
             if (Task._statusCounter >= 4) {
-                taskBarFinished.innerHTML = '';
+                document.getElementById('msgbar').style.display = 'none';
             }
 
             if (data.running.progress == 100) {
-                taskBarFinished.innerHTML = workerName + '[' + Task._progressBarId + '] completed';
+                var message = workerName + '[' + Task._progressBarId + '] completed';
+                window.message(message, "notice", true);
                 Task._statusCounter = 0;
                 Task._progressBarId = null;
-                Task._progressBar.set('anim', 'false');
-                Task._progressBar.set('value', '0');
-                Task._statusURI = '/gearman/status-data/format/json';
+ /*               Task._progressBar.set('value', '0'); */
+                Task._statusURI = '/task/status-data/format/json';
             } else {
-                Task._statusURI = '/gearman/status-data/format/json' + '/id/' + data.running.id;
+                Task._statusURI = '/task/status-data/format/json' + '/id/' + data.running.id;
                 Task._progressBarId = parseInt(data.running.id);
             }
         },
@@ -111,6 +151,7 @@
 
                     if (Task._statusCounter >= 3 && Task._progressBarId == null) {
                         document.getElementById('taskbar').style.display = 'none';
+                        document.getElementById('msgbar').style.display = 'none';
                         Task._statusTimer.cancel();
                     } else {
                         Task._statusCounter++;

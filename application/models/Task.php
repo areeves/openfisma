@@ -25,7 +25,7 @@ class Task extends BaseTask
      */
     public function setStatus($status)
     {
-        // Business rules for status changes
+        $this->_set(status, $status);
         switch ($status) {
             case 'running':
                 $this->startedTs = Fisma::now();
@@ -34,5 +34,6 @@ class Task extends BaseTask
                 $this->finishedTs = Fisma::now();
                 break;
         }
+        $this->save();
     }
 }

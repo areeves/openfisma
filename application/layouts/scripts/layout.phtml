@@ -32,6 +32,7 @@
     echo $this->escape($yui, 'none');
     echo $this->escape($this->headScript(), 'none');
     echo $this->escape($this->headLink(), 'none');
+
     ?>
         <script type="text/javascript">
             Fisma.SessionManager.init(
@@ -76,4 +77,5 @@
 
     </body>
     <?php echo $this->partial('partial/priorityMessage.phtml', array('messages' => $this->priorityMessenger())); ?>
+    <?php echo $this->taskProgressLauncher(); ?>
 </html>
