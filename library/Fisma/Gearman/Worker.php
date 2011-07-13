@@ -29,53 +29,41 @@ class Fisma_Gearman_Worker extends GearmanWorker
 {
     /**
      * Error messages
-     *
-     * @var array
      */
     protected $_errors = array();
 
     /**
      * Messages to be passed back to the application
-     *
-     * @var array
      */
     protected $_messages = array();
 
     /**
-     * Task model
-     *
-     * @var object Task model that we will be working with
+     * Task model object
      */
     protected $_task;
 
     /**
      * Name of the current worker
-     *
-     * @var string Name of the worker
      */
     protected $_workerName;
 
     /**
-     * ID of the database row the Worker should be using
-     *
-     * @var integer Current Task model ID
+     * ID of the current task in the Task model
      */
     protected $_id;
 
     /**
-     * @var
+     * Workload for the task
      */
     protected $_workload;
 
     /**
      * Current job handle identifier
-     *
-     * @var string JobHandle identifer
      */
     protected $_jobHandle;
 
     /**
-     * @var
+     * Logger object retrieved from the registry
      */
     protected $_logger;
 
@@ -90,13 +78,16 @@ class Fisma_Gearman_Worker extends GearmanWorker
     }
 
     /**
+     * Retrieve and store the logger resource, setup the Task model, and set the status
+     * of the task to running
+     *
      * @param integer $id Task ID passed from the client
      * @param string $handle GearmanJob jobhandle
      * @return void
      */
     protected function setup($job)
     {
-        $this->_logger = $this->getInvokeArg('bootstrap')->getResource('Log');
+        $this->_logger = Zend_Registry::get('Zend_Log');
         $workload = unserialize($job->workload());
         $this->_id = $workload['id'];
         $this->_jobHandle = $job->handle();
@@ -114,14 +105,13 @@ class Fisma_Gearman_Worker extends GearmanWorker
 
     /**
      * Set the current status of the worker in the Task model
+     *
      * @throws Fisma_Zend_Exception
      * @param  string $status Set the status condition
      * @return void
      */
     public function setStatus($status)
     {
-        echo "STATUS: $status\n";
-        echo $this->_task->status;
         $this->_task->status = $status;
 
         if ($status === 'finished' || $status === 'failed') {
@@ -135,7 +125,6 @@ class Fisma_Gearman_Worker extends GearmanWorker
      * Set the worker name
      *
      * @param string $name Worker name
-     * @return void
      */
     public function setWorkerName($name)
     {
@@ -171,7 +160,6 @@ class Fisma_Gearman_Worker extends GearmanWorker
      * Add error messages
      *
      * @param string $error
-     * @return void
      */
     public function addError($error)
     {
@@ -192,7 +180,6 @@ class Fisma_Gearman_Worker extends GearmanWorker
      * Set progress value (usually between 1 and 100)
      *
      * @param integer $progress Progress value
-     * @return void
      */
     public function setProgress($progress)
     {
@@ -206,7 +193,6 @@ class Fisma_Gearman_Worker extends GearmanWorker
      * Set the return code of the process
      *
      * @param  $success True or false
-     * @return void
      */
     public function setSuccess($success)
     {
@@ -215,8 +201,6 @@ class Fisma_Gearman_Worker extends GearmanWorker
 
     /**
      * Worker run loop
-     *
-     * @return void
      */
     public function run()
     {

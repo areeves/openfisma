@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Copyright (c) 2011 Endeavor Systems, Inc.
  *
@@ -18,7 +17,8 @@
  */
 
 /**
- * Task Controller *
+ * Task Controller handles providing information related to background Tasks.
+ *
  * @author     Christian Smith <christian.smith@endeavorsystems.com>
  * @copyright  (c) Endeavor Systems, Inc. 2011 {@link http://www.endeavorsystems.com}
  * @license    http://www.openfisma.org/content/license GPLv3
@@ -27,63 +27,40 @@
 
 class TaskController extends Fisma_Zend_Controller_Action_Object
 {
+    /**
+     * Store the current userId
+     */
     protected $_userId;
 
+    /**
+     * Model name
+     */
     protected $_modelName = 'Task';
 
+    /**
+     * Stores and retrieves the current userID
+     *
+     * Sets the contexts for actions
+     */
     public function init()
     {
         parent::init();
         $this->_userId = CurrentUser::getInstance()->id;
-
         $this->_helper->fismaContextSwitch()
-                      ->setActionContext('status-data', 'json')
-                      ->setActionContext('status-task', 'json')
+                      ->setActionContext('status', 'json')
                       ->initContext();
     }
 
-    public function testAction()
-    {
-        $values = 'test';
-        $client = new Fisma_Gearman_Client;
-        $client->doBackground('test', $values);
-    }
-
     /**
-     * @return void
+     * Polled asynchronously by Task JS object to retrieve the number of running and pending processes.
+     * When a task is running, information about that specific task is returned.  If a task
+     * ID is specified, information about the particular task is returned for the ProgressBar.
      */
-    public function tasksAction()
+    public function statusAction()
     {
-        $client = new Fisma_Gearman_Client();
-        $items = array("item1", "item2", "item3", "item4", "item5");
-
-        foreach ($items as $item)
-        {
-            $client->addTaskBackground('test', $item);
-        }
-        $client->runTasks();
-        $this->_redirect('/gearman/list');
-
-    }
-
-    /**
-     * @return void
-     */
-    public function statusDataAction()
-    {
-        $this->_helper->layout()->setLayout('ajax');
+        $this->_helper->layout->disableLayout(true);
         $this->_helper->viewRenderer->setNoRender(true);
-        $userId = CurrentUser::getInstance()->id;
 
-        /*
-        $query = Doctrine_Query::create()
-                select("IFNULL(pending,0) AS pending, IFNULL(running,0) AS running, IFNULL(finished,0) AS finished, IFNULL(failed,0) AS failed")
-                FROM (SELECT COUNT(status) AS pending FROM Task where status='pending') AS t1,
-                (SELECT COUNT(status) AS running FROM Task WHERE status='running') AS t2,
-                (SELECT COUNT(status) AS finished FROM Task WHERE status='finished') AS t3,
-                (SELECT count(status) AS failed FROM Task WHERE status='failed') AS t4"
-        )
-        */
         $query = Doctrine_Query::create()
                 ->select('status, count(*)')
                 ->from('Task')
@@ -110,7 +87,7 @@ class TaskController extends Fisma_Zend_Controller_Action_Object
                     ->andWhere('id = ?', $id)
                     ->orderBy('id')
                     ->limit(1);
-            $running = $tasksRunningQuery->fetchArray();
+            $tasksRunning = $tasksRunningQuery->fetchArray();
         } else {
             $tasksRunningQuery = Doctrine_Query::create()
                     ->select()
@@ -119,15 +96,16 @@ class TaskController extends Fisma_Zend_Controller_Action_Object
                     ->andWhere('status = ?', 'running')
                     ->orderBy('id')
                     ->limit(1);
-            $running = $tasksRunningQuery->fetchArray();
+            $tasksRunning = $tasksRunningQuery->fetchArray();
         }
-        $array['running'] = $running[0];
+        $array['running'] = $tasksRunning[0];
         $array['count'] = $count;
+
         $this->view->tasks = $array;
     }
 
     /**
-     * @return void
+     * Display list of tasks for the specific user
      */
     public function indexAction()
     {

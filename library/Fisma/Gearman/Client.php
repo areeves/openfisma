@@ -39,7 +39,8 @@ class Fisma_Gearman_Client extends GearmanClient
     }
 
     /**
-     * @return integer Gearman ID
+     * Setup the Task model, return the ID
+     * @return integer Task ID
      */
     public function setup($worker)
     {
@@ -50,6 +51,13 @@ class Fisma_Gearman_Client extends GearmanClient
         return $task->id;
     }
 
+    /**
+     * Override to setup and add entries to the Task table
+     *
+     * @param $worker Name of the worker
+     * @param $data Data to be passed to the worker
+     * @param null $unique A unique ID used to identify a particular task
+     */
     public function doBackground($worker, $data, $unique = null)
     {
         $workerData['id'] = $this->setup($worker);
@@ -57,6 +65,17 @@ class Fisma_Gearman_Client extends GearmanClient
         parent::doBackground($worker, serialize($workerData), $unique);
     }
 
+    /**
+     * Override to setup and add entries to the Task table,
+     * returning the ID of the table which is stored in the array passed to the worker.
+     * Data needed for the process is also stored and passed to the worker.
+     *
+     * @param $worker Name of the worker
+     * @param $data Data to be passed to the worker
+     * @param null $context Application context to associate with a task
+     * @param null $unique A unique ID used to identify a particular task
+
+     */
     public function addTaskBackground($worker, $data, $context = null, $unique = null)
     {
         $workerData['id'] = $this->setup($worker);

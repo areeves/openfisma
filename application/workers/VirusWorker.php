@@ -39,8 +39,7 @@ class VirusWorker extends Fisma_Gearman_Worker
     }
 
     /**
-     * @param  $job  GearmanJob object passed by Gearman
-     * @return void
+     * @param  $job GearmanJob object passed by Gearman
      */
     public function antiVirusFunction($job)
     {
@@ -48,14 +47,10 @@ class VirusWorker extends Fisma_Gearman_Worker
         $values = $this->_workload;
         $uploadedFile = $values['filepath'];
         $filename = $values['filename'];
-        $logger->log('Failed in move_uploaded_file(). ' . $absFile . "\n" . $file['error'], Zend_Log::ERR);
-        echo "Job handle: " . $job->handle() . "\n";
-        echo "Workload size " . $job->workloadSize() . "\n";
-        echo "File: " . $uploadedFile . "\n";
-
         $this->setProgress('20');
         $config = Fisma::$appConf['gearman'];
         $clamscan = $config['antivirus']['clamscan'];
+        $this->_logger->info("Virus scanning $uploadedFile");
 
         if (is_executable($clamscan)) {
             $command = $clamscan . ' --stdout --no-summary ' . escapeshellcmd($uploadedFile);
@@ -81,7 +76,6 @@ class VirusWorker extends Fisma_Gearman_Worker
         }
 
         $evidence->save();
-
         $this->setProgress('100');
         $this->setStatus('finished');
     }

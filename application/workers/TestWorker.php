@@ -47,8 +47,6 @@ class TestWorker extends Fisma_Gearman_Worker
         echo "Date: $data\n";
 
         $this->setStatus('running');
-        echo "Workload size " . $job->workloadSize() . "\n";
-        echo "Workload:" . $job->workload() . "\n";
         echo strrev($data) . "\n";
         foreach (range(1,10) as $number) {
             $this->setProgress($number . '0');

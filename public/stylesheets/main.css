@@ -128,19 +128,10 @@ div#taskbar-progress {
     display: inline;
 }
 
-div#taskbar-status {
+div#taskbar-jobs {
     display: inline;
     float: right;
     font-weight: normal;
-}
-
-div#taskbar-finished {
-    display:  inline;
-    width: 40%;
-    margin: auto;
-    float:  left;
-    text-align: center;
-    color: #426fd9;
 }
 
 /* Styling for the menubar. The min-height reserves the space required for the menubar while it loads. */

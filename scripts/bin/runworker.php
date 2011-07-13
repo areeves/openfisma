@@ -30,5 +30,6 @@ if (!file_exists($workerFile)) {
 
 require $workerFile;
 
+$application->bootstrap('RegisterLogger');
 $worker = new $workerName;
 $worker->run();
