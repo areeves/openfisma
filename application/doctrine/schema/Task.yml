@@ -9,34 +9,38 @@ Task:
             type: timestamp
 
         jobHandle:
-            type: string
+            type: string(50)
             comment: Job ID
 
         worker:
-            type: string
-            comment: Name of the worker
+            type: string(50)
+            comment: Internal name of the worker (alphanumeric)
 
         userId:
             type: integer
-            comment: userId
+            comment: UserID of the OpenFISMA user that owns the process
 
         status:
             type: enum
-            values: [pending, running, failed, finished]
-            comment: Job status
+            values: [PENDING, RUNNING, FAILED, FINISHED]
             default: pending
+            comment: The current status of the running task
 
         messages:
             type: string
+            comment: Messages from the running process that may need to be displayed to the user
 
         errors:
             type: string
+            comment: Errors messages from the running process that may need to be displayed to the user
 
         progress:
             type: integer
+            comment: The current level of progress for the task, this is usually between 1 and 100
 
         success:
             type: boolean
+            comment: Return code for the running task, true or false
 
     relations:
         User:

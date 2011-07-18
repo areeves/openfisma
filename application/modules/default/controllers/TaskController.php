@@ -28,11 +28,6 @@
 class TaskController extends Fisma_Zend_Controller_Action_Object
 {
     /**
-     * Store the current userId
-     */
-    protected $_userId;
-
-    /**
      * Model name
      */
     protected $_modelName = 'Task';
@@ -53,6 +48,7 @@ class TaskController extends Fisma_Zend_Controller_Action_Object
 
     /**
      * Polled asynchronously by Task JS object to retrieve the number of running and pending processes.
+     *
      * When a task is running, information about that specific task is returned.  If a task
      * ID is specified, information about the particular task is returned for the ProgressBar.
      */
@@ -61,29 +57,28 @@ class TaskController extends Fisma_Zend_Controller_Action_Object
         $this->_helper->layout->disableLayout(true);
         $this->_helper->viewRenderer->setNoRender(true);
 
-        $query = Doctrine_Query::create()
+        $statusQuery = Doctrine_Query::create()
                 ->select('status, count(*)')
                 ->from('Task')
-                ->whereIn('status', array('failed', 'pending', 'running', 'finished'))
-                ->andWhere('userid = ?', $this->_userId)
+                ->where('userid = ?', $this->_userId)
                 ->groupBy('status');
-        $statusCount = $query->fetchArray();
+        $statusCount = $statusQuery->execute();
+        $count = $statusCount->toKeyValueArray('status', 'count');
+        $statusValues = Doctrine::getTable('Task')->getEnumValues('status')
 
-        foreach ($statusCount as $status) {
-           $count[$status['status']] = $status['count'];
-        }
-
-        foreach (array('failed', 'pending', 'running', 'finished') as $value) {
+        foreach ($statusValues as $value) {
             if (!isset($count[$value])) {
                 $count[$value] = 0;
             }
         }
 
-        if ($id = $this->_request->getParam('id')) {
+        $id = $this->_request->getParam('id');
+
+        if (!empty($id)) {
             $tasksRunningQuery = Doctrine_Query::create()
                     ->select()
                     ->from('Task')
-                    ->where('userId = ?', $this->_userId)
+                    ->where('userId = ?', $this->_me->id)
                     ->andWhere('id = ?', $id)
                     ->orderBy('id')
                     ->limit(1);
@@ -92,7 +87,7 @@ class TaskController extends Fisma_Zend_Controller_Action_Object
             $tasksRunningQuery = Doctrine_Query::create()
                     ->select()
                     ->from('Task')
-                    ->where('userId = ?', $this->_userId)
+                    ->where('userId = ?', $this->_me->id)
                     ->andWhere('status = ?', 'running')
                     ->orderBy('id')
                     ->limit(1);
@@ -102,13 +97,5 @@ class TaskController extends Fisma_Zend_Controller_Action_Object
         $array['count'] = $count;
 
         $this->view->tasks = $array;
-    }
-
-    /**
-     * Display list of tasks for the specific user
-     */
-    public function indexAction()
-    {
-        $this->_forward('list');
     }
 }

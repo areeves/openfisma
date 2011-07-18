@@ -3,17 +3,18 @@ Evidence:
         createdTs: timestamp
         filename:
             type: string(255)
+        antiVirus:
+            type: enum
+            values: [PASSED, FAILED, PENDING]
+            default: pending
+            comment: Virus scan result of the uploaded evidence file
         findingId:
             type: integer
             comment: Foreign key to the finding which this evidence is attached to
         userId:
             type: integer
             comment: Foreign key to the use who uploaded this evidence
-        antiVirus:
-            type: enum
-            values: [passed, failed, pending]
-            default: pending
-            
+
     relations:
         Finding:
             local: findingId
