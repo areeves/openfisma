@@ -93,6 +93,8 @@ class Fisma_Inject_Factory
             return 'Nessus';
         } elseif (stristr($contents, 'AppDetective')) {
             return 'AppDetective';
+        } elseif (stristr($contents, 'SAINTwriter')) {
+            return 'Saint';
         } else {
             return FALSE;
         }
