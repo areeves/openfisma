@@ -29,8 +29,17 @@ Fisma.SecurityAuthorization = {
     
     /**
      * Store a panel which displays the add control form
+     * 
+     * @var YAHOO.widget.Panel
      */
     addControlPanel: null,
+    
+    /**
+     * A dialog used for viewing a control during step 2 (select) and editing control enhancements
+     * 
+     * @var Fisma.FormDialog
+     */
+    selectControlsDialog: null,
 
     /**
      * Run the import baseline controls action and update the table with the results
@@ -224,5 +233,28 @@ Fisma.SecurityAuthorization = {
 
         Fisma.SecurityAuthorization.addControlPanel = panel;
         YAHOO.util.Connect.asyncRequest('GET', url, callbacks, null);
+    },
+    
+    /**
+     * Handle click events on the select controls table
+     * 
+     * @param YAHOO.util.Event event
+     */
+    handleSelectControlsTableClick: function (event) {
+        var targetEl = event.target;
+        var rowData = Fisma.SecurityAuthorization.selectControlsTable.getRecord(targetEl).getData();
+        var dialog = Fisma.SecurityAuthorization.selectControlsDialog;
+
+        // Initialize dialog if it doesn't exist already
+        if (YAHOO.lang.isNull(dialog)) {
+            var formUrl = '/sa/security-authorization/select-controls-form/format/json';
+
+            dialog = new Fisma.FormDialog(formUrl);
+            dialog.setHeader('Security Control');
+            Fisma.SecurityAuthorization.selectControlsDialog = dialog;
+        }
+
+        dialog.setValues(rowData);
+        dialog.show();
     }
 }
