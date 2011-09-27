@@ -36,7 +36,16 @@ YAHOO.util.Event.onDOMReady(function () {
     for (var i in menuData) {
         Fisma.Menu.resolveOnClickObjects(menuData[i]);
     }
-    var menuBar = new YAHOO.widget.MenuBar("mainmenu", {autosubmenudisplay: true});
+
+    var autodisplay = <?php
+        if ($user->menuStyle) {
+            echo $this->escape('true', 'none');
+        } else {
+            echo $this->escape('false', 'none');
+        } 
+    ?>;
+
+    var menuBar = new YAHOO.widget.MenuBar("mainmenu", {autosubmenudisplay: autodisplay});
     YAHOO.util.Dom.addClass(menuBar.element, "yuimenubarnav");
     menuBar.addItems(menuData);
     menuBar.render('menubar');

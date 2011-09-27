@@ -48,6 +48,10 @@ class UserController extends Fisma_Zend_Controller_Action_Object
                       ->setAutoJsonSerialization(false)
                       ->addActionContext('check-account', 'json')
                       ->initContext();
+
+        $this->_helper->fismaContextSwitch()
+                      ->addActionContext('set-menu-type', 'json')
+                      ->initContext();
     }
     
     /**
@@ -844,5 +848,100 @@ class UserController extends Fisma_Zend_Controller_Action_Object
     protected function _isDeletable()
     {
         return false;
+    }
+    
+    /**
+     * Let user select menu style
+     * 
+     * @access public
+     * @return void
+     */
+    public function selectMenuStyleAction()
+    {
+        $post = $this->_request->getPost();
+
+        if (isset($post['saveChanges'])) {
+            $menuStyle = $post['menuStyle'];
+            if (Inspekt::isInt($menuStyle)) {
+                $user = CurrentUser::getInstance();
+                try {
+                    $user->menuStyle = (int) $menuStyle;
+                    $user->save();
+
+                    if ($this->_helper->ForcedAction->hasForcedAction($user->id, 'selectMenuStyle')) {
+
+                        // Remove the forced action of selectMenuStyle from session, and send users to 
+                        // their original requested page or dashboard otherwise.
+                        $this->_helper->ForcedAction->unregisterForcedAction($user->id, 'selectMenuStyle');
+
+                        $session = Fisma::getSession();
+                        if (isset($session->redirectPage) && !empty($session->redirectPage)) {
+                            $path = $session->redirectPage;
+                            unset($session->redirectPage);
+                            $this->_response->setRedirect($path);
+                        } else {
+                            $this->_redirect('/index/index');
+                        }
+                    }
+                } catch (Doctrine_Exception $e) {
+                    $message = $e->getMessage();
+                    $model   = 'warning';
+                }
+            } else {
+                $message = "Not a right menu style.";
+                $model   = 'warning';
+            }
+
+            $this->view->priorityMessenger($message, $model);
+            $this->_redirect('/user/select-menu-style');
+        }
+
+        $this->view->mainMenuBar = $this->_menuData();
+
+        $this->view->saveChangesButton = new Fisma_Yui_Form_Button_Submit(
+            'saveChanges',
+            array(
+                'label' => 'Save Changes'
+            )
+        );
+
+        $this->_helper->layout->setLayout('anonymous');
+    }
+
+    /*
+     * Generage sample menu data
+     */
+    private function _menuData()
+    {
+        $mainMenuBar = new Fisma_Yui_MenuBar();
+
+        $findings = new Fisma_Yui_Menu('Findings');
+
+        $findings->add(new Fisma_Yui_MenuItem('Summary', null));
+        $findings->add(new Fisma_Yui_MenuItem('Search', null));
+        $findings->add(new Fisma_Yui_MenuItem('Create New Finding', null));
+
+        $mainMenuBar->add($findings);
+
+        $vulnerabilities = new Fisma_Yui_Menu('Vulnerabilities');
+        $vulnerabilities->add(new Fisma_Yui_MenuItem('Search', null));
+        $vulnerabilities->add(new Fisma_Yui_MenuItem('Upload Scan Results', null));
+
+        $mainMenuBar->add($vulnerabilities);
+
+        $systemInventoryMenu = new Fisma_Yui_Menu('System Inventory');
+        $systemInventoryMenu->add(new Fisma_Yui_MenuItem('Assets', null));
+        $systemInventoryMenu->add(new Fisma_Yui_MenuItem('Controls', null));
+        $systemInventoryMenu->addSeparator();
+
+        $mainMenuBar->add($systemInventoryMenu);
+
+        $incidentMenu = new Fisma_Yui_Menu('Incidents');
+        $incidentMenu->add(new Fisma_Yui_MenuItem('Report An Incident', null));
+        $incidentMenu->add(new Fisma_Yui_MenuItem('Search', null));
+        
+        $mainMenuBar->add($incidentMenu);
+
+        return $mainMenuBar->getMenus();
     }
 }

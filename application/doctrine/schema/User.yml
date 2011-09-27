@@ -106,6 +106,10 @@ User:
             type: boolean
             default: false
 
+        menuStyle:
+            type: boolean
+            default: null
+
     relations:
         # Roles is a many-to-many relation
         Roles:

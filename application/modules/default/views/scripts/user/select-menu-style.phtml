@@ -1,0 +1,83 @@
+<?php Fisma_Format_Section::startSection("Select Menu Styles");?>
+
+<form id='menuStyleForm' method="post" action="/user/set-menu-style">
+    <div style="width: 500px">
+        <div style='padding-top: 10px;'>
+            <div style='float:left;'>
+                <div class="menuStyleHeader">
+                    Style 1: the menus display by clicking the header
+                </div>
+                <div id="firstStyleMenu"></div>
+            </div>
+            <label class="menuStyle">
+                <input type="radio" name="menuStyle" id="menuStyleOne" value="0" checked>
+                Pick Me
+            </label>
+        </div>
+
+        <div style='padding-top: 100px;'>
+            <div style='float:left'>
+                <div class="menuStyleHeader">
+                    Style 2: the menus display by hovering over the header
+                </div>
+                <div id="secondStyleMenu"'></div>
+            </div>
+            <label class="menuStyle">
+                <input type="radio" name="menuStyle" id="menuStyleTwo" value="1">
+                Pick Me
+            </label>
+        </div>
+        <div style="padding-top:80px;text-align:center;">
+            <?php echo $this->escape($this->saveChangesButton, 'none');?>
+        </div>
+    </div>
+</form>
+
+<?php Fisma_Format_Section::stopSection(); ?>
+
+<script type="text/javascript">
+YAHOO.util.Event.onDOMReady(function() {
+
+    // If use same data source to generate two menuBars, their subitems would be duplicated.
+    // So, have to use different data source.
+    var menuData2 = [
+        { text: "Findings", submenu: {  id: "finding", itemdata: [
+                { text: "Summary" },
+                { text: "Search"},
+                { text: "Create New Finding" }
+            ] }
+        },
+ 
+        { text: "Vulnerabilities", submenu: { id: "vulnerabilities", itemdata: [
+                { text: "Search" },
+                { text: "Upload Scan Results" }
+            ] }
+        },
+
+        { text: "System Inventory", submenu: { id: "system", itemdata: [
+                { text: "Assets" },
+                { text: "Controls" }
+            ] }
+        },
+
+        { text: "Incident", submenu: { id: "incident", itemdata: [
+                { text: "Report An Incident" },
+                { text: "Search" }
+            ] }
+        }
+    ];
+
+    var jsonMenuData = '<?php echo $this->escape($this->mainMenuBar, 'json') ?>';
+    var menuData1 = YAHOO.lang.JSON.parse(jsonMenuData);
+
+    var firstStyleMenuBar = new YAHOO.widget.MenuBar("firstStyleMenu");
+    YAHOO.util.Dom.addClass(firstStyleMenuBar.element, "yuimenubarnav");
+    firstStyleMenuBar.addItems(menuData1);
+    firstStyleMenuBar.render();
+
+    var secondStyleMenuBar = new YAHOO.widget.MenuBar("secondStyleMenu", {autosubmenudisplay: true});
+    YAHOO.util.Dom.addClass(secondStyleMenuBar.element, "yuimenubarnav");
+    secondStyleMenuBar.addItems(menuData2);
+    secondStyleMenuBar.render();
+});
+</script>
