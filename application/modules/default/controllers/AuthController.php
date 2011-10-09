@@ -128,15 +128,17 @@ class AuthController extends Zend_Controller_Action
             Notification::notify('LOGIN_SUCCESS', $user, $user);
             $user->getAuditLog()->write("Logged in ({$_SERVER['REMOTE_ADDR']})");
             
-            // Register rulesOfBehavior forced action so that user can't view other pages 
-            // until Rob is accepted
+            /* Register rulesOfBehavior forced action so that user can't view other pages 
+             * until Rob is accepted
+             */
             if ($this->_checkUserRulesOfBehavior($user)) {
                 $forward = array("module" => 'default', "controller" => 'User', "action" => 'accept-rob');
                 $this->_helper->ForcedAction->registerForcedAction($user->id, 'rulesOfBehavior', $forward);
             }            
 
-            // Register selectMenuStyle forced action so that user can't view other pages 
-            // until menu style is selected
+            /* Register selectMenuStyle forced action so that user can't view other pages 
+             * until menu style is selected
+             */
             if (null === $user->menuStyle) {
                 $forward = array("module" => 'default', "controller" => 'User', "action" => 'select-menu-style');
                 $this->_helper->ForcedAction->registerForcedAction($user->id, 'selectMenuStyle', $forward);
@@ -153,8 +155,9 @@ class AuthController extends Zend_Controller_Action
                     // reset default layout and forward to password change action
                     $this->_helper->layout->setLayout('layout');
 
-                    // Register mustResetPassword forced action so that user can't view other pages 
-                    // until password is changed
+                    /* Register mustResetPassword forced action so that user can't view other pages 
+                     * until password is changed
+                     */
                     $forward = array("module" => 'default', "controller" => "user", "action" => 'password');
                     $this->_helper->ForcedAction->registerForcedAction($user->id, 'mustResetPassword', $forward);
 
