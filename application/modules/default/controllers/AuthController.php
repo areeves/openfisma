@@ -140,7 +140,8 @@ class AuthController extends Zend_Controller_Action
             if (null === $user->menuStyle) {
                 $forward = array("module" => 'default', "controller" => 'User', "action" => 'select-menu-style');
                 $this->_helper->ForcedAction->registerForcedAction($user->id, 'selectMenuStyle', $forward);
-            } 
+            }
+
             // Check whether the user's password is about to expire (for database authentication only)
             if ('database' == Fisma::configuration()->getConfig('auth_type') || 'root' == $user->username) {
 

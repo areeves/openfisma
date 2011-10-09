@@ -905,7 +905,7 @@ class UserController extends Fisma_Zend_Controller_Action_Object
             )
         );
 
-        $this->_helper->layout->setLayout('anonymous');
+        $this->_helper->layout->setLayout('notice');
     }
 
     /*

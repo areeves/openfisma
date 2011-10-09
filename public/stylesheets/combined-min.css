@@ -238,3 +238,7 @@ span#removeUsers{margin-left:0;}
 .display-none{display:none;}
 div#swfstoreContainer{width:0;height:0;}
 form#transitionsForm{display:inline;}
+.menuStyleHeader{font:italic bold 14px arial;margin-bottom:10px;}
+.menuStyle{display:block;cursor:pointer;line-height:20px;font-size:14px;float:right;margin-top:20px;}
+.menuStyle input{margin-right:5px;cursor:pointer;}
+.menuStyle:hover{background-color:#B2D2FF;}
