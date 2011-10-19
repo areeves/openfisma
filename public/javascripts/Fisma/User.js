@@ -95,14 +95,14 @@ Fisma.User = {
      * @param referenceElement The panel will be displayed near this element
      * @param username The name of the user to get info for
      */
-    displayUserInfo : function (referenceElement, username) {
+    displayUserInfo : function (referenceElement, username, userId) {
 
         var panel;
 
         if (typeof Fisma.User.userInfoPanelList[username] == 'undefined') {
 
             // Create new panel
-            panel = Fisma.User.createUserInfoPanel(referenceElement, username);
+            panel = Fisma.User.createUserInfoPanel(referenceElement, username, userId);
 
             Fisma.User.userInfoPanelList[username] = panel;
             
@@ -129,7 +129,7 @@ Fisma.User = {
      * @param username The name of the user to get info for
      * @return YAHOO.widget.Panel
      */
-    createUserInfoPanel : function (referenceElement, username) {
+    createUserInfoPanel : function (referenceElement, username, userId) {
         
         var PANEL_WIDTH = 350; // in pixels
         var panelName, panel;
@@ -153,10 +153,14 @@ Fisma.User = {
 
         Fisma.Util.positionPanelRelativeToElement(panel, referenceElement);
         
+        var candidateVar = '/user/info/username/' + escape(username);
+        if (userId != null) {
+            candidateVar = '/user/info/id/' + escape(userId);
+        }
         // Load panel content using asynchronous request
         YAHOO.util.Connect.asyncRequest(
             'GET', 
-            '/user/info/username/' + escape(username),
+            candidateVar,
             {
                 success: function(o) {
                     panel.setBody(o.responseText);

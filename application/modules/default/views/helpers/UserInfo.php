@@ -19,7 +19,7 @@
 /**
  * A view helper which makes a username clickable to show detailed info about that user.
  * 
- * @author     Mark E. Haase
+ * @author     Mark E. Haase, Duy K. Bui
  * @copyright  (c) Endeavor Systems, Inc. 2009 {@link http://www.endeavorsystems.com}
  * @license    http://www.openfisma.org/content/license GPLv3
  * @package    View_Helper
@@ -31,9 +31,10 @@ class View_Helper_UserInfo extends Zend_View_Helper_Abstract
      * 
      * @param string $displayText The text to display (usually this is the username)
      * @param string $username The name of the user to display info for (if not specified, the $displayText is used)
+     * @param int $userId The id of the user to display info for (overridding $username)
      * @return string;
      */
-    public function userInfo($displayText, $username = null)
+    public function userInfo($displayText, $username = null, $userId = null)
     {
         // If no username is provided, then its assumed that the display text is the username
         if (is_null($username)) {
@@ -45,7 +46,7 @@ class View_Helper_UserInfo extends Zend_View_Helper_Abstract
         $render = $view->partial(
             'helper/user-info.phtml', 
             'default', 
-            array('displayText' => $displayText, 'username' => $username)
+            array('displayText' => $displayText, 'username' => $username, 'userId' => $userId)
         ); 
 
         return $render;

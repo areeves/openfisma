@@ -758,4 +758,18 @@ class User extends BaseUser
 
         return $userRolesResult;
     }
+    
+    /**
+     * Overriding Doctrine_Record::save()
+     * Update the CurrentUser instance if it gets changed
+     */
+
+    public function save(Doctrine_Connection $conn = null)
+    {
+        parent::save($conn);
+        $currentUser = CurrentUser::getInstance();
+        if ($currentUser->id === $this->id) {
+            $currentUser->refresh();
+        }
+    }
 }

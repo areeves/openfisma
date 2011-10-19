@@ -239,9 +239,6 @@ class UserController extends Fisma_Zend_Controller_Action_Object
                     Doctrine_Manager::connection()->commit();
                     $message = "Profile updated successfully"; 
                     $model   = 'notice';
-                    if (CurrentUser::getInstance()->id === $user->id) {
-                        CurrentUser::getInstance()->refresh();
-                    }
                 } catch (Doctrine_Exception $e) {
                     Doctrine_Manager::connection()->rollback();
                     $message = $e->getMessage();
@@ -454,15 +451,19 @@ class UserController extends Fisma_Zend_Controller_Action_Object
     public function infoAction()
     {
         $this->_helper->layout->disableLayout();
-        
-        $username = $this->getRequest()->getParam('username');
 
-        if ($username) {
-            $user = Doctrine::getTable('User')->findOneByUsername($username);
+        $userId = $this->getRequest()->getParam('id');
+        if ($userId) {
+            $user = Doctrine::getTable('User')->find($userId);
         } else {
-            $user = null;
+            $username = $this->getRequest()->getParam('username');
+            if ($username) {
+                $user = Doctrine::getTable('User')->findOneByUsername($username);
+            } else {
+                $user = null;
+            }
         }
-        
+
         $this->view->user = $user;
     }
 
