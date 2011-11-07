@@ -768,7 +768,7 @@ class User extends BaseUser
     {
         parent::save($conn);
         $currentUser = CurrentUser::getInstance();
-        if ($currentUser->id === $this->id) {
+        if (isset($currentUser) && $currentUser->id === $this->id) {
             $currentUser->refresh();
         }
     }
