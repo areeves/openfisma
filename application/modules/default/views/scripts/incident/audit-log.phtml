@@ -11,7 +11,7 @@
         <?php foreach ($this->logs as $log) : ?>
         <tr>
             <td><?php echo $this->escape($log['o_createdTs']); ?></td>
-            <td><?php echo $this->escape($this->userInfo($log['u_username']), 'none'); ?></td>
+            <td><?php echo $this->escape($this->userInfo($log['u_username'], null, $log['u_id']), 'none'); ?></td>
             <td><?php echo $this->escape($log['o_message'], 'none'); ?></td>
         </tr>
         <?php endforeach; ?>

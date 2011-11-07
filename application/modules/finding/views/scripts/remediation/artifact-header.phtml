@@ -11,7 +11,7 @@
         $user = $this->artifact->User;
         $fullName = $user->nameFirst . ' ' . $user->nameLast;
         
-        echo $this->escape($this->userInfo($fullName, $user->username), 'none');
+        echo $this->escape($this->userInfo($fullName, $user->username, $user->id), 'none');
     ?> 
     on 
     <?php echo $this->escape($this->artifact->createdTs); ?>

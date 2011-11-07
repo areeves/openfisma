@@ -36,7 +36,7 @@
                 foreach ($this->actors as $actor):
                 ?>
                     <tr>
-                        <td><?php echo $this->escape($this->userInfo($actor['a_username']), 'none'); ?></td>
+                        <td><?php echo $this->escape($this->userInfo($actor['a_username'], null, $actor['a_id']), 'none'); ?></td>
                         <td><?php echo $this->escape($actor['a_nameFirst']); ?></td>
                         <td><?php echo $this->escape($actor['a_nameLast']); ?></td>
                         <?php 
@@ -99,7 +99,7 @@
                 foreach ($this->observers as $observer):
                 ?>
                     <tr>
-                        <td><?php echo $this->escape($this->userInfo($observer['o_username']), 'none'); ?></td>
+                        <td><?php echo $this->escape($this->userInfo($observer['o_username'], null, $observer['o_id']), 'none'); ?></td>
                         <td><?php echo $this->escape($observer['o_nameFirst']); ?></td>
                         <td><?php echo $this->escape($observer['o_nameLast']); ?></td>
                         <?php 
