@@ -195,7 +195,7 @@ class Fisma_Doctrine_Behavior_AuditLoggable_Generator extends Doctrine_Record_Ge
     {
         $query = $this->query($instance);
         $query->setHydrationMode($hydrationMode)
-              ->select('o.createdTs, o.message, u.username');
+              ->select('o.createdTs, o.message, u.username, u.id');
         
         if ($limit) {
             $query->limit($limit);
