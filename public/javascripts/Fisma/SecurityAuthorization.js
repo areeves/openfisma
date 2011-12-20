@@ -277,8 +277,53 @@ Fisma.SecurityAuthorization = {
     editEnhancements: function (event, args) {
         var saId = args.record.getData().instance_securityAuthorizationId;
         var controlId = args.record.getData().definition_id;
-        var dialog = new Fisma.SecurityAuthorization.EditEnhancementsDialog(saId, controlId);
+        var dialog = new Fisma.SecurityAuthorization.EditEnhancementsDialog(saId, controlIa, thisd);
         dialog.show();
+    },
+
+    tableFormatCommonControl: function(elem, record, column) {
+        var data = record.getData();
+        elem.innerHTML = "";
+        if (data.instance_common == "true") {
+            elem.innerHTML += "Common";
+        }
+        if (data.inherits_nickname) {
+            if (elem.innerHTML != "") {
+                elem.innerHTML += ", ";
+            }
+            elem.innerHTML += "Inherits " + data.inherits_nickname;
+        }
+        if (elem.innerHTML == "") {
+            elem.innerHTML += "None";
+        }
+        elem.innerHTML += " ";
+        var anchor = document.createElement('a');
+        anchor.innerHTML = "Edit";
+        anchor.href = "#";
+        elem.appendChild(anchor);
+        YAHOO.util.Event.addListener(anchor, "click", Fisma.SecurityAuthorization.editCommonControl, {elem: elem, record: record, column: column}, this);
+    },
+
+    editCommonControl: function (event, args) {
+        var saId = args.record.getData().instance_securityAuthorizationId,
+            controlId = args.record.getData().definition_id,
+            title = "Edit Common Control",
+            url = "/sa/security-authorization/edit-common-control-form/format/html"
+                + "/id/" + saId + "/securityControlId/" + controlId,
+            element = YAHOO.util.Dom.generateId(),
+            callback = function() {
+                var container = YAHOO.util.Dom.get(element); // element from closure scope
+                var formElem = container.getElementsByTagName("FORM")[0];
+                YAHOO.util.Event.addListener(
+                    formElem,
+                    "submit",
+                    function (ev) {
+                        YAHOO.util.Event.stopEvent(ev);
+
+                    }
+                );
+            };
+        Fisma.UrlPanel.showPanel(title, url, callback, element);
     }
 }
 

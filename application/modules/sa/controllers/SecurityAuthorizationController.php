@@ -48,7 +48,7 @@ class Sa_SecurityAuthorizationController extends Fisma_Zend_Controller_Action_Ob
                       ->addActionContext('add-enhancements', 'html')
                       ->addActionContext('assessment-plan', 'html')
                       ->addActionContext('authorization', 'html')
-                      ->addActionContext('edit-common-control', 'html')
+                      ->addActionContext('edit-common-control-form', 'html')
                       ->addActionContext('implementation', 'html')
                       ->addActionContext('select-controls', 'html')
                       ->addActionContext('show-add-control-form', 'html')
@@ -453,7 +453,15 @@ class Sa_SecurityAuthorizationController extends Fisma_Zend_Controller_Action_Ob
                             'definedEnhancements_enhancements'
                         )
                   )
-                  ->addColumn(new Fisma_Yui_DataTable_Column('Common Control', true, null, null, 'instance_common'))
+                  ->addColumn(
+                        new Fisma_Yui_DataTable_Column(
+                            'Common Control',
+                            true,
+                            'Fisma.SecurityAuthorization.tableFormatCommonControl',
+                            null,
+                            'instance_common'
+                        )
+                  )
                   ->setDataUrl('/sa/security-authorization/select-control-table/id/' . $id . '/format/json')
                   ->setResultVariable('controls')
                   ->setRowCount(20)
@@ -491,18 +499,25 @@ class Sa_SecurityAuthorizationController extends Fisma_Zend_Controller_Action_Ob
         $controlsQuery = Doctrine_Query::create()
             ->select("instance.id")
             ->addSelect('instance.securityAuthorizationId')
+            ->addSelect('instance.common')
             ->addSelect('definition.id')
             ->addSelect("definition.code")
             ->addSelect("definition.family")
             ->addSelect("definition.class")
             ->addSelect("definition.name")
             ->addSelect("definition.control")
+            ->addSelect('inherits.nickname')
             ->addSelect("count(definedEnhancements.id) availableEnhancements")
             ->addSelect('count(selectedEnhancements.id) selectedEnhancements')
             ->from('SaSecurityControl instance')
             ->leftJoin('instance.SecurityControl definition')
             ->leftJoin('instance.SecurityControlEnhancements selectedEnhancements')
             ->leftJoin('definition.Enhancements definedEnhancements')
+            ->leftJoin('instance.Inherits inherits')
+            ->leftJoin(
+                'instance.SaSecurityControlEnhancements selectedEnhancements ' .
+                'WITH selectedEnhancements.securityControlEnhancementId = definedEnhancements.id'
+            )
             ->where('instance.securityAuthorizationId = ?', $sa->id)
             ->groupBy("instance.id")
             ->orderBy("definition.code")
@@ -681,7 +696,7 @@ class Sa_SecurityAuthorizationController extends Fisma_Zend_Controller_Action_Ob
     /**
      * @return void
      */
-    public function editCommonControlAction()
+    public function editCommonControlFormAction()
     {
         $id = $this->_request->getParam('id');
         $securityControlId = $this->_request->getParam('securityControlId');
