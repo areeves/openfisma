@@ -145,7 +145,7 @@
             // Render the header
             var rowsToCreate = this._getNumberHeaderRows();
             
-            var headerRows = Array();
+            var headerRows = [];
             var headerRow;
             while (rowsToCreate > 0) {
                 headerRow = table.insertRow(table.rows.length);
@@ -201,7 +201,6 @@
                     break;
                 case TT.NodeState.LEAF_NODE:
                     throw "Cannot toggle a leaf node's state";
-                    break;
                 default:
                     throw "Unexpected node state (" + node.state + ")";
             }
@@ -213,12 +212,14 @@
          * @param node {Array}
          */
         collapseSubtree: function(node) {
-            if (node.state == TT.NodeState.EXPANDED) {
+            var i;
+
+            if (node.state === TT.NodeState.EXPANDED) {
                 this._setNodeState(node, TT.NodeState.COLLAPSED);                
             }
             
             if (YAHOO.lang.isValue(node.children) && node.children.length > 0) {
-                for (var i in node.children) {
+                for (i in node.children) {
                     this.collapseSubtree(node.children[i]);
                 }
             }
@@ -228,7 +229,9 @@
          * Collapse all nodes.
          */
         collapseAllNodes: function() {
-            for (var i in this._treeData) {
+            var i;
+
+            for (i in this._treeData) {
                 var rootNode = this._treeData[i];
                 
                 this.collapseSubtree(rootNode);
@@ -242,12 +245,14 @@
          * @param node {Array}
          */
         expandSubtree: function(node) {
-            if (node.state == TT.NodeState.COLLAPSED) {
+            var i;
+
+            if (node.state === TT.NodeState.COLLAPSED) {
                 this._setNodeState(node, TT.NodeState.EXPANDED);                
             }
             
             if (YAHOO.lang.isValue(node.children) && node.children.length > 0) {
-                for (var i in node.children) {
+                for (i in node.children) {
                     this.expandSubtree(node.children[i]);
                 }
             }
@@ -257,7 +262,9 @@
          * Expand all nodes.
          */
         expandAllNodes: function() {
-            for (var i in this._treeData) {
+            var i;
+
+            for (i in this._treeData) {
                 var rootNode = this._treeData[i];
                 
                 this.expandSubtree(rootNode);
@@ -270,9 +277,9 @@
          * @param container {HTMLElement}
          */
         _renderButtons: function (container) {
-            var button, buttonDefinition;
+            var button, buttonDefinition, i;
 
-            for (var i in this._buttons) {
+            for (i in this._buttons) {
                 var div = document.createElement("div");
                 container.appendChild(div);
                 div.className = "treeTableButton";
@@ -302,9 +309,18 @@
          * @param container {HTMLElement}
          */
         _renderFilters: function (container) {
-            var that = this; // for closure
+            var that = this, // for closure
+                filterName; 
 
-            for (var filterName in this._filters) {
+            var mkOnChange = function(callback, filterName, select) {
+                return function () {
+                    that.disableFilters();
+                    callback.call(window, filterName, select.options[select.selectedIndex].value);                            
+                    that.reloadData();
+                };
+            };
+
+            for (filterName in this._filters) {
                 var filter = this._filters[filterName];
 
                 var div = document.createElement("div");
@@ -319,15 +335,10 @@
                 div.appendChild(select);
 
                 // Closures inside loops are a little hacky…
-                select.onchange = (function(callback, filterName, select) {
-                    return function () {
-                        that.disableFilters();
-                        callback.call(window, filterName, select.options[select.selectedIndex].value);                            
-                        that.reloadData();
-                    };
-                })(filter.callback, filterName, select);
+                select.onchange = mkOnChange(filter.callback, filterName, select);
 
-                for (var key in filter.values) {
+                var key;
+                for (key in filter.values) {
                     var option = new Option(filter.values[key], key);
                     
                     if (key == filter.defaultValue) {
@@ -420,9 +431,10 @@
          * @return {String}
          */
         _getDataUrl: function() {
-            var url = this._baseUrl;
+            var url = this._baseUrl,
+                name;
             
-            for (var name in this._filters) {
+            for (name in this._filters) {
                 var filter = this._filters[name];
                 var select = filter.select;
                 
@@ -477,7 +489,7 @@
             this._hideLoadingBar();
 
             try {
-                var response = YAHOO.lang.JSON.parse(response.responseText);                
+                response = YAHOO.lang.JSON.parse(response.responseText);                
             } catch (error) {
                 this.showError(error.message);
                 return;
@@ -491,10 +503,11 @@
 
             if (YAHOO.lang.isNull(this._treeData)) {
                 // Gracefully handle a result that has no trees
-                this.showError("No data available.")
+                this.showError("No data available.");
             } else {
                 // If we have one or more trees, then render each tree (starting at the root)
-                for (var nodeIndex = 0; nodeIndex < this._treeData.length; nodeIndex++) {
+                var nodeIndex;
+                for (nodeIndex = 0; nodeIndex < this._treeData.length; nodeIndex++) {
                     var rootNode = this._treeData[nodeIndex];
 
                     this._preprocessTreeData(rootNode);
@@ -556,7 +569,8 @@
             }
 
             // If this node has children, then recursively render the children
-            for (var childIndex = 0; childIndex < node.children.length; childIndex++) {
+            var childIndex;
+            for (childIndex = 0; childIndex < node.children.length; childIndex++) {
                 var childNode = node.children[childIndex];
                 this._renderNode(childNode, level + 1);
             }
@@ -582,7 +596,7 @@
             cell.appendChild(firstCellDiv);
 
             // Add a hover effect for clickable nodes
-            if (nodeState != TT.NodeState.LEAF_NODE) {
+            if (nodeState !== TT.NodeState.LEAF_NODE) {
                 firstCellDiv.className += " link";
             }
 
@@ -616,7 +630,8 @@
             /*
              *  Render the remaining cells on the this row
              */
-            for (var i = 1; i < this._numberColumns; i++) {
+            var i;
+            for (i = 1; i < this._numberColumns; i++) {
                 cell = document.createElement('td');
                 this._renderCell(cell, node.nodeData, i, nodeState);
                 container.appendChild(cell);
@@ -631,9 +646,10 @@
          * @param level {Integer} The level of nesting, starting with 0.
          */
         _setInitialTreeState: function(node, level) {        
+            var i;
             if (YAHOO.lang.isValue(node.children) && node.children.length > 0) {
                 // Set the initial states on children first (so we work from the bottom of the tree upwards)
-                for (var i in node.children) {
+                for (i in node.children) {
                     var child = node.children[i];
 
                     this._setInitialTreeState(child, level + 1);
@@ -734,8 +750,9 @@
          * @param node {Array}
          */
         _hideChildren: function(node) {
+            var i;
             if (YAHOO.lang.isValue(node.children) && node.children.length > 0) {
-                for (var i in node.children) {
+                for (i in node.children) {
                     var child = node.children[i];
                     
                     this._hideRow(child);
@@ -753,8 +770,9 @@
          * @param node {Array}
          */
         _showChildren: function(node) {
+            var i;
             if (YAHOO.lang.isValue(node.children) && node.children.length > 0) {
-                for (var i in node.children) {
+                for (i in node.children) {
                     var child = node.children[i];
                     
                     this._showRow(child);
@@ -825,7 +843,8 @@
          * Set all filters to disabled state.
          */
         disableFilters: function () {
-            for (var i in this._filters) {
+            var i;
+            for (i in this._filters) {
                 var filter = this._filters[i];
                 filter.select.disabled = true;
             }
@@ -835,7 +854,8 @@
          * Set all filters to enabled state.
          */
         enableFilters: function () {
-            for (var i in this._filters) {
+            var i;
+            for (i in this._filters) {
                 var filter = this._filters[i];
                 filter.select.disabled = false;
             }            
@@ -843,4 +863,4 @@
     });
 
     Fisma.TreeTable = TT;
-})();
+}());

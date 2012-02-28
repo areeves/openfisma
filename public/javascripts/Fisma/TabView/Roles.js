@@ -41,9 +41,10 @@ Fisma.TabView.Roles = function() {
                         }
 
                         if (!found) {
+                            var label = "";
                             for (i in roles) {
-                                if (roles[i]['id'] == el.value) {
-                                    var label = $P.htmlspecialchars(roles[i]['nickname']);
+                                if (roles[i].id == el.value) {
+                                    label = $P.htmlspecialchars(roles[i].nickname);
                                     break;
                                 }
                             }
@@ -69,4 +70,4 @@ Fisma.TabView.Roles = function() {
             });
         }
     };
-}();
+};

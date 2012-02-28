@@ -283,7 +283,7 @@
                         this._hideError(); 
                     },
                     failure: function (response) {
-                        alert('Unable to load the organization tree: ' + response.statusText);
+                        Fisma.Util.showAlertDialog('Unable to load the organization tree: ' + response.statusText);
                     },
                     scope: this
                 }, 
@@ -302,8 +302,9 @@
          * @param nodeList {YAHOO.widget.Node} The tree node that is the parent to the nodes you want to create
          */
         _buildTreeNodes: function (nodeList, parent) {
+            var i;
 
-            for (var i in nodeList) {
+            for (i in nodeList) {
                 var node = nodeList[i];
                 var nodeText = "<b>" + PHP_JS().htmlspecialchars(node.label) + "</b> - <i>"
                                  + PHP_JS().htmlspecialchars(node.sysTypeLabel) + "</i>";
@@ -535,4 +536,4 @@
     };
 
     Fisma.SystemAggregationView = SAV;
-})();
+}());

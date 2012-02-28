@@ -50,11 +50,12 @@ Fisma.Util = {
 
         var pieces = objectName.split('.');
         var currentObj = window;
+        var piece;
 
         for (piece in pieces) {
             currentObj = currentObj[pieces[piece]];
 
-            if (currentObj == undefined) {
+            if (currentObj === undefined) {
                 throw "Specified object does not exist: " + objectName;
             }
         }
@@ -94,21 +95,21 @@ Fisma.Util = {
     getTimestamp : function () {
         var date = new Date();
 
-        var hours = date.getHours() + "";
+        var hours = String(date.getHours());
 
-        if (hours.length == 1) {
+        if (hours.length === 1) {
          hours = "0" + hours;
         }
 
-        var minutes = date.getMinutes() + "";
+        var minutes = String(date.getMinutes());
 
-        if (minutes.length == 1) {
+        if (minutes.length === 1) {
          minutes = "0" + minutes;
         }
 
-        var seconds = date.getSeconds() + "";
+        var seconds = String(date.getSeconds());
 
-        if (seconds.length == 1) {
+        if (seconds.length === 1) {
          seconds = "0" + seconds;
         }
 
@@ -290,8 +291,8 @@ Fisma.Util = {
             } else {
                 messageBox.addMessage(msg);
             }
-
-            if (model == 'warning') {
+            
+            if (model === 'warning') {
                 messageBox.setErrorLevel(Fisma.MessageBox.ERROR_LEVEL.WARN);
             } else {
                 messageBox.setErrorLevel(Fisma.MessageBox.ERROR_LEVEL.INFO);
@@ -315,9 +316,9 @@ Fisma.Util = {
         var hour = hourEl.value;
         var minute = minuteEl.value;
         var ampm = ampmEl.value;
-
-        if ('PM' == ampm) {
-            hour = parseInt(hour) + 12;
+        
+        if ('PM' === ampm) {
+            hour = parseInt(hour, 10) + 12;
         }
 
         hour = $P.str_pad(hour, 2, '0', 'STR_PAD_LEFT');

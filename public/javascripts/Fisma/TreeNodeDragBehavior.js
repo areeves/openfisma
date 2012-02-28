@@ -277,7 +277,6 @@
                     break;
                 default:
                     throw "Invalid drag location parameter";
-                    break;
             }
 
             this._treeView.getRoot().refresh();
@@ -327,11 +326,11 @@
      * @static
      */
     TNDB.makeTreeViewDraggable = function (treeView, callbacks) {
-
+        var nodeIndex;
         // Get a list of all nodes in the tree
         var nodes = treeView.getNodesBy(function (node) {return true;});
 
-        for (var nodeIndex in nodes) {
+        for (nodeIndex in nodes) {
             var node = nodes[nodeIndex];
 
             var yuiNodeDrag = new TNDB(treeView, callbacks, node.contentElId, this._dragDropGroup);
@@ -351,4 +350,4 @@
     };
 
     Fisma.TreeNodeDragBehavior = TNDB;
-})();
+}());

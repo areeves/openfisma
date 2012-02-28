@@ -117,7 +117,7 @@ Fisma.User = {
 
         var panel;
 
-        if (typeof Fisma.User.userInfoPanelList[username] == 'undefined') {
+        if (typeof Fisma.User.userInfoPanelList[username] === 'undefined') {
 
             // Create new panel
             panel = Fisma.User.createUserInfoPanel(referenceElement, username);
@@ -169,7 +169,7 @@ Fisma.User = {
         // Load panel content using asynchronous request
         YAHOO.util.Connect.asyncRequest(
             'GET', 
-            '/user/info/username/' + escape(username),
+            '/user/info/username/' + encodeURI(username),
             {
                 success: function(o) {
                     panel.setBody(o.responseText);
@@ -251,14 +251,14 @@ Fisma.User = {
                         var data = YAHOO.lang.JSON.parse(o.responseText);
 
                         // Query comes originally from the user. Escape it just to be safe.
-                        data.query = escape(data.query);
+                        data.query = encodeURI(data.query);
 
                         // Make sure each column value is not null in LDAP account, then populate to related elements.
                         if (YAHOO.lang.isValue(data.accounts)) {
-                            if (data.accounts.length == 0) {
+                            if (data.accounts.length === 0) {
                                 Fisma.Util.message('No account matches your query: '
-                                    + escape(data.query) + '.', 'warning', true);
-                            } else if (data.accounts.length == 1) {
+                                    + encodeURI(data.query) + '.', 'warning', true);
+                            } else if (data.accounts.length === 1) {
                                 Fisma.User.populateAccountForm(data.accounts[0]);
                             } else {
                                 Fisma.User.showMultipleAccounts(data.accounts);
@@ -297,9 +297,10 @@ Fisma.User = {
      * @param account {Object} A dictionary of LDAP data for an account.
      */
     populateAccountForm : function (account) {
+        var ldapColumn;
         Fisma.Util.message('Your search matched one user: ' + account.dn, 'info', true);
 
-        for (var ldapColumn in Fisma.User.ldapColumnMap) {
+        for (ldapColumn in Fisma.User.ldapColumnMap) {
             if (!Fisma.User.ldapColumnMap.hasOwnProperty(ldapColumn)) {
                 continue;
             }
@@ -322,15 +323,16 @@ Fisma.User = {
         Fisma.Util.message('<p>Multiple accounts match your query. Click a name to select it.</p>', 'info', 'true');
         var msgBar = document.getElementById('msgbar');
 
-        var accountsContainer = document.createElement('p');
+        var accountsContainer = document.createElement('p'),
+            index;
 
-        for (var index in accounts) {
+        for (index in accounts) {
             var account = accounts[index];
             
             var accountLink = document.createElement('a');
             accountLink.setAttribute('href', '#');
             accountLink.account = account;
-            accountLink.onclick = function () {Fisma.User.populateAccountForm(this.account);};
+            YAHOO.util.Event.on(accountLink, "click", Fisma.User.populateAccountForm, this.account);
 
             var accountText = account.givenname
                             + ' '

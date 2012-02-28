@@ -28,7 +28,8 @@ Fisma.System = {
      * Eventually it would be nifty to refresh the YUI table but for now we will just refresh the entire page
      */
     uploadDocumentCallback : function (yuiPanel) {
-        window.location.href = window.location.href;
+        var location = window.location.href;
+        window.location.href = location;
     },
 
     /**
@@ -41,7 +42,7 @@ Fisma.System = {
      */
     removeSelectedUsers : function (event, config) {
         var userRoles = [];
-        var data = new Object();
+        var data = {};
 
         $('input:checkbox[name="rolesAndUsers[][]"]:checked').each(
             function() {
@@ -74,7 +75,7 @@ Fisma.System = {
      * @return void
      */
     addUser : function (event, config) {
-        var data = new Object();
+        var data = {};
 
         data.userId = $('#addUserId').val();
         data.roleId = $('#roles').val();
@@ -102,7 +103,7 @@ Fisma.System = {
      */
     addSelectedUsers : function (event, config) {
         var userRoles = [];
-        var data = new Object();
+        var data = {};
 
         $('input:checkbox[name="copyUserAccessTree[][]"]:checked').each(
             function() {
@@ -164,7 +165,8 @@ Fisma.System = {
             // The form contains some scripts that need to be executed
             var scriptNodes = panel.body.getElementsByTagName('script');
 
-            for (var i=0; i < scriptNodes.length; i++) {
+            var i;
+            for (i = 0; i < scriptNodes.length; i++) {
                 try {
                     eval(scriptNodes[i].text);
                 } catch (e) {
@@ -176,7 +178,8 @@ Fisma.System = {
             // The tool tips will display underneath the modal dialog mask, so we'll move them up to a higher layer.
             var tooltips = YAHOO.util.Dom.getElementsByClassName('yui-tt', 'div');
 
-            for (var index in tooltips) {
+            var index;
+            for (index in tooltips) {
                 var tooltip = tooltips[index];
 
                 // The yui panel is usually 4, so anything higher is good.
@@ -213,7 +216,8 @@ Fisma.System = {
             // The form contains some scripts that need to be executed
             var scriptNodes = panel.body.getElementsByTagName('script');
 
-            for (var i=0; i < scriptNodes.length; i++) {
+            var i;
+            for (i = 0; i < scriptNodes.length; i++) {
                 try {
                     eval(scriptNodes[i].text);
                 } catch (e) {
@@ -246,6 +250,25 @@ Fisma.System = {
      */
     getSystemConversionForm : function (sysId) {
 
+        var rtnHighModLowSelectObj = function (selectObjName, states) {
+
+            var selectObj = document.createElement('select');
+            selectObj.name = selectObjName.replace(' ', '');
+
+            var x;
+            for (x = 0; x < states.length; x++) {
+                var myOption = document.createElement('option');
+                myOption.value = states[x];
+                var optText = document.createTextNode(states[x]);
+                var boldOptText = document.createElement('b');
+                boldOptText.appendChild(optText);
+                myOption.appendChild(boldOptText);
+                selectObj.appendChild(myOption);
+            }
+
+            return selectObj;
+        };
+
         var addInputRowOnTable = function (addToTable, descriptionText, opts) {
 
             var myRow = document.createElement('tr');
@@ -261,24 +284,6 @@ Fisma.System = {
             myRow.appendChild(cellDescr);
             myRow.appendChild(cellInput);
             addToTable.appendChild(myRow);
-        };
-
-        var rtnHighModLowSelectObj = function (selectObjName, states) {
-
-            var selectObj = document.createElement('select');
-            selectObj.name = selectObjName.replace(' ', '');
-
-            for (var x = 0; x < states.length; x++) {
-                var myOption = document.createElement('option');
-                myOption.value = states[x];
-                var optText = document.createTextNode(states[x]);
-                var boldOptText = document.createElement('b');
-                boldOptText.appendChild(optText);
-                myOption.appendChild(boldOptText);
-                selectObj.appendChild(myOption);
-            }
-
-            return selectObj;
         };
 
         var myDialogForm = document.createElement('form');
