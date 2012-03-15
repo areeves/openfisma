@@ -47,6 +47,10 @@ class Application_Migration_021700_FindingWorkflow extends Fisma_Migration_Abstr
             'ALTER TABLE `privilege` '
             . 'ADD COLUMN `deleted_at` datetime NULL AFTER `daysuntildue`;'
         );
+        $this->getHelper()->exec(
+            'ALTER TABLE `privilege` '
+            . 'MODIFY COLUMN `action` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin;'
+        );
     }
 }
 
