@@ -45,11 +45,10 @@ class Application_Migration_021700_FindingWorkflow extends Fisma_Migration_Abstr
         );
         $this->getHelper()->exec(
             'ALTER TABLE `privilege` '
-            . 'ADD COLUMN `deleted_at` datetime NULL AFTER `daysuntildue`;'
-        );
-        $this->getHelper()->exec(
-            'ALTER TABLE `privilege` '
-            . 'MODIFY COLUMN `action` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin;'
+            . 'ADD COLUMN `deleted_at` datetime NULL AFTER `daysuntildue`, '
+            . 'MODIFY COLUMN `resource` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin, '
+            . 'MODIFY COLUMN `action` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin, '
+            . 'MODIFY COLUMN `description` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin;'
         );
     }
 }

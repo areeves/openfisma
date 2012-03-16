@@ -1,12 +1,13 @@
 Privilege:
+    options:
+        charset: utf8
+        collate: utf8_bin
     columns:
         resource:
             type: string(255)
             comment: The resource to which this privilege pertains
         action:
             type: string(255)
-            charset: utf8
-            collate: utf8_bin
             comment: The logical name of the action that this privilege provides, such as create, read, update, or delete, etc.
         description:
             type: string(255)
