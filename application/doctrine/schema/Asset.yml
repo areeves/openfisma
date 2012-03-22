@@ -29,15 +29,11 @@ Asset:
                 logicalName: IP Address
                 notify: true
             comment: The IP address for this asset
-        addressPort:
-            type: integer(5)
-            unsigned: false
-            unsigned: false
+        addressMac:
+            type: string(17)
             extra:
-                logicalName: IP Port Number
+                logicalName: MAC Address
                 notify: true
-            comment: The IP port for this asset
-        
         productId:
             type: integer
             comment: Foreign key to product table
@@ -53,6 +49,7 @@ Asset:
             comment: Foreign key to network table
             extra:
                 logicalName: Network
+        pocId: integer
 
     relations:
         Product:
@@ -65,6 +62,11 @@ Asset:
             foreignAlias: Assets
         Network:
             local: networkId
+            foreign: id
+            foreignAlias: Assets
+        PointOfContact:
+            class: Poc
+            local: pocId
             foreign: id
             foreignAlias: Assets
 

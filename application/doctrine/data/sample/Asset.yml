@@ -3,20 +3,35 @@ Asset:
         name: dc-prod-01
         source: manual
         addressIp: 10.24.9.129
-        addressPort: 443
+        addressMac: 01-23-45-67-89-ab
         Organization: OF_ORG
         Network: DN
+        AssetServices:
+            dcprod01_https:
+                service: https
+                protocol: tcp
+                addressPort: 443
     dctest01:
         name: dc-test-01
         source: manual
         addressIp: 10.24.9.122
-        addressPort: 80
+        addressMac: 01-23-45-67-89-ac
         Organization: OF_ORG
         Network: DN
+        AssetServices:
+            dctest01_http:
+                service: http
+                protocol: tcp
+                addressPort: 80
     dcdevl01:
         name: dc-devl-01
         source: manual
         addressIp: 10.24.9.125
-        addressPort: 80
+        addressMac: 01-23-45-67-89-ad
         Organization: OF_ORG
         Network: DN
+        AssetServices:
+            dcdev01_http:
+                service: http
+                protocol: tcp
+                addressPort: 80

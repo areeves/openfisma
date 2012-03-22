@@ -7,6 +7,8 @@ Role:
             - areas_dashboard
             - asset_read
             - asset_update
+            - asset_service_read
+            - asset_service_update
             - finding_area
             - finding_evidence_isso
             - finding_mitigation_isso
@@ -48,6 +50,8 @@ Role:
             - areas_dashboard
             - asset_read
             - asset_update
+            - asset_service_read
+            - asset_service_update
             - finding_area
             - finding_evidence_isso
             - finding_mitigation_isso
@@ -89,6 +93,7 @@ Role:
         Privileges:
             - areas_dashboard
             - asset_read
+            - asset_service_read
             - finding_area
             - finding_report_area
             - findings_read
@@ -111,6 +116,9 @@ Role:
             - asset_read
             - asset_unaffiliated
             - asset_update
+            - asset_service_create
+            - asset_service_read
+            - asset_service_update
             - finding_area
             - finding_evidence_ivv
             - finding_mitigation_ivv
@@ -160,6 +168,9 @@ Role:
             - asset_read
             - asset_unaffiliated
             - asset_update
+            - asset_service_create
+            - asset_service_read
+            - asset_service_update
             - finding_area
             - finding_report_area
             - findings_comment
@@ -210,6 +221,9 @@ Role:
             - asset_read
             - asset_unaffiliated
             - asset_update
+            - asset_service_create
+            - asset_service_read
+            - asset_service_update
             - document_type_create
             - document_type_delete
             - document_type_read

@@ -63,12 +63,6 @@ class AssetTable extends Fisma_Doctrine_Table implements Fisma_Search_Searchable
                 'sortable' => true,
                 'type' => 'text'
             ),
-            'addressPort' => array(
-                'initiallyVisible' => true,
-                'label' => 'IP Port',
-                'sortable' => true,
-                'type' => 'integer'
-            ),
             'network' => array(
                 'initiallyVisible' => true,
                 'label' => 'Network',

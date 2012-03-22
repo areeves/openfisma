@@ -1,8 +1,8 @@
-; Author    Woody Lee <woody712@users.sourceforge.net>
+; Author    Andrew Reeves <andrew.reeves@endeavorsystems.com>
 ; Copyright (c) Endeavor Systems, Inc. 2008 (http://www.endeavorsystems.com)
 ; License   http://www.openfisma.org/mw/index.php?title=License
 
-[asset]
+[assetservice]
 elements.name.type = "text"
 elements.name.options.label = "Name"
 elements.name.options.required = true
@@ -13,7 +13,6 @@ elements.addressIp.options.label = "Address IP"
 elements.addressIp.options.validators.addressIp.validator = "ip"
 elements.addressIp.options.filters.stringtrim.filter = "StringTrim"
 elements.addressIp.options.filters.addressIp.filter = "Null"
-elements.addressIp.options.attribs.size = 39
 displayGroups.assetInfo.elements.addressIp = "addressIp"
 
 elements.addressMac.type = "text"
@@ -21,7 +20,7 @@ elements.addressMac.options.label = "Address MAC"
 elements.addressMac.options.filters.stringtrim.filter = "StringTrim"
 elements.addressMac.options.filters.addressMac.filter = "Null"
 displayGroups.assetInfo.elements.addressMac = "addressMac"
- 
+
 elements.product.type = "Form_AutoComplete"
 elements.product.options.label = "Product"
 elements.product.options.style = "width:400px;"
@@ -38,24 +37,6 @@ elements.productId.options.filters.stringtrim.filter = "StringTrim"
 elements.productId.options.filters.null.filter = "Null"
 displayGroups.assetInfo.elements.productId = "productId"
 
-elements.pocAutocomplete.type = "Form_AutoComplete"
-elements.pocAutocomplete.options.label = "Point Of Contact"
-elements.pocAutocomplete.options.attribs.resultsList = "pointsOfContact"
-elements.pocAutocomplete.options.attribs.fields = "name"
-elements.pocAutocomplete.options.attribs.xhr = "/poc/autocomplete/format/json"
-elements.pocAutocomplete.options.attribs.hiddenField = "pocId"
-elements.pocAutocomplete.options.attribs.queryPrepend = "/keyword/"
-elements.pocAutocomplete.options.attribs.containerId = "pointOfContactAutocompleteContainer"
-; The callback enables a privileged user to create a POC without leaving the finding form. This is disabled for
-; non-privileged users.
-elements.pocAutocomplete.options.attribs.setupCallback = "Fisma.Finding.setupPocAutocomplete"
-elements.pocAutocomplete.options.tooltip = "<b>Point Of Contact</b><p>A point of contact is a person who is assigned responsibility for this finding. All existing users of this sytem are eligible to be points of contact. In addition, the administrator of this system can add additional points of contact as needed.</p>"
-displayGroups.assetInfo.elements.pocAutocomplete = "pocAutocomplete"
-
-elements.pocId.type = "hidden"
-elements.pocId.options.id = "pocId"
-displayGroups.fiassetInfonding.elements.pocId = "pocId"
-
 elements.orgSystemId.type = "select"
 elements.orgSystemId.options.label = "System"
 elements.orgSystemId.options.required = true
@@ -69,3 +50,4 @@ displayGroups.assetInfo.elements.networkId = "networkId"
 elements.save.type = "Form_Button_Submit"
 elements.save.options.label = "Save"
 displayGroups.assetInfo.elements.save = "save"
+

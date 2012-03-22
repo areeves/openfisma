@@ -168,8 +168,8 @@ class AssetController extends Fisma_Zend_Controller_Action_Object
                     'name' => $originalName,
                     'type' => $uploadForm->selectFile->getMimeType()
                 ));
-           
-                // Need to save again after instantiate. 
+
+                // Need to save again after instantiate.
                 $upload->save();
             }
 
@@ -191,5 +191,19 @@ class AssetController extends Fisma_Zend_Controller_Action_Object
     protected function _isDeletable()
     {
         return false;
+    }
+
+    /**
+     * viewAction
+     *
+     * @return void
+     *
+     * @GETAllowed
+     */
+    public function viewAction()
+    {
+        $this->_viewObject();
+        $asset = $this->view->asset = $this->view->subject;
+        $this->view->buttons = $this->getToolbarButtons($asset);
     }
 }

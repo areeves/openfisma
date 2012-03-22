@@ -1,0 +1,192 @@
+<div class="searchBox"><?php
+    foreach ($this->buttons as $button):
+        echo $this->escape($button, 'none');
+    endforeach;
+?></div>
+<div class="column left">
+    <?php Fisma_Format_Section::startSection("Details"); ?>
+        <table class='keyValues'>
+            <tr>
+                <td>Name:</td>
+                <td>
+                    <span
+                    <?php
+                    if ($this->editable):
+                    ?>
+                        id="name"
+                        class="editable"
+                        target="name"
+                        name="asset[name]"
+                        type="text"
+                    <?php
+                    endif;
+                    ?>><?php echo $this->escape($this->asset->name); ?></span>
+                </td>
+            </tr>
+            <tr>
+                <td>Product:</td>
+                <td>
+                    <span
+                        id="product"
+                        class="editable"
+                        type="autocomplete"
+                        xhr="/vm/product/autocomplete/format/json"
+                        queryPrepend="/keyword/"
+                        schemaObject="products"
+                        schemaField="name"
+                        name="asset[productId]"
+                        value="<?php echo $this->escape($this->asset->Product->id); ?>"
+                        defaultValue="<?php echo $this->escape($this->asset->Product->name); ?>"
+                    ><?php echo $this->escape($this->productField, 'none'); ?></span>
+                    <?php
+                    if ($this->editable):
+                    ?>
+                        <span class="editable" target="product">&nbsp;</span>
+                    <?php
+                    endif;
+                    ?>
+                </td>
+            </tr>
+            <tr>
+                <td>Network:</td>
+                <td>
+                    <span
+                        id="network"
+                        type="select"
+                        name="asset[networkId]"
+                        href="/metainfo/list/o/network/format/html/"
+                        value="<?php echo $this->escape($this->asset->Network->id); ?>"
+                    ><?php echo $this->escape($this->networkField, 'none'); ?></span>
+                    <?php
+                    if ($this->editable):
+                    ?>
+                        <span class="editable" target="network">&nbsp;</span>
+                    <?php
+                    endif;
+                    ?>
+                </td>
+            </tr>
+            <tr>
+                <td>System:</td>
+                <td>
+                    <span
+                        id="orgsystem"
+                        type="select"
+                        name="asset[orgsystemId]"
+                        href="/metainfo/list/o/system/format/html/"
+                        value="<?php echo $this->escape($this->asset->Organization->id); ?>"
+                    ><?php echo $this->escape($this->systemField, 'none'); ?></span>
+                    <?php
+                    if ($this->editable):
+                    ?>
+                        <span class="editable" target="orgsystem">&nbsp;</span>
+                    <?php
+                    endif;
+                    ?>
+                </td>
+            </tr>
+            <tr>
+                <td>Point Of Contact:</td>
+                <td>
+                    <span
+                        id="pointOfContact"
+                        type="autocomplete"
+                        xhr="/poc/autocomplete/format/json"
+                        queryPrepend="/keyword/"
+                        schemaObject="pointsOfContact"
+                        schemaField="name"
+                        name="asset[pocId]"
+                        <?php
+                        if ($this->acl()->hasPrivilegeForClass('create', 'Poc')):
+                        ?>
+                            setupCallback="Fisma.Finding.setupPocAutocomplete"
+                        <?php
+                        endif;
+                        ?>
+                        value="<?php echo $this->escape($this->asset->pocId); ?>"
+                        defaultValue="<?php echo $this->escape($this->asset->PointOfContact->username); ?>"
+                    ><?php echo $this->escape($this->pocField, 'none'); ?></span>
+                    <?php
+                    if ($this->editable):
+                    ?>
+                        <span class="editable" target="pointOfContact">&nbsp;</span>
+                    <?php
+                    endif;
+                    ?>
+                </td>
+            </tr>
+            <tr>
+                <td>IP Address:</td>
+                <td>
+                    <span
+                    <?php
+                    if ($this->editable):
+                    ?>
+                        id="addressIp"
+                        class="editable"
+                        target="addressIp"
+                        name="asset[addressIp]"
+                        type="text"
+                    <?php
+                    endif;
+                    ?>><?php echo $this->escape($this->asset->addressIp); ?></span>
+                </td>
+            </tr>
+            <tr>
+                <td>MAC Address:</td>
+                <td>
+                    <span
+                    <?php
+                    if ($this->editable):
+                    ?>
+                        id="addressMac"
+                        class="editable"
+                        target="addressMac"
+                        name="asset[addressMac]"
+                        type="text"
+                    <?php
+                    endif;
+                    ?>><?php echo $this->escape($this->asset->addressMac); ?></span>
+                </td>
+            </tr>
+        </table>
+    <?php Fisma_Format_Section::stopSection(); ?>
+</div>
+
+<div class="column right">
+    <?php Fisma_Format_Section::startSection("Dates"); ?>
+        <table class='keyValues'>
+            <tr>
+                <td>Last Update:</td><td><?php echo $this->escape($this->asset->modifiedTs); ?></td>
+            </tr>
+            <tr>
+                <td>Date Created:</td><td><?php echo $this->escape($this->asset->createdTs); ?></td>
+            </tr>
+        </table>
+    <?php Fisma_Format_Section::stopSection(); ?>
+</div>
+
+<div class="clear"></div>
+
+<?php Fisma_Format_Section::startSection("Services"); ?>
+
+    <div class="buttonBar"><?php
+    if ($this->acl()->hasPrivilegeForClass('create', 'AssetService') && $this->editable):
+        $addServiceButton = new Fisma_Yui_Form_Button(
+            'addServiceButton',
+            array(
+              'label' => 'Add Service',
+              'onClickFunction' => 'Fisma.Asset.addService'
+            )
+        );
+        echo $this->escape($addServiceButton, 'none');
+    endif;
+    ?></div>
+
+    <?php echo $this->escape($this->assetServices, 'none'); ?>
+
+<?php Fisma_Format_Section::stopSection(); ?>
+
+<?php if ($this->editable): ?>
+<script>Fisma.Editable.setupEditFields();</script>
+<?php endif; ?>

@@ -235,6 +235,24 @@ Privilege:
         action: unaffiliated
         description: Unaffiliated Assets
 
+    # asset_services CRUD
+    asset_service_create:
+        resource: asset_service
+        action: create
+        description: Create Asset Services
+    asset_service_read:
+        resource: asset_service
+        action: read
+        description: View Asset Services
+    asset_service_update:
+        resource: asset_service
+        action: update
+        description: Edit Asset Services
+    asset_service_delete:
+        resource: asset_service
+        action: delete
+        description: Delete Asset Services
+
     # Users CRUD
     user_create:
         resource: user

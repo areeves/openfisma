@@ -1,0 +1,43 @@
+AssetService:
+    columns:
+        service:
+            type: string(255)
+            comment: The name of this asset
+        protocol:
+            type: string(255)
+            comment: The name of this asset
+        addressPort:
+            type: integer(5)
+            unsigned: true
+            comment: The IP port for this asset
+
+        assetId:
+            type: integer
+            comment: Foreign key to asset table
+        productId:
+            type: integer
+            comment: Foreign key to product table
+
+        createdTs: timestamp
+        modifiedTs: timestamp
+
+    relations:
+        Product:
+            local: productId
+            foreign: id
+            foreignAlias: AssetServices
+        Asset:
+            local: assetId
+            foreign: id
+            foreignAlias: AssetServices
+
+    actAs:
+        SoftDelete: true
+        Timestampable:
+            created:
+                name: createdTs
+                type: timestamp
+            updated:
+                name: modifiedTs
+                type: timestamp
+
