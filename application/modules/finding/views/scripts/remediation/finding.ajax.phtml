@@ -3,16 +3,9 @@
     $orgId = $finding->Organization->nickname;
     $status  = $finding->getStatus();
 ?>
-
-<div class="column left">
-
-    <span>
+<div id='finding_detail_panel'>
         <?php Fisma_Format_Section::startSection("Details"); ?>
         <table class="keyValues">
-            <tr>
-                <td>Finding ID:</td>
-                <td><?php echo $this->escape($finding->id)?></td>
-            </tr>
             <tr>
                 <td>Legacy Finding Key:</td>
                 <td>
@@ -30,61 +23,6 @@
                         ?>>
                         <?php echo $this->escape($finding->legacyFindingKey); ?>&nbsp;
                     </span>
-                </td>
-            </tr>
-            <tr>
-                <td>Date Discovered:</td>
-                <td><?php echo $this->escape($finding->discoveredDate)?></td>
-            </tr>
-            <tr>
-                <td>Date Opened:</td>
-                <td><?php echo $this->escape($finding->createdTs)?></td>
-            </tr>
-            <tr>
-                <td>Opened By:</td>
-                <td><?php echo $this->escape($this->userInfo($finding->CreatedBy->username), 'none'); ?></td>
-            </tr>
-            <tr>
-                <td>Point Of Contact:</td>
-                <td>
-                <span id="pointOfContact"
-                      type="autocomplete"
-                      xhr="/poc/autocomplete/format/json"
-                      queryPrepend="/keyword/"
-                      schemaObject="pointsOfContact"
-                      schemaField="name"
-                      name="finding[pocId]"
-                      <?php
-                      if ($this->acl()->hasPrivilegeForClass('create', 'Poc')):
-                      ?>
-                          setupCallback="Fisma.Finding.setupPocAutocomplete"
-                      <?php
-                      endif;
-                      ?>
-                      value="<?php echo $this->escape($finding->pocId); ?>"
-                      defaultValue="<?php echo $this->escape($finding->PointOfContact->username); ?>">
-
-                     <?php echo $this->escape($this->userInfo($finding->PointOfContact->username), 'none');?>
-                </span>
-
-                <?php
-                if ($this->isPocEditable):
-                ?>
-                    <span class="editable" target="pointOfContact">&nbsp;</span>
-                <?php
-                endif;
-                ?>
-            </tr>
-            <tr>
-                <td>Date Closed:</td>
-                <td>
-                    <?php
-                    if (!is_null($finding->closedTs)) {
-                        echo $this->escape($finding->closedTs);
-                    } else {
-                        echo $this->escape("<i>Not closed</i>", 'none');
-                    }
-                    ?>
                 </td>
             </tr>
             <tr>
@@ -123,30 +61,6 @@
                 </td>
             </tr>
             <tr>
-                <td>Status:</td>
-                <td title="<?php echo $this->escape($status); ?>">
-                    <?php echo $this->escape($finding->getLongStatus()); ?>
-                </td>
-            </tr>
-            <?php
-            if ($status != 'CLOSED') {
-            ?>
-            <tr>
-                <td>On Time:</td>
-                <td>
-                <?php if (is_null($finding->nextDueDate)): ?>
-                    N/A
-                <?php elseif (time() <= strtotime($finding->nextDueDate)): ?>
-                    On Time
-                <?php else: ?>
-                    Overdue
-                <?php endif; ?>
-                </td>
-            </tr>
-            <?php
-            }
-            ?>
-            <tr>
                 <td>
                     <div>
                         Organization/System:
@@ -173,30 +87,170 @@
                     ?>
                 </td>
             </tr>
+            <tr>
+                <td>Status:</td>
+                <td title="<?php echo $this->escape($status); ?>">
+                    <?php echo $this->escape($finding->getLongStatus()); ?>
+                </td>
+            </tr>
+            <?php if ($status != 'CLOSED'): ?><tr>
+                <td>On Time:</td>
+                <td>
+                <?php if (is_null($finding->nextDueDate)): ?>
+                    N/A
+                <?php elseif (time() <= strtotime($finding->nextDueDate)): ?>
+                    On Time
+                <?php else: ?>
+                    Overdue
+                <?php endif; ?>
+                </td>
+            </tr><?php endif; ?>
         </table>
         <?php Fisma_Format_Section::stopSection(); ?>
-    </span>
 
-    <div class="clear"></div>
+        <?php Fisma_Format_Section::startSection("Dates"); ?>
+        <table class="keyValues">
+            <tr>
+                <td>Date Discovered:</td>
+                <td><?php echo $this->escape($finding->discoveredDate)?></td>
+            </tr>
+            <tr>
+                <td>Date Opened:</td>
+                <td><?php echo $this->escape($finding->createdTs)?></td>
+            </tr>
 
+            <?php if (!$finding->ecdLocked): ?>
+            <tr>
+                <td>Expected Completion Date:</td>
+                <td>
+                <span name="finding[currentEcd]" id="currentEcd" type="text"
+                    <?php
+                        if ($finding->isEcdEditable()) {
+                            echo $this->escape(' class="date editable" target="currentEcd"', 'none');
+                        }
+                        echo $this->escape('>', 'none');
+                        echo $this->escape((empty($finding->currentEcd) ? 'NONE' : $finding->currentEcd), 'none');
+                    ?>
+                </span>
+                </td>
+            </tr>
+            <?php else: ?>
+            <!--
+                    The original ECD indicates the estimated completion date that was agreed upon when the finding
+                    was first approved, and it cannot be changed.
+                    The current ECD can be changed, but you must provide a written justification for the change.
+            -->
+
+            <tr>
+                <td>Original ECD:</td>
+                <td><?php echo $this->escape($finding->originalEcd); ?></td>
+            </tr>
+
+            <tr>
+                <div><!-- Rendering calendar depends on this div -->
+                    <td>Current ECD:</td>
+                    <td><span name="finding[currentEcd]" id="currentEcd" type="text"
+                        <?php
+                            if ($finding->isEcdEditable()) {
+                                echo $this->escape(' class="date editable" target="currentEcd"', 'none');
+                                $onclick = "Fisma.Finding.editEcdJustification();";
+                                echo $this->escape('onclick="', 'none');
+                                echo $this->escape($onclick, 'none');
+                                echo $this->escape('"', 'none');
+                            }
+                            echo $this->escape('>', 'none');
+                            echo $this->escape((empty($finding->currentEcd) ? 'NONE' : $finding->currentEcd));
+                        ?>
+                    </span></td>
+                </div>
+            </tr>
+
+            <tr>
+                <td>Justification for changing the ECD: </td>
+                <td id="currentChangeDescription"><?php echo $this->escape($finding->ecdChangeDescription); ?></td>
+            </tr>
+            <?php endif; ?>
+
+            <tr>
+                <td>Date Completed: </td>
+                <td>
+                    <?php
+                        if (empty($finding->actualCompletionDate)) {
+                            echo $this->escape('(not completed)', 'none');
+                        } else {
+                            echo $this->escape($finding->actualCompletionDate, 'none');
+                        }
+                    ?>
+                </td>
+            </tr>
+
+            <tr>
+                <td>Date Closed:</td>
+                <td>
+                    <?php
+                    if (!is_null($finding->closedTs)) {
+                        echo $this->escape($finding->closedTs);
+                    } else {
+                        echo $this->escape("Not closed");
+                    }
+                    ?>
+                </td>
+            </tr>
+        </table>
+        <?php Fisma_Format_Section::stopSection(); ?>
+
+        <?php Fisma_Format_Section::startSection("People"); ?>
+        <table class="keyValues">
+            <tr>
+                <td>Opened By:</td>
+                <td><?php echo $this->escape($this->userInfo($finding->CreatedBy->username), 'none'); ?></td>
+            </tr>
+            <tr>
+                <td>Point Of Contact:</td>
+                <td>
+                <span id="pointOfContact"
+                      type="autocomplete"
+                      xhr="/poc/autocomplete/format/json"
+                      queryPrepend="/keyword/"
+                      schemaObject="pointsOfContact"
+                      schemaField="name"
+                      name="finding[pocId]"
+                      <?php
+                      if ($this->acl()->hasPrivilegeForClass('create', 'Poc')):
+                      ?>
+                          setupCallback="Fisma.Finding.setupPocAutocomplete"
+                      <?php
+                      endif;
+                      ?>
+                      value="<?php echo $this->escape($finding->pocId); ?>"
+                      defaultValue="<?php echo $this->escape($finding->PointOfContact->username); ?>">
+
+                     <?php echo $this->escape($this->userInfo($finding->PointOfContact->username), 'none');?>
+                </span>
+
+                <?php
+                if ($this->isPocEditable):
+                ?>
+                    <span class="editable" target="pointOfContact">&nbsp;</span>
+                <?php
+                endif;
+                ?>
+            </tr>
+        </table>
+        <?php Fisma_Format_Section::stopSection(); ?>
 </div>
-<div class="column right">
 
-    <?php
-    if ($this->isDescriptionEditable) {
-        Fisma_Format_Section::startSection('Description', 'finding_description');
-    } else {
-        Fisma_Format_Section::startSection('Description');
-    }
-    ?>
-    <div name="finding[description]" id="finding_description" type="textarea" rows="3" cols="160">
-        <?php echo $this->escape($finding->description, 'none'); ?>
-    </div>
-    <?php Fisma_Format_Section::stopSection(); ?>
-
+<?php
+if ($this->isDescriptionEditable) {
+    Fisma_Format_Section::startSection('Description', 'finding_description');
+} else {
+    Fisma_Format_Section::startSection('Description');
+}
+?>
+<div name="finding[description]" id="finding_description" type="textarea" rows="3" cols="160">
+    <?php echo $this->escape($finding->description, 'none'); ?>
 </div>
-
-<div class="clear"></div>
+<?php Fisma_Format_Section::stopSection(); ?>
 
 <?php
 if ($this->isRecommendationEditable) {
@@ -210,5 +264,25 @@ if ($this->isRecommendationEditable) {
 </div>
 <?php Fisma_Format_Section::stopSection(); ?>
 
+<?php
+echo $this->partial(
+    'remediation/poam-table.partial.phtml',
+    'finding',
+    array(
+        'finding' => $finding,
+        'isMitigationStrategyEditable' => $this->isMitigationStrategyEditable,
+        'isTypeEditable' => $this->isTypeEditable
+    )
+);
+?>
 
-
+<?php
+echo $this->partial(
+    'remediation/poam-approval.partial.phtml',
+    'finding',
+    array(
+        'finding' => $finding,
+        'approvalHistory' => $this->approvalHistory
+    )
+);
+?>
