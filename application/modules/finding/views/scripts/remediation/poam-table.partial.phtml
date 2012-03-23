@@ -1,0 +1,23 @@
+<?php
+$finding = $this->finding;
+
+if ($this->isMitigationStrategyEditable) {
+    Fisma_Format_Section::startSection('Plan of Actions & Milestones', 'poam');
+} else {
+    Fisma_Format_Section::startSection('Plan of Actions & Milestones');
+}
+?>
+<p>
+    <b>Plan of Action:</b>
+
+    <span type="select" name="finding[type]" href="/metainfo/list/o/type/format/html/" id="type"
+        <?php
+            if ($this->isTypeEditable) {
+                echo $this->escape('class="editable" target="type"', 'none');
+            }
+        ?>>
+        <?php echo $this->escape($finding->type)?>&nbsp;&nbsp;
+    </span>
+</p>
+
+<?php Fisma_Format_Section::stopSection(); ?>

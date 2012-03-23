@@ -84,7 +84,6 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
     {
         $this->_helper->ajaxContext()
              ->addActionContext('finding', 'html')
-             ->addActionContext('mitigation-strategy', 'html')
              ->addActionContext('risk-analysis', 'html')
              ->addActionContext('security-control', 'html')
              ->addActionContext('comments', 'html')
@@ -250,7 +249,6 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
         $tabView = new Fisma_Yui_TabView('FindingView', $id);
 
         $tabView->addTab("Finding $id", "/finding/remediation/finding/id/$id/format/html");
-        $tabView->addTab("Mitigation Strategy", "/finding/remediation/mitigation-strategy/id/$id/format/html");
         $tabView->addTab("Risk Analysis", "/finding/remediation/risk-analysis/id/$id/format/html");
         $tabView->addTab("Security Control", "/finding/remediation/security-control/id/$id/format/html");
         $tabView->addTab("Comments ($commentCount)", "/finding/remediation/comments/id/$id/format/html");
@@ -846,29 +844,23 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
         $this->view->isOrganizationEditable = $this->_isEditable('responsibleOrganizationId', $table, $finding);
         $this->view->isDescriptionEditable = $this->_isEditable('description', $table, $finding);
         $this->view->isRecommendationEditable = $this->_isEditable('description', $table, $finding);
+        $this->view->isTypeEditable = $this->_isEditable('type', $table, $finding);
+        $this->view->isMitigationStrategyEditable = $this->_isEditable('mitigationStrategy', $table, $finding);
 
         $this->view->organizationViewUrl = "/$controller/view/$idParameter/$organization->id";
 
         $this->view->keywords = $this->_request->getParam('keywords');
-    }
 
-    /**
-     * Fields for defining the mitigation strategy
-     *
-     * @GETAllowed
-     * @return void
-     */
-    function mitigationStrategyAction()
-    {
-        $this->_viewFinding();
-        $finding = $this->view->finding;
-        $table = Doctrine::getTable('Finding');
-
-        $this->view->isTypeEditable = $this->_isEditable('type', $table, $finding);
-        $this->view->isMitigationStrategyEditable = $this->_isEditable('mitigationStrategy', $table, $finding);
-        $this->view->isResourcesEditable = $this->_isEditable('resourcesRequired', $table, $finding);
-        $this->view->isThreatLevelEditable = $this->_isEditable('threatLevel', $table, $finding);
-
+        // Build the POAM approval history
+        $approvalHistory = array();
+        for ($i = $this->view->finding->FindingEvaluations->count(); $i > 0; $i--) {
+            $findingEvaluation = $this->view->finding->FindingEvaluations->get($i - 1);
+            if ($findingEvaluation->Evaluation->approvalGroup != 'action'):
+                continue;
+            endif;
+            $approvalHistory[] = $findingEvaluation;
+        }
+        $this->view->approvalHistory = $approvalHistory;
     }
 
     /**

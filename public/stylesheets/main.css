@@ -163,7 +163,7 @@ div.section {
     background-color: #ffffff;
     border-top: none;
     padding: 10px;
-    position: relative;
+    /*position: relative;*/
     height: 100%;
     margin-bottom: 0px;
 }
@@ -294,12 +294,12 @@ div.approval b {
     margin-right: 10px;
 }
 
-div.approval span.approved {
+span.approved {
     background-color: lightgreen;
     padding: 3px;
 }
 
-div.approval span.denied {
+span.denied {
     background-color: #ffcccc;
     padding: 3px;
 }

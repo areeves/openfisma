@@ -112,3 +112,33 @@ div.stepDetail td input[readonly], div.stepDetail td textarea[readonly] {
     background: white ! important;
     border: none;
 }
+
+/**
+ * New layout for finding page as in OFJ-1590
+ * @link http://manual.openfisma.org/x/4YBx
+ */
+div#finding_detail_panel {
+    float:right;
+    width:33%;
+    background-color:#EDF5FF;
+    padding-left:5px;
+    border-left: lightgray solid thin;
+    padding-bottom:5px;
+    border-bottom: lightgray solid thin;
+}
+
+div#finding_detail_panel .sectionHeader:first-child {
+    margin-top:0px;
+}
+
+div#finding_detail_panel table.keyValues {
+    width:100%;
+}
+
+div#finding_detail_panel table.keyValues > tbody > tr > td:first-child {
+    width:150px;
+}
+
+form#finding_detail table.mceLayout {
+    width:66% ! important;
+}
