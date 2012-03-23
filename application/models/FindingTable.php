@@ -143,12 +143,6 @@ class FindingTable extends Fisma_Doctrine_Table implements Fisma_Search_Searchab
                 'sortable' => false,
                 'type' => 'text'
             ),
-            'mitigationStrategy' => array(
-                'initiallyVisible' => false,
-                'label' => 'Mitigation Strategy',
-                'sortable' => false,
-                'type' => 'text'
-            ),
             'originalEcd' => array(
                 'initiallyVisible' => false,
                 'label' => 'Original ECD',

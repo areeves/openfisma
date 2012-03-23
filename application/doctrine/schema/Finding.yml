@@ -71,24 +71,6 @@ Finding:
                 requiredUpdateStatus: [NEW, DRAFT]
                 requiredPrivilege: update_recommendation
             comment: The auditors recommendation to remediate this finding
-        mitigationStrategy:
-            type: string
-            extra:
-                purify: html
-                auditLog: true
-                logicalName: Mitigation Strategy
-                requiredUpdateStatus: [NEW, DRAFT]
-                requiredPrivilege: update_course_of_action
-            comment: The ISSOs plan to handle this finding. This can be a course of action (for CAPs or FPs) or a business case (for ARs)
-        resourcesRequired:
-            type: string
-            extra:
-                purify: html
-                auditLog: true
-                logicalName: Resources Required
-                requiredUpdateStatus: [NEW, DRAFT]
-                requiredPrivilege: update_resources
-            comment: Any additional resources (financial) required to complete this course of action
         originalEcd:
             type: date
             extra:
