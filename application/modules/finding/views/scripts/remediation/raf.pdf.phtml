@@ -198,7 +198,6 @@ $pdf->ezTable($data, null, null, $headerOptions);
 $pdf->ezText('', BODY_TEXT_SIZE, array('justification'=>'center'));
 $ecdDate = $finding->currentEcd;
 $data = array(array("<b>Type:</b>", Fisma_String::htmlToPdfText($finding->type), "", ""),
-              array("<b>Description:</b>", Fisma_String::htmlToPdfText($finding->mitigationStrategy), "", ""),
               array("<b>Estimated Completion Date:</b>", $ecdDate, "", ""));
 $pdf->ezTable($data, null, null, $labelOptions);
 
@@ -208,7 +207,7 @@ if ('AR' == Fisma_String::htmlToPdfText($finding->type)) {
     // a small separator between the previous section and this one
     $pdf->ezText('___________', BODY_TEXT_SIZE, array('justification'=>'center'));
     $pdf->ezText('', BODY_TEXT_SIZE, array('justification'=>'center'));
-    
+
     // Business Owner Signature
     $data = array(
       array('Concur __ ', 'Non-Concur __ ','_____________________________________________','___/___/______'),
