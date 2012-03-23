@@ -137,12 +137,10 @@ class Fisma_Cli_GenerateFindings extends Fisma_Cli_AbstractGenerator
             $finding['responsibleOrganizationId'] = $organizationIds[rand(0, $organizationIdsCount)][0];
             $finding['sourceId'] = $sourceIds[rand(0, $sourceIdsCount)][0];
             $finding['securityControlId'] = $securityControlIds[rand(0, $securityControlIdsCount)][0];
-            $finding['description'] = Fisma_String::loremIpsum(rand(2, 300));
-            $finding['recommendation'] = Fisma_String::loremIpsum(rand(2, 300));
-            $finding['mitigationStrategy'] = Fisma_String::loremIpsum(rand(2, 300));
-            $finding['resourcesRequired'] = Fisma_String::loremIpsum(rand(2, 300));
-            $finding['threat'] = Fisma_String::loremIpsum(rand(2, 300));
-            $finding['countermeasures'] = Fisma_String::loremIpsum(rand(2, 300));
+            $finding['description'] = Fisma_String::loremIpsum(rand(200, 400));
+            $finding['recommendation'] = Fisma_String::loremIpsum(rand(200, 400));
+            $finding['threat'] = Fisma_String::loremIpsum(rand(200, 400));
+            $finding['countermeasures'] = Fisma_String::loremIpsum(rand(200, 400));
             $finding['discoveredDate'] = $discoveredDate;
             $finding['ecdChangeDescription'] = Fisma_String::loremIpsum(rand(5, 10));;
             $finding['ecdLocked'] = FALSE;

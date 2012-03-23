@@ -845,7 +845,6 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
         $this->view->isDescriptionEditable = $this->_isEditable('description', $table, $finding);
         $this->view->isRecommendationEditable = $this->_isEditable('description', $table, $finding);
         $this->view->isTypeEditable = $this->_isEditable('type', $table, $finding);
-        $this->view->isMitigationStrategyEditable = $this->_isEditable('mitigationStrategy', $table, $finding);
 
         $this->view->organizationViewUrl = "/$controller/view/$idParameter/$organization->id";
 

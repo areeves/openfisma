@@ -5,7 +5,6 @@ $finding = $this->finding;
 $array = array('type'                   => $finding->type,
                'description'            => $finding->description,
                'recommendation'         => $finding->recommendation,
-               'resources'              => $finding->resourcesRequired,
                'ECD'                    => $finding->currentEcd,
                'blscr'                  => $finding->securityControlId,
                'threat_level'           => $finding->threatLevel,
@@ -80,7 +79,7 @@ if (
 }
 
 if ($finding->status == 'MSA') {
-    echo $this->escape("<div class='approvalHeader'><b>Approval History</b></div><div class='approval'>", 'none');
+    echo $this->escape("<div class='approvalHeader'><b>Approval</b></div><div class='approval'>", 'none');
     $activeEvaluation = $finding->CurrentEvaluation;
     if ($activeEvaluation->id != null && $activeEvaluation->approvalGroup == 'action') {
         echo $this->escape('<div class="approvalStep"><b>', 'none');
@@ -149,7 +148,7 @@ if ($finding->status == 'MSA') {
 // Print the history table (if not empty)
 if (!empty($this->approvalHistory)):
 ?>
-<div class='approvalHeader'><b>Approval History</b></div>
+<div class='approvalHeader'><b>History</b></div>
 <div class='approval'>
 <?php
 $decidedTypes = array(); // Hightlight only the latest decision of each approval type

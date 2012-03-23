@@ -1,0 +1,33 @@
+Milestone:
+    columns:
+        description:
+            type: string
+            notnull: true
+        pocId:
+            type: integer
+            comment: Foreign key to the assigned Point of Contact
+        findingId:
+            type: integer
+            comment: Foreign key to the associated Finding
+        dueDate:
+            type: date
+            notnull: true
+            comment: The deadline to complete this Milestone
+        cost:
+            type: decimal
+            scale: 2
+            comment: The estimated cost of the Milestone
+        completed:
+            type: boolean
+            default: false
+            notnull: true
+
+    relations:
+        Finding:
+            local: findingId
+            foreign: id
+            foreignAlias: Milestones
+        Assignee:
+            local: pocId
+            foreign: id
+            foreignAlias: Milestones

@@ -114,9 +114,9 @@ div#finding_detail_panel {
 }
 
 div#finding_detail_panel .sectionHeader:first-child {
-    margin-top:10px;
+    margin-top: 10px;
 }
 
 form#finding_detail table.mceLayout {
-    width:100% ! important;
+    width: 100% ! important;
 }

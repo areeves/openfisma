@@ -1,7 +1,7 @@
 <?php
 $finding = $this->finding;
 
-if ($this->isMitigationStrategyEditable) {
+if ($this->isTypeEditable) {
     Fisma_Format_Section::startSection('Plan of Actions & Milestones', 'poam');
 } else {
     Fisma_Format_Section::startSection('Plan of Actions & Milestones');
@@ -16,7 +16,7 @@ if ($this->isMitigationStrategyEditable) {
                 echo $this->escape('class="editable" target="type"', 'none');
             }
         ?>>
-        <?php echo $this->escape($finding->type)?>&nbsp;&nbsp;
+        <?php echo $this->escape($finding->type)?>
     </span>
 </p>
 

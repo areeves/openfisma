@@ -39,7 +39,6 @@ class Finding extends BaseFinding implements Fisma_Zend_Acl_OrganizationDependen
         'responsibleOrganizationId' => 'UPDATE_RESPONSIBLE_SYSTEM',
         'countermeasures'           => 'UPDATE_COUNTERMEASURES',
         'threat'                    => 'UPDATE_THREAT',
-        'resourcesRequired'         => 'UPDATE_RESOURCES_REQUIRED',
         'description'               => 'UPDATE_DESCRIPTION',
         'recommendation'            => 'UPDATE_RECOMMENDATION',
         'type'                      => 'UPDATE_MITIGATION_TYPE',
