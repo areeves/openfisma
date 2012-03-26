@@ -58,7 +58,7 @@ if ('NEW' == $finding->status || 'DRAFT' == $finding->status) {
         <p>Remaining to be done:</p>
         <ul id='poam_remaining'>
             <?php foreach ($poam_completion as $key => $row): ?>
-                <li><?php echo $this->escape($key); ?></li>
+                <li>Fill in <?php echo $this->escape($key); ?> section.</li>
             <?php endforeach; ?>
         </ul>
     <?php endif; ?>
