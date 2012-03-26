@@ -2,28 +2,34 @@
 Fisma_Format_Section::startSection("Approvals for Plan of Actions & Milestones");
 $finding = $this->finding;
 
-$array = array('type'                   => $finding->type,
-               'description'            => $finding->description,
-               'recommendation'         => $finding->recommendation,
-               'ECD'                    => $finding->currentEcd,
-               'blscr'                  => $finding->securityControlId,
-               'threat_level'           => $finding->threatLevel,
-               'threat_source'          => $finding->threat,
-               'cmeasure_effectiveness' => $finding->countermeasuresEffectiveness,
-               'cmeasure'               => $finding->countermeasures);
+// Evaluate the completion of the POA&Ms
+$poam_completion = array(
+    'Plan of Action'                => $finding->type,
+    'Finding Description'           => $finding->description,
+    'Finding Recommendation'        => $finding->recommendation,
+    'Estimated Completion Date'     => $finding->currentEcd,
+    'Security Control'              => $finding->securityControlId,
+    'Threat Level'                  => $finding->threatLevel,
+    'Threat Description'            => $finding->threat,
+    'Countermeasure Effectiveness'  => $finding->countermeasuresEffectiveness,
+    'Countermeasure Description'    => $finding->countermeasures
+);
 $complete = true;
-foreach ($array as $row) {
+foreach ($poam_completion as $key => $row) {
     $row = strip_tags($row);
-    if ($row == '' || $row == 'NONE' || $row == '0000-00-00') {
+    if (in_array($row, array('', 'NONE', '0000-00-00', 'N/A'))) {
         $complete = false;
-        continue;
+    } else {
+        unset($poam_completion[$key]);
     }
 }
 
+// Prepare POA&Ms submission controls
 $warning = "WARNING: You are about to submit mitigation strategy. This action cannot be undone. "
            . 'Please click "YES" to confirm your action or click "No" to stop.';
 $args = array(null, '/finding/remediation/msa/do/submitmitigation/id/', $finding->id);
 
+// Submit button
 if ('NEW' == $finding->status || 'DRAFT' == $finding->status) {
     $submitMitigationButton = new Fisma_Yui_Form_Button(
         'submitMitigation',
@@ -46,13 +52,22 @@ if ('NEW' == $finding->status || 'DRAFT' == $finding->status) {
         $submitMitigationButton->readOnly = true;
     }
 ?>
-    <p><i>The mitigation strategy, security control, and risk analysis sections must
-          be fully completed before this can be submitted for approval.</i></p>
+    <p><i>In order to submit the POA&amp;Ms for approval, you must have selected a plan of action, created one or more milestones, and completed the risk analysis.</i></p>
+
+    <?php if (count($poam_completion) > 0): ?>
+        <p>Remaining to be done:</p>
+        <ul id='poam_remaining'>
+            <?php foreach ($poam_completion as $key => $row): ?>
+                <li><?php echo $this->escape($key); ?></li>
+            <?php endforeach; ?>
+        </ul>
+    <?php endif; ?>
 
     <div class='buttonBar'><?php echo $this->escape($submitMitigationButton, 'none')?></div>
 <?php
 }
 
+// Revise button
 if (
     !$finding->isDeleted() &&
     'EN' == $finding->status &&
@@ -78,6 +93,7 @@ if (
 <?php
 }
 
+// Prepare approval controls
 if ($finding->status == 'MSA') {
     echo $this->escape("<div class='approvalHeader'><b>Approval</b></div><div class='approval'>", 'none');
     $activeEvaluation = $finding->CurrentEvaluation;
