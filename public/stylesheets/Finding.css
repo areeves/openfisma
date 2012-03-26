@@ -143,3 +143,7 @@ div#finding_detail_panel table.keyValues > tbody > tr > td:first-child {
 form#finding_detail table.mceLayout {
     width: 66% ! important;
 }
+
+ul#poam_remaining {
+    margin-left:0px;
+}
