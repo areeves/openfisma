@@ -1,3 +1,5 @@
-<?php 
+<?php
+    Fisma_Format_Section::startSection('Audit Log'); //so that it won't be chunked together with EV tab in print-mode
     echo $this->escape($this->auditLogDataTable, 'none');
+    Fisma_Format_Section::stopSection();
 ?>

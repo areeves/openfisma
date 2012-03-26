@@ -328,7 +328,6 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
     public function printAction()
     {
         $this->findingAction();
-        $this->mitigationStrategyAction();
         $this->riskAnalysisAction();
         $this->securityControlAction();
         $this->commentsAction();
