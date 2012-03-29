@@ -256,5 +256,18 @@ Fisma.Remediation = {
         forcedIndicator.value = true;
         document.finding_detail_upload_evidence.appendChild(forcedIndicator);
         document.finding_detail_upload_evidence.upload_evidence.click();
+    },
+
+    completeMilestone : function(element, enabled) {
+        if (!enabled) {
+            Fisma.Util.showAlertDialog('A milestone can only be completed during EN phase.');
+            return false;
+        }
+        var e = jQuery('img', element);
+        if (e.attr('src').indexOf('check_empty.png') >= 0) {
+            e.attr('src', '/images/check.png');
+            e.parent().after('<span>Completed by Sample User on 2012-03-29 at 08:41 AM</span>');
+        }
+        return false;
     }
 };

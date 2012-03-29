@@ -233,7 +233,7 @@ table.keyValues td {
 }
 
 /* The first column in a keyValues table is bold text */
-table.keyValues td:first-child {
+table.keyValues td:nth-child(odd) {
     font-weight: bold;
     text-align: right;
 }
@@ -275,7 +275,7 @@ div.approvalHeader {
 }
 
 div.approvalStep {
-    background-color: #efefef;
+    background-color: #fefefe;
     border-top: 2px dashed #cecece;
     padding-left: 3px;
     padding-bottom: 8px;
@@ -291,7 +291,7 @@ div.approvalStep:first-child {
 }
 
 div.approval b {
-    margin-right: 10px;
+    margin-right: 0px;
 }
 
 span.approved {
@@ -302,10 +302,6 @@ span.approved {
 span.denied {
     background-color: #ffcccc;
     padding: 3px;
-}
-
-div.approvalStep.highlight {
-    background-color:#FEFEFE;
 }
 
 div.findingStatus {

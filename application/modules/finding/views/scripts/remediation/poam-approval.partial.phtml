@@ -7,7 +7,7 @@ $poam_completion = array(
     'Plan of Action'                => $finding->type,
     'Finding Description'           => $finding->description,
     'Finding Recommendation'        => $finding->recommendation,
-    'Estimated Completion Date'     => $finding->currentEcd,
+    'Expected Completion Date'     => $finding->currentEcd,
     'Security Control'              => $finding->securityControlId,
     'Threat Level'                  => $finding->threatLevel,
     'Threat Description'            => $finding->threat,
@@ -52,9 +52,9 @@ if ('NEW' == $finding->status || 'DRAFT' == $finding->status) {
         $submitMitigationButton->readOnly = true;
     }
 ?>
-    <p><i>In order to submit the POA&amp;Ms for approval, you must have selected a plan of action, created one or more milestones, and completed the risk analysis.</i></p>
-
     <?php if (count($poam_completion) > 0): ?>
+        <p><i>In order to submit the POA&amp;Ms for approval, you must have selected a plan of action, created one or more milestones, and completed the risk analysis.</i></p>
+
         <p>Remaining to be done:</p>
         <ul id='poam_remaining'>
             <?php foreach ($poam_completion as $key => $row): ?>
@@ -94,87 +94,70 @@ if (
 }
 
 // Prepare approval controls
-if ($finding->status == 'MSA') {
-    echo $this->escape("<div class='approvalHeader'><b>Approval</b></div><div class='approval'>", 'none');
+?>
+<?php if ($finding->status == 'MSA') {
     $activeEvaluation = $finding->CurrentEvaluation;
-    if ($activeEvaluation->id != null && $activeEvaluation->approvalGroup == 'action') {
-        echo $this->escape('<div class="approvalStep"><b>', 'none');
-        echo $this->escape($activeEvaluation->name);
-        echo $this->escape('</b>', 'none');
-        if (
-            !$finding->isDeleted() &&
-            $this->acl()->hasPrivilegeForObject($activeEvaluation->Privilege->action, $finding)
-        ) {
-            echo $this->escape('<input type="hidden" name="comment" value="" />', 'none');
-            echo $this->escape('<input type="hidden" name="decision" value="APPROVED" />', 'none');
-
-            $approveButton = new Fisma_Yui_Form_Button(
-                'approveButton',
-                array(
-                    'label' => 'APPROVE',
-                    'onClickFunction' => 'Fisma.Remediation.remediationAction',
-                    'onClickArgument' => array(
-                        'action' => "APPROVED",
-                        'formId' => "finding_detail",
-                        'panelTitle' => "Mitigation Strategy Approval",
-                        'findingId' => $finding->id
-                    )
+    if (
+        !$finding->isDeleted() &&
+         $this->acl()->hasPrivilegeForObject($activeEvaluation->Privilege->action, $finding)
+    ) {
+?>
+        <div class='buttonBar'>
+            <input type="hidden" name="comment" value="" />
+            <input type="hidden" name="decision" value="APPROVED" />
+<?php
+        $approveButton = new Fisma_Yui_Form_Button(
+            'approveButton',
+            array(
+                'label' => 'APPROVE',
+                'onClickFunction' => 'Fisma.Remediation.remediationAction',
+                'onClickArgument' => array(
+                    'action' => "APPROVED",
+                    'formId' => "finding_detail",
+                    'panelTitle' => "Mitigation Strategy Approval",
+                    'findingId' => $finding->id
                 )
-            );
-            echo $this->escape($approveButton, 'none');
+            )
+        );
+        echo $this->escape($approveButton, 'none');
 
-            $denyButton = new Fisma_Yui_Form_Button(
-                'denyButton',
-                array(
-                    'label' => 'DENIED',
-                    'onClickFunction' => 'Fisma.Remediation.remediationAction',
-                    'onClickArgument' => array(
-                        'action' => "DENIED",
-                        'formId' => "finding_detail",
-                        'panelTitle' => "Mitigation Strategy Denial",
-                        'findingId' => $finding->id
-                    )
+        $denyButton = new Fisma_Yui_Form_Button(
+            'denyButton',
+            array(
+                'label' => 'DENY',
+                'onClickFunction' => 'Fisma.Remediation.remediationAction',
+                'onClickArgument' => array(
+                    'action' => "DENIED",
+                    'formId' => "finding_detail",
+                    'panelTitle' => "Mitigation Strategy Denial",
+                    'findingId' => $finding->id
                 )
-            );
+            )
+        );
 
-            echo $this->escape($denyButton, 'none');
-        } else {
-            echo $this->escape("PENDING", 'none');
-        }
-        echo $this->escape('</div>', 'none');
+        echo $this->escape($denyButton, 'none');
+?>
+        </div>
+<?php
+    } else {
+?>
+        <div class='findingStatus'>
+            <b>Status: </b>
+            <span><?php echo $this->escape($this->finding->getLongStatus()); ?></span>
+        </div>
+<?php
     }
-
-    $disableEvaluations = array();
-    $currentEvaluation  = $finding->CurrentEvaluation;
-    if ($currentEvaluation->approvalGroup == 'action') {
-        while ($currentEvaluation->nextId != null) {
-            $currentEvaluation    = $currentEvaluation->NextEvaluation;
-            $disableEvaluations[] = $currentEvaluation;
-        }
-    }
-
-    foreach ($disableEvaluations as $evaluation) {
-        echo $this->escape('<div class="approvalStep"><b>', 'none');
-        echo $this->escape($evaluation->name);
-        echo $this->escape('</b>N/A</div>', 'none');
-    }
-    echo $this->escape('</div>', 'none');
 }
+?>
+<?php
 
 // Print the history table (if not empty)
 if (!empty($this->approvalHistory)):
 ?>
-<div class='approvalHeader'><b>History</b></div>
+<div class='approvalHeader'><b>History</b> <a href='#' onclick='jQuery("b.aview").toggle();return false;'>[Switch view]</a></div>
 <div class='approval'>
 <?php
-$decidedTypes = array(); // Hightlight only the latest decision of each approval type
 foreach ($this->approvalHistory as $findingEvaluation):
-    $highlighted = '';
-    if (!in_array($findingEvaluation->Evaluation->id, $decidedTypes)):
-        $decidedTypes[] = $findingEvaluation->Evaluation->id;
-        $highlighted = ' highlight';
-    endif;
-
     $user = $findingEvaluation->User;
     $userHtml = $this->userInfo($user->nameFirst . ' ' . $user->nameLast, $user->username);
     $decision = $findingEvaluation->decision;
@@ -183,8 +166,8 @@ foreach ($this->approvalHistory as $findingEvaluation):
                $this->textToHtml($this->escape($findingEvaluation->comment)) :
                "";
 ?>
-    <div class='approvalStep<?php echo $this->escape($highlighted); ?>'>
-        <b><?php echo $this->escape($findingEvaluation->Evaluation->name); ?></b>
+    <div class='approvalStep'>
+        <b class='aview'><?php echo $this->escape($findingEvaluation->Evaluation->name); ?><br/><br/></b>
         <span class='<?php echo $this->escape($spanClass); ?>'>
             <b><?php echo $this->escape($decision); ?></b>
             by <?php echo $this->escape($userHtml, 'none'); ?>
@@ -196,6 +179,9 @@ foreach ($this->approvalHistory as $findingEvaluation):
 endforeach;
 ?>
 </div> <!-- end of div.approval -->
+<script>
+jQuery('b.aview').hide();
+</script>
 <?php
 endif;
 

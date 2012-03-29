@@ -1,23 +1,77 @@
 <?php
 $finding = $this->finding;
 
-if ($this->isTypeEditable) {
-    Fisma_Format_Section::startSection('Plan of Actions & Milestones', 'poam');
-} else {
-    Fisma_Format_Section::startSection('Plan of Actions & Milestones');
-}
+Fisma_Format_Section::startSection('Plan of Actions & Milestones');
 ?>
-<p>
-    <b>Plan of Action:</b>
 
-    <span type="select" name="finding[type]" href="/metainfo/list/o/type/format/html/" id="type"
-        <?php
-            if ($this->isTypeEditable) {
-                echo $this->escape('class="editable" target="type"', 'none');
-            }
-        ?>>
-        <?php echo $this->escape($finding->type)?>
-    </span>
-</p>
+<div class='buttonBar'>
+    <span class='yui-button yui-link-button'><span class='first-child'><button>Add Milestone</button></span></span>
+</div>
 
-<?php Fisma_Format_Section::stopSection(); ?>
+<!-- Milestone 1 -->
+<div class='approvalHeader'>
+    <span class='editable'><b>Milestone 1</b></span>
+    <a style='float:right;' href='#' onclick='javascript:alert("Milestone deletion has not been implemented.");return false;'>
+        <img src='/images/delete_row.png' /></a>
+    <a
+        href='#'
+        onclick='return Fisma.Remediation.completeMilestone(
+            this,
+            <?php echo $this->escape(($finding->status == 'EN') ? 'true' : 'false'); ?>
+        );'
+    ><img src='/images/check_empty.png' /></a>
+</div>
+<div class='approval'>
+    <div>
+        tortor aliquam justo eleifend elementum mi ullamcorper, massa himenaeos volutpat elementum aliquam lobortis donec, cras mi vel facilisis quam. morbi a nullam suscipit urna turpis netus, ac nostra cubilia facilisis orci, semper aenean ad est pulvinar. interdum velit posuere nisi curabitur nisi diam est netus faucibus eget commodo, risus ligula consequat quis congue dolor donec tristique ligula aptent curabitur, posuere pulvinar posuere viverra malesuada proin scelerisque elit lacinia vivamus. nunc aenean ultrices auctor fusce fringilla quisque morbi, vulputate purus urna molestie condimentum sapien litora, sagittis eleifend odio vestibulum consectetur ac. iaculis porta inceptos consectetur pulvinar diam primis vitae cursus viverra, taciti habitasse enim vestibulum eleifend justo himenaeos fames adipiscing bibendum, amet tortor curabitur tempor vestibulum ad a ligula. eros torquent ultrices netus aliquet lectus quisque aenean netus eu porttitor ipsum quam inceptos donec purus, hendrerit commodo amet praesent arcu ipsum ultrices commodo gravida erat est malesuada purus tristique. ac posuere etiam urna eget nisl purus quam ante ut suscipit et volutpat rutrum, libero ut sagittis felis quisque non habitasse cras enim mollis etiam mi. gravida luctus accumsan risus varius lectus aptent diam cubilia integer aenean nec, interdum curabitur pulvinar inceptos suscipit sapien eros laoreet convallis. morbi luctus nec congue dolor iaculis dui curabitur phasellus quis, porta facilisis ornare cras posuere vitae augue dolor aliquet nec, sem lectus aenean consectetur tristique viverra et vulputate. porttitor nullam semper rhoncus faucibus dictum tortor posuere sagittis senectus, rutrum viverra per gravida donec eleifend orci vivamus auctor, aliquet nisi vivamus malesuada risus ullamcorper neque taciti. senectus etiam platea aenean maecenas nisi duis integer donec, rutrum pharetra ullamcorper molestie congue dolor vulputate lorem phasellus, mi suscipit at nisl conubia ut nunc. maecenas ornare risus nam habitasse quisque nec imperdiet facilisis ante, eros quis iaculis pretium ornare scelerisque justo in, consectetur aptent ac aliquet tincidunt aliquam lorem non. neque massa senectus habitant aliquet sem interdum ullamcorper euismod venenatis tincidunt sem tempor pulvinar, feugiat faucibus posuere etiam tempor ligula imperdiet ipsum dictum quis pharetra in. eleifend quisque tortor proin diam urna eget eros vehicula, id est condimentum sapien aptent lorem aenean, aliquam netus venenatis pharetra sem cras accumsan. consectetur rhoncus amet sem ante venenatis ac erat nibh dolor consequat nisl varius per conubia, placerat felis aliquam ut cras phasellus at nibh mi habitasse urna leo nam.
+    </div>
+    <table class='keyValues'>
+        <tr>
+            <td>Expected Completion Date:</td>
+            <td>
+            <span name="finding[currentEcd]" id="currentEcd" type="text"
+                <?php
+                    if ($finding->isEcdEditable()) {
+                        echo $this->escape(' class="date editable" target="currentEcd"', 'none');
+                    }
+                    echo $this->escape('>', 'none');
+                    echo $this->escape((empty($finding->currentEcd) ? 'NONE' : $finding->currentEcd), 'none');
+                ?>
+            </span>
+            </td>
+            <td>Assignee:</td>
+            <td>
+            <span id="pointOfContact"
+                  type="autocomplete"
+                  xhr="/poc/autocomplete/format/json"
+                  queryPrepend="/keyword/"
+                  schemaObject="pointsOfContact"
+                  schemaField="name"
+                  name="finding[pocId]"
+                  <?php
+                  if ($this->acl()->hasPrivilegeForClass('create', 'Poc')):
+                  ?>
+                      setupCallback="Fisma.Finding.setupPocAutocomplete"
+                  <?php
+                  endif;
+                  ?>
+                  value="<?php echo $this->escape($finding->pocId); ?>"
+                  defaultValue="<?php echo $this->escape($finding->PointOfContact->username); ?>">
+
+                 <?php echo $this->escape($this->userInfo($finding->PointOfContact->username), 'none');?>
+            </span>
+
+            <?php
+            if ($this->isPocEditable):
+            ?>
+                <span class="editable" target="pointOfContact">&nbsp;</span>
+            <?php
+            endif;
+            ?>
+            </td>
+            <td>Cost:</td>
+            <td>0</td>
+        </tr>
+    </tr>
+    </table>
+</div><!-- end Milestone 1 -->

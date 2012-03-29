@@ -120,30 +120,50 @@ div.stepDetail td input[readonly], div.stepDetail td textarea[readonly] {
 div#finding_detail_panel {
     float: right;
     width: 33%;
-    background-color: #EDF5FF;
+    /*background-color: #EDF5FF;
     padding-left: 5px;
     border-left: lightgray solid thin;
     padding-bottom: 5px;
-    border-bottom: lightgray solid thin;
+    border-bottom: lightgray solid thin;*/
 }
 
 div#finding_detail_panel .sectionHeader:first-child {
     margin-top:0px;
 }
 
-div#finding_detail_panel table.keyValues {
+form#finding_detail table.keyValues {
     width: 100%;
     margin-bottom: 0px;
 }
 
-div#finding_detail_panel table.keyValues > tbody > tr > td:first-child {
+form#finding_detail table.keyValues > tbody > tr > td:nth-child(odd) {
     width: 150px;
-}
-
-form#finding_detail table.mceLayout {
-    width: 66% ! important;
 }
 
 ul#poam_remaining {
     margin-left:0px;
+}
+
+form#finding_detail div.approvalStep b.aview {
+    display: none;
+}
+
+form#finding_detail span.LOW {
+    /*background-color: lightgreen;*/
+    color: green;
+    padding: 4px;
+    font-weight: bold;
+}
+
+form#finding_detail span.MODERATE {
+    /*background-color: #FEEF83;*/
+    color: #9F6000;
+    padding: 4px;
+    font-weight: bold;
+}
+
+form#finding_detail span.HIGH {
+    color: darkred;
+    padding: 4px;
+    font-weight: bold;
 }

@@ -2,20 +2,62 @@
     $finding = $this->finding;
     $status  = $finding->getStatus();
 
-Fisma_Format_Section::startSection("Dates"); ?>
+Fisma_Format_Section::startSection("People"); ?>
 <table class="keyValues">
     <tr>
-        <td>Date Discovered:</td>
+        <td>Opened By:</td>
+        <td><?php echo $this->escape($this->userInfo($finding->CreatedBy->username), 'none'); ?></td>
+    </tr>
+    <tr>
+        <td>Point Of Contact:</td>
+        <td>
+        <span id="pointOfContact"
+              type="autocomplete"
+              xhr="/poc/autocomplete/format/json"
+              queryPrepend="/keyword/"
+              schemaObject="pointsOfContact"
+              schemaField="name"
+              name="finding[pocId]"
+              <?php
+              if ($this->acl()->hasPrivilegeForClass('create', 'Poc')):
+              ?>
+                  setupCallback="Fisma.Finding.setupPocAutocomplete"
+              <?php
+              endif;
+              ?>
+              value="<?php echo $this->escape($finding->pocId); ?>"
+              defaultValue="<?php echo $this->escape($finding->PointOfContact->username); ?>">
+
+             <?php echo $this->escape($this->userInfo($finding->PointOfContact->username), 'none');?>
+        </span>
+
+        <?php
+        if ($this->isPocEditable):
+        ?>
+            <span class="editable" target="pointOfContact">&nbsp;</span>
+        <?php
+        endif;
+        ?>
+        </td>
+    </tr>
+</table>
+<?php Fisma_Format_Section::stopSection(); ?>
+
+
+<?php Fisma_Format_Section::startSection("Dates"); ?>
+<table class="keyValues">
+    <tr>
+        <td>Discovered:</td>
         <td><?php echo $this->escape($finding->discoveredDate)?></td>
     </tr>
     <tr>
-        <td>Date Opened:</td>
+        <td>Opened:</td>
         <td><?php echo $this->escape($finding->createdTs)?></td>
     </tr>
 
     <?php if (!$finding->ecdLocked): ?>
     <tr>
-        <td>Expected Completion Date:</td>
+        <td>Expected Completion:</td>
         <td>
         <span name="finding[currentEcd]" id="currentEcd" type="text"
             <?php
@@ -66,7 +108,7 @@ Fisma_Format_Section::startSection("Dates"); ?>
     <?php endif; ?>
 
     <tr>
-        <td>Date Completed: </td>
+        <td>Completed: </td>
         <td>
             <?php
                 if (empty($finding->actualCompletionDate)) {
@@ -79,7 +121,7 @@ Fisma_Format_Section::startSection("Dates"); ?>
     </tr>
 
     <tr>
-        <td>Date Closed:</td>
+        <td>Closed:</td>
         <td>
             <?php
             if (!is_null($finding->closedTs)) {
@@ -93,42 +135,15 @@ Fisma_Format_Section::startSection("Dates"); ?>
 </table>
 <?php Fisma_Format_Section::stopSection(); ?>
 
-<?php Fisma_Format_Section::startSection("People"); ?>
-<table class="keyValues">
-    <tr>
-        <td>Opened By:</td>
-        <td><?php echo $this->escape($this->userInfo($finding->CreatedBy->username), 'none'); ?></td>
-    </tr>
-    <tr>
-        <td>Point Of Contact:</td>
-        <td>
-        <span id="pointOfContact"
-              type="autocomplete"
-              xhr="/poc/autocomplete/format/json"
-              queryPrepend="/keyword/"
-              schemaObject="pointsOfContact"
-              schemaField="name"
-              name="finding[pocId]"
-              <?php
-              if ($this->acl()->hasPrivilegeForClass('create', 'Poc')):
-              ?>
-                  setupCallback="Fisma.Finding.setupPocAutocomplete"
-              <?php
-              endif;
-              ?>
-              value="<?php echo $this->escape($finding->pocId); ?>"
-              defaultValue="<?php echo $this->escape($finding->PointOfContact->username); ?>">
 
-             <?php echo $this->escape($this->userInfo($finding->PointOfContact->username), 'none');?>
-        </span>
 
-        <?php
-        if ($this->isPocEditable):
-        ?>
-            <span class="editable" target="pointOfContact">&nbsp;</span>
-        <?php
-        endif;
-        ?>
-    </tr>
-</table>
-<?php Fisma_Format_Section::stopSection(); ?>
+<?php
+echo $this->partial(
+    'remediation/poam-approval.partial.phtml',
+    'finding',
+    array(
+        'finding' => $finding,
+        'approvalHistory' => $this->approvalHistory
+    )
+);
+?>

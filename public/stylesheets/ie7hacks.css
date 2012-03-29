@@ -108,15 +108,6 @@ div.yui-calcontainer > div.title {
     position: static;
 }
 
-/* Fixing quirks in metric calculating */
-div#finding_detail_panel {
-    border: none;
-}
-
 div#finding_detail_panel .sectionHeader:first-child {
     margin-top: 10px;
-}
-
-form#finding_detail table.mceLayout {
-    width: 100% ! important;
 }
