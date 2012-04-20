@@ -22,7 +22,8 @@ echo $this->partial(
     Fisma_Format_Section::startSection("Details");
 ?>
 <table class="keyValues" style='width:100%'>
-    <!--<tr>
+<?php if (Fisma::configuration()->getConfig('use_legacy_finding_key')): ?>
+    <tr>
         <td>Legacy Finding Key:</td>
         <td colspan='3'>
             <span
@@ -40,7 +41,8 @@ echo $this->partial(
                 <?php echo $this->escape($finding->legacyFindingKey); ?>&nbsp;
             </span>
         </td>
-    </tr>-->
+    </tr>
+<?php endif; ?>
     <tr>
         <td>Status:</td>
         <td title="<?php echo $this->escape($status); ?>" colspan='3'>
@@ -56,7 +58,7 @@ echo $this->partial(
                   href="/metainfo/list/o/source/format/html/"
                   value="<?php echo $this->escape($finding->Source->id); ?>">
                   <?php
-                  $sourceName = $finding->Source->nickname/* . ' - ' . $finding->Source->name*/;
+                  $sourceName = $finding->Source->nickname;
                   if ($this->acl()->hasPrivilegeForObject('read', $finding->Source)):
                   ?>
                       <a href="/finding/source/view/id/<?php echo $this->escape($finding->Source->id); ?>">
@@ -94,7 +96,6 @@ echo $this->partial(
                   value="<?php echo $this->escape($finding->responsibleOrganizationId); ?>">
             <a href="<?php echo $this->escape($this->organizationViewUrl); ?>">
                  <?php echo $this->escape($finding->Organization->nickname);?>
-                 <?php //echo $this->escape($finding->Organization->name);?>
             </a>
             </span>
 
@@ -111,19 +112,33 @@ echo $this->partial(
     <?php if ($status != 'CLOSED'): ?>
         <td>On Time:</td>
         <td>
-        <?php if (is_null($finding->nextDueDate)): ?>
-            N/A
-        <?php elseif (time() <= strtotime($finding->nextDueDate)): ?>
-            <span class='LOW'>On Time</span>
-        <?php else: ?>
-            <span class='HIGH'>Overdue</span>
-        <?php endif; ?>
-        </td>
+            <span class='<?php
+                switch($this->onTimeState) {
+                    case 'On Time':
+                        echo 'LOW';
+                        break;
+                    case 'N/A':
+                        echo 'MEDIUM';
+                        break;
+                    case 'Overdue':
+                        echo 'HIGH';
+                        break;
+                }
+            ?>'><?php echo $this->escape($this->onTimeState); ?></span>
+    </td>
     <?php endif; ?>
+    <?php if (Fisma::configuration()->getConfig('threat_type') == 'threat_level'): ?>
         <td>Threat Level:</td>
         <td><span class='<?php echo $this->escape($finding->threatLevel); ?>'>
             <?php echo $this->escape($finding->threatLevel); ?>
         </span></td>
+    <?php endif; ?>
+    <?php if (Fisma::configuration()->getConfig('threat_type') == 'residual_risk'): ?>
+        <td>Residual Risk:</td>
+        <td><span class='<?php echo $this->escape($finding->residualRisk); ?>'>
+            <?php echo $this->escape($finding->residualRisk); ?>
+        </span></td>
+    <?php endif; ?>
     </tr>
     <tr>
         <td>Plan of Action:</td>

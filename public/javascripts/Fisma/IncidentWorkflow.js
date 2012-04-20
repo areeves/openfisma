@@ -58,7 +58,10 @@
             var select = $("select", this._stepTemplate);
             select.append("<option value=''></option>");
             $.each(roleData, function(key, value) {
-                select.append("<option value='" + key + "'>" + value + "</option>");
+                var newOption = $("<option/>");
+                newOption.attr("value", key);
+                newOption.text(value);
+                select.append(newOption);
             });
         },
 
@@ -109,13 +112,13 @@
             }
 
             $(buttons[0]).attr('id', textareaId + "_addAbove");
-            new YAHOO.widget.Button(buttons[0], {label: "Add Step Above"});
+            var addStepAboveButton = new YAHOO.widget.Button(buttons[0], {label: "Add Step Above"});
 
             $(buttons[1]).attr('id', textareaId + "_addBelow");
-            new YAHOO.widget.Button(buttons[1], {label: "Add Step Below"});
+            var addStepBelowButton = new YAHOO.widget.Button(buttons[1], {label: "Add Step Below"});
 
             $(buttons[2]).attr('id', textareaId + "_remove");
-            new YAHOO.widget.Button(buttons[2], {label: "Remove Step"});
+            var removeStepButton = new YAHOO.widget.Button(buttons[2], {label: "Remove Step"});
 
             $(selectMenu).attr('id', textareaId + '_menu');
             $(selectButton).attr('id', textareaId + '_button');
@@ -123,7 +126,12 @@
             $(tr).after(newTr);
 
             // Fetch currently selected item
-            var selectedLabel = (data) ? $("option:selected", selectMenu).text() : '';
+            var selectedLabel = (data) ? $("option:selected", selectMenu).html() : '';
+
+            // doubly-escape option text because YUI menus are stupid
+            $("option", newTr).each(function() {
+                $(this).text($(this).html());
+            });
 
             // Create a Button using an existing <input> and <select> element
             var oMenuButton = new YAHOO.widget.Button(textareaId + '_button', {
