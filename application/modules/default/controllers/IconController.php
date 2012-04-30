@@ -162,4 +162,76 @@ class IconController extends Fisma_Zend_Controller_Action_Object
 
         return $thumbnailUpload;
     }
+
+    /**
+     * List all available icons
+     *
+     * @GETAllowed
+     * @return void
+     */
+    public function manageAction()
+    {
+        $this->_acl->requirePrivilegeForClass('manage', 'Icon');
+
+        $query = Doctrine_Query::create()
+            ->from('Icon i')
+            ->leftJoin('i.SystemTypes st')
+            ->leftJoin('i.OrganizationTypes ot');
+        $icons = $query->execute();
+
+        $iconRows = array();
+        foreach ($icons as $icon) {
+            $imageUrl = '/icon/get/id/' . $icon->id;
+            $deleteUrl = '/icon/delete/id/' . $icon->id;
+            $iconRows[] = array(
+                'id'                => $icon->id,
+                'iconUrl'           => $imageUrl,
+                'systemTypes'       => count($icon->SystemTypes),
+                'organizationTypes' => count($icon->OrganizationTypes),
+                'delete'            => $deleteUrl
+            );
+        }
+
+        $iconTable = new Fisma_Yui_DataTable_Local();
+        $iconTable->addColumn(new Fisma_Yui_DataTable_Column(
+            'ID',
+            true,
+            null,
+            null,
+            'id',
+            !Fisma::debug(),
+            'number'
+        ));
+        $iconTable->addColumn(new Fisma_Yui_DataTable_Column(
+            'Icon',
+            false,
+            'Fisma.TableFormat.imageControl'
+        ));
+        $iconTable->addColumn(new Fisma_Yui_DataTable_Column(
+            'Associated System Types',
+            true,
+            null,
+            null,
+            'systemTypes',
+            false,
+            'number'
+        ));
+        $iconTable->addColumn(new Fisma_Yui_DataTable_Column(
+            'Associated Organization Types',
+            true,
+            null,
+            null,
+            'organizationTypes',
+            false,
+            'number'
+        ));
+        $iconTable->addColumn(new Fisma_Yui_DataTable_Column(
+            'Action',
+            false,
+            'Fisma.TableFormat.deleteControl'
+        ));
+        $iconTable->setData($iconRows);
+
+        $this->view->iconTable = $iconTable;
+    }
 }
