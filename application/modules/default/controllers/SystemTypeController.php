@@ -48,7 +48,7 @@ class SystemTypeController extends Fisma_Zend_Controller_Action_Object
      */
     protected function _isDeletable()
     {
-        return false;
+        return true;
     }
 
     /**

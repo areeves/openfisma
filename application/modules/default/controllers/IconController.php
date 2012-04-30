@@ -234,4 +234,60 @@ class IconController extends Fisma_Zend_Controller_Action_Object
 
         $this->view->iconTable = $iconTable;
     }
+
+    /**
+     * Delete a function
+     *
+     * @GETAllowed
+     * @return void
+     */
+    public function deleteAction()
+    {
+        $this->_acl->requirePrivilegeForClass('manage', 'Icon');
+
+        $id = $this->getRequest()->getParam('id');
+        $icon = Doctrine_Query::create()
+            ->from('Icon i')
+            ->leftJoin('i.SystemTypes st')
+            ->leftJoin('i.OrganizationTypes ot')
+            ->where('i.id = ?', $id)
+            ->execute()
+            ->getFirst();
+        if (!$icon) {
+           throw new Fisma_Zend_Exception("No icon found for id ($id).");
+        }
+
+        $defaultIcon = Doctrine_Query::create()
+            ->from('Icon i')
+            ->where('i.id <> ?', $id)
+            ->fetchOne();
+
+        if ($defaultIcon) {
+            try {
+                Doctrine_Manager::connection()->beginTransaction();
+
+                foreach ($icon->SystemTypes as $st) {
+                    $st->Icon = $defaultIcon;
+                    $st->save();
+                }
+                foreach ($icon->OrganizationTypes as $ot) {
+                    $ot->Icon = $defaultIcon;
+                    $ot->save();
+                }
+                $icon->delete();
+
+                // Commit
+                Doctrine_Manager::connection()->commit();
+            } catch (Doctrine_Exception $e) {
+                // We cannot access the view script from here (for priority messenger), so rethrow after roll-back
+                Doctrine_Manager::connection()->rollback();
+                throw $e;
+            }
+
+        } else {
+            $this->view->priorityMessenger("There must be at least 1 icon.", "warning");
+        }
+
+        $this->_redirect('/icon/manage');
+    }
 }
