@@ -236,7 +236,7 @@ class IconController extends Fisma_Zend_Controller_Action_Object
     }
 
     /**
-     * Delete a function
+     * Delete an icon
      *
      * @GETAllowed
      * @return void
@@ -254,7 +254,7 @@ class IconController extends Fisma_Zend_Controller_Action_Object
             ->execute()
             ->getFirst();
         if (!$icon) {
-           throw new Fisma_Zend_Exception("No icon found for id ($id).");
+           throw new Fisma_Zend_Exception("No icon found with id ($id).");
         }
 
         $defaultIcon = Doctrine_Query::create()
@@ -283,7 +283,7 @@ class IconController extends Fisma_Zend_Controller_Action_Object
                 Doctrine_Manager::connection()->rollback();
                 throw $e;
             }
-
+            $this->view->priorityMessenger("Icon deleted successfully");
         } else {
             $this->view->priorityMessenger("There must be at least 1 icon.", "warning");
         }

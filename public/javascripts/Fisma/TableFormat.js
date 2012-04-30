@@ -126,6 +126,14 @@ Fisma.TableFormat = {
         }
     },
 
+    /**
+     * A formatter which wrap the img element around the source URI
+     *
+     * @param elCell Reference to a container inside the <td> element
+     * @param oRecord Reference to the YUI row object
+     * @param oColumn Reference to the YUI column object
+     * @param oData The data stored in this cell
+     */
     imageControl : function (elCell, oRecord, oColumn, oData) {
         var img = document.createElement('img');
         img.src = oData;
