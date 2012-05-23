@@ -202,6 +202,7 @@ class AssetController extends Fisma_Zend_Controller_Action_Object
      */
     public function viewAction()
     {
+        $this->view->editable = $this->_acl->hasPrivilegeForClass('update', 'Asset');
         $this->_viewObject();
         $asset = $this->view->asset = $this->view->subject;
         $this->view->buttons = $this->getToolbarButtons($asset);

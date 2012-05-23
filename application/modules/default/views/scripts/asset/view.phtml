@@ -28,7 +28,6 @@
                 <td>
                     <span
                         id="product"
-                        class="editable"
                         type="autocomplete"
                         xhr="/vm/product/autocomplete/format/json"
                         queryPrepend="/keyword/"
@@ -54,9 +53,9 @@
                         id="network"
                         type="select"
                         name="asset[networkId]"
-                        href="/metainfo/list/o/network/format/html/"
+                        href="/network/select/format/html/"
                         value="<?php echo $this->escape($this->asset->Network->id); ?>"
-                    ><?php echo $this->escape($this->networkField, 'none'); ?></span>
+                    ><?php echo $this->escape($this->asset->Network->name); ?></span>
                     <?php
                     if ($this->editable):
                     ?>
