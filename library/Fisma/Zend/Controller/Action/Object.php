@@ -842,7 +842,7 @@ abstract class Fisma_Zend_Controller_Action_Object extends Fisma_Zend_Controller
                 $rows,
                 $showDeletedRecords
             );
-        }else {
+        } else {
             $keywords = $this->getRequest()->getParam('keywords');
 
             // Run simple search
