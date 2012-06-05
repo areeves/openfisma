@@ -26,14 +26,16 @@
     <?php foreach ($this->facet as $field): ?>
     <h2><?php echo $this->escape($field['label']); ?></h2>
     <ul>
+        <?php if (!$this->$field['column']): ?>
         <li><a
             id='filter_<?php echo $this->escape($field['column']); ?>_all'
             class='selected'
             href='#'
             onclick='return Fisma.Search.facetSearch(this);'
-            >(all)
+            >(no filtering)
             </a>
         </li>
+        <?php $this->$field['column'] = true; endif; ?>
         <?php foreach ($field['filters'] as $filter): ?>
         <li><a
             id='filter_<?php
@@ -48,7 +50,7 @@
             ><?php echo $this->escape($filter['label']); ?>
             </a>
         </li>
-        <? endforeach; ?>
+        <?php endforeach; ?>
     </ul>
     <?php endforeach; ?>
 </div>

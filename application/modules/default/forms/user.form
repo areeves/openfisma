@@ -16,6 +16,20 @@ elementPrefixPath.prefix = Fisma_Zend_Form
 elementPrefixPath.path = Fisma/Zend/Form
 elementPrefixPath.type = Validate
 
+elements.email.type = "text"
+elements.email.options.label = "E-Mail"
+elements.email.options.required = true
+elements.email.options.attribs.size = 35
+elements.email.options.validators.email.validator = "EmailAddress"
+displayGroups.accountInfo.elements.email = "email"
+
+; When editing this entry, make sure to make the same edits to the corresponding entry in poc.form!!!!!
+elements.reportingOrganizationId.type = "select"
+elements.reportingOrganizationId.options.label = "Reporting Organization"
+elements.reportingOrganizationId.options.required = true
+elements.reportingOrganizationId.options.tooltip = "<p><b>Reporting Organization</b></p><p>The reporting organization is the organization within the enterprise that this contact or user reports to. In other words, it is this person's managing organization.</p>"
+displayGroups.accountInfo.elements.reportingOrganizationId = "reportingOrganizationId"
+
 elements.username.type = "text"
 elements.username.options.label = "Username"
 elements.username.options.required = true
@@ -65,6 +79,11 @@ elements.nameLast.options.required = true
 elements.nameLast.options.attribs.size = 35
 displayGroups.accountInfo.elements.nameLast = "nameLast"
 
+elements.title.type = "text"
+elements.title.options.label = "Title"
+elements.title.options.attribs.size = 35
+displayGroups.accountInfo.elements.title = "title"
+
 elements.phoneOffice.type = "Element_Phone"
 elements.phoneOffice.options.label = "Office Phone"
 elements.phoneOffice.options.attribs.size = 35
@@ -75,13 +94,6 @@ elements.phoneMobile.options.label = "Mobile Phone"
 elements.phoneMobile.options.attribs.size = 35
 displayGroups.accountInfo.elements.phoneMobile = "phoneMobile"
 
-elements.email.type = "text"
-elements.email.options.label = "E-Mail"
-elements.email.options.required = true
-elements.email.options.attribs.size = 35
-elements.email.options.validators.email.validator = "EmailAddress"
-displayGroups.accountInfo.elements.email = "email"
-
 ; The roles are populated dynamically in Fisma_Zend_Form_Manager_User since they can
 ; change at any time.
 elements.role.type = "multiselect"
@@ -89,18 +101,6 @@ elements.role.options.label = "Role(s)"
 elements.role.options.required = true
 elements.role.options.size = 10
 displayGroups.accountInfo.elements.roles = "role"
-
-elements.title.type = "text"
-elements.title.options.label = "Title"
-elements.title.options.attribs.size = 35
-displayGroups.accountInfo.elements.title = "title"
-
-; When editing this entry, make sure to make the same edits to the corresponding entry in poc.form!!!!!
-elements.reportingOrganizationId.type = "select"
-elements.reportingOrganizationId.options.label = "Reporting Organization"
-elements.reportingOrganizationId.options.required = true
-elements.reportingOrganizationId.options.tooltip = "<p><b>Reporting Organization</b></p><p>The reporting organization is the organization within the enterprise that this contact or user reports to. In other words, it is this person's managing organization.</p>"
-displayGroups.accountInfo.elements.reportingOrganizationId = "reportingOrganizationId"
 
 ; The values in the status menu are static so it is hardcoded here.
 ; (ie. "Active" and "Locked").

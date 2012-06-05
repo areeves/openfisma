@@ -832,7 +832,7 @@ abstract class Fisma_Zend_Controller_Action_Object extends Fisma_Zend_Controller
             }
 
             // Run facet search
-            $result = $searchEngine->searchByFacet(
+            $result = $searchEngine->search(
                 $this->_modelName,
                 $keywords,
                 $searchCriteria,

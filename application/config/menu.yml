@@ -380,7 +380,7 @@ Administration:
             link: /config/contact
         User:
             label: Users
-            link: /user/list
+            link: /user/list?f=filter_lockType_enumIs_none
             privilege:
                 func: hasPrivilegeForClass
                 param1: read
