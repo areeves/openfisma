@@ -53,6 +53,18 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
     protected $_highModLowColors = array(self::COLOR_HIGH, self::COLOR_MODERATE, self::COLOR_LOW);
 
     /**
+     * Set ajaxContect on analystAction and chartsAction
+     */
+    public function init()
+    {
+        $this->_helper->ajaxContext()
+            ->addActionContext('analyst', 'html')
+            ->addActionContext('charts', 'html')
+            ->initContext();
+        parent::init();
+    }
+
+    /**
      * Set up headers/footers
      */
     public function preDispatch()
@@ -70,6 +82,8 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             ->addActionContext('chartfindingbyorgdetail', 'json')
             ->initContext();
 
+
+
         $this->_visibleOrgs = $this->_me
             ->getOrganizationsByPrivilegeQuery('finding', 'read')
             ->select('o.id')
@@ -78,9 +92,258 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
     }
 
     /**
+     * The index page for Finding Dashboard
+     *
      * @GETAllowed
      */
     public function indexAction()
+    {
+        $tabView = new Fisma_Yui_TabView('FindingDashboard');
+
+        $tabView->addTab("Analyst View", "/finding/dashboard/analyst/format/html");
+        $tabView->addTab("Executive View", "/finding/summary/index/format/html");
+        $tabView->addTab("Charts", "/finding/dashboard/charts/format/html");
+
+        $this->view->tabView = $tabView;
+    }
+
+    /**
+     * Load the anlyst view in a tab
+     *
+     * @GETAllowed
+     */
+    public function analystAction()
+    {
+        $orgSystems = $this->_me->getOrganizationsByPrivilege('finding', 'read')->toArray();
+        $myOrgSystemIds = array(0);
+        foreach ($orgSystems as $orgSystem) {
+            $myOrgSystemIds[] = $orgSystem['id'];
+        }
+
+        $totalFindingsQuery = Doctrine_Query::create()
+            ->select('COUNT(id) as count')
+            ->from('Finding f')
+            ->where('f.deleted_at is NULL AND f.status <> ?', 'CLOSED')
+            ->andWhereIn('f.responsibleOrganizationId', $myOrgSystemIds)
+            ->orWhere('f.status <> ?', 'CLOSED')
+            ->andWhere('f.pocId = ?', $this->_me->id);
+        $result = $totalFindingsQuery->fetchOne();
+        $this->view->total = $result['count'];
+        if ($this->view->total < 1) {
+            $this->view->message = "There are no unresolved findings under your responsibility.";
+            return;
+        }
+
+        $findingsByTime = Doctrine_Query::create()
+            ->select('f.id, f.nextDueDate')
+            ->from('Finding f')
+            ->where('f.deleted_at is NULL AND f.status <> ?', 'CLOSED')
+            ->andWhereIn('f.responsibleorganizationid', $myOrgSystemIds)
+            ->orWhere('f.status <> ?', 'CLOSED')
+            ->andWhere('f.pocId = ?', $this->_me->id)
+            ->execute();
+        $this->view->byTime = array(
+            array(
+                'criteria' => 'On-Time',
+                'count' => 0
+            ),
+            array(
+                'criteria' => 'Overdue',
+                'count' => 0
+            )
+        );
+        foreach ($findingsByTime as $finding) {
+            $nextDueDate = new Zend_Date($finding->nextDueDate, Fisma_Date::FORMAT_DATE);
+            if (!is_null($finding->nextDueDate)) {
+                if ($nextDueDate->compareDate(new Zend_Date()) >= 0) {
+                    $this->view->byTime[0]['count']++;
+                } else {
+                    $this->view->byTime[1]['count']++;
+                }
+            }
+        }
+
+        $this->view->byThreat = Doctrine_Query::create()
+            ->select('COUNT(id) as count, threatlevel as criteria')
+            ->from('Finding f')
+            ->groupBy('f.threatlevel')
+            ->where('f.deleted_at is NULL AND f.status <> ?', 'CLOSED')
+            ->andWhereIn('f.responsibleorganizationid', $myOrgSystemIds)
+            ->orWhere('f.status <> ?', 'CLOSED')
+            ->andWhere('f.pocId = ?', $this->_me->id)
+            ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
+            ->execute();
+
+        $this->view->byStatus = Doctrine_Query::create()
+            ->select('COUNT(id) as count, denormalizedstatus as criteria')
+            ->from('Finding f')
+            ->groupBy('f.denormalizedstatus')
+            ->where('f.deleted_at is NULL AND f.status <> ?', 'CLOSED')
+            ->andWhereIn('f.responsibleorganizationid', $myOrgSystemIds)
+            ->orWhere('f.status <> ?', 'CLOSED')
+            ->andWhere('f.pocId = ?', $this->_me->id)
+            ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
+            ->execute();
+        $emptyFinding = new Finding();
+        foreach ($this->view->byStatus as &$status) {
+            $status['tooltip'] = "<b>" . $emptyFinding->getLongStatus($status['criteria']) . "</b>";
+        }
+        usort($this->view->byStatus, function($a, $b){
+            $allStatuses = Finding::getAllStatuses();
+            return array_search($a['criteria'], $allStatuses) - array_search($b['criteria'], $allStatuses);
+        });
+        unset($emptyFinding);
+
+        $this->view->byType = Doctrine_Query::create()
+            ->select('COUNT(id) as count, type as criteria')
+            ->from('Finding f')
+            ->groupBy('f.type')
+            ->where('f.deleted_at is NULL AND f.status <> ?', 'CLOSED')
+            ->andWhereIn('f.responsibleorganizationid', $myOrgSystemIds)
+            ->orWhere('f.status <> ?', 'CLOSED')
+            ->andWhere('f.pocId = ?', $this->_me->id)
+            ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
+            ->execute();
+        foreach ($this->view->byType as &$type) {
+            switch ($type['criteria']) {
+                case 'CAP':
+                    $type['tooltip'] = "<b>CAP - Corrective Action Plan</b><br/>"
+                                     . "<p>A corrective action plan is a mitigation strategy that aims to reduce the "
+                                     . "overall risk of a finding by correcting the underlying deficiency.</p>";
+                break;
+                case 'FP':
+                    $type['tooltip'] = "<b>FP - False Positive</b><br/>"
+                                     . "<p>A false positive is not a true mitigation strategy, per se, but it is a plan"
+                                     . " to document that the auditor's finding did not exist as documented on the day "
+                                     . "that it was observed. Notice that if a finding was true at the time it was "
+                                     . "reported by the auditor but has since become invalid, that is not considered a "
+                                     . "false positive.</p>";
+                break;
+                case 'AR':
+                    $type['tooltip'] = "<b>AR - Accepted Risk</b><br/><p>"
+                                     . "An accept risk is a mitigation strategy that aims to reduce risk down to an acc"
+                                     . "eptable level, then seek official sign-off from the authorizing official.</p>";
+                break;
+                case 'NONE':
+                    $type['tooltip'] = "<b>NONE - No Mitigation Strategy Selected</b>";
+                break;
+            }
+        }
+
+        $this->view->bySource = Doctrine_Query::create()
+            ->select('COUNT(f.id) as count, f.sourceid, s.nickname as criteria, ' .
+                     'CONCAT("<b>", s.nickname, " - ", s.name, "</b><br/>", s.description) as tooltip')
+            ->from('Finding f')
+            ->innerJoin('f.Source s')
+            ->groupBy('f.sourceid')
+            ->where('f.deleted_at is NULL AND f.status <> ?', 'CLOSED')
+            ->andWhereIn('f.responsibleorganizationid', $myOrgSystemIds)
+            ->orWhere('f.status <> ?', 'CLOSED')
+            ->andWhere('f.pocId = ?', $this->_me->id)
+            ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
+            ->execute();
+
+        $this->view->byPoc = Doctrine_Query::create()
+            ->select('COUNT(f.id) as count, f.threatlevel, i.id as icon, o.nickname, f.pocid, u.id, u.displayName')
+            ->from('Finding f')
+            ->leftJoin('f.PointOfContact u')
+            ->leftJoin('u.ReportingOrganization o')
+            ->leftJoin('o.OrganizationType ot')
+            ->leftJoin('ot.Icon i')
+            ->groupBy('f.pocid, f.threatlevel')
+            ->where('f.deleted_at is NULL AND f.status <> ?', 'CLOSED')
+            ->andWhereIn('f.responsibleorganizationid', $myOrgSystemIds)
+            ->orWhere('f.status <> ?', 'CLOSED')
+            ->andWhere('f.pocId = ?', $this->_me->id)
+            ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
+            ->execute();
+        $criteria = array();
+        foreach ($this->view->byPoc as $index => &$statistic) {
+            if (empty($statistic['pocId'])) {
+                $statistic['criteria'] = 'Unassigned';
+                $statistic['pocId'] = 'empty';
+            } else {
+                $statistic['criteria'] = $this->view->userInfo(
+                    $statistic['PointOfContact']['displayName'],
+                    $statistic['PointOfContact']['id']
+                );
+            }
+
+            $pocid = $statistic['pocId'];
+            $threatlevel = $statistic['threatLevel'];
+            if (!isset($criteria[$pocid])) {
+                $criteria[$pocid] = $index;
+                $this->view->byPoc[$index][$threatlevel] = $statistic['count'];
+            } else {
+                $currentIndex = $criteria[$pocid];
+                $this->view->byPoc[$currentIndex][$threatlevel] = $statistic['count'];
+                $this->view->byPoc[$currentIndex]['count'] += $statistic['count'];
+                unset($this->view->byPoc[$index]);
+            }
+        }
+
+        $this->view->bySystem = Doctrine_Query::create()
+            ->select('COUNT(f.id) as count, o.nickname, f.threatlevel, o.id, o.lft, o.rgt, o.level, o.name as criteria, f.responsibleorganizationid, ot.iconId as icon')
+            ->from('Organization o')
+            ->leftJoin('o.OrganizationType ot')
+            ->leftJoin('o.Findings f')
+            ->groupBy('f.threatlevel, o.id')
+            ->where('f.deleted_at is NULL AND f.status <> ?', 'CLOSED')
+            ->andWhereIn('o.id', $myOrgSystemIds)
+            ->orWhere('f.status <> ?', 'CLOSED')
+            ->andWhere('f.pocId = ?', $this->_me->id)
+            ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
+            ->execute();
+        foreach ($this->view->bySystem as &$statistic) {
+            $count = 0;
+            foreach ($statistic['Findings'] as &$finding) {
+                $threatLevel = $finding['threatLevel'];
+                $statistic[$threatLevel] = $finding['count'];
+                $count += $finding['count'];
+            }
+            $statistic['count'] = $count;
+
+            $statistic['parent'] = Doctrine_Query::create()
+                ->select('o.id, o.nickname, i.id as icon')
+                ->from('Organization o')
+                ->leftJoin('o.OrganizationType ot')
+                ->leftJoin('ot.Icon i')
+                ->where('o.lft < ?', $statistic['lft'])
+                ->andWhere('o.lft < ?', $statistic['rgt'])
+                ->andWhere('o.level = ?', $statistic['level'] - 1)
+                ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
+                ->fetchOne();
+            if (empty($statistic['icon'])) { // the OrganizationType "system" doesn't have an icon
+                $statistic['icon'] = Doctrine_Query::create()
+                    ->select('o.id, s.id, st.iconId as icon')
+                    ->from('Organization o')
+                    ->leftJoin('o.System s')
+                    ->leftJoin('s.SystemType st')
+                    ->where('o.id = ?', $statistic['id'])
+                    ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
+                    ->fetchOne();
+                $statistic['icon'] = $statistic['icon']['icon'];
+            }
+            if (empty($statistic['parent']['icon'])) { // the OrganizationType "system" doesn't have an icon
+                $statistic['parent']['icon'] = Doctrine_Query::create()
+                    ->select('o.id, s.id, st.iconId as icon')
+                    ->from('Organization o')
+                    ->leftJoin('o.System s')
+                    ->leftJoin('s.SystemType st')
+                    ->where('o.id = ?', $statistic['parent']['id'])
+                    ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
+                    ->fetchOne();
+                $statistic['parent']['icon'] = $statistic['parent']['icon']['icon'];
+            }
+        }
+    }
+
+    /**
+     * Load the charts in a tab
+     *
+     * @GETAllowed
+     */
+    public function chartsAction()
     {
         // Top-left chart - Finding Forecast
         $chartFindForecast =
