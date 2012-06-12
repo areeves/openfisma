@@ -53,6 +53,18 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
     protected $_highModLowColors = array(self::COLOR_HIGH, self::COLOR_MODERATE, self::COLOR_LOW);
 
     /**
+     * Set ajaxContect on analystAction and chartsAction
+     */
+    public function init()
+    {
+        $this->_helper->ajaxContext()
+            ->addActionContext('analyst', 'html')
+            ->addActionContext('charts', 'html')
+            ->initContext();
+        parent::init();
+    }
+
+    /**
      * Set up headers/footers
      */
     public function preDispatch()
@@ -70,6 +82,8 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             ->addActionContext('chartfindingbyorgdetail', 'json')
             ->initContext();
 
+
+
         $this->_visibleOrgs = $this->_me
             ->getOrganizationsByPrivilegeQuery('finding', 'read')
             ->select('o.id')
@@ -78,9 +92,36 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
     }
 
     /**
+     * The index page for Finding Dashboard
+     *
      * @GETAllowed
      */
     public function indexAction()
+    {
+        $tabView = new Fisma_Yui_TabView('FindingDashboard');
+
+        $tabView->addTab("Analyst View", "/finding/dashboard/analyst/format/html");
+        $tabView->addTab("Executive View", "/finding/summary/index/format/html");
+        $tabView->addTab("Charts", "/finding/dashboard/charts/format/html");
+
+        $this->view->tabView = $tabView;
+    }
+
+    /**
+     * Load the anlyst view in a tab
+     *
+     * @GETAllowed
+     */
+    public function analystAction()
+    {
+    }
+
+    /**
+     * Load the charts in a tab
+     *
+     * @GETAllowed
+     */
+    public function chartsAction()
     {
         // Top-left chart - Finding Forecast
         $chartFindForecast =
