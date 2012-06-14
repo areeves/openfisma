@@ -455,5 +455,74 @@ Fisma.TableFormat = {
         } else {
             cell.html($("<span/>").addClass("highlight").text(oData.substr(-1) === "T" ? "Yes" : "No"));
         }
+    },
+
+    /**
+     * A formatter which displays buttons for task operation
+     *
+     * @param elCell Reference to a container inside the <td> element
+     * @param oRecord Reference to the YUI row object
+     * @param oColumn Reference to the YUI column object
+     * @param oData The data stored in this cell
+     */
+    formatTaskAction : function (elCell, oRecord, oColumn, oData) {
+        var deleteButton= new YAHOO.widget.Button({
+            label: "Delete",
+            id: YAHOO.util.Dom.generateId(),
+            container: elCell,
+            onclick: {
+                fn: Fisma.Task.deleteRecord,
+                obj: {
+                    id : oRecord.getData('id'),
+                    objectId: oRecord.getData('objectId'),
+                    type: "Finding"
+                }
+            }
+        });
+
+        var commentButton = new YAHOO.widget.Button({
+            label: "Add Comment",
+            id: YAHOO.util.Dom.generateId(),
+            container: elCell,
+            onclick: {
+                fn: Fisma.Task.showCommentPanel,
+                obj: {
+                    id : oRecord.getData('id'),
+                    objectId: oRecord.getData('objectId'),
+                    type: "Finding",
+                    target: oRecord,
+                    callback: {object: "Task", method: "handleCommentCallback"}
+                }
+            }
+        });
+
+        var menuButton = new YAHOO.widget.Button({
+            label: "Change Status",
+            type: "menu",
+            menu: [
+                {text: "OPEN", onclick: {
+                    fn: Fisma.Task.statusMenuItemClick,
+                    obj: {
+                        id: oRecord.getData('id'),
+                        objectId: oRecord.getData('objectId'), target: oRecord
+                    }
+                }},
+                {text: "PENDING", onclick: {
+                    fn: Fisma.Task.statusMenuItemClick,
+                    obj: {
+                        id: oRecord.getData('id'),
+                        objectId: oRecord.getData('objectId'), target: oRecord
+                    }
+                }},
+                {text: "CLOSED", onclick: {
+                    fn: Fisma.Task.statusMenuItemClick,
+                    obj: {
+                        id: oRecord.getData('id'),
+                        objectId: oRecord.getData('objectId'), target: oRecord
+                    }
+                }}
+            ],
+            container: elCell,
+        });
     }
 };

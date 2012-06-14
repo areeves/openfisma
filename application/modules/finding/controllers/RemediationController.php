@@ -90,6 +90,7 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
              ->addActionContext('comments', 'html')
              ->addActionContext('artifacts', 'html')
              ->addActionContext('audit-log', 'html')
+             ->addActionContext('tasks', 'html')
              ->initContext();
 
         parent::init();
@@ -255,6 +256,7 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
 
         $tabView->addTab("Finding $id", "/finding/remediation/finding/id/$id/format/html");
         $tabView->addTab("Mitigation Strategy", "/finding/remediation/mitigation-strategy/id/$id/format/html");
+        $tabView->addTab("Tasks", "/finding/remediation/tasks/id/$id/format/html");
         $tabView->addTab("Risk Analysis", "/finding/remediation/risk-analysis/id/$id/format/html");
         $tabView->addTab("Security Control", "/finding/remediation/security-control/id/$id/format/html");
         $tabView->addTab("Comments ($commentCount)", "/finding/remediation/comments/id/$id/format/html");
@@ -1296,4 +1298,109 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
         return $editable;
     }
 
+    /**
+     * @GETAllowed
+     */
+    public function tasksAction()
+    {
+        $id = $this->getRequest()->getParam('id');
+        $finding = $this->_getSubject($id);
+
+        $this->_acl->requirePrivilegeForObject('read', $finding);
+
+        $this->view->dataUrl = "/finding/remediation/tasks-data/id/{$id}/format/json";
+
+        $taskButton = new Fisma_Yui_Form_Button(
+            'taskButton',
+            array(
+                'label' => 'Add task',
+                'onClickFunction' => 'Fisma.Task.showPanel',
+                'onClickArgument' => array(
+                    'id' => $id,
+                    'type' => 'Finding',
+                    'callback' => array(
+                        'object' => 'Finding',
+                        'method' => 'taskCallback'
+                    )
+                )
+            )
+        );
+
+        $poc = Doctrine_Query::create()
+                           ->select('p.username')
+                           ->from('Poc p')
+                           ->where('(p.lockType IS NULL OR p.lockType <> ?)', 'manual')
+                           ->orderBy("p.username")
+                           ->execute()
+                           ->toKeyValueArray('id', 'username');
+
+        $pocData = array();
+        foreach ($poc as $username) {
+            $pocData[] = $username;
+        }
+
+        $this->view->poc = $pocData;
+        $this->view->taskButton = $taskButton;
+    }
+
+    /**
+     * @GETAllowed
+     */
+    public function tasksDataAction()
+    {
+        $this->_helper->layout->setLayout('ajax');
+
+        $id    = $this->getRequest()->getParam('id');
+        $count = $this->getRequest()->getParam('count', $this->_paging['count']);
+        $start = $this->getRequest()->getParam('start', $this->_paging['startIndex']);
+        $sort  = $this->getRequest()->getParam('sort', 'ecd');
+        $dir   = $this->getRequest()->getParam('dir', 'asc');
+
+        $finding = Doctrine::getTable('Finding')->find($id);
+        $query = $finding->getTasks()->query();
+
+        if ($sort == 'poc') {
+            $query->orderBy("p.username {$dir}");
+        } else {
+            $query->orderBy("o.{$sort} {$dir}");
+        }
+
+        $tasks = $query->limit($count)
+                       ->offset($start)
+                       ->execute();
+
+        $taskRows = array();
+        foreach ($tasks as $row) {
+            $comments = $row->getComments()->fetch(Doctrine::HYDRATE_ARRAY);
+            $commentBlcok = '';
+            foreach ($comments as $comment) {
+                $firstLine = $this->view->userInfo($comment['User']['username']) . ' ' . $comment['createdTs'];
+                $secondLine = $this->view->textToHtml($this->view->escape($comment['comment']));
+
+                $commentBlcok .= "<span>$firstLine</span>";
+                $commentBlcok .= "<span>$secondLine</span>";
+            }
+
+            list($date, $time) = explode(' ', $row->ecd);
+            $date = explode('-', $date);
+            $date = $date[1] . '/' . $date[2] . '/' . $date[0];
+
+            $taskRows[] = array(
+                'description'  => $row->description,
+                'poc'          => $row->Poc->username,
+                'expectedCost' => $row->expectedCost,
+                'status'       => $row->status,
+                'id'           => $row->id,
+                'objectId'     => $row->objectId,
+                'comment'      => $commentBlcok,
+                'ecd'          => $date,
+            );
+        }
+
+        $tasksData = array();
+        $tasksData['totalRecords'] =  $finding->getTasks()->count();
+        $tasksData['tasksData'] = $taskRows;
+
+        return $this->_helper->json($tasksData);
+    }
 }
