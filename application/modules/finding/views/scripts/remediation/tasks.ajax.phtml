@@ -51,7 +51,8 @@ YAHOO.util.Event.onContentReady("task-container", function() {
         },
         {
             key: "comment",
-            label: "Comments"
+            label: "Comments",
+            formatter: Fisma.TableFormat.formatHtml
         },
         {
             key: "action",
@@ -60,7 +61,7 @@ YAHOO.util.Event.onContentReady("task-container", function() {
         },
         {
             key: "findingStatus",
-            label: "Action",
+            label: "findingStatus",
             hidden: true
         }
     ];

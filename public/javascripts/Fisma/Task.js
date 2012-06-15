@@ -382,7 +382,10 @@ Fisma.Task = {
         yuiPanel.hide();
         yuiPanel.destroy();
 
-        commentCell.children[0].innerHTML += comment.comment;
+        var commemtBlock = '<span>' + comment.username + ' ' + comment.createdTs + '</span>';
+        commemtBlock += '<span>' + comment.comment + '</span>';
+
+        commentCell.children[0].innerHTML += commemtBlock;
 
         // Highlight the added row so the user can see that it worked
         var rowBlinker = new Fisma.Blinker(
