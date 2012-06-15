@@ -14,27 +14,35 @@ YAHOO.util.Event.onContentReady("task-container", function() {
             key: "description",
             label: "Description",
             sortable: false,
-            editor: new YAHOO.widget.TextareaCellEditor()
+            <?php if ($this->crudPrivilege) :?>
+                editor: new YAHOO.widget.TextareaCellEditor()
+            <?php endif ?>
         },
         {
             key: "poc",
             label: "Assignee",
             sortable: true,
-            editor: new YAHOO.widget.DropdownCellEditor({dropdownOptions:pocData})
+            <?php if ($this->crudPrivilege) :?>
+                editor: new YAHOO.widget.DropdownCellEditor({dropdownOptions:pocData})
+            <?php endif ?>
         },
         {
             key: "expectedCost",
             label: "Cost",
             sortable: true,
             formatter: "currency",
-            editor: new YAHOO.widget.TextboxCellEditor({validator:YAHOO.widget.DataTable.validateNumber})
+            <?php if ($this->crudPrivilege) :?>
+                editor: new YAHOO.widget.TextboxCellEditor({validator:YAHOO.widget.DataTable.validateNumber})
+            <?php endif ?>
         },
         {
             key: "ecd",
             label: "Due Date",
             sortable: true,
             formatter: YAHOO.widget.DataTable.formatDate,
-            editor: new YAHOO.widget.DateCellEditor()
+            <?php if ($this->crudPrivilege) :?>
+                editor: new YAHOO.widget.DateCellEditor()
+            <?php endif ?>
         },
         {
             key: "status",
@@ -49,6 +57,11 @@ YAHOO.util.Event.onContentReady("task-container", function() {
             key: "action",
             label: "Action",
             formatter: Fisma.TableFormat.formatTaskAction
+        },
+        {
+            key: "findingStatus",
+            label: "Action",
+            hidden: true
         }
     ];
 
@@ -80,7 +93,8 @@ YAHOO.util.Event.onContentReady("task-container", function() {
             {key: 'status'},
             {key: 'comment'},
             {key: 'action'},
-            {key: 'objectId'}
+            {key: 'objectId'},
+            {key: 'findingStatus'}
         ]
     };
 

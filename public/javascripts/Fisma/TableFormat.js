@@ -477,8 +477,14 @@ Fisma.TableFormat = {
                     objectId: oRecord.getData('objectId'),
                     type: "Finding"
                 }
-            }
+            },
+            disabled: true
         });
+
+        var findingStatus = oRecord.getData('findingStatus');
+        if (findingStatus === 'NEW' || findingStatus === 'DRAFT') {
+            deleteButton.set('disabled', false);
+        }
 
         var commentButton = new YAHOO.widget.Button({
             label: "Add Comment",
@@ -523,6 +529,11 @@ Fisma.TableFormat = {
                 }}
             ],
             container: elCell,
+            disabled: true
         });
+
+        if (findingStatus === 'EN') {
+            menuButton.set('disabled', false);
+        }
     }
 };

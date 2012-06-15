@@ -1339,6 +1339,17 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
             $pocData[] = $username;
         }
 
+        // Check the CRUD privilege for this task
+        $crudPrivilege = false;
+        if (!$finding->isDeleted()
+            && $this->_acl->hasPrivilegeForObject('update_*', $finding)
+            && in_array($finding->status, array('NEW', 'DRAFT'))) {
+            $crudPrivilege = true;
+        } else {
+            $taskButton->readOnly = true;
+        }
+
+        $this->view->crudPrivilege = $crudPrivilege;
         $this->view->poc = $pocData;
         $this->view->taskButton = $taskButton;
     }
@@ -1386,20 +1397,22 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
             $date = explode('-', $date);
             $date = $date[1] . '/' . $date[2] . '/' . $date[0];
 
+            $findingStatus = $finding->status;
             $taskRows[] = array(
-                'description'  => $row->description,
-                'poc'          => $row->Poc->username,
-                'expectedCost' => $row->expectedCost,
-                'status'       => $row->status,
-                'id'           => $row->id,
-                'objectId'     => $row->objectId,
-                'comment'      => $commentBlcok,
-                'ecd'          => $date,
+                'description'   => $row->description,
+                'poc'           => $row->Poc->username,
+                'expectedCost'  => $row->expectedCost,
+                'status'        => $row->status,
+                'id'            => $row->id,
+                'objectId'      => $row->objectId,
+                'comment'       => $commentBlcok,
+                'ecd'           => $date,
+                'findingStatus' => $findingStatus
             );
         }
 
         $tasksData = array();
-        $tasksData['totalRecords'] =  $finding->getTasks()->count();
+        $tasksData['totalRecords'] = $finding->getTasks()->count();
         $tasksData['tasksData'] = $taskRows;
 
         return $this->_helper->json($tasksData);

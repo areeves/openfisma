@@ -259,7 +259,7 @@ class TaskController extends Fisma_Zend_Controller_Action_Security
             if (empty($trimmedComment)) {
                 throw new Fisma_Zend_Exception_User("Comment cannot be blank");
             }
-            
+
             $query = $object->getTasks()->query();
             $task = $query->andWhere('o.id = ?', $taskId)
                     ->execute()

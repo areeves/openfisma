@@ -119,8 +119,6 @@ Fisma.Task = {
             } 
         }
 
-        Fisma.Editable.setupEditFields();
-
         // The tool tips will display underneath the modal dialog mask, so we'll move them up to a higher layer.
         var tooltips = YAHOO.util.Dom.getElementsByClassName('yui-tt', 'div');
 
@@ -199,38 +197,30 @@ Fisma.Task = {
      * @param asyncResponse Response object from YUI connection
      */
     taskCallback : function (task) {
-        var that = this;
-
-        var url = '/task/delete/id/'
-                + task.id + '/type/'
-                + Fisma.Task.config.type
-                + '/objectId/'
-                + Fisma.Task.config.id;
-
         var taskRow = {
-            id : task.id,
             description : task.description,
             assignee : task.assignee,
             expectedCost : task.expectedCost,
             ecd : task.ecd,
             status : task.status,
-            deleteUrl : url
+            comment : null,
+            action : null,
+            findingStatus : null
         };
 
-        this.taskTable = Fisma.Registry.get("taskDataTable");
-
-        this.taskTable.addRow(taskRow);
-        this.taskTable.sortColumn(this.taskTable.getColumn('ecd'), YAHOO.widget.DataTable.CLASS_ASC);
+        var taskTable = Fisma.Registry.get("taskDataTable");
+        taskTable.addRow(taskRow);
+        taskTable.sortColumn(taskTable.getColumn('ecd'), YAHOO.widget.DataTable.CLASS_ASC);
 
         // Highlight the added row so the user can see that it worked
         var rowBlinker = new Fisma.Blinker(
             100,
             6,
             function () {
-                that.taskTable.highlightRow(0);
+                taskTable.highlightRow(0);
             },
             function () {
-                that.taskTable.unhighlightRow(0);
+                taskTable.unhighlightRow(0);
             }
         );
 
@@ -384,7 +374,6 @@ Fisma.Task = {
      * @param yuiPanel A reference to the modal YUI dialog
      */
     handleCommentCallback : function (comment, yuiPanel) {
-        var that = this;
         var taskDataTable = Fisma.Registry.get('taskDataTable');
         var row = taskDataTable.getTrEl(Fisma.Task.commentConfig.target);
         var commentCell = row.cells[5];
@@ -400,10 +389,10 @@ Fisma.Task = {
             100,
             6,
             function () {
-                taskDataTable.highlightRow(commentCell);
+                taskDataTable.highlightCell(commentCell);
             },
             function () {
-                taskDataTable.unhighlightRow(commentCell);
+                taskDataTable.unhighlightCell(commentCell);
             }
         );
 
