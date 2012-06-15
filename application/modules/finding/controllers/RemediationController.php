@@ -1365,7 +1365,8 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
             $query->orderBy("o.{$sort} {$dir}");
         }
 
-        $tasks = $query->limit($count)
+        $tasks = $query->andWhere('o.deleted_at is Null')
+                       ->limit($count)
                        ->offset($start)
                        ->execute();
 
