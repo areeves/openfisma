@@ -157,7 +157,6 @@ Fisma.Task = {
         button.set("disabled", true);
 
         var postData = Fisma.Util.convertObjectToPostData({
-            csrf: document.getElementById('finding_detail').elements.csrf.value,
             objectId: Fisma.Task.config.id,
             type: Fisma.Task.config.type
         });
@@ -229,9 +228,9 @@ Fisma.Task = {
 
     /**
      * Show the comment panel for a task
-     * 
+     *
      * @param event Required to implement an event handler but not used
-     * @param config Contains the callback information for this file upload
+     * @param config Contains the callback information for this comment
      */
     showCommentPanel : function (event, config) {
         Fisma.Task.commentConfig = config;
@@ -246,7 +245,7 @@ Fisma.Task = {
 
         // Register listener for the panel close event
         newPanel.hideEvent.subscribe(function () {
-            Fisma.Task.closePanel.call(Fisma.Commentable);
+            Fisma.Task.closePanel.call(Fisma.Task);
         });
 
         Fisma.Task.yuiPanel = newPanel;
@@ -285,19 +284,16 @@ Fisma.Task = {
      * Posts the comment form asynchronously
      */
     postComment : function() {
-
-        var postUrl = "/task/add-comment/taskId/"
-                    + encodeURIComponent(Fisma.Task.commentConfig.id)
-                    + "/type/"
-                    + encodeURIComponent(Fisma.Task.commentConfig.type)
-                    + "/objectId/"
-                    + encodeURIComponent(Fisma.Task.commentConfig.objectId)
-                    + "/format/json";
+        var postData = Fisma.Util.convertObjectToPostData({
+            taskId: Fisma.Task.commentConfig.id,
+            objectId: Fisma.Task.commentConfig.objectId,
+            type: Fisma.Task.commentConfig.type
+        });
 
         YAHOO.util.Connect.setForm('addCommentForm');
         Fisma.Task.asyncRequest = YAHOO.util.Connect.asyncRequest(
             'POST', 
-            postUrl, 
+            '/task/add-comment/format/json', 
             {
                 success : function (asyncResponse) {
                     Fisma.Task.commentCallback.call(Fisma.Task, asyncResponse);
@@ -307,7 +303,7 @@ Fisma.Task = {
                     Fisma.Util.showAlertDialog('Comment can not be saved.');
                 }
             }, 
-            null);
+            postData);
 
         // Prevent form submission
         return false;
@@ -345,26 +341,7 @@ Fisma.Task = {
             return;
         }
 
-        var callbackObject = Fisma[this.commentConfig.callback.object];
-
-        if (typeof callbackObject !== "Undefined") {
-
-            var callbackMethod = callbackObject[this.commentConfig.callback.method];
-
-            if (typeof callbackMethod === "function") {
-
-                callbackMethod.call(callbackObject, responseStatus.comment, this.yuiPanel);
-            }
-        }
-    },
-
-    /**
-     * Handle a panel close event by canceling the POST request
-     */
-    closePanel : function () {
-        if (this.asyncRequest) {
-            YAHOO.util.Connect.abort(this.asyncRequest);
-        }
+        Fisma.Task.handleCommentCallback.call(Fisma.Task, responseStatus.comment, Fisma.Task.yuiPanel);
     },
 
     /**
@@ -376,16 +353,23 @@ Fisma.Task = {
     handleCommentCallback : function (comment, yuiPanel) {
         var taskDataTable = Fisma.Registry.get('taskDataTable');
         var row = taskDataTable.getTrEl(Fisma.Task.commentConfig.target);
-        var commentCell = row.cells[5];
+
+        // Get the comment cell element
+        var i, commentCell;
+        for (i = 0; i < row.cells.length; i++ ) {
+            if(YAHOO.util.Dom.hasClass(row.cells[i], "yui-dt-col-comment")) {
+                commentCell = row.cells[i];
+                break;
+            }
+        }
 
         // Hide YUI dialog
         yuiPanel.hide();
         yuiPanel.destroy();
 
-        var commemtBlock = '<span>' + comment.username + ' ' + comment.createdTs + '</span>';
-        commemtBlock += '<span>' + comment.comment + '</span>';
+        var commemtBlock = '<p>' + comment.username + ' ' + comment.createdTs + '<br>' + comment.comment + '</p>';
 
-        commentCell.children[0].innerHTML += commemtBlock;
+        commentCell.firstChild.innerHTML += commemtBlock;
 
         // Highlight the added row so the user can see that it worked
         var rowBlinker = new Fisma.Blinker(
@@ -402,24 +386,48 @@ Fisma.Task = {
         rowBlinker.start();
     },
 
-    statusMenuItemClick: function(p_sType, p_aArgs, p_oValue) {
-        var that = this;
+    /**
+     * Handle a panel close event by canceling the POST request
+     */
+    closePanel : function () {
+        if (this.asyncRequest) {
+            YAHOO.util.Connect.abort(this.asyncRequest);
+        }
+    },
+
+    /**
+     * Update the value of status cell after firing the status menu item
+     *
+     * @param {String} sType String representing the name of the event that was fired.
+     * @param {Array} aArgs Array of arguments sent when the event was fired.
+     * @param {Object} oValue Object contains id, type, objectId and target
+     */
+    statusMenuItemClick: function(sType, aArgs, oValue) {
         var taskDataTable = Fisma.Registry.get('taskDataTable');
-        var row = taskDataTable.getTrEl(p_oValue.target);
-        var statusCell = row.cells[4];
         var newValue = this.cfg.getProperty("text");
+        var row = taskDataTable.getTrEl(oValue.target);
+
+        // Get the status cell element
+        var i, statusCell;
+        for (i = 0; i < row.cells.length; i++ ) {
+            if(YAHOO.util.Dom.hasClass(row.cells[i], "yui-dt-col-status")) {
+                statusCell = row.cells[i];
+                break;
+            }
+        }
 
         var postData = Fisma.Util.convertObjectToPostData({
             csrf: document.getElementById('finding_detail').elements.csrf.value,
-            id: p_oValue.id,
-            objectId: p_oValue.objectId,
+            id: oValue.id,
+            objectId: oValue.objectId,
             field: 'status',
-            value: this.cfg.getProperty("text")
+            value: this.cfg.getProperty("text"),
+            type: oValue.type
         });
 
         YAHOO.util.Connect.asyncRequest(
             'POST',
-            '/task/edit/type/finding/format/json',
+            '/task/edit/format/json',
             {
                 success : function (asyncResponse) {
                     var result;
@@ -431,7 +439,10 @@ Fisma.Task = {
                     }
 
                     if (result.success) {
-                        statusCell.children[0].innerHTML = that.cfg.getProperty("text");
+
+                        // Set the new value to cell
+                        statusCell.firstChild.innerHTML = newValue;
+
                         var rowBlinker = new Fisma.Blinker(
                                 100,
                                 6,
@@ -458,6 +469,12 @@ Fisma.Task = {
             postData);
     },
 
+    /**
+     * Delete a task
+     *
+     * @param event Required to implement an event handler but not used
+     * @param config Object contains the id, objectId and module type for this task
+     */
     deleteRecord : function (event, config) {
         var dataTable = Fisma.Registry.get('taskDataTable');
 
@@ -471,45 +488,29 @@ Fisma.Task = {
         Fisma.Util.showConfirmDialog(null, config);
     },
 
+    /**
+     * Implement to delete a record
+     *
+     * @param record Array contains the data of this task
+     */
     doDelete : function (record) {
         var dataTable = Fisma.Registry.get('taskDataTable');
 
         // Flushes cache so that datatable will reload data instead of use cache
         dataTable.getDataSource().flushCache();
 
-        var onDataTableRefresh = {
-            success : function (request, response, payload) {
-                dataTable.onDataReturnReplaceRows(request, response, payload);
-
-                // Update YUI's visual state to show sort on first data column
-                var sortColumnIndex = 0;
-                var sortColumn;
-
-                do {
-                    sortColumn = dataTable.getColumn(sortColumnIndex);
-
-                    sortColumnIndex++;
-                } while (sortColumn.formatter === Fisma.TableFormat.formatCheckbox);
-
-                dataTable.set("sortedBy", {key : sortColumn.key, dir : YAHOO.widget.DataTable.CLASS_ASC});
-                dataTable.get('paginator').setPage(1);
-            },
-            failure : dataTable.onDataReturnReplaceRows,
-            scope : dataTable,
-            argument : dataTable.getState()
-        };
-
         var task = YAHOO.lang.JSON.parse(record);
         var postData = Fisma.Util.convertObjectToPostData({
             csrf: document.getElementById('finding_detail').elements.csrf.value,
             taskId: task.id,
-            objectId: task.objectId
+            objectId: task.objectId,
+            type: task.type
         });
   
         // Submit request to delete records
         YAHOO.util.Connect.asyncRequest(
             'POST',
-            '/task/delete/type/finding/format/json',
+            '/task/delete/format/json',
             {
                 success : function(o) {
                     if (o.responseText !== undefined) {
@@ -520,9 +521,7 @@ Fisma.Task = {
 
                     dataTable.showTableMessage("Loading...");
 
-                    var dataSource = dataTable.getDataSource();
-                    dataSource.connMethodPost = true;
-                    dataSource.sendRequest(postData, onDataTableRefresh);
+                    dataTable.sortColumn(dataTable.getColumn('ecd'), YAHOO.widget.DataTable.CLASS_ASC);
                 },
                 failure : function(o) {
                     var text = 'An error occurred while trying to delete the record.';

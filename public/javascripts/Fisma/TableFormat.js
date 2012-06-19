@@ -510,21 +510,27 @@ Fisma.TableFormat = {
                     fn: Fisma.Task.statusMenuItemClick,
                     obj: {
                         id: oRecord.getData('id'),
-                        objectId: oRecord.getData('objectId'), target: oRecord
+                        objectId: oRecord.getData('objectId'),
+                        target: oRecord,
+                        type: 'Finding'
                     }
                 }},
                 {text: "PENDING", onclick: {
                     fn: Fisma.Task.statusMenuItemClick,
                     obj: {
                         id: oRecord.getData('id'),
-                        objectId: oRecord.getData('objectId'), target: oRecord
+                        objectId: oRecord.getData('objectId'),
+                        target: oRecord,
+                        type: 'Finding'
                     }
                 }},
                 {text: "CLOSED", onclick: {
                     fn: Fisma.Task.statusMenuItemClick,
                     obj: {
                         id: oRecord.getData('id'),
-                        objectId: oRecord.getData('objectId'), target: oRecord
+                        objectId: oRecord.getData('objectId'),
+                        target: oRecord,
+                        type: 'Finding'
                     }
                 }}
             ],

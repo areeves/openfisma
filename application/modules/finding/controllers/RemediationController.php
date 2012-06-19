@@ -1299,7 +1299,10 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
     }
 
     /**
+     * Display tasks for this finding
+     * 
      * @GETAllowed
+     * @return void
      */
     public function tasksAction()
     {
@@ -1326,18 +1329,21 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
             )
         );
 
+        // Get the all poc user for the drop down editor
         $poc = Doctrine_Query::create()
-                           ->select('p.username')
-                           ->from('Poc p')
-                           ->where('(p.lockType IS NULL OR p.lockType <> ?)', 'manual')
-                           ->orderBy("p.username")
-                           ->execute()
-                           ->toKeyValueArray('id', 'username');
+               ->select('p.username')
+               ->from('Poc p')
+               ->where('(p.lockType IS NULL OR p.lockType <> ?)', 'manual')
+               ->orderBy("p.username")
+               ->execute()
+               ->toKeyValueArray('id', 'username');
 
         $pocData = array();
         foreach ($poc as $username) {
             $pocData[] = $username;
         }
+
+        array_unshift($pocData, '');
 
         // Check the CRUD privilege for this task
         $crudPrivilege = false;
@@ -1355,7 +1361,10 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
     }
 
     /**
+     * Returns a JSON object that describe the tasks
+     *
      * @GETAllowed
+     * @return void
      */
     public function tasksDataAction()
     {
@@ -1383,31 +1392,32 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
 
         $taskRows = array();
         foreach ($tasks as $row) {
+
+            // Aggregated all Comments
             $comments = $row->getComments()->fetch(Doctrine::HYDRATE_ARRAY);
             $commentBlcok = '';
             foreach ($comments as $comment) {
                 $firstLine = $this->view->userInfo($comment['User']['username']) . ' ' . $comment['createdTs'];
                 $secondLine = $this->view->textToHtml($this->view->escape($comment['comment']));
 
-                $commentBlcok .= "<span>$firstLine</span>";
-                $commentBlcok .= "<span>$secondLine</span>";
+                $commentBlcok .= '<p>' . $firstLine . '<br>' . $secondLine . '</p>';
             }
 
+            // Format the date with 'MM/dd/yyyy' format
             list($date, $time) = explode(' ', $row->ecd);
             $date = explode('-', $date);
             $date = $date[1] . '/' . $date[2] . '/' . $date[0];
 
-            $findingStatus = $finding->status;
             $taskRows[] = array(
-                'description'   => $row->description,
-                'poc'           => $row->Poc->username,
-                'expectedCost'  => $row->expectedCost,
-                'status'        => $row->status,
-                'id'            => $row->id,
-                'objectId'      => $row->objectId,
+                'description'   => $this->view->escape($row->description),
+                'poc'           => isset($row->Poc) ? $this->view->escape($row->Poc->username) : null,
+                'expectedCost'  => $this->view->escape($row->expectedCost),
+                'status'        => $this->view->escape($row->status),
+                'id'            => $this->view->escape($row->id),
+                'objectId'      => $this->view->escape($row->objectId),
                 'comment'       => $commentBlcok,
-                'ecd'           => $date,
-                'findingStatus' => $findingStatus
+                'ecd'           => $this->view->escape($date),
+                'findingStatus' => $this->view->escape($finding->status)
             );
         }
 

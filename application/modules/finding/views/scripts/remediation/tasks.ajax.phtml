@@ -14,34 +14,35 @@ YAHOO.util.Event.onContentReady("task-container", function() {
             key: "description",
             label: "Description",
             sortable: false,
+            formatter: Fisma.TableFormat.formatHtml
             <?php if ($this->crudPrivilege) :?>
-                editor: new YAHOO.widget.TextareaCellEditor()
+                ,editor: new YAHOO.widget.TextareaCellEditor()
             <?php endif ?>
         },
         {
             key: "poc",
             label: "Assignee",
-            sortable: true,
+            sortable: true
             <?php if ($this->crudPrivilege) :?>
-                editor: new YAHOO.widget.DropdownCellEditor({dropdownOptions:pocData})
+                ,editor: new YAHOO.widget.DropdownCellEditor({dropdownOptions:pocData})
             <?php endif ?>
         },
         {
             key: "expectedCost",
             label: "Cost",
             sortable: true,
-            formatter: "currency",
+            formatter: "currency"
             <?php if ($this->crudPrivilege) :?>
-                editor: new YAHOO.widget.TextboxCellEditor({validator:YAHOO.widget.DataTable.validateNumber})
+                ,editor: new YAHOO.widget.TextboxCellEditor({validator:YAHOO.widget.DataTable.validateNumber})
             <?php endif ?>
         },
         {
             key: "ecd",
             label: "Due Date",
             sortable: true,
-            formatter: YAHOO.widget.DataTable.formatDate,
+            formatter: YAHOO.widget.DataTable.formatDate
             <?php if ($this->crudPrivilege) :?>
-                editor: new YAHOO.widget.DateCellEditor()
+                ,editor: new YAHOO.widget.DateCellEditor()
             <?php endif ?>
         },
         {
@@ -90,7 +91,7 @@ YAHOO.util.Event.onContentReady("task-container", function() {
             {key: 'description'},
             {key: 'poc'},
             {key: 'expectedCost', parser: 'currency'},
-            {key: 'ecd', parser: 'date' },
+            {key: 'ecd', parser: 'date'},
             {key: 'status'},
             {key: 'comment'},
             {key: 'action'},
@@ -112,7 +113,8 @@ YAHOO.util.Event.onContentReady("task-container", function() {
                 template : "{FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}"
             }
         ),
-        generateRequest : requestConstructor
+        generateRequest : requestConstructor,
+        dateOptions: {format: '%F'}
     };
 
     var dataTable = new YAHOO.widget.DataTable("task-container", columnDefs, dataSource, configs);
@@ -139,7 +141,7 @@ YAHOO.util.Event.onContentReady("task-container", function() {
         return payload;
     }
 
-    // Set up editing flow
+    // Highlight the editable cell when the mouseover event is fired
     var highlightEditableCell = function(oArgs) {
         var elCell = oArgs.target;
         if(YAHOO.util.Dom.hasClass(elCell, "yui-dt-editable")) {
@@ -151,20 +153,36 @@ YAHOO.util.Event.onContentReady("task-container", function() {
     dataTable.subscribe("cellMouseoutEvent", dataTable.onEventUnhighlightCell);
     dataTable.subscribe("cellClickEvent", dataTable.onEventShowCellEditor);
 
+    // Decode the textarea content when the field is 'description'
+    dataTable.subscribe("editorShowEvent", function (oArgs) {
+        var editor = oArgs.editor;
+        var column = editor.getColumn();
+        var key = column.getKey();
+        if (key === 'description') {
+            editor.textarea.value = $P.htmlspecialchars_decode(editor.getInputValue(), 'ENT_QUOTES');
+        }
+    });
+
+    // Update the field when the cellUpdateEvent is fired
     dataTable.subscribe("cellUpdateEvent", function (oArgs) {
-        var that = this;
         var column = oArgs.column;
         var record = oArgs.record;
         var data = record.getData();
-        var key = column.key;
+        var key = column.getKey();
         var elCell = column.editor.getTdEl();
+        var cellValue = data[key];
+
+        // Format the ecd date with '%Y-%m-%d' format
+        if (key === 'ecd' && cellValue instanceof Date) {
+            cellValue = YAHOO.util.Date.format(cellValue, {format: '%F'});
+        }
 
         var postData = Fisma.Util.convertObjectToPostData({
             csrf: document.getElementById('finding_detail').elements.csrf.value,
             id: data.id,
             objectId: data.objectId,
             field: key,
-            value: data[key]
+            value: cellValue
         });
 
         YAHOO.util.Connect.asyncRequest(
@@ -181,6 +199,10 @@ YAHOO.util.Event.onContentReady("task-container", function() {
                     }
 
                     if (result.success) {
+                        if (key === 'description') {
+                            jQuery(elCell.firstChild).text(cellValue);
+                        }
+
                         var rowBlinker = new Fisma.Blinker(
                                 100,
                                 6,

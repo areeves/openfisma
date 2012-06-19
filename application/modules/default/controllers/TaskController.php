@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2008 Endeavor Systems, Inc.
+ * Copyright (c) 2012 Endeavor Systems, Inc.
  *
  * This file is part of OpenFISMA.
  *
@@ -77,13 +77,14 @@ class TaskController extends Fisma_Zend_Controller_Action_Security
      * Add task to a particular object
      * 
      * @GETAllowed
+     * @return void
      */
     public function addAction()
     {
         $response = new Fisma_AsyncResponse();
 
         $objectId = $this->getRequest()->getParam('objectId');
-        $objectClass = $this->getRequest()->getParam('type');
+        $objectClass = ucfirst(trim($this->getRequest()->getParam('type')));
 
         $form   = $this->getForm();
 
@@ -92,14 +93,14 @@ class TaskController extends Fisma_Zend_Controller_Action_Security
 
             if ($form->isValid($post)) {
                 try {
-                    $object = Doctrine::getTable(ucwords($objectClass))->find($objectId);
+                    $object = Doctrine::getTable($objectClass)->find($objectId);
 
                     if (!$object) {
                         throw new Fisma_Zend_Exception("No object exist in class $objectClass with id $objectId");
                     }
 
                     Doctrine_Manager::connection()->beginTransaction();
-                    $task = $object->getTasks()->addTask($form->getValues());
+                    $task = $object->getTasks()->addTask(array_filter($form->getValues()));
                     Doctrine_Manager::connection()->commit();
 
                     $response->task = $task->toArray();
@@ -123,7 +124,6 @@ class TaskController extends Fisma_Zend_Controller_Action_Security
      * Edit a task
      *
      * @GETAllowed
-     *
      * @return void
      */
     public function editAction()
@@ -132,7 +132,7 @@ class TaskController extends Fisma_Zend_Controller_Action_Security
 
         $taskId = $this->getRequest()->getParam('id');
         $objectId = $this->getRequest()->getParam('objectId');
-        $objectClass = ucwords($this->getRequest()->getParam('type'));
+        $objectClass = ucfirst(trim($this->getRequest()->getParam('type')));
         $fieldName = $this->getRequest()->getParam('field');
         $value = $this->getRequest()->getParam('value');
 
@@ -155,8 +155,12 @@ class TaskController extends Fisma_Zend_Controller_Action_Security
             }
 
             if ($fieldName == 'poc') {
-                $poc = Doctrine::getTable('Poc')->findOneByUsername($value);
-                $task->Poc = $poc;
+                if (!empty($value)) {
+                    $poc = Doctrine::getTable('Poc')->findOneByUsername($value);
+                    $task->Poc = $poc;
+                } else {
+                    $task->Poc = null;
+                }
             } elseif ($fieldName == 'ecd') {
                 $datetime = new Zend_Date($value, Fisma_Date::FORMAT_DATE);
                 $task->$fieldName = $datetime->toString(Fisma_Date::FORMAT_DATETIME);
@@ -188,6 +192,7 @@ class TaskController extends Fisma_Zend_Controller_Action_Security
     /**
      * Delete a task
      *
+     * @GETAllowed
      * @return void
      */
     public function deleteAction()
@@ -196,12 +201,12 @@ class TaskController extends Fisma_Zend_Controller_Action_Security
 
         $taskId = $this->getRequest()->getParam('taskId');
         $objectId = $this->getRequest()->getParam('objectId');
-        $objectClass = trim($this->getRequest()->getParam('type'));
+        $objectClass = ucfirst(trim($this->getRequest()->getParam('type')));
 
         try {
             Doctrine_Manager::connection()->beginTransaction();
 
-            $object = Doctrine::getTable(ucfirst($objectClass))->find($objectId);
+            $object = Doctrine::getTable($objectClass)->find($objectId);
 
             if (!$object) {
                 throw new Fisma_Zend_Exception("No object exist in class $objectClass with id $objectId");
@@ -239,6 +244,9 @@ class TaskController extends Fisma_Zend_Controller_Action_Security
 
     /**
      * Add comment to a particular object
+     *
+     * @GETAllowed
+     * @return void
      */
     public function addCommentAction()
     {
@@ -246,7 +254,7 @@ class TaskController extends Fisma_Zend_Controller_Action_Security
 
         $taskId = $this->getRequest()->getParam('taskId');
         $objectId = $this->getRequest()->getParam('objectId');
-        $objectClass = $this->getRequest()->getParam('type');
+        $objectClass = ucfirst(trim($this->getRequest()->getParam('type')));
         $trimmedComment = trim($this->getRequest()->getParam('comment'));
 
         try {
