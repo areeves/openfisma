@@ -53,8 +53,8 @@ class TaskController extends Fisma_Zend_Controller_Action_Security
         $form = Fisma_Zend_Form_Manager::prepareForm($form);
 
         $form->getElement('ecd')
-            ->setValue(Zend_Date::now()->toString(Fisma_Date::FORMAT_DATE))
-            ->addDecorator(new Fisma_Zend_Form_Decorator_Date);
+             ->setValue(Zend_Date::now()->toString(Fisma_Date::FORMAT_DATE))
+             ->addDecorator(new Fisma_Zend_Form_Decorator_Date);
 
         return $form;
     }

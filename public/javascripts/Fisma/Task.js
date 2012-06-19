@@ -49,7 +49,7 @@ Fisma.Task = {
     /**
      * Reference to the YUI panel which is displayed to input the comment
      */
-     yuiPanel : null,
+    yuiPanel : null,
 
     /**
      * Show the file task panel
@@ -264,7 +264,7 @@ Fisma.Task = {
                     o.argument.center();
 
                     var form = YAHOO.util.Selector.query("form", o.argument.body, true);
-                    form.setAttribute('onsubmit','return Fisma.Task.postComment();');
+                    form.setAttribute('onsubmit', 'return Fisma.Task.postComment();');
                 },
 
                 failure: function(o) {
@@ -369,7 +369,7 @@ Fisma.Task = {
 
         var commemtBlock = '<p>' + comment.username + ' ' + comment.createdTs + '<br>' + comment.comment + '</p>';
 
-        commentCell.firstChild.innerHTML += commemtBlock;
+        commentCell.firstChild.innerHTML = commemtBlock + commentCell.firstChild.innerHTML;
 
         // Highlight the added row so the user can see that it worked
         var rowBlinker = new Fisma.Blinker(
