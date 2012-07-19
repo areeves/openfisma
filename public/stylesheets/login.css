@@ -31,63 +31,280 @@
  *
  *******************************************************************************
  */
- 
-html {
-    min-height: 100%;
-}
 
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+ a, abbr, acronym, address, big, cite, code, del, dfn, em, font, img, ins, kbd, q, s, samp, 
+ small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, 
+ form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td {
+    margin:0; 
+    padding:0; 
+    border:0;
+    outline:0; 
+    font-size:100%; 
+    vertical-align:baseline;
+}
 body {
-    background-color: #416ed7;
-    margin: 0px;
-    min-height: 100%;
+    color:#333; 
+    font-size:86%; 
+    line-height:1.25;
+}
+a {
+    text-decoration:none;
+}
+a:hover {
+    text-decoration:underline;
+}
+abbr, acronym {
+    border-bottom:1px dotted #ebebee; 
+    cursor:help;
+}
+em {
+    font-style:italic; 
+    font-weight:inherit;
+}
+strong {
+    font-weight:bold; 
+    font-style:inherit;
+}
+ol, ul {
+    list-style:none;
+}
+blockquote, q {
+    quotes:none;
+}
+blockquote:before, blockquote:after, q:before, q:after {
+    content:'';
+}
+li li, li p, td p, blockquote p {
+    font-size:1em;
+}
+:focus {
+    outline:0;
+}
+ins {
+    text-decoration:none; 
+    color:#090; 
+    font-size:1.1em;
+}
+del {
+    text-decoration:line-through;
+}
+.clear:after {
+    display:block; 
+    visibility:hidden; 
+    clear:both; 
+    height:0; 
+    content: ".";
+}
+font, basefont {
+    color:inherit; 
+    font:inherit; 
+    font-size:100%;
+}
+center {
+    text-align:inherit;
+}
+s,strike/*,u*/ {
+    text-decoration:inherit;
+}
+div[align], h1[align], h2[align], h3[align], h4[align], h5[align], h6[align], p[align], blockquote[align],
+ pre[align], font[align], img[align], center[align], dl[align], dd[align], dt[align], ul[align], ol[align],
+  li[align], table[align], tr[align] {
+    text-align:inherit;
+}
+marquee {
+    overflow:visible; 
+    -moz-binding:none;
+}
+blink {
+    text-decoration:none;
 }
 
-table {
-    margin-left: auto;
-    margin-right: auto;
+
+html, body {
+    background: url("/images/bodyBg_tile.png") left top repeat-x; 
+    text-align:center; 
+    background-color: #f4f6f7;
 }
 
-/* Messages related to login errors */
-p.message {
-    color: #416ed7;
-    font-weight: bold;
+#container {
+    background-color:#fff; 
+    margin:10px auto; 
+    padding:10px; 
+    text-align:left; 
+    width:940px;
+}
+body.full #container {
+    margin:0; 
+    padding:0; 
+    width:auto;
 }
 
-form#loginForm {
-    font-size: 1em;
-    font-weight: bold;
-    margin: 0px auto;
+
+#head {
+    background:transparent url("/images/headerBg.png") left top repeat-x; 
+    height:99px; 
+    border-bottom:1px solid #C3D2DF;
+}
+#head a.logo {
+    background:transparent url("/images/logo1.png") right top no-repeat; 
+    margin:20px 0 0 10px; 
+    padding:10px 0 0 30px;
+    display:block; 
+    float:left; 
+    height:99px; 
+    text-decoration:none; 
+    width:30%;
+}
+#head a.logo img {
+    display:none;
 }
 
-form#loginForm input {
-    padding: 5px;
-    font-size: 1em;
-    font-weight: bold;
-    width:150px;
+#mainContent {
+    padding-bottom:10px; 
+    min-width:940px; 
+    overflow:hidden;
+}
+body.full #mainContent {
+    padding:10px; 
+    min-width:auto;
 }
 
-div#footer {
+#footer {
+    background:transparent url("/images/headerBg.png") left top repeat-x;  
+    border-top:1px solid #C3D2DF;
+    font-size:0.9em; 
+    font-family:Verdana, Arial, Helvetica, sans-serif; 
+    overflow:hidden; 
+    height:125px; 
+    padding:23px 0 10px; 
+    margin:0; 
+    position:relative; 
+    clear:both;
+}
+#footer a {
+    color:#575757; 
+    font-size:1.0em;
+}
+#footer .midSection {
+    width:160px; 
+    height:133px; 
+    float:left;
+}
+#footer .divide {
+    background:transparent url("/images/headerBg.png") 0 -430px no-repeat;
+    padding-left:15px;
+}
+#footer p.title {
+    font-size:1.3em; 
+    font-weight:bold; 
+    clear:left; 
+    color:#575757;
+}
+#footer ul {
+    margin-top:2px;
+}
+#footer .address {
+    background:transparent 10px -206px no-repeat; 
+    float:left; 
+    width:250px; 
+    padding-left:80px;
+}
+#footer .address a {
+    color:#2870df;
+}
+#footer .right {
+    width:275px; 
+    height:133px;
+}
+#footer .right p.title, #footer .right ul {
+    margin-left:35px;
+}
+
+.content {
+    font-family:Arial, Helvetica, sans-serif; 
+    font-size:1.0em; 
+    line-height:1.45; 
+    text-align:left;
+}
+
+.left {
+    float:left; 
+    margin:0 10px 10px 0;
+}
+.right {
+    float:right; 
+    margin:0 0 10px 10px;
+}
+.hidden, .forPrint {
+    display:none;
+}
+big, .big {
+    font-size:1.15em;
+}
+small, .small {
+    font-size:0.85em;
+}
+.bold {
+    font-weight:bold;
+}
+.alert {
+    color:#e00;
+}
+.blue {
+    color:#369;
+    font-size:1.15em;
+}
+input.button {
+    margin-right:10px; 
+    border:1px solid #999; 
+    border-top-color:#CCC; 
+    border-left-color:#CCC; 
+    padding:0.2em 0.6em; 
+    background-color:#FFF; 
+    background-position:left top; 
+    background-image: url("/images/buttonDefaultInverted.gif"); 
+    background-repeat:repeat-x; 
+    color:#333; 
+    font-size:0.9em; 
+    font-weight:bold;
+}
+input.button:hover {
+    background-image:url("/images/buttonDefault.gif"); 
+    background-position:left bottom; 
+    border-top-color:#999; 
+    border-left-color:#999; 
+    cursor:pointer;
+}
+input.button:active {
+    border-top-color:#999; 
+    border-left-color:#999;
+    border-bottom-color:#CCC; 
+    border-right-color:#CCC; 
+    position:relative; 
+    bottom:-1px; 
+    right:-1px;
+}
+input.primary {
+    padding:0.2em 0.8em;
+    border-color:#555;
+}
+input.secondary {
+    background-image:url("/images/buttonSecondaryInverted.gif"); 
+    color:#656565; 
+    text-transform:capitalize;
+}
+.divCapsLock {
+    margin: 6px 10px;
+    padding: 2px 6px 6px 6px;
+    background-color: #ffffbb;
+    border: 1px solid #808080;
+}
+.divCapsLockON {
+    visibility: visible;
+    position: relative;
+}
+.divCapsLockOFF {
+    visibility: hidden;
     position: absolute;
-    bottom: 10px;
-    width: 100%;
-    text-align: right;
 }
-
-div#footerLinks {
-    color: white;
-    font-weight: bold;
-    padding-right: 10px;
-}
-
-div#footerLinks a {
-    color: white;
-}
-
-hr {
-	border: none;
-	width: 100%;
-	margin-left: auto;
-	margin-right: auto;
-    border-bottom: 1px solid #ccc;
-}
-

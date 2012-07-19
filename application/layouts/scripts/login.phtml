@@ -4,61 +4,126 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
-<?php
-    $this->headTitle()->prepend(Fisma::configuration()->getConfig('system_name'));
-    echo $this->escape($this->headTitle(), 'none');
-    $yuiComponents = array('yahoo', 'dom', 'event', 'element', 'container', 'button');
 
-    $yui = new Fisma_Loader();
-    $yui->load($yuiComponents);
-    $this->injectAsset('/stylesheets/login.css', 'css', false, 'screen,print');
-    $this->headLink()->headLink(array('rel' => 'icon', 'href' => '/images/favicon.ico'));
+        <?php
+        $this->headTitle()->prepend(Fisma::configuration()->getConfig('system_name'));
+        echo $this->escape($this->headTitle(), 'none');
+        $yuiComponents = array('yahoo', 'dom', 'event', 'element', 'container', 'button');
 
-    echo $this->escape($yui, 'none');
-    echo $this->escape($this->headScript(), 'none');
-    echo $this->escape($this->headLink(), 'none');
-?>
+        $yui = new Fisma_Loader();
+        $yui->load($yuiComponents);
 
-<script type="text/javascript">
-    YAHOO.util.Event.onAvailable(
-        'content',
-        function () {
-            loginPanel = new YAHOO.widget.Panel(
-                "content", 
-                {
-                    width:"600px", 
-                    visible:true, 
-                    draggable: false, 
-                    close: false, 
-                    constraintoviewport: true
-                } 
-            ); 
-            loginPanel.render();
-            loginPanel.center();
-            loginPanel.focusFirst();
-        }
-    );
-</script>
+        $this->headScript()->appendFile('/javascripts/jquery-min.js');
+        $this->headScript()->appendFile('/javascripts/jquery-scrollTo-1-4-2-min.js');
+        $this->headScript()->appendFile('/javascripts/jquery-localscroll-1-2-7-min.js');
+        $this->headScript()->appendFile('/javascripts/jquery-serialScroll-1-2-2-min.js');
+        $this->headScript()->appendFile('/javascripts/swfobject.js');
+        $this->headScript()->appendFile('/javascripts/php.js');
+        $this->headScript()->appendFile('/javascripts/Fisma.js');
+        $this->injectAsset('/stylesheets/login.css', 'css', false, 'screen,print');
+        $this->headLink()->headLink(array('rel' => 'icon', 'href' => '/images/favicon.ico'));
+        
+        echo $this->escape($yui, 'none');
+        echo $this->escape($this->headScript(), 'none');
+        echo $this->escape($this->headLink(), 'none');
+        ?>
 
+        <script type="text/javascript">
+            function capLock(e) {
+                kc = e.keyCode ? e.keyCode : e.which;
+                sk = e.shiftKey ? e.shiftKey : ((kc == 16) ? true : false);
+                
+                if(((kc >= 65 && kc <= 90) && !sk)||((kc >= 97 && kc <= 122) && sk)) {
+                    document.getElementById('divCapsLock').className = 'divCapsLockON divCapsLock';
+                }
+                else {
+                    document.getElementById('divCapsLock').className = 'divCapsLockOFF divCapsLock';
+                }
+            }
+
+            $(function(){
+                $('#login').click(function(){
+                    var name = $("#username").val();
+                    var pwd = $("#userpass").val();
+
+                    if ((!name || 0 === name.length) && (!pwd || 0 === pwd.length)) {
+                        alert("Please enter username and password");
+                    }
+                    else if (!name || 0 === name.length) {
+                        alert("Please enter username");
+                    }
+                    else if (!pwd || 0 === pwd.length) {
+                        alert("Please enter password");
+                    }
+                    else {
+                        $('#sysUsage').toggle();
+                        $('#sysLogin').toggle();
+                    }
+                });
+                $('#accept').click(function(){
+                    document.getElementById("loginForm").submit();
+                });
+                $('#cancel').click(function(){
+                    $('#sysUsage').toggle();
+                    $('#sysLogin').toggle();
+                });
+            });
+    
+        </script>
 </head>
 
-<body class="yui-skin-sam">
+<body>
+    <div id="container">
+      
+    <!--  Header -->
+    <div id="head">
+        <a href="http://openfisma.org/" class="logo" title="OpenFISMA Homepage"></a>
+    </div>
+
+    <div id="mainContent" class="content">
+
+    <!-- Login Form -->
     <div id="content">
         <?php echo $this->escape($this->layout()->content, 'none'); ?>
     </div>
-    <div id='footer'>
-        <div id='footerLinks'>
-            <a href="mailto:<?php
-                                echo $this->escape(Fisma::configuration()->getConfig('contact_email'), 'none');
-                            ?>?Subject=<?php 
-                                echo $this->escape(Fisma::configuration()->getConfig('contact_subject'), 'url');
-                            ?>">Contact Administrator</a>&nbsp;|&nbsp;
-                            
-            <a href="/auth/rob/">Rules of Behavior</a>&nbsp;|&nbsp;
-            <a href="/auth/privacy/">Privacy Policy</a>&nbsp;|&nbsp;
-            <i>Powered by <a href="http://www.openfisma.org">OpenFISMA</a></i>
+
+    </div>
+    
+    <!-- Footer -->
+    <div id="footer">
+        <div class="address">
+            <p><img src="/images/fdic-1.jpg" height="45" width="100" />
+                <a href="http://www.fdic.gov/" title="Federal Deposit Insurance Corporation">
+                    Federal&nbsp;Deposit&nbsp;Insurance&nbsp;Coropration
+                </a><br>
+                Consumer&nbsp;Response&nbsp;Center<br>
+                1100&nbsp;Walnut&nbsp;St,&nbsp;Box&nbsp;#11<br>
+                Kansas&nbsp;City,&nbsp;MO&nbsp;64106<br>
+                Fax&nbsp;Number&nbsp;(703)&nbsp;812-1020
+            </p>
+        </div>
+        <div class="midSection divide">
+            <p class="title">Web Policies</p>
+            <ul>
+                <li><a href="/auth/rob/" title="System Usage Rules of Behavior">Rules of Behavior</a></li>
+                <li><a href="/auth/privacy/" title="Privacy Policy">Privacy Policy</a></li>
+            </ul>
+        </div>
+        <div class="left divide">
+            <p class="title">Contact Us</p>
+            <ul>
+                <li><a href="mailto:<?php
+                              echo $this->escape(Fisma::configuration()->getConfig('contact_email'), 'none');
+                                    ?>?Subject=<?php 
+                              echo $this->escape(Fisma::configuration()->getConfig('contact_subject'), 'url');
+                                    ?>" 
+                       title="Send email to OpenFISMA administor">Contact Administrator</a></li>
+                <li><a href="http://www.openfisma.org" title="Go to OpenFISMA home">OpenFISMA</a></li>
+            </ul>
         </div>
     </div>
+    </div>
+
 </body>
 <?php echo $this->partial('partial/priorityMessage.phtml', array('messages' => $this->priorityMessenger())); ?>
 </html>
