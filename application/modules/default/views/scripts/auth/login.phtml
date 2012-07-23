@@ -1,123 +1,61 @@
-
-<table class="layout" cellpadding="0" cellspacing="0" width="99%">
-    <tr>
-        <!-- td style="vertical-align: top; width: 70%;">
-            <div id="pageInfo">
-                <h1 style="margin-top: 10px">
-                    <span style="color:#369; font-size:1.3em;">
-                        <?php echo $this->escape(Fisma::configuration()->getConfig('system_name'));?>
-                    </span>
-                </h1>
-            </div>
-            <hr />
-            <p style="color: #990000; text-align: center; font-weight: bold; letter-spacing: 3px; font-size: 120%; 
-               margin-top: 8px;">
-                ** WARNING ** WARNING ** WARNING **
-            </p>
-            <p>
-                <?php echo $this->escape(Fisma::configuration()->getConfig('use_notification'), 'none');?>
-            </p>
-        </td-->
-        <td style="vertical-align: top; padding-left: 20px; width: auto; border:none;">
-    
-            <form id="loginForm" action="/auth/login" method="post" style="margin-bottom: 0;">
-            <div id="sysLogin" align="center" style="width:400px; margin: 0 auto;">
-                <fieldset style="padding:0;">
-                    <h2 style="margin-top:0; padding-top:6px; padding-left:6px; 
-                        background:transparent url('/images/buttonSecondary.gif') right top repeat-x;">
-                        <span class="blue">Login to 
-                            <?php echo $this->escape(Fisma::configuration()->getConfig('system_name'));?>
-                        </span>
-                    </h2>
-                    <p class="alert bold" style="text-align: left; padding-left:6px; padding-top:15px;">
-                        <?php 
-                            if (isset($this->error)) {
-                                echo $this->escape(' ', 'none');
-                                echo $this->escape($this->error); 
-                            }
-                        ?>
-                    </p>
-                    <p style="text-align: left; padding-left:6px; padding-top:15px; padding-bottom: 5px;">
-                        <label for="username">Username</label><br/>
-                        <input type="text" name="username" id="username" 
-                               value="<?php echo $this->escape(isset($this->username) ? $this->username : '')?>"
-                               title="Please enter your username" tabindex="1" size="30" maxlength="50" 
-                               />
-                    </p>
-                    <script type="text/javascript">
-                        document.getElementById("username").focus();
+<form id="loginForm" action="/auth/login" method="post">
+    <div id="sysLogin">
+        <div id="login_container" class="container">
+            <h2 class="green_tag_short">Login</h2>
+           
+            <?php if (isset($this->error)) { 
+                      echo "<div id='login_message' class='message error'>";
+                      echo $this->escape(' ', 'none');
+                      echo $this->escape($this->error);  
+                      echo "</div>";
+                  }
+            ?>
+           
+            <div id="login_form_block" class="form_block"> 
+                <ol>
+                    <li>
+                        <label id="label_username" for="username">Username</label>
+                        <input class="textfield required" id="username" maxlength="200"
+                               name="username" type="text" value="" tabindex="1"/>
+                        <script type="text/javascript">
+                            document.getElementById("username").focus();
                     </script>
-
-                    <p style="text-align: left; padding-left:6px; margin-bottom: 0; padding-bottom: 0px;">
-                        <label for="password">Password</label><br />
-                        <input type="password" name="userpass" id="userpass" 
-                               value="<?php echo $this->escape(isset($this->password)?$this->password:'')?>" 
-                               title="Please enter your password" size="30" maxlength="30" tabindex="2" 
-                               onkeypress="capLock(event)"/>
-                    </p>
-                    <div id="divCapsLock" class="divCapsLockOFF divCapsLock">
-                        <img style="vertical-align: middle; padding: 6px 6px 6px 0px;" 
-                             src="/images/msgbox_icon_warning.gif" title="Caps Lock On" />
-                        <strong>Caps Lock is On</strong><br clear="all"/>
-                        Having <em>Caps Lock</em> on may cause you to enter your password incorrectly.
-                    </div>
-
-                    <h3 style="margin-bottom: 0; margin-top: 0; padding-bottom: 15px; padding-top: 18px; 
-                        background:transparent url('/images/buttonSecondaryInverted.gif') right bottom repeat-x;">
-                        &nbsp; 
-                        <input type="button" id="login" value="Login" class="primary button" tabindex="4" />
+                    </li>
+                    <li>
+                        <label id="label_password" for="userpass">Password</label>
+                        <input class="textfield required" id="userpass" maxlength="30"
+                               name="userpass" type="password" value="" tabindex="2"/>
+                    </li>
+                    <li class="submit_block">
+                        <input type="button" name="login" id="login" tabindex="3"/>
+                        <span id="forgot_password">
+                            <a href="/auth/forgot_password">Forgot your password?</a>&nbsp;
+                                <strong>&bull;</strong>&nbsp;
+                            <a href="/incident/report">Report Incident</a>
+                        </span>
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>  
+    
+    <!-- System Usage ROB -->
+    <div id="sysUsage" style="display:none;">
+        <div id="login_container" class="container">
+            <h2 class="yellow_tag_short">Warning</h2>
+            <div id="login_form_block" class="form_block"> 
+                <div style="padding: 0 10px 5px; font-size: 100%;">
+                    <?php echo $this->escape(Fisma::configuration()->getConfig('use_notification'), 'none');?>
+                </div>
+                <hr />
+                <div class="submit_block">
+                    <h3 style="text-align: center; margin-bottom: 0; margin-top: 0; padding-bottom: 15px;
+                        padding-top: 10px; font-weight: bold;">&nbsp;
+                        <input type="button" id="accept" value="Accept" class="primary button" tabindex="4" />&nbsp;&nbsp;&nbsp;&nbsp;
+                        <input type="button" id="cancel" value="Cancel" class="primary button" tabindex="5" />
                     </h3>
-
-                    <ul style="border-top:1px solid #999; margin:0; padding: 10px 0px 10px 5px; 
-                        background:transparent url('/images/buttonSecondary.gif') right top repeat-x;">
-                        <li style="list-style-image:url('/images/bullet_raquo.gif');"> 
-                            <a href="mailto:<?php
-                                      echo $this->escape(Fisma::configuration()->getConfig('contact_email'), 'none');
-                                    ?>?Subject=<?php 
-                                      echo $this->escape(Fisma::configuration()->getConfig('contact_subject'), 'url');
-                                    ?>" style="color:#900;">Forgot Password?
-                            </a>
-                        </li>
-                        <li style="list-style-image:url('/images/bullet_raquo.gif');">
-                            <a href="/incident/report" style="color:#900;">Report A Security Incident</a>
-                        </li>
-                        
-                    </ul>
-                </fieldset>
                 </div>
-                <!-- System Usage ROB -->
-                <div id="sysUsage" align="center" style="width:600px; margin: 0 auto; border: 1px solid red;
-                     display:none;">
-                    <div id="pageInfo" style="text-align: center;">
-                        <h1 style="margin-top: 10px; text-align: center;">
-                            <span style="color:#369; font-size:1.3em;">
-                                <?php echo $this->escape(Fisma::configuration()->getConfig('system_name'));?>
-                            </span>
-                        </h1>
-                    </div>
-                    <hr />
-                    <div style="padding-left:15px; padding-right:15px; padding-bottom: 20px;">
-                    <p style="color: #990000; text-align: center; font-weight: bold; letter-spacing: 3px; 
-                       font-size: 120%; padding-top: 10px;">
-                        *** WARNING ***
-                    </p>
-                    <p style="padding-left:15px; padding-right:15px; padding-bottom: 20px;">
-                        <?php echo $this->escape(Fisma::configuration()->getConfig('use_notification'), 'none');?>
-                    </p>   
-                    </div>             
-                    <div style="border-top:1px solid #999; margin:0; padding: 5px 0px 0px 5px; 
-                         background:transparent url('/images/buttonSecondary.gif') right top repeat-x;">
-                        <h3 style="text-align: center; margin-bottom: 0; margin-top: 0; padding-bottom: 15px;
-                            padding-top: 10px; background:transparent url('/images/buttonSecondaryInverted.gif') 
-                            right bottom repeat-x;">&nbsp;
-                            <input type="button" id="accept" value="Accept" class="primary button" tabindex="4" />&nbsp;&nbsp;&nbsp;&nbsp;
-                            <input type="button" id="cancel" value="Cancel" class="primary button" tabindex="4" />
-                        </h3>
-                   </div>
-                
-                </div>
-            </form>
-        </td>
-    </tr>
-</table>
-
+            </div>
+        </div>
+    </div>
+</form>                

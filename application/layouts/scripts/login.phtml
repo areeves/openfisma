@@ -72,58 +72,45 @@
         </script>
 </head>
 
-<body>
-    <div id="container">
-      
-    <!--  Header -->
-    <div id="head">
-        <a href="http://openfisma.org/" class="logo" title="OpenFISMA Homepage"></a>
-    </div>
+<body class="narrow_layout">
 
-    <div id="mainContent" class="content">
-
-    <!-- Login Form -->
-    <div id="content">
-        <?php echo $this->escape($this->layout()->content, 'none'); ?>
-    </div>
-
-    </div>
-    
-    <!-- Footer -->
-    <div id="footer">
-        <div class="address">
-            <p><img src="/images/fdic-1.jpg" height="45" width="100" />
-                <a href="http://www.fdic.gov/" title="Federal Deposit Insurance Corporation">
-                    Federal&nbsp;Deposit&nbsp;Insurance&nbsp;Coropration
-                </a><br>
-                Consumer&nbsp;Response&nbsp;Center<br>
-                1100&nbsp;Walnut&nbsp;St,&nbsp;Box&nbsp;#11<br>
-                Kansas&nbsp;City,&nbsp;MO&nbsp;64106<br>
-                Fax&nbsp;Number&nbsp;(703)&nbsp;812-1020
-            </p>
+  <div id="master_container" class="container">
+    <div id="wrapper" class="container">
+      <div id="content" class="container">
+        <div class="orange_container container overbottom">
+          <div class="inner container">
+            <div id="header" class="container">
+              <div id="glow"></div>
+            </div>
+            <div class="content"></div>
+          </div>
         </div>
-        <div class="midSection divide">
-            <p class="title">Web Policies</p>
-            <ul>
-                <li><a href="/auth/rob/" title="System Usage Rules of Behavior">Rules of Behavior</a></li>
-                <li><a href="/auth/privacy/" title="Privacy Policy">Privacy Policy</a></li>
-            </ul>
-        </div>
-        <div class="left divide">
-            <p class="title">Contact Us</p>
-            <ul>
-                <li><a href="mailto:<?php
-                              echo $this->escape(Fisma::configuration()->getConfig('contact_email'), 'none');
-                                    ?>?Subject=<?php 
-                              echo $this->escape(Fisma::configuration()->getConfig('contact_subject'), 'url');
-                                    ?>" 
-                       title="Send email to OpenFISMA administor">Contact Administrator</a></li>
-                <li><a href="http://www.openfisma.org" title="Go to OpenFISMA home">OpenFISMA</a></li>
-            </ul>
-        </div>
-    </div>
-    </div>
+        &nbsp;<br/>&nbsp;<br/>&nbsp;<br/>
+        <div class="gray_container gradient container">
+          <div class="content">
+            <div class="white_content full_width">
+              <div class="top"></div>
+                <div class="middle">
+                
+                <!-- Login Form -->
+                <?php echo $this->escape($this->layout()->content, 'none'); ?>
 
-</body>
-<?php echo $this->partial('partial/priorityMessage.phtml', array('messages' => $this->priorityMessenger())); ?>
+                </div>
+                <div class="bottom"></div>
+              </div>
+            </div>
+            <div id="footer">
+              <div id="copyright_navigation">&copy; OpenFISMA 2012
+                <span style="white-space: nowrap; ">
+                  <a href="http://openfisma.org">Home</a>
+                  <strong>&bull;</strong> <a href="/auth/rob">Rules of Behavior</a>
+                  <strong>&bull;</strong> <a href="/auth/privacy">Privacy Policy</a>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+</body><?php echo $this->partial('partial/priorityMessage.phtml', array('messages' => $this->priorityMessenger())); ?>
 </html>
