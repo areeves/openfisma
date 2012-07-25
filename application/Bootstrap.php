@@ -16,6 +16,9 @@
  * {@link http://www.gnu.org/licenses/}.
  */
 
+use Doctrine\ORM\Tools\Setup;
+use Doctrine\ORM\EntityManager;
+
 /**
  * Bootstrap class for Zend_Application
  *
@@ -73,60 +76,29 @@ class Bootstrap extends Fisma_Zend_Application_Bootstrap_SymfonyContainerBootstr
     }
 
     /**
-     * Initialize and connect to the database
+     * Initialize Entity Manager
      *
-     * @access protected
-     * @return void
+     * @return Doctrine\ORM\EntityManager
      */
-    protected function _initDb()
+    protected function _initEntityManager()
     {
-        $db = Fisma::$appConf['db'];
-        $connectString = $db['adapter']
-                       . '://'
-                       . $db['username']
-                       . ':'
-                       . $db['password']
-                       . '@'
-                       . $db['host']
-                       . ($db['port'] ? ':' . $db['port'] : '')
-                       . '/'
-                       . $db['schema'];
-
-        Doctrine_Manager::connection($connectString);
-        $manager = Doctrine_Manager::getInstance();
-        $manager->setAttribute(Doctrine::ATTR_USE_DQL_CALLBACKS, true);
-        $manager->setAttribute(Doctrine::ATTR_USE_NATIVE_ENUM, true);
-        $manager->setAttribute(Doctrine::ATTR_AUTOLOAD_TABLE_CLASSES, true);
-        $manager->setAttribute(Doctrine::ATTR_VALIDATE, Doctrine::VALIDATE_ALL);
-
-        $manager->registerValidators(
-            array('Fisma_Doctrine_Validator_Ip', 'Fisma_Doctrine_Validator_Url', 'Fisma_Doctrine_Validator_Phone')
+        /* set up doctrine2 autoloader */
+        Setup::registerAutoloadDirectory(
+            realpath(APPLICATION_PATH . '/../library')
         );
 
-        // Set globally on a Doctrine_Manager instance .
-        $manager->setCollate('utf8_unicode_ci');
-        $manager->setCharset('utf8');
-
-        /**
-         * Set up the cache driver and connect to the manager.
-         * Make sure that we only cache in web app mode, and that the application is installed.
-         **/
-        if (function_exists('apc_fetch') && Fisma::mode() == Fisma::RUN_MODE_WEB_APP) {
-            $cacheDriver = new Doctrine_Cache_Apc();
-            $manager->setAttribute(Doctrine::ATTR_QUERY_CACHE, $cacheDriver);
-        }
-
-        Zend_Registry::set(
-            'doctrine_config',
+        $db = Fisma::$appConf['db'];
+        // $db['host'] $db['port']
+        return EntityManager::create(
             array(
-                'data_fixtures_path'  =>  Fisma::getPath('fixture'),
-                'models_path'         =>  Fisma::getPath('model'),
-                'migrations_path'     =>  Fisma::getPath('migration'),
-                'yaml_schema_path'    =>  Fisma::getPath('schema'),
-                'generate_models_options' => array(
-                    'generateTableClasses' => true,
-                    'baseClassName' => 'Fisma_Doctrine_Record'
-                )
+                'driver'   => 'pdo_mysql',
+                'user'     => $db['username'],
+                'password' => $db['password'],
+                'dbname'   => $db['schema']
+            ),
+            Setup::createAnnotationMetadataConfiguration(
+                array(realpath(APPLICATION_PATH . '/models')),
+                APPLICATION_ENV === 'development'
             )
         );
     }

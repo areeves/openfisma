@@ -36,6 +36,7 @@ set_include_path(
 );
 
 require_once 'Zend/Application.php';
+require_once 'DoctrineORM/Doctrine/ORM/Tools/Setup.php';
 
 $application = new Zend_Application(
     APPLICATION_ENV,
