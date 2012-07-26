@@ -388,17 +388,15 @@ Fisma.Finding = {
 
         //layout switch
         $('#toolbarRight').prepend($('#changeLayout'));
-        var layoutButton = new YAHOO.widget.Button("menuLayout", {type: "menu", menu: "menuLayoutSelect"});
+        $('#changeLayout').buttonset();
         $("#layoutLeft").click(function() {
             $(".column33").removeClass('right').addClass('left');
             $(".column66").removeClass('left').addClass('right');
-            layoutButton.getMenu().hide();
             storage.set('analystLayout', 'layoutLeft');
         });
         $("#layoutRight").click(function() {
             $(".column33").removeClass('left').addClass('right');
             $(".column66").removeClass('right').addClass('left');
-            layoutButton.getMenu().hide();
             storage.set('analystLayout', 'layoutRight');
         });
         var layout = storage.get('analystLayout');

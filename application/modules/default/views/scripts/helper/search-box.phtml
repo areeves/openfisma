@@ -1,5 +1,6 @@
-<div class="searchBox">
+<div id='toolbar' class="searchBox ui-widget-header ui-corner-all">
     <div class="left" id='toolbarLeft'>
+        <button id='buttonBack'>Back</button>
         <?php
         foreach ($this->toolbarButtons as $button):
             echo $this->escape($button, 'none');
@@ -26,3 +27,10 @@
 
     <div class="clear"></div>
 </div>
+<script>
+$(function(){
+    $('#buttonBack')
+        .button({icons: {primary:'ui-icon-arrowreturnthick-1-w'}})
+        .click(Fisma.Util.goBack);
+});
+</script>

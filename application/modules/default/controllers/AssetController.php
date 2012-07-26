@@ -105,7 +105,7 @@ class AssetController extends Fisma_Zend_Controller_Action_Object
                 array(
                     'value' => 'Import',
                     'href' => $this->getBaseUrl() . '/import',
-                    'imageSrc' => '/images/up.png'
+                    'imageSrc' => 'arrowthick-1-n'
                 )
             );
 

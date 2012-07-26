@@ -150,7 +150,7 @@ abstract class Fisma_Zend_Controller_Action_Object extends Fisma_Zend_Controller
                     array(
                         'value' => 'New',// . $this->getSingularModelName(),
                         'href' => $this->getBaseUrl() . '/create',
-                        'imageSrc' => '/images/create.png'
+                        'imageSrc' => 'plusthick'
                     )
                 );
             }
@@ -179,7 +179,7 @@ abstract class Fisma_Zend_Controller_Action_Object extends Fisma_Zend_Controller
                 'discardChanges',
                 array(
                     'value' => 'Discard',
-                    'imageSrc' => '/images/no_entry.png',
+                    'imageSrc' => 'circle-close',
                     'href' => $this->getBaseUrl() . '/view/id/' . $id . $fromSearchUrl
                 )
             );
@@ -267,7 +267,7 @@ abstract class Fisma_Zend_Controller_Action_Object extends Fisma_Zend_Controller
                 array(
                     'value' => 'Return',
                     'href' => $this->getBaseUrl() . '/list',
-                    'imageSrc' => '/images/arrow_return_down_left.png'
+                    'imageSrc' => 'arrowthick-1-nw'
                 )
             );
         }

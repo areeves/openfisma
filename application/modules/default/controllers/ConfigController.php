@@ -731,7 +731,7 @@ class ConfigController extends Fisma_Zend_Controller_Action_Security
             'discardChanges',
             array(
                 'value' => 'Discard',
-                'imageSrc' => '/images/no_entry.png',
+                'imageSrc' => 'circle-close',
                 'href' => '/config/' . $this->getRequest()->getActionName()
             )
         );

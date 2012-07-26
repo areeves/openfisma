@@ -130,7 +130,7 @@ class View_Helper_InjectAsset
                                       '/stylesheets/Toolbar.css',
                                       '/stylesheets/User.css',
                                       '/stylesheets/datatablegrouper.css',
-                                      '/stylesheets/humanity.css'
+                                      '/stylesheets/aristo.css'
                                 )
                             );
 

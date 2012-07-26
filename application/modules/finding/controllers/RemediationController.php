@@ -362,7 +362,7 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
             array(
                 'value' => 'Printer Friendly',
                 'href' => $this->getBaseUrl() . '/print/id/' . $id,
-                'imageSrc' => '/images/printer.png',
+                'imageSrc' => 'print',
                 'target' => '_blank'
             )
         );

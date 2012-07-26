@@ -45,7 +45,7 @@ class View_Helper_SearchBox extends Zend_View_Helper_Abstract
                 'onClickFunction' => 'Fisma.Util.goBack'
             )
         );
-        array_unshift($toolbarButtons, $button);
+        //array_unshift($toolbarButtons, $button);
 
         $view = Zend_Layout::getMvcInstance()->getView();
 
