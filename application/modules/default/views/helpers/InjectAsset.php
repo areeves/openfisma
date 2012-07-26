@@ -98,6 +98,7 @@ class View_Helper_InjectAsset
                                       '/javascripts/Fisma/Vulnerability.js',
                                       '/javascripts/jquery-min.js',
                                       '/javascripts/jquery-ui-min.js',
+                                      '/javascripts/jquery-cookie-min.js',
                                       '/javascripts/jqPlot/core/jquery_jqplot.js',
                                       '/javascripts/jqPlot/plugins/jqplot_canvasTextRenderer.js',
                                       '/javascripts/jqPlot/plugins/jqplot_canvasAxisLabelRenderer.js',
@@ -128,7 +129,8 @@ class View_Helper_InjectAsset
                                       '/stylesheets/TreeTable.css',
                                       '/stylesheets/Toolbar.css',
                                       '/stylesheets/User.css',
-                                      '/stylesheets/datatablegrouper.css'
+                                      '/stylesheets/datatablegrouper.css',
+                                      '/stylesheets/humanity.css'
                                 )
                             );
 
