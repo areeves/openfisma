@@ -1,31 +1,32 @@
 <div class="searchFilters">
     <div class="left">
         <?php
-        $listButton = new Fisma_Yui_Form_Button_Link('listButton', 
-                                               array('value' => 'Document Type List', 
+        $listButton = new Fisma_Yui_Form_Button_Link('listButton',
+                                               array('value' => 'Document Type List',
                                                      'href' => '/document-type/list'));
         echo $this->escape($listButton, 'none');
         ?>
 
-        <?php 
+        <?php
         if ($this->acl()->hasPrivilegeForClass('create', 'DocumentType')) {
-            $createButton = new Fisma_Yui_Form_Button_Link('createButton', 
-                                                   array('value' => 'Add Document Type', 
-                                                         'href' => '/document-type/create'));
+            $createButton = new Fisma_Yui_Form_Button_Link('createButton',
+                                                   array('value' => 'Add Document Type',
+                                                         'href' => '/document-type/create',
+                                                         'imageSrc' => 'plusthick'));
             echo $this->escape($createButton, 'none');
-        } 
+        }
         ?>
     </div>
     <div class="right">
         <form class="searchForm" name="query" method="post" action="/document-type/list">
         <span class="searchField">
             <b><label for="keywords">Search:</label>&nbsp;</b>
-            <input id="keywords" 
-                   name="keywords" 
-                   value="<?php echo $this->escape($this->keywords);?>" 
-                   title="Input your query value" 
-                   size="20" 
-                   maxlength="40" 
+            <input id="keywords"
+                   name="keywords"
+                   value="<?php echo $this->escape($this->keywords);?>"
+                   title="Input your query value"
+                   size="20"
+                   maxlength="40"
                    type="text">
         </span>
         <span id="searchContainer"></span>

@@ -126,7 +126,7 @@ class Finding_WorkflowController extends Fisma_Zend_Controller_Action_Security
                 'cancelButton',
                 array(
                     'value' => 'Discard',
-                    'imageSrc' => '/images/no_entry.png',
+                    'imageSrc' => 'circle-close',
                     'href' => '/finding/workflow/view'
                 )
             );

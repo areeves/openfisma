@@ -54,29 +54,6 @@ class Fisma_Yui_Form_Button_Link extends Fisma_Yui_Form_Button
         if (!empty($target)) {
             $targetRender = 'target="' . $target . '" ';
         }
-        /*$render = "<span id='{$this->getName()}'></span>
-                   <script type='text/javascript'>
-                        YAHOO.util.Event.onDOMReady(function() {
-                            var button = new YAHOO.widget.Button({
-                                 type: \"link\",
-                                 label: \"{$this->getValue()}\",
-                                 href: \"{$this->getAttrib('href')}\",
-                                 id: \"{$this->getName()}Button\",
-                                 $onClickRender
-                                 $targetRender
-                                 disabled: $disabled,
-                                 container: \"{$this->getName()}\"
-                            });
-                        ";
-        $image = $this->getAttrib('imageSrc');
-        if (isset($image)) {
-            $view = Zend_Layout::getMvcInstance()->getView();
-            $image = $view->serverUrl($image);
-
-            $render .= "button._button.style.background = 'url($image) 1em 50% no-repeat';\n";
-            $render .= "button._button.style.paddingLeft = '3em';\n";
-        }
-        $render .= "\n});</script>";*/
         $imageRender = '';
         if ($image = $this->getAttrib('imageSrc')) {
             if (substr($image, 0, 1) !== '/') {

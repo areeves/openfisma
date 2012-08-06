@@ -70,7 +70,7 @@ class RoleController extends Fisma_Zend_Controller_Action_Object
                 'discardChanges',
                 array(
                     'value' => 'Discard',
-                    'imageSrc' => '/images/no_entry.png',
+                    'imageSrc' => 'circle-close',
                     'href' => '/role/view-matrix'
                 )
             );
@@ -95,7 +95,7 @@ class RoleController extends Fisma_Zend_Controller_Action_Object
             array(
                 'value' => 'Return',
                 'href' => $this->getBaseUrl() . '/list',
-                'imageSrc' => '/images/arrow_return_down_left.png'
+                'imageSrc' => 'arrowthick-1-nw'
             )
         );
 

@@ -477,7 +477,7 @@ class UserController extends Fisma_Zend_Controller_Action_Object
             'discardChanges',
             array(
                 'value' => 'Discard',
-                'imageSrc' => '/images/no_entry.png',
+                'imageSrc' => 'circle-close',
                 'href' => '/user/password'
             )
         );
@@ -1245,7 +1245,7 @@ class UserController extends Fisma_Zend_Controller_Action_Object
                 'discardChanges',
                 array(
                     'value' => 'Discard',
-                    'imageSrc' => '/images/no_entry.png',
+                    'imageSrc' => 'circle-close',
                     'href' => "/user/notification"
                 )
             );
@@ -1734,7 +1734,7 @@ class UserController extends Fisma_Zend_Controller_Action_Object
             'discardChanges',
             array(
                 'value' => 'Discard',
-                'imageSrc' => '/images/no_entry.png',
+                'imageSrc' => 'circle-close',
                 'href' => '/user/password'
             )
         );

@@ -253,7 +253,7 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
                 'toolbarUploadFindingsButton',
                 array(
                     'value' => 'Import',
-                    'imageSrc' => '/images/up.png',
+                    'imageSrc' => 'arrowthick-1-n',
                     'href' => '/finding/index/injection'
                 )
             ));
@@ -330,7 +330,7 @@ class Finding_RemediationController extends Fisma_Zend_Controller_Action_Object
                     'discardChanges',
                     array(
                         'value' => 'Discard',
-                        'imageSrc' => '/images/no_entry.png',
+                        'imageSrc' => 'circle-close',
                         'href' => '/finding/remediation/view/id/' . $finding->id . $fromSearchUrl
                     )
                 );

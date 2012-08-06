@@ -1,0 +1,10 @@
+<a
+    href='<?php echo $this->escape($this->href); ?>'
+    id='<?php echo $this->escape($this->id); ?>'
+    <?php echo $this->escape($this->target); ?>
+><?php echo $this->escape($this->value); ?></a>
+<script>$(function(){$('#<?php
+    echo $this->escape($this->id);
+?>').button({<?php
+    echo $this->escape($this->image, 'none');
+?>});});</script>

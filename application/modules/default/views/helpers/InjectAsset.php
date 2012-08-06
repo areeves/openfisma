@@ -131,6 +131,7 @@ class View_Helper_InjectAsset
                                       '/stylesheets/User.css',
                                       '/stylesheets/datatablegrouper.css',
                                       '/stylesheets/aristo.css'
+                                      //'/stylesheets/humanity.css'
                                 )
                             );
 
