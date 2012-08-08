@@ -270,6 +270,9 @@ Privilege:
         resource: organization
         action: delete
         description: Delete Organizations/Systems
+    organization_oversee:
+        resource: organization
+        action: oversee
 
     # Pocs CRUD
     poc_create:

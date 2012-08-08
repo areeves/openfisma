@@ -24,7 +24,7 @@
  * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Controllers
  */
-class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
+class Finding_ManagerController extends Fisma_Zend_Controller_Action_Security
 {
     /**
      * Mapping from enum strings used in the DB to User-Friendly strings used in the UI
@@ -46,6 +46,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
      * @var array
      */
     protected $_highModLowColors = array(Fisma_Chart::COLOR_HIGH, Fisma_Chart::COLOR_MODERATE, Fisma_Chart::COLOR_LOW);
+    protected $_lowModHighColors = array(Fisma_Chart::COLOR_LOW, Fisma_Chart::COLOR_MODERATE, Fisma_Chart::COLOR_HIGH);
 
     /**
      * Set ajaxContect on analystAction and chartsAction
@@ -53,6 +54,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
     public function init()
     {
         $this->_helper->ajaxContext()
+            ->addActionContext('index-tab', 'html')
             ->addActionContext('analyst', 'html')
             ->addActionContext('charts', 'html')
             ->initContext();
@@ -69,6 +71,8 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         $this->_acl->requireArea('finding');
 
         $this->_helper->fismaContextSwitch()
+            ->addActionContext('chart-by-poc', 'json')
+            ->addActionContext('chart-by-system', 'json')
             ->addActionContext('chartoverdue', 'json')
             ->addActionContext('chartfindingstatus', 'json')
             ->addActionContext('total-type', 'json')
@@ -89,15 +93,54 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
      *
      * @GETAllowed
      */
-    public function indexAction()
+    public function indexTabAction()
     {
-        $tabView = new Fisma_Yui_TabView('FindingDashboard');
+        if (!$orgId = $this->getRequest()->getParam('orgId')) {
+            throw new Fisma_Zend_User_Exception("No organization id provided.");
+        }
+        if (!$organization = Doctrine::getTable('Organization')->find($orgId)) {
+            throw new Fisma_Zend_User_Exception("No organization found with id #{$orgId}");
+        }
 
-        $tabView->addTab("Analyst View", "/finding/dashboard/analyst/format/html");
-        $tabView->addTab("Executive View", "/finding/dashboard/charts/format/html");
-        $tabView->addTab("Summary View", "/finding/summary/index/format/html");
+        $tabView = new Fisma_Yui_TabView('FindingManagerTab' . $orgId);
+
+        $tabView->addTab("Analyst View", "/finding/manager/analyst/format/html/orgId/{$orgId}");
+        $tabView->addTab("Executive View", "/finding/manager/charts/format/html/orgId/{$orgId}");
 
         $this->view->tabView = $tabView;
+    }
+
+    /**
+     * The analyst page for Finding Dashboard
+     *
+     * @GETAllowed
+     */
+    public function indexAction()
+    {
+        $organizations = Doctrine_Query::create()
+            ->from('UserRole ur')
+            ->where('ur.userId = ?', CurrentUser::getAttribute('id'))
+            ->andWhere('ur.roleId = ?', Doctrine::getTable('Role')->findOneByNickname('MANAGER')->id)
+            ->fetchOne()
+            ->Organizations;
+        switch (count($organizations->toArray())) {
+            case 0:
+                throw new Fisma_Zend_User_Exception("You do not have the manager role");
+                break;
+            case 1:
+                $this->_forward('index-tab', 'manager', 'finding', array('orgId' => $organizations->getFirst()->id));
+                break;
+            default:
+                $tabView = new Fisma_Yui_TabView('FindingManager', null, 'left');
+                foreach ($organizations as $organization) {
+                    $tabView->addTab(
+                        $organization->nickname,
+                        "/finding/manager/index-tab/format/html/orgId/" . $organization->id
+                    );
+                }
+                $this->view->tabView = $tabView;
+                break;
+        }
     }
 
     /**
@@ -107,153 +150,36 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
      */
     public function analystAction()
     {
-        $orgSystems = $this->_me->getOrganizationsByPrivilege('finding', 'read')->toArray();
-        $myOrgSystemIds = array(0);
+        if (!$orgId = $this->getRequest()->getParam('orgId')) {
+            throw new Fisma_Zend_User_Exception("No organization id provided.");
+        }
+
+        if (!$organization = Doctrine::getTable('Organization')->find($orgId)) {
+            throw new Fisma_Zend_User_Exception("No organization found with id #{$orgId}");
+        }
+
+        $orgSystems = $organization->getNode()->getChildren();
+        $myOrgSystemIds = array($orgId);
         foreach ($orgSystems as $orgSystem) {
             $myOrgSystemIds[] = $orgSystem['id'];
         }
 
-        $totalFindingsQuery = Doctrine_Query::create()
-            ->select('COUNT(id) as count')
-            ->from('Finding f')
-            ->where('f.deleted_at is NULL AND f.status <> ?', 'CLOSED')
-            ->andWhereIn('f.responsibleOrganizationId', $myOrgSystemIds)
-            ->orWhere('f.status <> ?', 'CLOSED')
-            ->andWhere('f.pocId = ?', $this->_me->id);
-        $result = $totalFindingsQuery->fetchOne();
-        $this->view->total = $result['count'];
-        if ($this->view->total < 1) {
-            $this->view->message = "There are no unresolved findings under your responsibility.";
-            return;
-        }
-
-        $findingsByTime = Doctrine_Query::create()
-            ->select('f.id, f.nextDueDate')
-            ->from('Finding f')
-            ->where('f.deleted_at is NULL AND f.status <> ?', 'CLOSED')
-            ->andWhereIn('f.responsibleorganizationid', $myOrgSystemIds)
-            ->orWhere('f.status <> ?', 'CLOSED')
-            ->andWhere('f.pocId = ?', $this->_me->id)
-            ->execute();
-        $this->view->byTime = array(
-            array(
-                'criteria' => 'On-Time',
-                'count' => 0
-            ),
-            array(
-                'criteria' => 'Overdue',
-                'count' => 0
-            )
-        );
-        foreach ($findingsByTime as $finding) {
-            $nextDueDate = new Zend_Date($finding->nextDueDate, Fisma_Date::FORMAT_DATE);
-            if (!is_null($finding->nextDueDate)) {
-                if ($nextDueDate->compareDate(new Zend_Date()) >= 0) {
-                    $this->view->byTime[0]['count']++;
-                } else {
-                    $this->view->byTime[1]['count']++;
-                }
-            }
-        }
-
-        $this->view->byThreat = Doctrine_Query::create()
-            ->select('COUNT(id) as count, threatlevel as criteria')
-            ->from('Finding f')
-            ->groupBy('f.threatlevel')
-            ->where('f.deleted_at is NULL AND f.status <> ?', 'CLOSED')
-            ->andWhereIn('f.responsibleorganizationid', $myOrgSystemIds)
-            ->orWhere('f.status <> ?', 'CLOSED')
-            ->andWhere('f.pocId = ?', $this->_me->id)
-            ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
-            ->execute();
-
-        $this->view->byStatus = Doctrine_Query::create()
-            ->select('COUNT(id) as count, denormalizedstatus as criteria')
-            ->from('Finding f')
-            ->groupBy('f.denormalizedstatus')
-            ->where('f.deleted_at is NULL AND f.status <> ?', 'CLOSED')
-            ->andWhereIn('f.responsibleorganizationid', $myOrgSystemIds)
-            ->orWhere('f.status <> ?', 'CLOSED')
-            ->andWhere('f.pocId = ?', $this->_me->id)
-            ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
-            ->execute();
-        $emptyFinding = new Finding();
-        foreach ($this->view->byStatus as &$status) {
-            $status['tooltip'] = "<b>" . $emptyFinding->getLongStatus($status['criteria']) . "</b>";
-        }
-        usort($this->view->byStatus, function($a, $b){
-            $allStatuses = Finding::getAllStatuses();
-            return array_search($a['criteria'], $allStatuses) - array_search($b['criteria'], $allStatuses);
-        });
-        unset($emptyFinding);
-
-        $this->view->byType = Doctrine_Query::create()
-            ->select('COUNT(id) as count, type as criteria')
-            ->from('Finding f')
-            ->groupBy('f.type')
-            ->where('f.deleted_at is NULL AND f.status <> ?', 'CLOSED')
-            ->andWhereIn('f.responsibleorganizationid', $myOrgSystemIds)
-            ->orWhere('f.status <> ?', 'CLOSED')
-            ->andWhere('f.pocId = ?', $this->_me->id)
-            ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
-            ->execute();
-        foreach ($this->view->byType as &$type) {
-            switch ($type['criteria']) {
-                case 'CAP':
-                    $type['tooltip'] = "<b>CAP - Corrective Action Plan</b><br/>"
-                                     . "<p>A corrective action plan is a mitigation strategy that aims to reduce the "
-                                     . "overall risk of a finding by correcting the underlying deficiency.</p>";
-                    break;
-                case 'FP':
-                    $type['tooltip'] = "<b>FP - False Positive</b><br/>"
-                                     . "<p>A false positive is not a true mitigation strategy, per se, but it is a plan"
-                                     . " to document that the auditor's finding did not exist as documented on the day "
-                                     . "that it was observed. Notice that if a finding was true at the time it was "
-                                     . "reported by the auditor but has since become invalid, that is not considered a "
-                                     . "false positive.</p>";
-                    break;
-                case 'AR':
-                    $type['tooltip'] = "<b>AR - Accepted Risk</b><br/><p>"
-                                     . "An accept risk is a mitigation strategy that aims to reduce risk down to an acc"
-                                     . "eptable level, then seek official sign-off from the authorizing official.</p>";
-                    break;
-                case 'NONE':
-                    $type['tooltip'] = "<b>NONE - No Mitigation Strategy Selected</b>";
-                    break;
-            }
-        }
-
-        $this->view->bySource = Doctrine_Query::create()
-            ->select('COUNT(f.id) as count, f.sourceid, s.nickname as criteria, ' .
-                     'CONCAT("<b>", s.nickname, " - ", s.name, "</b><br/>", s.description) as tooltip')
-            ->from('Finding f')
-            ->innerJoin('f.Source s')
-            ->groupBy('f.sourceid')
-            ->where('f.deleted_at is NULL AND f.status <> ?', 'CLOSED')
-            ->andWhereIn('f.responsibleorganizationid', $myOrgSystemIds)
-            ->orWhere('f.status <> ?', 'CLOSED')
-            ->andWhere('f.pocId = ?', $this->_me->id)
-            ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
-            ->execute();
-
         $this->view->byPoc = Doctrine_Query::create()
             ->select(
-                'COUNT(f.id) as count, f.threatlevel, i.id as icon, o.id, o.nickname, f.pocid, u.id, u.displayName'
+                'COUNT(f.id) as count, f.threatlevel, o.id, o.nickname, f.pocid, u.id, u.displayName'
             )
             ->from('Finding f')
             ->leftJoin('f.PointOfContact u')
             ->leftJoin('u.ReportingOrganization o')
-            ->leftJoin('o.OrganizationType ot')
-            ->leftJoin('ot.Icon i')
             ->groupBy('f.pocid, f.threatlevel')
             ->where('f.deleted_at is NULL AND f.status <> ?', 'CLOSED')
-            ->andWhereIn('f.responsibleorganizationid', $myOrgSystemIds)
-            ->orWhere('f.status <> ?', 'CLOSED')
-            ->andWhere('f.pocId = ?', $this->_me->id)
+            ->andWhere('o.id = ?', $orgId)
             ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
             ->execute();
         $criteria = array();
+        $this->view->totalByPoc = 0;
         foreach ($this->view->byPoc as $index => &$statistic) {
+            $this->view->totalByPoc += $statistic['count'];
             if (empty($statistic['pocId'])) {
                 $statistic['criteria'] = 'Unassigned';
                 $statistic['pocId'] = 'empty';
@@ -277,26 +203,19 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             }
         }
         $byPoc = array();
-        foreach ($this->view->byPoc as $statistic) {
+        foreach ($this->view->byPoc as &$statistic) {
             $statistic['LOW'] = (empty($statistic['LOW'])) ? 0 : $statistic['LOW'];
             $statistic['MODERATE'] = (empty($statistic['MODERATE'])) ? 0 : $statistic['MODERATE'];
             $statistic['HIGH'] = (empty($statistic['HIGH'])) ? 0 : $statistic['HIGH'];
             $byPoc[] = array(
                 'poc' => $statistic['PointOfContact']['displayName'],
                 'displayPoc' => $statistic['criteria'],
-                'parentOrganization' => $statistic['PointOfContact']['ReportingOrganization']['nickname'],
-                'displayParentOrganization' => json_encode(array(
-                    'iconId' => $statistic['icon'],
-                    'iconSize' => 'small',
-                    'displayName' => $statistic['PointOfContact']['ReportingOrganization']['nickname'],
-                    'orgId' => $statistic['PointOfContact']['ReportingOrganization']['id']
-                )),
                 'threatLevel' => json_encode(array(
                     'LOW' => $statistic['LOW'],
                     'MODERATE' => $statistic['MODERATE'],
                     'HIGH' => $statistic['HIGH'],
                     'criteriaQuery' => '/threatLevel/enumIs/',
-                    'total' => $this->view->total
+                    'total' => $this->view->totalByPoc
                 )),
                 'total' => $statistic['count'],
                 'displayTotal' => json_encode(array(
@@ -327,28 +246,6 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 false,
                 'string',
                 'poc'
-            )
-        );
-        $this->view->byPocTable->addColumn(
-            new Fisma_Yui_DataTable_Column(
-                'Reporting Organization',
-                false,
-                null,
-                null,
-                'parentOrganization',
-                true
-            )
-        );
-        $this->view->byPocTable->addColumn(
-            new Fisma_Yui_DataTable_Column(
-                'Reporting Organization',
-                true,
-                'Fisma.TableFormat.formatOrganization',
-                null,
-                'displayParentOrganization',
-                false,
-                'string',
-                'parentOrganization'
             )
         );
         $this->view->byPocTable->addColumn(
@@ -398,12 +295,11 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             ->groupBy('f.threatlevel, o.id')
             ->where('f.deleted_at is NULL AND f.status <> ?', 'CLOSED')
             ->andWhereIn('o.id', $myOrgSystemIds)
-            ->orWhere('f.status <> ?', 'CLOSED')
-            ->andWhere('f.pocId = ?', $this->_me->id)
             ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
             ->execute();
-        $bySystem = array();
+        $this->view->totalBySystem = 0;
         foreach ($this->view->bySystem as &$statistic) {
+            $this->view->totalBySystem += $statistic['count'];
             $count = 0;
             foreach ($statistic['Findings'] as &$finding) {
                 $threatLevel = $finding['threatLevel'];
@@ -415,16 +311,6 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             $statistic['HIGH'] = (empty($statistic['HIGH'])) ? 0 : $statistic['HIGH'];
             $statistic['count'] = $count;
 
-            $statistic['parent'] = Doctrine_Query::create()
-                ->select('o.id, o.nickname, i.id as icon')
-                ->from('Organization o')
-                ->leftJoin('o.OrganizationType ot')
-                ->leftJoin('ot.Icon i')
-                ->where('o.lft < ?', $statistic['lft'])
-                ->andWhere('o.lft < ?', $statistic['rgt'])
-                ->andWhere('o.level = ?', $statistic['level'] - 1)
-                ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
-                ->fetchOne();
             if (empty($statistic['icon'])) { // the OrganizationType "system" doesn't have an icon
                 $statistic['icon'] = Doctrine_Query::create()
                     ->select('o.id, s.id, st.iconId as icon')
@@ -436,23 +322,9 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                     ->fetchOne();
                 $statistic['icon'] = $statistic['icon']['icon'];
             }
-            if (empty($statistic['parent']['icon'])) { // the OrganizationType "system" doesn't have an icon
-                $statistic['parent']['icon'] = Doctrine_Query::create()
-                    ->select('o.id, s.id, st.iconId as icon')
-                    ->from('Organization o')
-                    ->leftJoin('o.System s')
-                    ->leftJoin('s.SystemType st')
-                    ->where('o.id = ?', $statistic['parent']['id'])
-                    ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
-                    ->fetchOne();
-                $statistic['parent']['icon'] = $statistic['parent']['icon']['icon'];
-            }
-            if (empty($statistic['parent']['nickname'])) {
-                $statistic['parent']['nickname'] = "(top level)";
-                $statistic['parent']['id'] = null;
-                $statistic['parent']['icon'] = null;
-            }
-
+        }
+        $bySystem = array();
+        foreach ($this->view->bySystem as &$statistic) {
             $bySystem[] = array(
                 'organization' => $statistic['criteria'],
                 'displayOrganization' => json_encode(array(
@@ -461,19 +333,12 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                     'displayName' => $statistic['criteria'],
                     'orgId' => $statistic['id']
                 )),
-                'parentOrganization' => $statistic['parent']['nickname'],
-                'displayParentOrganization' => json_encode(array(
-                    'iconId' => $statistic['parent']['icon'],
-                    'iconSize' => 'small',
-                    'displayName' => $statistic['parent']['nickname'],
-                    'orgId' => $statistic['parent']['id']
-                )),
                 'threatLevel' => json_encode(array(
                     'LOW' => $statistic['LOW'],
                     'MODERATE' => $statistic['MODERATE'],
                     'HIGH' => $statistic['HIGH'],
                     'criteriaQuery' => '/threatLevel/enumIs/',
-                    'total' => $this->view->total
+                    'total' => $this->view->totalBySystem
                 )),
                 'total' => $statistic['count'],
                 'displayTotal' => json_encode(array(
@@ -504,28 +369,6 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
                 false,
                 'string',
                 'organization'
-            )
-        );
-        $this->view->bySystemTable->addColumn(
-            new Fisma_Yui_DataTable_Column(
-                'Parent Organization',
-                false,
-                null,
-                null,
-                'parentOrganization',
-                true
-            )
-        );
-        $this->view->bySystemTable->addColumn(
-            new Fisma_Yui_DataTable_Column(
-                'Parent Organization',
-                true,
-                'Fisma.TableFormat.formatOrganization',
-                null,
-                'displayParentOrganization',
-                false,
-                'string',
-                'parentOrganization'
             )
         );
         $this->view->bySystemTable->addColumn(
@@ -563,6 +406,149 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             )
         );
         $this->view->bySystemTable->setData($bySystem);
+
+        if ($this->view->totalByPoc + $this->view->totalBySystem < 1) {
+            $this->view->message = "There are no unresolved findings under your responsibility.";
+            return;
+        }
+
+        $chartByPoc = new Fisma_Chart(300, 250, 'chartByPoc', '/finding/manager/chart-by-poc/format/json/orgId/' . $orgId);
+        $chartByPoc->setTitle('Unresolved: By Point of Contact');
+        $this->view->chartByPoc = $chartByPoc->export('html', true);
+
+        $chartBySystem = new Fisma_Chart(300, 250, 'chartBySystem', '/finding/manager/chart-by-system/format/json/orgId/' . $orgId);
+        $chartBySystem->setTitle('Unresolved: By Point of Contact');
+        $this->view->chartBySystem = $chartBySystem->export('html', true);
+    }
+
+    /**
+     * Total unresolved by POC
+     *
+     * @GETAllowed
+     */
+    public function chartByPocAction()
+    {
+        if (!$orgId = $this->getRequest()->getParam('orgId')) {
+            throw new Fisma_Zend_User_Exception("No organization id provided.");
+        }
+
+        if (!$organization = Doctrine::getTable('Organization')->find($orgId)) {
+            throw new Fisma_Zend_User_Exception("No organization found with id #{$orgId}");
+        }
+
+        $rtnChart = new Fisma_Chart();
+        $rtnChart
+            ->setAxisLabelY('Number of Findings')
+            ->setChartType('bar')
+            ->setColors($this->_lowModHighColors);
+
+        // Dont query if there are no organizations this user can see
+        if (empty($this->_visibleOrgs)) {
+            $this->view->chart = $rtnChart->export('array');
+            return;
+        }
+
+        $basicLink =
+            '/finding/remediation/list?q=' .
+            '/denormalizedStatus/enumIsNot/CLOSED' .
+            '/pocOrg/textExactMatch/' . $organization->nickname .
+            '/threatLevel/enumIs/';
+
+        $data = array(
+            'LOW' => 0,
+            'MODERATE' => 0,
+            'HIGH' => 0
+        );
+
+        $results = Doctrine_Query::create()
+            ->select(
+                'COUNT(f.id) as count, f.threatlevel as criteria, f.id, u.reportingorganizationid, o.id'
+            )
+            ->from('Finding f')
+            ->leftJoin('f.PointOfContact u')
+            ->leftJoin('u.ReportingOrganization o')
+            ->groupBy('f.threatlevel')
+            ->where('f.deleted_at is NULL AND f.status <> ?', 'CLOSED')
+            ->andWhere('o.id = ?', $orgId)
+            ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
+            ->execute();
+        foreach($results as $result) {
+            $data[$result['criteria']] = $result['count'];
+        }
+
+        foreach($data as $key => $value) {
+            $rtnChart->addColumn($key, $value, $basicLink . $key);
+        }
+
+        // The context switch will turn this array into a json reply (the responce to the external source)
+        $this->view->chart = $rtnChart->export('array');
+    }
+
+    /**
+     * Total unresolved by System
+     *
+     * @GETAllowed
+     */
+    public function chartBySystemAction()
+    {
+        if (!$orgId = $this->getRequest()->getParam('orgId')) {
+            throw new Fisma_Zend_User_Exception("No organization id provided.");
+        }
+
+        if (!$organization = Doctrine::getTable('Organization')->find($orgId)) {
+            throw new Fisma_Zend_User_Exception("No organization found with id #{$orgId}");
+        }
+
+        $rtnChart = new Fisma_Chart();
+        $rtnChart
+            ->setAxisLabelY('Number of Findings')
+            ->setChartType('bar')
+            ->setColors($this->_lowModHighColors);
+
+        // Dont query if there are no organizations this user can see
+        if (empty($this->_visibleOrgs)) {
+            $this->view->chart = $rtnChart->export('array');
+            return;
+        }
+
+        $basicLink =
+            '/finding/remediation/list?q=' .
+            '/denormalizedStatus/enumIsNot/CLOSED' .
+            '/organization/organizationChildren/' . $organization->nickname .
+            '/threatLevel/enumIs/';
+
+        $data = array(
+            'LOW' => 0,
+            'MODERATE' => 0,
+            'HIGH' => 0
+        );
+
+        $orgSystems = $organization->getNode()->getChildren();
+        $myOrgSystemIds = array($orgId);
+        foreach ($orgSystems as $orgSystem) {
+            $myOrgSystemIds[] = $orgSystem['id'];
+        }
+        $results = Doctrine_Query::create()
+            ->select(
+                'COUNT(f.id) as count, f.threatlevel as criteria, f.id, o.id'
+            )
+            ->from('Finding f')
+            ->leftJoin('f.Organization o')
+            ->groupBy('f.threatlevel')
+            ->where('f.deleted_at is NULL AND f.status <> ?', 'CLOSED')
+            ->andWhereIn('o.id', $myOrgSystemIds)
+            ->setHydrationMode(Doctrine::HYDRATE_ARRAY)
+            ->execute();
+        foreach($results as $result) {
+            $data[$result['criteria']] = $result['count'];
+        }
+
+        foreach($data as $key => $value) {
+            $rtnChart->addColumn($key, $value, $basicLink . $key);
+        }
+
+        // The context switch will turn this array into a json reply (the responce to the external source)
+        $this->view->chart = $rtnChart->export('array');
     }
 
     /**
@@ -575,7 +561,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         // Top-left chart - Finding Forecast
         $chartFindForecast =
             new Fisma_Chart(380, 275, 'chartFindForecast',
-                    '/finding/dashboard/findingforecast/format/json');
+                    '/finding/manager/findingforecast/format/json');
         $chartFindForecast
             ->setTitle('Finding Forecast')
             ->addWidget('dayRangesStatChart', 'Day Ranges:', 'text', '0, 15, 30, 60, 90')
@@ -598,7 +584,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
 
         // Top-right chart - Findings Past Due
         $chartOverdueFinding =
-            new Fisma_Chart(380, 275, 'chartOverdueFinding', '/finding/dashboard/chartoverdue/format/json');
+            new Fisma_Chart(380, 275, 'chartOverdueFinding', '/finding/manager/chartoverdue/format/json');
         $chartOverdueFinding
             ->setTitle('Findings Past Due')
             ->addWidget('dayRanges', 'Day Ranges:', 'text', '1, 30, 60, 90, 120')
@@ -645,7 +631,7 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         $chartNoMit
             ->setTitle('Findings Without Corrective Actions')
             ->setUniqueid('chartNoMit')
-            ->setExternalSource('/finding/dashboard/chartfindnomitstrat/format/json')
+            ->setExternalSource('/finding/manager/chartfindnomitstrat/format/json')
             ->addWidget('dayRangesMitChart', 'Day Ranges:', 'text', '1, 30, 60, 90, 120')
             ->addWidget(
                 'noMitThreatLvl',
@@ -667,35 +653,6 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
         $orgChartFilterList = $this->_getOrgChartFilterList();
 
         $defaultValues = array_keys($orgChartFilterList);
-
-        $findingOrgChart = new Fisma_Chart(400, 275, 'findingOrgChart');
-        $findingOrgChart
-            ->setTitle('Open Findings By Organization')
-            ->setExternalSource('/finding/dashboard/chartfindingbyorgdetail/format/json')
-            ->addWidget(
-                    'displayBy',
-                    'Display By:',
-                    'combo',
-                    $defaultValues[0],
-                    $orgChartFilterList,
-                    true
-                )
-            ->addWidget(
-                'threatLevel',
-                'Finding Type:',
-                'combo',
-                'Totals',
-                $this->_threatLevels
-            )
-            ->addWidget(
-                'orgThreatType',
-                'Risk Type:',
-                'combo',
-                'Threat Level',
-                array_values($this->_threatTypes)
-            );
-
-        $this->view->findingOrgChart = $findingOrgChart->export();
 
         // Bottom-Bottom chart - Current Security Control Deficiencies
         $securityFamilies = $this->_getSecurityControleFamilies();
@@ -754,175 +711,6 @@ class Finding_DashboardController extends Fisma_Zend_Controller_Action_Security
             $familyArray[] = $famResult['sc_fam'];
 
         return $familyArray;
-    }
-
-    /**
-     * Calculate Organization statistics based on params.
-     * Params expected by $this->getRequest()->getParam(...)
-     * Expected params: displayBy
-     * Returns exported Fisma_Chart
-     *
-     * @GETAllowed
-     * @return array
-     */
-    public function chartfindingbyorgdetailAction()
-    {
-        $displayBy = urldecode($this->getRequest()->getParam('displayBy'));
-        $displayBy = strtolower($displayBy);
-
-        $threatLevel = urldecode($this->getRequest()->getParam('threatLevel'));
-        $threatLevel = strtolower($threatLevel);
-
-        $threatType = $this->getRequest()->getparam('orgThreatType');
-        $threatField = $threatType === 'Threat Level' ? 'threatLevel' : 'residualRisk';
-
-        $rtnChart = new Fisma_Chart();
-        $rtnChart
-            ->setThreatLegendVisibility(true)
-            ->setThreatLegendTitle($threatType)
-            ->setThreatLegendWidth(450)
-            ->setAxisLabelY('Number of Findings')
-            ->setChartType('stackedbar')
-            ->setColors($this->_highModLowColors)
-            ->setLayerLabels(
-                    array(
-                        'Null',
-                        'High',
-                        'Moderate',
-                        'Low'
-                        )
-                    );
-
-        // Dont query if there are no organizations this user can see
-        if (empty($this->_visibleOrgs)) {
-            $this->view->chart = $rtnChart->export('array');
-            return;
-        }
-
-        $basicLink =
-            '/finding/remediation/list?q=' .
-            '/denormalizedStatus/enumIsNot/CLOSED' .
-            '/organization/organizationSubtree/';
-
-        if ($displayBy === 'system') {
-            $systemCounts = Doctrine_Query::create()
-                ->select('parent.id, parent.nickname, parent.name')
-                ->addSelect("SUM(IF(finding.id IS NOT NULL AND finding.' . $threatField . ' IS NULL, 1, 0)) isnull")
-                ->addSelect("SUM(IF(finding.' . $threatField . ' = 'LOW', 1, 0)) low")
-                ->addSelect("SUM(IF(finding.' . $threatField . ' = 'MODERATE', 1, 0)) moderate")
-                ->addSelect("SUM(IF(finding.' . $threatField . ' = 'HIGH', 1, 0)) high")
-                ->from('Organization parent')
-                ->leftJoin('parent.System system')
-                ->leftJoin('Organization node')
-                ->leftJoin("node.Findings finding WITH finding.status <> 'CLOSED'")
-                ->leftJoin('node.System nodeSystem')
-                ->where('node.lft BETWEEN parent.lft and parent.rgt')
-                ->andWhere('nodeSystem.sdlcPhase <> ?', array('disposal'))
-                ->andWhere('system.sdlcPhase <> ?', array('disposal'))
-                ->andWhereIn('parent.id', $this->_visibleOrgs)
-                ->groupBy('parent.nickname')
-                ->orderBy('parent.nickname')
-                ->having('SUM(IF(finding.id IS NOT NULL, 1, 0)) > 0')
-                ->setHydrationMode(Doctrine::HYDRATE_SCALAR)
-                ->execute();
-
-            foreach ($systemCounts as $systemCountInfo) {
-                $orgName = $systemCountInfo['parent_nickname'];
-                $rtnChart->addColumn(
-                    $orgName,
-                    array(
-                        $systemCountInfo['finding_isnull'],
-                        $systemCountInfo['finding_high'],
-                        $systemCountInfo['finding_moderate'],
-                        $systemCountInfo['finding_low']
-                    ),
-                    array(
-                        '',
-                        $basicLink . '#ColumnLabel#/' . $threatField . '/enumIs/HIGH',
-                        $basicLink . '#ColumnLabel#/' . $threatField . '/enumIs/MODERATE',
-                        $basicLink . '#ColumnLabel#/' . $threatField . '/enumIs/LOW'
-                    ),
-                    $systemCountInfo['parent_name'] . '<hr/>#columnReport#'
-                );
-            }
-        } else {
-
-            // Get a list of requested organization-parent types (Agency-organizations, Bureau-organizations, gss, etc)
-            $parents = $this->_getOrganizationsByOrgType($displayBy);
-
-            // For each parent (foreach agency, or bBureau, etc)
-            foreach ($parents as $thisParentOrg) {
-
-                $childrenTotaled = $this->_getSumsOfOrgChildren($thisParentOrg['id'], $threatField);
-
-                // Do not use association, high/mod/low is defined on the chart with Fisma_Chart->setLayerLabels()
-                $childrenTotaled = array_values($childrenTotaled);
-
-                $rtnChart->addColumn(
-                        $thisParentOrg['nickname'],
-                        $childrenTotaled,
-                        array(
-                            '',
-                            $basicLink . '#ColumnLabel#/' . $threatField . '/enumIs/HIGH',
-                            $basicLink . '#ColumnLabel#/' . $threatField . '/enumIs/MODERATE',
-                            $basicLink . '#ColumnLabel#/' . $threatField . '/enumIs/LOW'
-                            ),
-                        $thisParentOrg['name'] . '<hr/>#columnReport#'
-                        );
-
-            }
-        }
-
-        switch ($threatLevel) {
-
-            case 'high, moderate, and low':
-                // Remove null-count layer/stack in this stacked bar chart
-                $rtnChart->deleteLayer(0);
-                break;
-
-            case 'totals':
-                $rtnChart
-                    ->convertFromStackedToRegular()
-                    ->setColors(array(Fisma_Chart::COLOR_BLUE))
-                    ->setThreatLegendVisibility(false)
-                    ->setLinks(
-                            '/finding/remediation/list?q=' .
-                            '/denormalizedStatus/enumIsNot/CLOSED' .
-                            '/organization/organizationSubtree/#ColumnLabel#'
-                            );
-
-                break;
-            case 'high':
-                // Remove null-count layer/stack in this stacked bar chart
-                $rtnChart->deleteLayer(0);
-
-                $rtnChart
-                    ->deleteLayer(2)
-                    ->deleteLayer(1)
-                    ->setColors(array(Fisma_Chart::COLOR_HIGH));
-                break;
-            case 'moderate':
-                // Remove null-count layer/stack in this stacked bar chart
-                $rtnChart->deleteLayer(0);
-
-                $rtnChart
-                    ->deleteLayer(2)
-                    ->deleteLayer(0)
-                    ->setColors(array(Fisma_Chart::COLOR_MODERATE));
-                break;
-                case 'low';
-                // Remove null-count layer/stack in this stacked bar chart
-                $rtnChart->deleteLayer(0);
-
-                $rtnChart
-                    ->deleteLayer(1)
-                    ->deleteLayer(0)
-                    ->setColors(array(Fisma_Chart::COLOR_LOW));
-                    break;
-        }
-
-        // The context switch will turn this array into a json reply (the responce to the external source)
-        $this->view->chart = $rtnChart->export('array');
     }
 
     /**
