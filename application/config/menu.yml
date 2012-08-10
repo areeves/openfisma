@@ -377,6 +377,10 @@ Administration:
                         func: hasPrivilegeForClass
                         param1: read
                         param2: User
+                ViewAs:
+                    label: View As...
+                    onclick:
+                        fn: Fisma.ViewAs.selectUserForm
         Debug:
             label: Diagnostics
             submenu:

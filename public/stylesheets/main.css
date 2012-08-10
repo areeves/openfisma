@@ -1061,3 +1061,17 @@ table.custom-widget.no-border td {
     padding: 4px;
     cursor: default;
 }
+
+/* A few "View As" related styles */
+div#view-as {
+    padding: 3px;
+    float: right;
+}
+div#view-as a {
+    text-decoration: none;
+    font-size: 1.5em;
+    padding-left: 3px;
+    padding-right: 3px;
+    cursor: pointer;
+    text-align: middle;
+}

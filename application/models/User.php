@@ -317,6 +317,10 @@ class User extends BaseUser
      */
     public function acl()
     {
+        if ($viewAs = $this->viewAs()) {
+            return $viewAs->acl();
+        }
+
         $cache = $this->_getCache();
 
         if (!$acl = $cache->load(md5($this->username) . '_acl')) {
@@ -403,6 +407,22 @@ class User extends BaseUser
         }
 
         return $acl;
+    }
+
+    public function viewAs($user = null)
+    {
+        $cache = $this->_getCache();
+
+        if ($user !== null) {
+            $cache->save($user, md5($this->username) . '_viewas');
+            return $user;
+        }
+        return $cache->load(md5($this->username) . '_viewas');
+    }
+
+    public function clearViewAs()
+    {
+        $this->_getCache()->remove(md5($this->username) . '_viewas');
     }
 
     /**
