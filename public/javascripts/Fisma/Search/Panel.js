@@ -134,6 +134,9 @@ Fisma.Search.Panel.prototype = {
 
                 // Load up this criteria definition and see how many operands it takes
                 var fieldDefinition = this.getFieldDefinition(field);
+                //if (fieldDefinition.hideDefaultCriteria) {
+                    alert("blah");
+                //}
 
                 var criterion = new Fisma.Search.Criteria(this, this.searchableFields);
                 var criterionDefinition = criterion.getCriteriaDefinition(fieldDefinition);

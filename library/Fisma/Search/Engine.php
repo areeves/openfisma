@@ -1045,7 +1045,10 @@ class Fisma_Search_Engine
         $rawValue = null;
 
         if (!isset($searchFieldDefinition['join'])) {
-            $rawValue = $object[$table->getFieldName($doctrineFieldName)];
+            $fieldName = isset($searchFieldDefinition['rawValue'])
+                       ? $searchFieldDefinition['rawValue']
+                       : $doctrineFieldName;
+            $rawValue = $object[$table->getFieldName($fieldName)];
         } else {
             // Handle nested relations
             $relationParts = explode('.', $searchFieldDefinition['join']['relation']);

@@ -396,7 +396,7 @@ Fisma.Search.Criteria.prototype = {
             }
         }
 
-        var definition = Fisma.Search.CriteriaDefinition[tempType];
+        var definition = (field.hideDefaultCriteria) ? new Object() : Fisma.Search.CriteriaDefinition[tempType];
 
         // Fields can define extra criteria that should be merged in
         if (field.extraCriteria) {

@@ -31,7 +31,7 @@
  *
  *******************************************************************************
  */
- 
+
 table.treeTable {
     width: 100%;
 }
@@ -59,7 +59,7 @@ table.treeTable td:first-child span {
 }
 
 table.treeTable div.link {
-	padding: 1px;    
+	padding: 1px;
 }
 
 table.treeTable div.link:hover {

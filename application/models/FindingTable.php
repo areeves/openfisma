@@ -281,6 +281,32 @@ class FindingTable extends Fisma_Doctrine_Table implements Fisma_Search_Searchab
                     'field' => 'id'
                 ),
                 'type' => 'integer'
+            ),
+            'test' => array(
+                'initiallyVisible' => true,
+                'label' => 'On Time',
+                'sortable' => true,
+                'type' => 'text',
+                'rawValue' => 'nextDueDate',
+                'formatter' => 'Fisma.TableFormat.formatOnTime',
+                'hideDefaultCriteria' => true,
+                'extraCriteria' => array(
+                    'organizationSubtree' => array(
+                        'idField' => 'responsibleOrganizationId',
+                        'idProvider' => 'OrganizationTable::getOrganizationSubtreeIds',
+                        'label' => 'Organizational Unit',
+                        'renderer' => 'text',
+                        'query' => 'oneInput',
+                        'isDefault' => true
+                    ),
+                    'systemAggregationSubtree' => array(
+                        'idField' => 'responsibleOrganizationId',
+                        'idProvider' => 'OrganizationTable::getSystemAggregationSubtreeIds',
+                        'label' => 'System',
+                        'renderer' => 'text',
+                        'query' => 'oneInput'
+                    )
+                )
             )
         );
     }

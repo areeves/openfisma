@@ -448,20 +448,20 @@
                     var overdue = nodeData["overdue_" + status] || 0;
 
                     if (ontime === 0 && overdue === 0) {
-                        container.className = "ontime";
+                        container.className = "noDueDate";
                         container.appendChild(document.createTextNode('-'));
                     } else if (ontime > 0 && overdue === 0) {
                         container.className = "ontime";
                         container.appendChild(link);
 
                         link.href = ontimeUrl;
-                        link.appendChild(document.createTextNode(ontime || 0));
+                        link.appendChild(document.createTextNode("On Time: " + ontime));
                     } else if (ontime === 0 && overdue > 0) {
                         container.className = "overdue";
                         container.appendChild(link);
 
                         link.href = overdueUrl;
-                        link.appendChild(document.createTextNode(overdue || 0));
+                        link.appendChild(document.createTextNode("Delayed: " + overdue));
                     } else {
                         // This is executed when ontime > 0 && overdue > 0
                         this._renderSplitCell(container, ontime, ontimeUrl, overdue, overdueUrl);
@@ -497,7 +497,7 @@
 
             var ontimeLink = document.createElement("a");
             ontimeCell.appendChild(ontimeLink);
-            ontimeLink.appendChild(document.createTextNode(ontime));
+            ontimeLink.appendChild(document.createTextNode("On Time: " + ontime));
             ontimeLink.href = ontimeUrl;
 
             var overdueRow = innerTable.insertRow(innerTable.rows.length);
@@ -509,7 +509,7 @@
 
             var overdueLink = document.createElement("a");
             overdueCell.appendChild(overdueLink);
-            overdueLink.appendChild(document.createTextNode(overdue));
+            overdueLink.appendChild(document.createTextNode("Delayed: " + overdue));
             overdueLink.href = overdueUrl;
         },
 

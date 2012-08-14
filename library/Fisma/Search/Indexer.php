@@ -4,22 +4,22 @@
  *
  * This file is part of OpenFISMA.
  *
- * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 
+ * OpenFISMA is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
  * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
  * version.
  *
- * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
+ * OpenFISMA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  * details.
  *
- * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see 
+ * You should have received a copy of the GNU General Public License along with OpenFISMA.  If not, see
  * {@link http://www.gnu.org/licenses/}.
  */
 
 /**
  * Responsible for fetch data from the relational database that is suitable for indexing, then working with the backend
  * to get those documents into the search index.
- * 
+ *
  * @author     Mark E. Haase <mhaase@endeavorsystems.com>
  * @license    http://www.openfisma.org/content/license GPLv3
  * @package    Fisma
@@ -29,7 +29,7 @@ class Fisma_Search_Indexer
 {
     /**
      * Reference to the search engine used by this indexer.
-     * 
+     *
      * @var Fisma_Search_Engine
      */
     private $_searchEngine;
@@ -49,7 +49,7 @@ class Fisma_Search_Indexer
      * on a related model -- for all indexable records.
      *
      * @param string $modelName
-     * @param array $relationAliases Passed by reference. On return it will contain a map of relation names 
+     * @param array $relationAliases Passed by reference. On return it will contain a map of relation names
      *                               and query table aliases.
      * @return Doctrine_Query
      */
@@ -58,7 +58,7 @@ class Fisma_Search_Indexer
         $allRecordsQuery = Doctrine_Query::create()
                            ->from("$modelName a")
                            ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
-        
+
         // Add relations (if any) to the query
         $table = Doctrine::getTable($modelName);
         $searchableFields = $table->getSearchableFields();
@@ -69,7 +69,7 @@ class Fisma_Search_Indexer
         foreach ($searchableFields as $fieldName => $fieldDefinition) {
             if (isset($fieldDefinition['join'])) {
                 $relation = $fieldDefinition['join']['relation'];
-                
+
                 // Create a new relation alias if needed
                 if (!isset($relationAliases[$relation])) {
                     $currentAlias = chr(ord($currentAlias) + 1);
@@ -80,31 +80,35 @@ class Fisma_Search_Indexer
                     // First relation is related directly to the base table
                     $allRecordsQuery->leftJoin("a.{$relationParts[0]} $currentAlias");
                     $allRecordsQuery->addSelect("$currentAlias.id");
-                    
+
                     // Remaining relations are recursively related to each other
                     for ($i = 1; $i < count($relationParts); $i++) {
                         $previousAlias = $currentAlias;
                         $currentAlias = chr(ord($currentAlias) + 1);
-                        
+
                         $relationPart = $relationParts[$i];
-                        
+
                         $allRecordsQuery->leftJoin("$previousAlias.$relationPart $currentAlias");
                         $allRecordsQuery->addSelect("$currentAlias.id");
                     }
-                    
+
                     $relationAliases[$relation] = $currentAlias;
                 }
-                
+
                 $relationAlias = $relationAliases[$relation];
 
                 $name = $fieldDefinition['join']['field'];
 
                 $allRecordsQuery->addSelect("$relationAlias.$name");
             } else {
-                $allRecordsQuery->addSelect("a.$fieldName");
+                if (isset($fieldDefinition['rawValue'])) {
+                    $allRecordsQuery->addSelect("a.{$fieldDefinition['rawValue']} as $fieldName");
+                } else {
+                    $allRecordsQuery->addSelect("a.$fieldName");
+                }
             }
         }
-        
+
         // Make sure soft deleted records are included, too
         if ($table->hasColumn('deleted_at')) {
             $allRecordsQuery->addSelect('a.deleted_at')
@@ -118,19 +122,19 @@ class Fisma_Search_Indexer
 
         return $allRecordsQuery;
     }
-    
+
     /**
      * Indexes the records and fields represented by a doctrine query.
-     * 
+     *
      * @param Doctrine_Query $query
      * @param string $modelName
      * @param int $chunkSize The number of records to index in each batch
-     * @param callback $progressCallback This callback will be invoked with the number of indexed documents as a 
+     * @param callback $progressCallback This callback will be invoked with the number of indexed documents as a
      *        parameter.
      */
     public function indexRecordsFromQuery(Doctrine_Query $query,
                                           $modelName,
-                                          $chunkSize = 1, 
+                                          $chunkSize = 1,
                                           $progressCallback = null)
     {
         $currentRecord = 0;

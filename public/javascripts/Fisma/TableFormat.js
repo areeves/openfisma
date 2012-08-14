@@ -688,5 +688,22 @@ Fisma.TableFormat = {
             div.append(highlightAndEscape(v[2]));
             div.appendTo(cell);
         });
+    },
+
+    formatOnTime : function (elCell, oRecord, oColumn, oData) {
+        if (!oData) {
+            elCell.innerHTML = "N/A";
+            return;
+        }
+
+        var month = parseInt(oData.substr(5, 2), 10) - 1;
+        var date = new Date();
+        date.setFullYear(oData.substr(0,4));
+        date.setMonth(month);
+        date.setDate(oData.substr(8, 2));
+        date.setHours(24);
+
+        elCell.innerHTML = (date >= new Date()) ? 'On Time' : 'Overdue';
+        elCell.style.color = (date >= new Date()) ? 'green' : 'red';
     }
 };
