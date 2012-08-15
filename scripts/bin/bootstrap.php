@@ -36,7 +36,12 @@ set_include_path(
 );
 
 require_once 'Zend/Application.php';
-require_once 'DoctrineORM/Doctrine/ORM/Tools/Setup.php';
+require_once 'Doctrine/ORM/Tools/Setup.php';
+require_once 'Doctrine/Common/ClassLoader.php';
+
+$classLoader = new Doctrine\Common\ClassLoader('Doctrine');
+$classLoader->register();
+unset($classLoader);
 
 $application = new Zend_Application(
     APPLICATION_ENV,
@@ -45,7 +50,7 @@ $application = new Zend_Application(
 
 Fisma::setAppConfig($application->getOptions());
 Fisma::initialize(Fisma::RUN_MODE_COMMAND_LINE);
-$application->bootstrap(array('Db', 'SearchEngine', 'RegisterLogger'));
+$application->bootstrap(array('EntityManager', 'SearchEngine', 'RegisterLogger'));
 Fisma::setConfiguration(new Fisma_Configuration_Database);
 Zend_Registry::set('mail_handler', new Fisma_MailHandler_Null());
 
