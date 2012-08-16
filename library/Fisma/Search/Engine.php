@@ -711,21 +711,29 @@ class Fisma_Search_Engine
             $containsHtml = isset($doctrineDefinition['extra']['purify']['html']) &&
                                   $doctrineDefinition['extra']['purify']['html'];
 
-            $documentFieldValue = $this->_getValueForColumn($rawValue, $searchFieldDefinition['type'], $containsHtml);
+            // treat value as an array
+            $rawValues = (array)$rawValue;
+            foreach ($rawValues as $rawValue) {
+                $documentFieldValue = $this->_getValueForColumn(
+                    $rawValue,
+                    $searchFieldDefinition['type'],
+                    $containsHtml
+                );
 
-            $document->addField($documentFieldName, $documentFieldValue);
+                $document->addField($documentFieldName, $documentFieldValue);
 
-            if ('text' == $searchFieldDefinition['type'] && $searchFieldDefinition['sortable']) {
-                // For sortable text columns, add a separate 'textsort' column (see design document)
-                $document->addField($doctrineFieldName . '_textsort', $documentFieldValue);
-            } elseif ('enum' == $searchFieldDefinition['type'] && $searchFieldDefinition['sortable']) {
+                if ('text' == $searchFieldDefinition['type'] && $searchFieldDefinition['sortable']) {
+                    // For sortable text columns, add a separate 'textsort' column (see design document)
+                    $document->addField($doctrineFieldName . '_textsort', $documentFieldValue);
+                } elseif ('enum' == $searchFieldDefinition['type'] && $searchFieldDefinition['sortable']) {
 
-                if (!isset($searchFieldDefinition['enumReverse'])) {
-                    $searchFieldDefinition['enumReverse'] = array_flip($searchFieldDefinition['enumValues']);
+                    if (!isset($searchFieldDefinition['enumReverse'])) {
+                        $searchFieldDefinition['enumReverse'] = array_flip($searchFieldDefinition['enumValues']);
+                    }
+
+                    $sortOrder = $searchFieldDefinition['enumReverse'][$rawValue];
+                    $document->addField($doctrineFieldName . '_enumsort', $sortOrder);
                 }
-
-                $sortOrder = $searchFieldDefinition['enumReverse'][$rawValue];
-                $document->addField($doctrineFieldName . '_enumsort', $sortOrder);
             }
         }
 
