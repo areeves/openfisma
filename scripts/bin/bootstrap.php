@@ -39,14 +39,16 @@ require_once 'Zend/Application.php';
 require_once 'Doctrine/ORM/Tools/Setup.php';
 require_once 'Doctrine/Common/ClassLoader.php';
 
-$classLoader = new Doctrine\Common\ClassLoader('Doctrine');
-$classLoader->register();
-unset($classLoader);
-
 $application = new Zend_Application(
     APPLICATION_ENV,
     APPLICATION_PATH . '/config/application.ini'
 );
+
+$classLoader = new Doctrine\Common\ClassLoader('Doctrine');
+$application->getAutoloader()->pushAutoloader(array($classLoader, 'loadClass'), 'Doctrine');
+$classLoader = new Doctrine\Common\ClassLoader('Symfony\Component\Console', realpath(APPLICATION_PATH . "/../library/Doctrine"));
+$application->getAutoloader()->pushAutoloader(array($classLoader, 'loadClass'), 'Symfony\Component\Console');
+unset($classLoader);
 
 Fisma::setAppConfig($application->getOptions());
 Fisma::initialize(Fisma::RUN_MODE_COMMAND_LINE);
