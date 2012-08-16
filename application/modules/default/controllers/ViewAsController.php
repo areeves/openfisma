@@ -74,12 +74,25 @@ class ViewAsController extends Fisma_Zend_Controller_Action_Security
         $expr = 'u.nameFirst LIKE ? OR u.nameLast LIKE ? OR u.email LIKE ? OR u.username LIKE ?';
         $params = array_fill(0, 4, '%' . $keyword . '%');
 
+        $oids = CurrentUser::getInstance()->getOrganizationsByPrivilegeQuery('area', 'admin')
+            ->select('o.id')
+            ->setHydrationMode(Doctrine::HYDRATE_SCALAR)
+            ->execute();
+        $oids = array_map(
+            function($v)
+            {
+                return array_shift($v);
+            },
+            $oids
+        );
+
         $query = Doctrine_Query::create()
                     ->from('User u')
                     ->select("u.id, u.nameFirst, u.nameLast, u.username, u.email")
                     ->where($expr, $params)
                     ->andWhere('(u.lockType IS NULL OR u.lockType <> ?)', 'manual')
                     ->andWhere('u.published')
+                    ->andWhereIn('u.reportingOrganizationId', $oids)
                     ->orderBy("u.nameFirst, u.nameLast, u.username, u.email")
                     ->setHydrationMode(Doctrine::HYDRATE_ARRAY);
 
@@ -103,6 +116,8 @@ class ViewAsController extends Fisma_Zend_Controller_Action_Security
      */
     public function selectUserAction()
     {
+        CurrentUser::getInstance()->requireArea('admin');
+
         $userId = $this->getRequest()->getParam('userId');
         $user = Doctrine::getTable('User')->find($userId);
         CurrentUser::getInstance()->viewAs($user);
